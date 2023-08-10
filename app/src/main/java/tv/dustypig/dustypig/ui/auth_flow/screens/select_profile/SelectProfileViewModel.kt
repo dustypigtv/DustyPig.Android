@@ -102,5 +102,5 @@ data class SelectProfileUIState(
     val errorMessage: String = "",
     val showPinDialog: Boolean = false,
     val pin: String = "",
-    val profiles: List<BasicProfile> = List(0) { BasicProfile() }
+    val profiles: List<BasicProfile> = listOf()
 )
