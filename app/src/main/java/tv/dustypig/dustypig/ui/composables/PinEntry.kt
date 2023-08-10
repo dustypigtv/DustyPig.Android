@@ -27,7 +27,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -116,7 +115,6 @@ fun PinEntry(valueChanged: (String) -> Unit, autoFocus: Boolean = false) {
 
     if(autoFocus){
         LaunchedEffect(true) {
-            delay(300)
             pinFocusRequesters[0].requestFocus()
         }
     }

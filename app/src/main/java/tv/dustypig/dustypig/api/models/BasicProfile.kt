@@ -1,9 +1,9 @@
 package tv.dustypig.dustypig.api.models
 
 data class BasicProfile(
-    val id:Int,
-    val name:String,
-    val avatar_url:String?,
-    val is_main:Boolean,
-    val has_pin:Boolean
+    val id: Int = 0,
+    val name: String = "",
+    val avatar_url: String? = null,
+    val is_main: Boolean = false,
+    val has_pin: Boolean = false
 )

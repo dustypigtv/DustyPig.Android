@@ -9,10 +9,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import dagger.hilt.android.AndroidEntryPoint
+import tv.dustypig.dustypig.ui.auth_flow.AuthNav
 import tv.dustypig.dustypig.ui.main_app.AppNav
-import tv.dustypig.dustypig.ui.signin.SignInNav
 import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,7 +42,7 @@ class MainActivity : ComponentActivity() {
         if (AuthManager.loginState == AuthManager.LOGIN_STATE_LOGGED_IN) {
             AppNav()
         } else if (AuthManager.loginState == AuthManager.LOGIN_STATE_LOGGED_OUT) {
-            SignInNav()
+            AuthNav()
         }
     }
 }

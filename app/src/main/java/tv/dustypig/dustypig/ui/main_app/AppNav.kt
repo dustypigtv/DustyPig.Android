@@ -37,10 +37,10 @@ import tv.dustypig.dustypig.ui.theme.Gray
 
 
 sealed class Screen(val route: String, val icon: ImageVector) {
-    data object Home : Screen("home", Icons.Filled.Home)
-    data object Search : Screen("search", Icons.Filled.Search)
-    data object Downloads : Screen("downloads", Icons.Filled.Download)
-    data object Settings : Screen("settings", Icons.Filled.Settings)
+    object Home : Screen("home", Icons.Filled.Home)
+    object Search : Screen("search", Icons.Filled.Search)
+    object Downloads : Screen("downloads", Icons.Filled.Download)
+    object Settings : Screen("settings", Icons.Filled.Settings)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
