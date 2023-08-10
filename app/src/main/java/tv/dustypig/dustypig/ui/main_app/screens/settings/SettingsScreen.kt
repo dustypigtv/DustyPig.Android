@@ -1,4 +1,4 @@
-package tv.dustypig.dustypig.ui.main_app.screens
+package tv.dustypig.dustypig.ui.main_app.screens.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,11 +10,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
+import androidx.hilt.navigation.compose.hiltViewModel
 import tv.dustypig.dustypig.AuthManager
+import tv.dustypig.dustypig.nav.NavRoute
+
+
+object SettingsScreenRoute : NavRoute<SettingsViewModel> {
+
+    override val route = "settings"
+
+    @Composable
+    override fun viewModel(): SettingsViewModel = hiltViewModel()
+
+    @Composable
+    override fun Content(viewModel: SettingsViewModel) = SettingsScreen(viewModel)
+}
 
 @Composable
-fun SettingsScreen(navHostController: NavHostController? = null) {
+fun SettingsScreen(vm: SettingsViewModel) {
 
     val context = LocalContext.current
 
