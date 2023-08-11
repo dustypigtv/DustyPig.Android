@@ -1,7 +1,7 @@
 package tv.dustypig.dustypig.ui.auth_flow.screens.sign_in
 
-import android.content.Context
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,8 +24,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SignInViewModel  @Inject constructor(
-    private val routeNavigator: RouteNavigator
-): ViewModel(), RouteNavigator by routeNavigator {
+    private val routeNavigator: RouteNavigator, application: Application
+): AndroidViewModel(application), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(SignInUIState(email = SharedEmailModel.uiState.value.email))
     val uiState: StateFlow<SignInUIState> = _uiState.asStateFlow()
@@ -64,7 +64,7 @@ class SignInViewModel  @Inject constructor(
     }
 
 
-    fun signIn(context: Context){
+    fun signIn(){
         _uiState.update { it.copy(busy = true) }
 
         viewModelScope.launch {
@@ -85,7 +85,7 @@ class SignInViewModel  @Inject constructor(
                     _uiState.update { it.copy(busy = false) }
                     navigateToRoute(SelectProfileScreenRoute.route)
                 } else {
-                    AuthManager.setAuthState(context, data.token!!, data.profile_id!!, data.login_type == LoginResponse.LOGIN_TYPE_MAIN_PROFILE)
+                    AuthManager.setAuthState(getApplication<Application>().baseContext, data.token!!, data.profile_id!!, data.login_type == LoginResponse.LOGIN_TYPE_MAIN_PROFILE)
                 }
 
             } catch (ex: Exception) {
@@ -112,15 +112,3 @@ class SignInViewModel  @Inject constructor(
        navigateToRoute(SignUpScreenRoute.route)
     }
 }
-
-data class SignInUIState(
-    val email: String = "",
-    val password: String = "",
-    val showError: Boolean = false,
-    val errorMessage: String = "",
-    val busy: Boolean = false,
-    val showForgotPassword: Boolean = false,
-    val forgotPasswordBusy: Boolean = false,
-    val showForgotPasswordSuccess: Boolean = false,
-    val showForgotPasswordError: Boolean = false
-)

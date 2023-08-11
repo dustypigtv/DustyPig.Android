@@ -9,9 +9,12 @@ import retrofit2.http.HeaderMap
 import retrofit2.http.Headers
 import retrofit2.http.POST
 import tv.dustypig.dustypig.AuthManager
+import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.BasicProfile
 import tv.dustypig.dustypig.api.models.CreateAccount
 import tv.dustypig.dustypig.api.models.CreateAccountResponse
+import tv.dustypig.dustypig.api.models.HomeScreen
+import tv.dustypig.dustypig.api.models.LoadMoreHomeScreenItemsRequest
 import tv.dustypig.dustypig.api.models.LoginResponse
 import tv.dustypig.dustypig.api.models.PasswordCredentials
 import tv.dustypig.dustypig.api.models.ProfileCredentials
@@ -29,13 +32,13 @@ interface ApiService {
         return headerMap
     }
 
-    // ***** ACCOUNT *****
+    // ***** Account *****
     @POST("Account/Create")
     suspend fun createAccount(@Body createAccount: CreateAccount): Response<ResponseWrapperOf<CreateAccountResponse>>
 
 
 
-    // ***** AUTH *****
+    // ***** Auth *****
     @POST("Auth/PasswordLogin")
     suspend fun passwordLogin(@Body passwordCredentials: PasswordCredentials): Response<ResponseWrapperOf<LoginResponse>>
 
@@ -43,8 +46,18 @@ interface ApiService {
     suspend fun sendPasswordResetEmail(@Body email: SimpleValue<String>): Response<ResponseWrapper>
 
     @POST("Auth/ProfileLogin")
-    suspend fun profileLogin(@Body profileCredentials: ProfileCredentials, @HeaderMap headers: Map<String, String> = authHeaders(AuthManager.currentToken)): Response<ResponseWrapperOf<LoginResponse>>
+    suspend fun profileLogin(@Body profileCredentials: ProfileCredentials,
+                             @HeaderMap headers: Map<String, String> = authHeaders(AuthManager.currentToken)): Response<ResponseWrapperOf<LoginResponse>>
 
+
+
+    // ***** Media *****
+    @GET("Media/HomeScreen")
+    suspend fun homeScreen(@HeaderMap headers: Map<String, String> = authHeaders(AuthManager.currentToken)): Response<ResponseWrapperOf<HomeScreen>>
+
+    @POST("Media/LoadMoreHomeScreenItems")
+    suspend fun loadMoreHomeScreenItems(@Body loadMoreHomeScreenListItemsRequest: LoadMoreHomeScreenItemsRequest,
+                                        @HeaderMap headers: Map<String, String> = authHeaders(AuthManager.currentToken)): Response<ResponseWrapperOf<List<BasicMedia>>>
 
 
 

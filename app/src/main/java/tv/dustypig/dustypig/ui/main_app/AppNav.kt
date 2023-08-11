@@ -15,7 +15,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -23,13 +22,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import tv.dustypig.dustypig.ui.main_app.screens.downloads.DownloadsScreen
+import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreScreen
+import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreScreenRoute
 import tv.dustypig.dustypig.ui.main_app.screens.downloads.DownloadsScreenRoute
-import tv.dustypig.dustypig.ui.main_app.screens.home.HomeScreen
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeScreenRoute
-import tv.dustypig.dustypig.ui.main_app.screens.search.SearchScreen
 import tv.dustypig.dustypig.ui.main_app.screens.search.SearchScreenRoute
-import tv.dustypig.dustypig.ui.main_app.screens.settings.SettingsScreen
 import tv.dustypig.dustypig.ui.main_app.screens.settings.SettingsScreenRoute
 
 
@@ -83,11 +80,16 @@ fun AppNav(){
         }
     ) { innerPadding ->
         NavHost(navController, startDestination = HomeScreenRoute.route, Modifier.padding(innerPadding)) {
+
+            //Tab screens
             HomeScreenRoute.composable(this, navController)
             SearchScreenRoute.composable(this, navController)
             DownloadsScreenRoute.composable(this, navController)
             SettingsScreenRoute.composable(this, navController)
+
+            // Sub Screens
+            ShowMoreScreenRoute.composable(this, navController)
+
         }
     }
-
 }

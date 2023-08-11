@@ -17,6 +17,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -29,26 +30,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import tv.dustypig.dustypig.nav.NavRoute
 import tv.dustypig.dustypig.ui.composables.Avatar
 import tv.dustypig.dustypig.ui.composables.OkDialog
 import tv.dustypig.dustypig.ui.composables.PinEntry
-import tv.dustypig.dustypig.ui.theme.DarkGray
-
-object SelectProfileScreenRoute : NavRoute<SelectProfileViewModel> {
-
-    override val route = "selectProfile"
-
-    @Composable
-    override fun viewModel(): SelectProfileViewModel = hiltViewModel()
-
-    @Composable
-    override fun Content(viewModel: SelectProfileViewModel) = SelectProfileScreen(viewModel)
-}
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,7 +41,6 @@ object SelectProfileScreenRoute : NavRoute<SelectProfileViewModel> {
 fun SelectProfileScreen(vm: SelectProfileViewModel) {
 
     val uiState by vm.uiState.collectAsState()
-    val context = LocalContext.current
     val listState = rememberLazyGridState()
 
 
@@ -68,7 +52,7 @@ fun SelectProfileScreen(vm: SelectProfileViewModel) {
                         Icon(Icons.Filled.ArrowBack, null)
                     }
                 },
-                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = DarkGray)
+                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
             )
         }
     ) { contentPadding ->
@@ -101,7 +85,7 @@ fun SelectProfileScreen(vm: SelectProfileViewModel) {
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Avatar(basicProfile = it, onClick = { vm.onProfileSelected(it, context) })
+                        Avatar(basicProfile = it, onClick = { vm.onProfileSelected(it) })
                         Text(text = it.name)
                     }
                 }
@@ -126,7 +110,7 @@ fun SelectProfileScreen(vm: SelectProfileViewModel) {
             },
             confirmButton = {
                 TextButton(enabled = confirmEnabled.value,
-                    onClick = { vm.onPinSubmitted(context) }) {
+                    onClick = { vm.onPinSubmitted() }) {
                     Text("OK")
                 }
             },

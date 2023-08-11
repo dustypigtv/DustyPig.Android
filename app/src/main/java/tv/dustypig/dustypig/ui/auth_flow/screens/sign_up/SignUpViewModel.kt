@@ -1,7 +1,7 @@
 package tv.dustypig.dustypig.ui.auth_flow.screens.sign_up
 
-import android.content.Context
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,8 +22,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SignUpViewModel @Inject constructor(
-    private val routeNavigator: RouteNavigator
-): ViewModel(), RouteNavigator by routeNavigator {
+    private val routeNavigator: RouteNavigator, application: Application
+): AndroidViewModel(application), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(SignUpUIState(email = SharedEmailModel.uiState.value.email))
     val uiState: StateFlow<SignUpUIState> = _uiState.asStateFlow()
@@ -49,7 +49,7 @@ class SignUpViewModel @Inject constructor(
         popBackStack()
     }
 
-    fun signUp(context: Context) {
+    fun signUp() {
         _uiState.update { it.copy(busy = true) }
         viewModelScope.launch {
             try {
@@ -72,7 +72,7 @@ class SignUpViewModel @Inject constructor(
                             _uiState.update { it.copy(busy = false) }
                             navigateToRoute(SelectProfileScreenRoute.route)
                         } else {
-                            AuthManager.setAuthState(context, data2.token!!, data2.profile_id!!, data2.login_type == LoginResponse.LOGIN_TYPE_MAIN_PROFILE)
+                            AuthManager.setAuthState(getApplication<Application>().baseContext, data2.token!!, data2.profile_id!!, data2.login_type == LoginResponse.LOGIN_TYPE_MAIN_PROFILE)
                         }
                     } catch (_: Exception) {
 
@@ -85,16 +85,4 @@ class SignUpViewModel @Inject constructor(
             }
         }
     }
-
 }
-
-
-data class SignUpUIState(
-    val name: String = "",
-    val email: String = "",
-    val password: String = "",
-    val showSuccess: Boolean = false,
-    val showError: Boolean = false,
-    val message: String = "",
-    val busy: Boolean = false
-)

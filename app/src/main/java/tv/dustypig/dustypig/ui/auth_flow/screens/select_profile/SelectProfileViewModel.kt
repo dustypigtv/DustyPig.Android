@@ -1,7 +1,7 @@
 package tv.dustypig.dustypig.ui.auth_flow.screens.select_profile
 
-import android.content.Context
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,8 +21,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SelectProfileViewModel @Inject constructor(
-    private val routeNavigator: RouteNavigator
-): ViewModel(), RouteNavigator by routeNavigator {
+    private val routeNavigator: RouteNavigator, application: Application
+): AndroidViewModel(application), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(SelectProfileUIState())
     val uiState: StateFlow<SelectProfileUIState> = _uiState.asStateFlow()
@@ -58,14 +58,14 @@ class SelectProfileViewModel @Inject constructor(
         _uiState.update { it.copy(showPinDialog = false) }
     }
 
-    private fun profileSignIn(pin: Int?, context: Context) {
+    private fun profileSignIn(pin: Int?) {
         _uiState.update { it.copy(busy = true, showPinDialog = false) }
         viewModelScope.launch {
             try{
                 val response = ThePig.api.profileLogin(ProfileCredentials(_profileId, pin, null))
                 response.throwIfError()
                 val data = response.body()!!.data
-                AuthManager.setAuthState(context, data.token!!, data.profile_id!!, data.login_type == LoginResponse.LOGIN_TYPE_MAIN_PROFILE)
+                AuthManager.setAuthState(getApplication<Application>().baseContext, data.token!!, data.profile_id!!, data.login_type == LoginResponse.LOGIN_TYPE_MAIN_PROFILE)
             } catch (ex: Exception) {
                 _loadingError = false
                 _uiState.update { it.copy(busy = false, showError = true, errorMessage = ex.localizedMessage ?: "Unknown Error") }
@@ -73,34 +73,24 @@ class SelectProfileViewModel @Inject constructor(
         }
     }
 
-    fun onProfileSelected(profile: BasicProfile, context: Context) {
+    fun onProfileSelected(profile: BasicProfile) {
         _profileId = profile.id
         if(profile.has_pin) {
             _uiState.update { it.copy(showPinDialog = true) }
         }
         else {
-            profileSignIn(null, context)
+            profileSignIn(null)
         }
     }
 
-    fun onPinSubmitted(context: Context) {
+    fun onPinSubmitted() {
         val pin = try {
             Integer.parseUnsignedInt(uiState.value.pin)
         } catch (_: Exception) {
             null
         }
 
-        profileSignIn(pin, context)
+        profileSignIn(pin)
     }
 
 }
-
-
-data class SelectProfileUIState(
-    val busy: Boolean = true,
-    val showError: Boolean = false,
-    val errorMessage: String = "",
-    val showPinDialog: Boolean = false,
-    val pin: String = "",
-    val profiles: List<BasicProfile> = listOf()
-)

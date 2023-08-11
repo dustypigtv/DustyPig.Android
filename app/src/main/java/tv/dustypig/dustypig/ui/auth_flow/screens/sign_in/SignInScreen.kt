@@ -5,16 +5,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,7 +21,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -33,10 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.vectorResource
@@ -45,23 +38,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
-import androidx.hilt.navigation.compose.hiltViewModel
 import tv.dustypig.dustypig.R
-import tv.dustypig.dustypig.nav.NavRoute
 import tv.dustypig.dustypig.ui.composables.OkDialog
-
-
-object SignInScreenRoute : NavRoute<SignInViewModel> {
-
-    override val route = "signIn"
-
-    @Composable
-    override fun viewModel(): SignInViewModel = hiltViewModel()
-
-    @Composable
-    override fun Content(viewModel: SignInViewModel) = SignInScreen(viewModel)
-}
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
@@ -70,7 +48,6 @@ fun SignInScreen(
     vm: SignInViewModel
 ) {
     val uiState by vm.uiState.collectAsState()
-    val context = LocalContext.current
     val localFocusManager = LocalFocusManager.current
     val passwordVisible = remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -86,7 +63,7 @@ fun SignInScreen(
     fun signIn() {
         localFocusManager.clearFocus()
         keyboardController?.hide()
-        vm.signIn(context)
+        vm.signIn()
     }
 
     Column(
@@ -176,65 +153,4 @@ fun SignInScreen(
     if(uiState.showForgotPasswordError) {
         OkDialog(onDismissRequest = { vm.hideForgotPasswordError()}, title = "Error", message = uiState.errorMessage)
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
-@Composable
-private fun ForgotPasswordDialog(vm: SignInViewModel) {
-
-    val uiState by vm.uiState.collectAsState()
-    val localFocusManager = LocalFocusManager.current
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val focusRequester = FocusRequester()
-    val confirmEnabled = remember { derivedStateOf { uiState.email.isNotBlank() && !uiState.busy }}
-    val imeAction = remember { derivedStateOf { if(confirmEnabled.value) ImeAction.Go else ImeAction.Done }}
-
-    fun forgotPasswordConfirmClick() {
-        localFocusManager.clearFocus()
-        keyboardController?.hide()
-        vm.sendForgotPasswordEmail()
-    }
-
-    LaunchedEffect(true) {
-        focusRequester.requestFocus()
-    }
-
-    AlertDialog(
-        shape = RoundedCornerShape(8.dp),
-        onDismissRequest = { vm.hideForgotPassword() },
-        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
-        title = { Text("Forgot Password") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(20.dp, alignment = Alignment.CenterVertically)) {
-                Text("Enter your email address")
-                OutlinedTextField(
-                    value = uiState.email,
-                    onValueChange = { vm.updateEmail(it) },
-                    placeholder = { Text(text = "Email") },
-                    label = { Text(text = "Email") },
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .focusRequester(focusRequester),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = imeAction.value),
-                    keyboardActions = KeyboardActions(onGo = { forgotPasswordConfirmClick() }, onDone = { keyboardController?.hide() })
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(enabled = confirmEnabled.value,
-                onClick = { forgotPasswordConfirmClick() }) {
-                if (uiState.forgotPasswordBusy) {
-                    CircularProgressIndicator(modifier = Modifier.size(20.dp))
-                } else {
-                    Text("Submit")
-                }
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = { vm.hideForgotPassword() }) {
-                Text("Cancel")
-            }
-        }
-    )
 }

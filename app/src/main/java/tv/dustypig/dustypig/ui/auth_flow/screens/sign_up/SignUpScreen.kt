@@ -29,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.vectorResource
@@ -45,23 +44,11 @@ import tv.dustypig.dustypig.nav.NavRoute
 import tv.dustypig.dustypig.ui.composables.OkDialog
 
 
-object SignUpScreenRoute : NavRoute<SignUpViewModel> {
-
-    override val route = "signUp"
-
-    @Composable
-    override fun viewModel(): SignUpViewModel = hiltViewModel()
-
-    @Composable
-    override fun Content(viewModel: SignUpViewModel) = SignUpScreen(viewModel)
-}
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun SignUpScreen(vm: SignUpViewModel) {
 
     val uiState by vm.uiState.collectAsState()
-    val context = LocalContext.current
     val localFocusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val passwordVisible = remember { mutableStateOf(false) }
@@ -79,7 +66,7 @@ fun SignUpScreen(vm: SignUpViewModel) {
     fun signUp() {
         localFocusManager.clearFocus()
         keyboardController?.hide()
-        vm.signUp(context)
+        vm.signUp()
     }
 
     Column(
