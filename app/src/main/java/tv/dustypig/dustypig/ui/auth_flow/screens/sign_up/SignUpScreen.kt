@@ -38,9 +38,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import tv.dustypig.dustypig.R
-import tv.dustypig.dustypig.nav.NavRoute
 import tv.dustypig.dustypig.ui.composables.OkDialog
 
 

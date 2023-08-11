@@ -22,16 +22,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NamedNavArgument
-import androidx.navigation.NavType
-import androidx.navigation.navArgument
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import tv.dustypig.dustypig.api.models.BasicMedia
-import tv.dustypig.dustypig.nav.NavRoute
 import tv.dustypig.dustypig.ui.composables.BasicMediaView
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)

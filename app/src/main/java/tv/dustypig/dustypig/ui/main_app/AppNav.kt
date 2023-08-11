@@ -19,15 +19,13 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreScreen
-import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreScreenRoute
 import tv.dustypig.dustypig.ui.main_app.screens.downloads.DownloadsScreenRoute
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeScreenRoute
 import tv.dustypig.dustypig.ui.main_app.screens.search.SearchScreenRoute
 import tv.dustypig.dustypig.ui.main_app.screens.settings.SettingsScreenRoute
+import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreScreenRoute
 
 
 @OptIn(ExperimentalMaterial3Api::class)
