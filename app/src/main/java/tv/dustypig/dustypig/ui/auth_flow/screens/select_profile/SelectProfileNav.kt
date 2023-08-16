@@ -5,7 +5,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import tv.dustypig.dustypig.nav.NavRoute
 
 
-object SelectProfileScreenRoute : NavRoute<SelectProfileViewModel> {
+object SelectProfileNav : NavRoute<SelectProfileViewModel> {
 
     override val route = "selectProfile"
 

@@ -1,8 +1,10 @@
 package tv.dustypig.dustypig.ui.main_app.screens.show_more
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -52,24 +54,33 @@ fun ShowMoreScreen(vm: ShowMoreViewModel) {
         }
     ) { innerPadding ->
 
-        LazyVerticalGrid(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize(),
-            columns = GridCells.Adaptive(minSize = 116.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
-            state = listState
-        ) {
+        if (mediaItems.itemCount == 0) {
+            Box(modifier = Modifier.fillMaxSize()){
 
-            items(
-                mediaItems.itemCount
-            ) { index ->
-                BasicMediaView(mediaItems[index]!!)
             }
+        } else {
+            LazyVerticalGrid(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize(),
+                columns = GridCells.Adaptive(minSize = 100.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                contentPadding = PaddingValues(12.dp),
+                state = listState
+            ) {
 
+                items(
+                    mediaItems.itemCount
+                ) { index ->
+                    BasicMediaView(
+                        mediaItems[index]!!,
+                        vm,
+                        Modifier.fillMaxWidth()
+                    )
+                }
+
+            }
         }
     }
 }
-

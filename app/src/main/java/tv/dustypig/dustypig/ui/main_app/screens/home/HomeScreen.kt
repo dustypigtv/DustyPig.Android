@@ -37,7 +37,7 @@ import tv.dustypig.dustypig.ui.composables.BasicMediaView
 
 @OptIn(ExperimentalGlideComposeApi::class, ExperimentalMaterialApi::class)
 @Composable
-fun HomeScreen(vm: HomeScreenViewModel) {
+fun HomeScreen(vm: HomeViewModel) {
 
     val uiState by vm.uiState.collectAsState()
     val ptrState = rememberPullRefreshState(uiState.isRefreshing, { vm.onRefresh() })
@@ -66,16 +66,16 @@ fun HomeScreen(vm: HomeScreenViewModel) {
             val visibleGuess = remember { derivedStateOf { (configuration.screenWidthDp.dp / 100.dp).toInt() }}
             val preload = remember { derivedStateOf { visibleGuess.value * 2 }}
             val lazyColumnState = rememberLazyListState()
-            val lazyRowStates = uiState.sections.associate { it.list_id to rememberLazyListState() }
+            val lazyRowStates = uiState.sections.associate { it.listId to rememberLazyListState() }
             for (section in uiState.sections) {
                 GlideLazyListPreloader(
-                    state = lazyRowStates[section.list_id]!!,
+                    state = lazyRowStates[section.listId]!!,
                     data = section.items,
                     size = Size(100F, 150F),
                     numberOfItemsToPreload = preload.value,
                     fixedVisibleItemCount = visibleGuess.value
                 ) { item, requestBuilder ->
-                    requestBuilder.load(item.artwork_url)
+                    requestBuilder.load(item.artworkUrl)
                 }
             }
 
@@ -86,7 +86,7 @@ fun HomeScreen(vm: HomeScreenViewModel) {
                     .fillMaxSize()
                     .pullRefresh(ptrState)
             ) {
-                items(uiState.sections, key = { section -> section.list_id }) { section ->
+                items(uiState.sections, key = { section -> section.listId }) { section ->
                     Column (
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -100,7 +100,7 @@ fun HomeScreen(vm: HomeScreenViewModel) {
                                 fontWeight = FontWeight.Bold
                                 )
                             if(section.items.size >= 25) {
-                                TextButton(onClick = { vm.onShowMoreClicked(section.list_id, section.title) }) {
+                                TextButton(onClick = { vm.onShowMoreClicked(section) }) {
                                     Text(
                                         text = "More",
                                         style = TextStyle(textDecoration = TextDecoration.Underline)
@@ -109,7 +109,7 @@ fun HomeScreen(vm: HomeScreenViewModel) {
                             }
                         }
                         LazyRow(
-                            state = lazyRowStates[section.list_id]!!,
+                            state = lazyRowStates[section.listId]!!,
                             horizontalArrangement = Arrangement.spacedBy(16.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -118,7 +118,7 @@ fun HomeScreen(vm: HomeScreenViewModel) {
                             items(section.items, key = { basicMedia -> basicMedia.id }) { basicMedia ->
                                 BasicMediaView(
                                     basicMedia = basicMedia,
-                                    onClicked = { vm.onItemClicked(basicMedia) }
+                                    vm
                                 )
                             }
                         }

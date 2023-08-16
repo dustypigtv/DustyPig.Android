@@ -1,6 +1,5 @@
 package tv.dustypig.dustypig
 
-import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -31,25 +30,27 @@ object AuthManager {
         private set
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun init(context: Context) {
+    fun init() {
         GlobalScope.launch {
             setState(
-                SettingsManager.loadToken(context).first(),
-                SettingsManager.loadProfileId(context).first(),
-                SettingsManager.loadIsMainProfile(context).first()
+                SettingsManager.loadToken().first(),
+                SettingsManager.loadProfileId().first(),
+                SettingsManager.loadIsMainProfile().first()
             )
         }
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun setAuthState(context: Context, token: String, profileId: Int, isMain: Boolean) {
+    fun setAuthState(token: String, profileId: Int, isMain: Boolean) {
         GlobalScope.launch {
-            SettingsManager.saveToken(context, token)
-            SettingsManager.saveProfileId(context, profileId)
-            SettingsManager.saveIsMainProfile(context, isMain)
+            SettingsManager.saveToken(token)
+            SettingsManager.saveProfileId(profileId)
+            SettingsManager.saveIsMainProfile(isMain)
             setState(token, profileId, isMain)
         }
     }
+
+    fun logout() = setAuthState("", 0, false)
 
     //Use this to set a temp auth token between logging int and selecting the profile
     fun setTempAuthToken(token:String){

@@ -5,13 +5,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import tv.dustypig.dustypig.nav.NavRoute
 
 
-object HomeScreenRoute : NavRoute<HomeScreenViewModel> {
+object HomeNav : NavRoute<HomeViewModel> {
 
     override val route = "home"
 
     @Composable
-    override fun viewModel(): HomeScreenViewModel = hiltViewModel()
+    override fun viewModel(): HomeViewModel = hiltViewModel()
 
     @Composable
-    override fun Content(viewModel: HomeScreenViewModel) = HomeScreen(viewModel)
+    override fun Content(viewModel: HomeViewModel) = HomeScreen(viewModel)
 }

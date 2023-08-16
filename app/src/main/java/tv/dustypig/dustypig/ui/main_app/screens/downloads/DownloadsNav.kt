@@ -5,7 +5,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import tv.dustypig.dustypig.nav.NavRoute
 
 
-object DownloadsScreenRoute : NavRoute<DownloadsViewModel> {
+object DownloadsNav : NavRoute<DownloadsViewModel> {
 
     override val route = "downloads"
 

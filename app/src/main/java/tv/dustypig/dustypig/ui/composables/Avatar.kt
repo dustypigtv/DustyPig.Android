@@ -22,7 +22,7 @@ fun Avatar(basicProfile: BasicProfile, onClick: () -> Unit = { }, modifier: Modi
         .border(2.dp, Color.Gray, CircleShape)
         .clickable(onClick = onClick)
 
-    GlideImage(model = basicProfile.avatar_url,
+    GlideImage(model = basicProfile.avatarUrl,
         contentDescription = basicProfile.name,
         modifier = internalModifier){
         it.diskCacheStrategy(DiskCacheStrategy.NONE)

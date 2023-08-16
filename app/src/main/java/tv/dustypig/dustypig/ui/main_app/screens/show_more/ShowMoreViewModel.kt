@@ -13,9 +13,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import tv.dustypig.dustypig.api.ThePig
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.nav.RouteNavigator
-import tv.dustypig.dustypig.nav.getOrThrow
 import javax.inject.Inject
 
 @HiltViewModel
@@ -36,9 +36,10 @@ class ShowMoreViewModel @Inject constructor(
     ).flow.cachedIn(viewModelScope)
 
     init {
-        _listId = savedStateHandle.getOrThrow(ShowMoreScreenRoute.KEY_LIST_ID)
-        _uiState.update { it.copy(title = savedStateHandle.getOrThrow(ShowMoreScreenRoute.KEY_LIST_TITLE)) }
+        _listId = ThePig.showMoreData.listId ?: 0
+        _uiState.update { it.copy(title = ThePig.showMoreData.title) }
     }
+
 
     fun onItemClicked(basicMedia: BasicMedia) {
 

@@ -1,8 +1,10 @@
 package tv.dustypig.dustypig.api.models
 
-object MediaTypes {
-    const val Movie = 1
-    const val Series = 2
-    const val Episode = 3
-    const val Playlist = 4
+import com.google.gson.annotations.SerializedName
+
+enum class MediaTypes {
+    @SerializedName("1") Movie,
+    @SerializedName("2") Series,
+    @SerializedName("3") Episode,
+    @SerializedName("4") Playlist
 }

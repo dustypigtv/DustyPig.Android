@@ -9,19 +9,18 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.ThePig
-import tv.dustypig.dustypig.api.models.BasicMedia
-import tv.dustypig.dustypig.api.throwIfError
+import tv.dustypig.dustypig.api.models.HomeScreenList
 import tv.dustypig.dustypig.nav.RouteNavigator
-import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreScreenRoute
+import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeScreenViewModel @Inject constructor(
+class HomeViewModel @Inject constructor(
     private val routeNavigator: RouteNavigator
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val _uiState = MutableStateFlow(HomeScreenUIState())
-    val uiState: StateFlow<HomeScreenUIState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(HomeUIState())
+    val uiState: StateFlow<HomeUIState> = _uiState.asStateFlow()
 
     init {
         onRefresh()
@@ -31,9 +30,7 @@ class HomeScreenViewModel @Inject constructor(
         _uiState.update { it.copy(isRefreshing = true) }
         viewModelScope.launch {
             try {
-                val response = ThePig.api.homeScreen()
-                response.throwIfError()
-                val data = response.body()!!.data
+                val data = ThePig.Api.Media.homeScreen()
                 val sections = data.sections ?: listOf()
                 _uiState.update { it.copy(isRefreshing = false, sections = sections) }
             } catch (ex: Exception) {
@@ -46,11 +43,8 @@ class HomeScreenViewModel @Inject constructor(
         }
     }
 
-    fun onShowMoreClicked(listId: Long, title: String) {
-        navigateToRoute(ShowMoreScreenRoute.getRouteForListId(listId, title))
-    }
-
-    fun onItemClicked(basicMedia: BasicMedia) {
-
+    fun onShowMoreClicked(hsl: HomeScreenList) {
+        ThePig.showMoreData = hsl
+        navigateToRoute(ShowMoreNav.route)
     }
 }

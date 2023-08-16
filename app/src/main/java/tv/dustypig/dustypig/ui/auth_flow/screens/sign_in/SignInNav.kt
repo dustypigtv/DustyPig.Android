@@ -5,7 +5,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import tv.dustypig.dustypig.nav.NavRoute
 
 
-object SignInScreenRoute : NavRoute<SignInViewModel> {
+object SignInNav : NavRoute<SignInViewModel> {
 
     override val route = "signIn"
 

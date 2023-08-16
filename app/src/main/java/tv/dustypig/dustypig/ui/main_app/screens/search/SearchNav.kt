@@ -5,7 +5,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import tv.dustypig.dustypig.nav.NavRoute
 
 
-object SearchScreenRoute : NavRoute<SearchViewModel> {
+object SearchNav : NavRoute<SearchViewModel> {
 
     override val route = "search"
 

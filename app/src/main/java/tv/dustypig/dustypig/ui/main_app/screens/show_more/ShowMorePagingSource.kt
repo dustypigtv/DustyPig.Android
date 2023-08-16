@@ -5,7 +5,6 @@ import androidx.paging.PagingState
 import tv.dustypig.dustypig.api.ThePig
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.LoadMoreHomeScreenItemsRequest
-import tv.dustypig.dustypig.api.throwIfError
 
 class ShowMorePagingSource (
     private val listId: Long
@@ -24,9 +23,10 @@ class ShowMorePagingSource (
             val key = params.key ?: 0
             val start = key * 25
 
-            val response = ThePig.api.loadMoreHomeScreenItems(LoadMoreHomeScreenItemsRequest(listId, start))
-            response.throwIfError()
-            val data = response.body()!!.data
+            val data = if(key == 0)
+                ThePig.showMoreData.items
+            else
+                ThePig.Api.Media.loadMoreHomeScreenItems(LoadMoreHomeScreenItemsRequest(listId, start))
 
             val nextKey = when {
                 data.size < 25 -> null

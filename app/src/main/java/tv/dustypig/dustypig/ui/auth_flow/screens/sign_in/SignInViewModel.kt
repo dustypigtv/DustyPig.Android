@@ -1,7 +1,6 @@
 package tv.dustypig.dustypig.ui.auth_flow.screens.sign_in
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,21 +10,19 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.AuthManager
 import tv.dustypig.dustypig.api.ThePig
-import tv.dustypig.dustypig.api.models.LoginResponse
+import tv.dustypig.dustypig.api.models.LoginTypes
 import tv.dustypig.dustypig.api.models.PasswordCredentials
-import tv.dustypig.dustypig.api.models.SimpleValue
-import tv.dustypig.dustypig.api.throwIfError
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.auth_flow.SharedEmailModel
-import tv.dustypig.dustypig.ui.auth_flow.screens.select_profile.SelectProfileScreenRoute
-import tv.dustypig.dustypig.ui.auth_flow.screens.sign_up.SignUpScreenRoute
+import tv.dustypig.dustypig.ui.auth_flow.screens.select_profile.SelectProfileNav
+import tv.dustypig.dustypig.ui.auth_flow.screens.sign_up.SignUpNav
 import javax.inject.Inject
 
 
 @HiltViewModel
 class SignInViewModel  @Inject constructor(
-    private val routeNavigator: RouteNavigator, application: Application
-): AndroidViewModel(application), RouteNavigator by routeNavigator {
+    private val routeNavigator: RouteNavigator
+): ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(SignInUIState(email = SharedEmailModel.uiState.value.email))
     val uiState: StateFlow<SignInUIState> = _uiState.asStateFlow()
@@ -70,22 +67,19 @@ class SignInViewModel  @Inject constructor(
         viewModelScope.launch {
             try {
 
-                val response = ThePig.api.passwordLogin(
+                val data = ThePig.Api.Auth.passwordLogin(
                     PasswordCredentials(
                         uiState.value.email,
                         uiState.value.password,
                         null
                     )
                 )
-                response.throwIfError()
-
-                val data = response.body()!!.data
-                if (data.login_type == LoginResponse.LOGIN_TYPE_ACCOUNT) {
+                if (data.loginType == LoginTypes.Account) {
                     AuthManager.setTempAuthToken(data.token!!)
                     _uiState.update { it.copy(busy = false) }
-                    navigateToRoute(SelectProfileScreenRoute.route)
+                    navigateToRoute(SelectProfileNav.route)
                 } else {
-                    AuthManager.setAuthState(getApplication<Application>().baseContext, data.token!!, data.profile_id!!, data.login_type == LoginResponse.LOGIN_TYPE_MAIN_PROFILE)
+                    AuthManager.setAuthState(data.token!!, data.profileId!!, data.loginType == LoginTypes.MainProfile)
                 }
 
             } catch (ex: Exception) {
@@ -99,8 +93,7 @@ class SignInViewModel  @Inject constructor(
         _uiState.update { it.copy(forgotPasswordBusy = true) }
         viewModelScope.launch {
             try {
-                val response = ThePig.api.sendPasswordResetEmail(SimpleValue(uiState.value.email))
-                response.throwIfError()
+                val response = ThePig.Api.Auth.sendPasswordResetEmail(uiState.value.email)
                 _uiState.update { it.copy(forgotPasswordBusy = false, showForgotPassword = false, showForgotPasswordSuccess = true) }
             } catch (ex: Exception) {
                 _uiState.update { it.copy(forgotPasswordBusy = false, showForgotPassword = false, showForgotPasswordError = true, errorMessage = ex.localizedMessage ?: "Unknown Error") }
@@ -109,6 +102,6 @@ class SignInViewModel  @Inject constructor(
     }
 
     fun navToSignUp() {
-       navigateToRoute(SignUpScreenRoute.route)
+       navigateToRoute(SignUpNav.route)
     }
 }

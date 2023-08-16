@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -13,6 +14,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import tv.dustypig.dustypig.ui.auth_flow.AuthNav
 import tv.dustypig.dustypig.ui.main_app.AppNav
 import tv.dustypig.dustypig.ui.theme.DustyPigTheme
+import java.lang.ref.WeakReference
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -37,7 +39,7 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun AppStateSwitcher() {
 
-        AuthManager.init(LocalContext.current)
+        AuthManager.init()
 
         if (AuthManager.loginState == AuthManager.LOGIN_STATE_LOGGED_IN) {
             AppNav()

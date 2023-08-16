@@ -19,38 +19,40 @@ object SettingsManager {
 
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
-    fun loadToken(context: Context): Flow<String> {
-        return context.dataStore.data.map { preferences ->
+    private fun getContext(): Context = DustyPigApplication.Instance.appContext.get()!!
+
+    fun loadToken(): Flow<String> {
+        return getContext().dataStore.data.map { preferences ->
             preferences[AUTH_TOKEN_KEY] ?: ""
         }
     }
 
-    suspend fun saveToken(context: Context, token: String) {
-        context.dataStore.edit { preferences ->
+    suspend fun saveToken(token: String) {
+        getContext().dataStore.edit { preferences ->
             preferences[AUTH_TOKEN_KEY] = token
         }
     }
 
-    fun loadProfileId(context: Context) : Flow<Int>{
-        return context.dataStore.data.map { preferences ->
+    fun loadProfileId() : Flow<Int>{
+        return getContext().dataStore.data.map { preferences ->
             preferences[PROFILE_ID_KEY] ?: 0
         }
     }
 
-    suspend fun saveProfileId(context: Context, profileId: Int){
-        context.dataStore.edit { preferences ->
+    suspend fun saveProfileId(profileId: Int){
+        getContext().dataStore.edit { preferences ->
             preferences[PROFILE_ID_KEY] = profileId
         }
     }
 
-    fun loadIsMainProfile(context: Context): Flow<Boolean> {
-        return context.dataStore.data.map { preferences ->
+    fun loadIsMainProfile(): Flow<Boolean> {
+        return getContext().dataStore.data.map { preferences ->
             preferences[IS_MAIN_PROFILE_KEY] ?: false
         }
     }
 
-    suspend fun saveIsMainProfile(context: Context, isMainProfile: Boolean) {
-        context.dataStore.edit { preferences ->
+    suspend fun saveIsMainProfile(isMainProfile: Boolean) {
+        getContext().dataStore.edit { preferences ->
             preferences[IS_MAIN_PROFILE_KEY] = isMainProfile
         }
     }

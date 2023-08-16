@@ -24,7 +24,7 @@ fun SettingsScreen(vm: SettingsViewModel) {
         modifier = Modifier.fillMaxSize()
     ){
         Text(text = "You have logged in")
-        Button(onClick = { AuthManager.setAuthState(context, "", 0, false ) }) {
+        Button(onClick = { AuthManager.logout() }) {
             Text(text = "Log Out")
         }
     }

@@ -13,7 +13,7 @@ data class ResponseWrapper (
 data class ResponseWrapperOf<T> (
     val success: Boolean,
     val error: String,
-    val data: T
+    val data: T?
 ){
     fun throwIfError() {
         if(!success)

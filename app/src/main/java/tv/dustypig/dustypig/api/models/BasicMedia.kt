@@ -1,8 +1,10 @@
 package tv.dustypig.dustypig.api.models
 
+import com.google.gson.annotations.SerializedName
+
 data class BasicMedia (
     val id: Int,
-    val media_type: Int,
-    val artwork_url: String,
+    @SerializedName("media_type") val mediaType: MediaTypes,
+    @SerializedName("artwork_url") val artworkUrl: String,
     val title: String
 )

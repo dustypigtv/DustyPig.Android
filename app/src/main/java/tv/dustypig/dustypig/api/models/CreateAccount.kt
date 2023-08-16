@@ -1,9 +1,11 @@
 package tv.dustypig.dustypig.api.models
 
+import com.google.gson.annotations.SerializedName
+
 data class CreateAccount(
     val email:String,
     val password:String,
-    val display_name:String? = null,
-    val avatar_url:String? = null,
-    val fcm_token:String? = null
+    @SerializedName("display_name") val displayName:String? = null,
+    @SerializedName("avatar_url") val avatarUrl:String? = null,
+    @SerializedName("fcm_token") val fcmToken:String? = null
 )

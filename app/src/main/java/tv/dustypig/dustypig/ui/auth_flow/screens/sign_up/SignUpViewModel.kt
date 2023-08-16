@@ -1,7 +1,6 @@
 package tv.dustypig.dustypig.ui.auth_flow.screens.sign_up
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,18 +11,17 @@ import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.AuthManager
 import tv.dustypig.dustypig.api.ThePig
 import tv.dustypig.dustypig.api.models.CreateAccount
-import tv.dustypig.dustypig.api.models.LoginResponse
+import tv.dustypig.dustypig.api.models.LoginTypes
 import tv.dustypig.dustypig.api.models.PasswordCredentials
-import tv.dustypig.dustypig.api.throwIfError
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.auth_flow.SharedEmailModel
-import tv.dustypig.dustypig.ui.auth_flow.screens.select_profile.SelectProfileScreenRoute
+import tv.dustypig.dustypig.ui.auth_flow.screens.select_profile.SelectProfileNav
 import javax.inject.Inject
 
 @HiltViewModel
 class SignUpViewModel @Inject constructor(
-    private val routeNavigator: RouteNavigator, application: Application
-): AndroidViewModel(application), RouteNavigator by routeNavigator {
+    private val routeNavigator: RouteNavigator
+): ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(SignUpUIState(email = SharedEmailModel.uiState.value.email))
     val uiState: StateFlow<SignUpUIState> = _uiState.asStateFlow()
@@ -53,26 +51,21 @@ class SignUpViewModel @Inject constructor(
         _uiState.update { it.copy(busy = true) }
         viewModelScope.launch {
             try {
-                val response = ThePig.api.createAccount(CreateAccount(uiState.value.email, uiState.value.password, uiState.value.name, null, null))
-                response.throwIfError()
-                val data = response.body()!!.data
+                val data = ThePig.Api.Account.createAccount(CreateAccount(uiState.value.email, uiState.value.password, uiState.value.name, null, null))
 
-                if(data.email_verification_required == true) {
+                if(data.emailVerificationRequired == true) {
                     _uiState.update { it.copy(busy = false, showSuccess = true, message = "Please check your email to complete sign up") }
                 } else {
 
                     //Email has been verified before, try to sign in
                     try{
-                        val response2 = ThePig.api.passwordLogin(PasswordCredentials(uiState.value.email, uiState.value.password, null))
-                        response2.throwIfError()
-                        val data2 = response2.body()!!.data
-
-                        if (data2.login_type == LoginResponse.LOGIN_TYPE_ACCOUNT) {
+                        val data2 = ThePig.Api.Auth.passwordLogin(PasswordCredentials(uiState.value.email, uiState.value.password, null))
+                        if (data2.loginType == LoginTypes.Account) {
                             AuthManager.setTempAuthToken(data2.token!!)
                             _uiState.update { it.copy(busy = false) }
-                            navigateToRoute(SelectProfileScreenRoute.route)
+                            navigateToRoute(SelectProfileNav.route)
                         } else {
-                            AuthManager.setAuthState(getApplication<Application>().baseContext, data2.token!!, data2.profile_id!!, data2.login_type == LoginResponse.LOGIN_TYPE_MAIN_PROFILE)
+                            AuthManager.setAuthState(data2.token!!, data2.profileId!!, data2.loginType == LoginTypes.MainProfile)
                         }
                     } catch (_: Exception) {
 

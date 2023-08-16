@@ -5,7 +5,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import tv.dustypig.dustypig.nav.NavRoute
 
 
-object SettingsScreenRoute : NavRoute<SettingsViewModel> {
+object SettingsNav : NavRoute<SettingsViewModel> {
 
     override val route = "settings"
 

@@ -1,3 +1,7 @@
 package tv.dustypig.dustypig.api.models
 
-data class CreateAccountResponse (val email_verification_required: Boolean?)
+import com.google.gson.annotations.SerializedName
+
+data class CreateAccountResponse (
+    @SerializedName("email_verification_required") val emailVerificationRequired: Boolean?
+)
