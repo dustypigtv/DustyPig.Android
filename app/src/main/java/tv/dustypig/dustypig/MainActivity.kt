@@ -1,6 +1,6 @@
 package tv.dustypig.dustypig
 
-import android.content.Context
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,12 +9,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import dagger.hilt.android.AndroidEntryPoint
 import tv.dustypig.dustypig.ui.auth_flow.AuthNav
+import tv.dustypig.dustypig.ui.composables.LockScreenOrientation
+import tv.dustypig.dustypig.ui.isTablet
 import tv.dustypig.dustypig.ui.main_app.AppNav
 import tv.dustypig.dustypig.ui.theme.DustyPigTheme
-import java.lang.ref.WeakReference
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -40,6 +41,10 @@ class MainActivity : ComponentActivity() {
     fun AppStateSwitcher() {
 
         AuthManager.init()
+
+
+        if(!LocalConfiguration.current.isTablet())
+            LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
 
         if (AuthManager.loginState == AuthManager.LOGIN_STATE_LOGGED_IN) {
             AppNav()

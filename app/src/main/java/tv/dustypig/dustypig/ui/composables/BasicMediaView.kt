@@ -2,11 +2,15 @@ package tv.dustypig.dustypig.ui.composables
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
@@ -22,8 +26,7 @@ import tv.dustypig.dustypig.ui.main_app.screens.movie_details.MovieDetailsNav
 @Composable
 fun BasicMediaView(
     basicMedia: BasicMedia,
-    routeNavigator: RouteNavigator,
-    modifier:Modifier = Modifier
+    routeNavigator: RouteNavigator
 ) {
     fun onClicked() {
         ThePig.selectedBasicMedia = basicMedia
@@ -47,15 +50,18 @@ fun BasicMediaView(
     val hdp = 150.dp
 
     Box(
-        modifier = modifier
-            .size(wdp, hdp)
-            .clip(RoundedCornerShape(4.dp))
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(hdp)
     ) {
         GlideImage(
             model = basicMedia.artworkUrl,
             contentDescription = null,
-            modifier = modifier
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .align(Alignment.Center)
                 .size(wdp, hdp)
+                .clip(RoundedCornerShape(4.dp))
                 .clickable { onClicked() }
         ) {
             it
