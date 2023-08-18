@@ -26,7 +26,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -36,13 +38,17 @@ import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import tv.dustypig.dustypig.ui.composables.Credits
+import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
 import tv.dustypig.dustypig.ui.composables.OnOrientation
 import tv.dustypig.dustypig.ui.composables.TitleInfoLayout
+import tv.dustypig.dustypig.ui.composables.YesNoDialog
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MovieDetailsScreen(vm: MovieDetailsViewModel) {
+
+    val uiState: MovieDetailsUIState by vm.uiState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -81,8 +87,22 @@ fun MovieDetailsScreen(vm: MovieDetailsViewModel) {
                     })
             }
         )
-
     }
+
+
+    if(uiState.showRemoveDownload) {
+        YesNoDialog(
+            onNo = { vm.hideDownload(confirmed = false) },
+            onYes = { vm.hideDownload(confirmed = true) },
+            title = "Confirm",
+            message = "Do you want to remove the download?"
+        )
+    }
+
+    if(uiState.showError) {
+        ErrorDialog(onDismissRequest = { vm.hideError(uiState.criticalError) }, message = uiState.errorMessage)
+    }
+
 }
 
 
@@ -92,8 +112,14 @@ private fun HorizontalTabletLayout(vm: MovieDetailsViewModel, innerPadding: Padd
 
     val uiState: MovieDetailsUIState by vm.uiState.collectAsState()
 
-    val configuration = LocalConfiguration.current
-    val hdp = configuration.screenWidthDp.dp * 0.5625f
+    //Left aligns content or center aligns busy indicator
+    val columnAlignment = if(uiState.loading) Alignment.CenterHorizontally else Alignment.Start
+
+    val criticalError = remember {
+        derivedStateOf {
+            uiState.showError && uiState.criticalError
+        }
+    }
 
     Row(
         modifier = Modifier
@@ -127,24 +153,19 @@ private fun HorizontalTabletLayout(vm: MovieDetailsViewModel, innerPadding: Padd
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = columnAlignment
         ) {
 
             if (uiState.loading) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .align(Alignment.CenterHorizontally)
-                ) {
-                    Spacer(modifier = Modifier.height(48.dp))
-                    CircularProgressIndicator()
-                }
-            } else {
+                Spacer(modifier = Modifier.height(48.dp))
+                CircularProgressIndicator()
+            } else if(!criticalError.value) {
 
                 TitleInfoLayout(
                     playClick = { vm.play() },
                     toggleWatchList = { vm.toggleWatchList() },
-                    download = { vm.download() },
+                    download = { vm.toggleDownload() },
                     addToPlaylist = { vm.addToPlaylist() },
                     markWatched = { vm.markWatched() },
                     requestAccess = { vm.requestAccess() },
@@ -157,7 +178,9 @@ private fun HorizontalTabletLayout(vm: MovieDetailsViewModel, innerPadding: Padd
                     canManage = uiState.canManage,
                     canPlay = uiState.canPlay,
                     partiallyPlayed = uiState.partiallyPlayed,
-                    inWatchList = uiState.inWatchList
+                    markWatchedBusy = uiState.markWatchedBusy,
+                    inWatchList = uiState.inWatchList,
+                    watchListBusy = uiState.watchListBusy
                 )
 
                 Credits(
@@ -182,13 +205,21 @@ private fun PhoneLayout(vm: MovieDetailsViewModel, innerPadding: PaddingValues) 
     val configuration = LocalConfiguration.current
     val hdp = configuration.screenWidthDp.dp * 0.5625f
 
+    //Left aligns content or center aligns busy indicator
+    val columnAlignment = if(uiState.loading) Alignment.CenterHorizontally else Alignment.Start
 
+    val criticalError = remember {
+        derivedStateOf {
+            uiState.showError && uiState.criticalError
+        }
+    }
 
     Column(
         modifier = Modifier
             .padding(innerPadding)
             .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = columnAlignment
     ) {
 
         /**
@@ -229,20 +260,15 @@ private fun PhoneLayout(vm: MovieDetailsViewModel, innerPadding: PaddingValues) 
         }
 
         if (uiState.loading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .align(Alignment.CenterHorizontally)
-            ) {
-                Spacer(modifier = Modifier.height(48.dp))
-                CircularProgressIndicator()
-            }
-        } else {
+            Spacer(modifier = Modifier.height(48.dp))
+            CircularProgressIndicator()
+
+        } else if(!criticalError.value) {
 
             TitleInfoLayout(
                 playClick = { vm.play() },
                 toggleWatchList = { vm.toggleWatchList() },
-                download = { vm.download() },
+                download = { vm.toggleDownload() },
                 addToPlaylist = { vm.addToPlaylist() },
                 markWatched = { vm.markWatched() },
                 requestAccess = { vm.requestAccess() },
@@ -255,7 +281,10 @@ private fun PhoneLayout(vm: MovieDetailsViewModel, innerPadding: PaddingValues) 
                 canManage = uiState.canManage,
                 canPlay = uiState.canPlay,
                 partiallyPlayed = uiState.partiallyPlayed,
-                inWatchList = uiState.inWatchList)
+                markWatchedBusy = uiState.markWatchedBusy,
+                inWatchList = uiState.inWatchList,
+                watchListBusy = uiState.watchListBusy
+            )
 
             Credits(
                 genres = uiState.genres,

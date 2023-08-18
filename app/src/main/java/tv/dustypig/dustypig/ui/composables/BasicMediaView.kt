@@ -20,13 +20,15 @@ import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.main_app.screens.movie_details.MovieDetailsNav
+import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
 
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun BasicMediaView(
     basicMedia: BasicMedia,
-    routeNavigator: RouteNavigator
+    routeNavigator: RouteNavigator,
+    modifier: Modifier = Modifier
 ) {
     fun onClicked() {
         ThePig.selectedBasicMedia = basicMedia
@@ -36,7 +38,7 @@ fun BasicMediaView(
                 routeNavigator.navigateToRoute(MovieDetailsNav.route)
             }
             MediaTypes.Series -> {
-
+                routeNavigator.navigateToRoute(SeriesDetailsNav.route)
             }
             MediaTypes.Playlist -> {
 

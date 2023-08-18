@@ -11,16 +11,19 @@ import tv.dustypig.dustypig.api.models.BasicProfile
 import tv.dustypig.dustypig.api.models.CreateAccount
 import tv.dustypig.dustypig.api.models.CreateAccountResponse
 import tv.dustypig.dustypig.api.models.DetailedMovie
+import tv.dustypig.dustypig.api.models.DetailedSeries
 import tv.dustypig.dustypig.api.models.HomeScreen
 import tv.dustypig.dustypig.api.models.HomeScreenList
 import tv.dustypig.dustypig.api.models.LoadMoreHomeScreenItemsRequest
 import tv.dustypig.dustypig.api.models.LoginResponse
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.PasswordCredentials
+import tv.dustypig.dustypig.api.models.PlaybackProgress
 import tv.dustypig.dustypig.api.models.ProfileCredentials
 import tv.dustypig.dustypig.api.models.ResponseWrapper
 import tv.dustypig.dustypig.api.models.ResponseWrapperOf
 import tv.dustypig.dustypig.api.models.SimpleValue
+import java.io.IOException
 
 object ThePig{
 
@@ -84,7 +87,11 @@ object ThePig{
                 val rw = response.body()!!
                 if(!rw.success)
                     throw Exception(rw.error)
-            } catch (ex: Exception) {
+            }
+            catch (ex: IOException) {
+                throw Exception("Not connected to the internet")
+            }
+            catch (ex: Exception) {
                 if(ex.localizedMessage.isNullOrBlank()) {
                     throw Exception("Unknown Error")
                 }
@@ -109,7 +116,11 @@ object ThePig{
                     throw Exception(rw.error)
                 }
                 return response.body()!!.data!!
-            } catch (ex: Exception) {
+            }
+            catch (ex: IOException) {
+                throw Exception("Not connected to the internet")
+            }
+            catch (ex: Exception) {
                 if (ex.localizedMessage.isNullOrBlank()) {
                     throw Exception("Unknown Error")
                 }
@@ -139,10 +150,17 @@ object ThePig{
 
 
         object Media {
-            suspend fun homeScreen() : HomeScreen = wrapAPICallWithReturnData { authenticatedApi.homeScreen() }
 
-            suspend fun loadMoreHomeScreenItems(loadMoreHomeScreenListItemsRequest: LoadMoreHomeScreenItemsRequest) : List<BasicMedia> =
+            suspend fun addToWatchlist(id: Int) = wrapAPICall { authenticatedApi.addToWatchlist(id) }
+
+            suspend fun deleteFromWatchlist(id: Int) = wrapAPICall { authenticatedApi.deleteFromWatchlist(id) }
+
+            suspend fun homeScreen(): HomeScreen = wrapAPICallWithReturnData { authenticatedApi.homeScreen() }
+
+            suspend fun loadMoreHomeScreenItems(loadMoreHomeScreenListItemsRequest: LoadMoreHomeScreenItemsRequest): List<BasicMedia> =
                 wrapAPICallWithReturnData { authenticatedApi.loadMoreHomeScreenItems(loadMoreHomeScreenListItemsRequest) }
+
+            suspend fun updatePlaybackProgress(id: Int, seconds: Double) = wrapAPICall { authenticatedApi.updatePlaybackProgress(PlaybackProgress(id, seconds)) }
         }
 
 
@@ -154,6 +172,11 @@ object ThePig{
 
         object Profiles {
             suspend fun listProfiles() : List<BasicProfile> = wrapAPICallWithReturnData { authenticatedApi.listProfiles() }
+        }
+
+
+        object Series {
+            suspend fun seriesDetails(id: Int) : DetailedSeries = wrapAPICallWithReturnData { authenticatedApi.seriesDetails(id) }
         }
     }
 

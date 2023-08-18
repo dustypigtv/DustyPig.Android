@@ -39,6 +39,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import tv.dustypig.dustypig.R
+import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OkDialog
 
 
@@ -143,7 +144,7 @@ fun SignInScreen(
     }
 
     if (uiState.showError) {
-        OkDialog(onDismissRequest = { vm.hideError() }, title = "Error", message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = { vm.hideError() }, message = uiState.errorMessage)
     }
 
     if (uiState.showForgotPasswordSuccess) {
@@ -151,6 +152,6 @@ fun SignInScreen(
     }
 
     if(uiState.showForgotPasswordError) {
-        OkDialog(onDismissRequest = { vm.hideForgotPasswordError()}, title = "Error", message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = { vm.hideForgotPasswordError()}, message = uiState.errorMessage)
     }
 }

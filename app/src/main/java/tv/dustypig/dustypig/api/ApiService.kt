@@ -2,6 +2,7 @@ package tv.dustypig.dustypig.api
 
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -10,10 +11,12 @@ import tv.dustypig.dustypig.api.models.BasicProfile
 import tv.dustypig.dustypig.api.models.CreateAccount
 import tv.dustypig.dustypig.api.models.CreateAccountResponse
 import tv.dustypig.dustypig.api.models.DetailedMovie
+import tv.dustypig.dustypig.api.models.DetailedSeries
 import tv.dustypig.dustypig.api.models.HomeScreen
 import tv.dustypig.dustypig.api.models.LoadMoreHomeScreenItemsRequest
 import tv.dustypig.dustypig.api.models.LoginResponse
 import tv.dustypig.dustypig.api.models.PasswordCredentials
+import tv.dustypig.dustypig.api.models.PlaybackProgress
 import tv.dustypig.dustypig.api.models.ProfileCredentials
 import tv.dustypig.dustypig.api.models.ResponseWrapper
 import tv.dustypig.dustypig.api.models.ResponseWrapperOf
@@ -41,11 +44,20 @@ interface ApiService {
 
 
     // ***** Media *****
+    @GET("Media/AddToWatchlist/{id}")
+    suspend fun addToWatchlist(@Path("id") id: Int): Response<ResponseWrapper>
+
+    @DELETE("Media/DeleteFromWatchlist/{id}")
+    suspend fun deleteFromWatchlist(@Path("id") id: Int): Response<ResponseWrapper>
+
     @GET("Media/HomeScreen")
     suspend fun homeScreen(): Response<ResponseWrapperOf<HomeScreen>>
 
     @POST("Media/LoadMoreHomeScreenItems")
     suspend fun loadMoreHomeScreenItems(@Body loadMoreHomeScreenListItemsRequest: LoadMoreHomeScreenItemsRequest): Response<ResponseWrapperOf<List<BasicMedia>>>
+
+    @POST("Media/UpdatePlaybackProgress")
+    suspend fun updatePlaybackProgress(@Body playbackProgress: PlaybackProgress): Response<ResponseWrapper>
 
 
 
@@ -58,5 +70,9 @@ interface ApiService {
     @GET("Profiles/List")
     suspend fun listProfiles(): Response<ResponseWrapperOf<List<BasicProfile>>>
 
+
+    // ***** Series *****
+    @GET("Series/Details/{id}")
+    suspend fun seriesDetails(@Path("id") id: Int): Response<ResponseWrapperOf<DetailedSeries>>
 
 }

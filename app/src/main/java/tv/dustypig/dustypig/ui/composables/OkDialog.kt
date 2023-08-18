@@ -20,5 +20,4 @@ fun OkDialog (onDismissRequest: () -> Unit, title:String, message:String) {
             }
         },
     )
-
 }

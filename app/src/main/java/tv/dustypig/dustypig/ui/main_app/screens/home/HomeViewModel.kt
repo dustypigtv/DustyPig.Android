@@ -12,7 +12,9 @@ import tv.dustypig.dustypig.api.ThePig
 import tv.dustypig.dustypig.api.models.HomeScreenList
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
+import java.util.Timer
 import javax.inject.Inject
+import kotlin.concurrent.schedule
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -22,25 +24,49 @@ class HomeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(HomeUIState())
     val uiState: StateFlow<HomeUIState> = _uiState.asStateFlow()
 
+    private val _timer = Timer()
+
     init {
-        onRefresh()
+        _timer.schedule(
+            delay = 0,
+            period = 60 * 1000
+        ){
+            loadData()
+        }
     }
 
-    fun onRefresh() {
-        _uiState.update { it.copy(isRefreshing = true) }
+    private fun loadData() {
         viewModelScope.launch {
             try {
                 val data = ThePig.Api.Media.homeScreen()
                 val sections = data.sections ?: listOf()
-                _uiState.update { it.copy(isRefreshing = false, sections = sections) }
+                _uiState.update {
+                    it.copy(
+                        isRefreshing = false,
+                        sections = sections
+                    )
+                }
             } catch (ex: Exception) {
-                _uiState.update { it.copy(
-                    isRefreshing = false,
-                    showError = true,
-                    errorMessage = ex.localizedMessage ?: "Unknown Error"
-                ) }
+
+                //Only show error message if manually refreshing (or first load)
+                if(_uiState.value.isRefreshing) {
+                    _uiState.update {
+                        it.copy(
+                            isRefreshing = false,
+                            showError = true,
+                            errorMessage = ex.localizedMessage ?: "Unknown Error"
+                        )
+                    }
+                }
             }
         }
+    }
+
+    fun onRefresh() {
+        _uiState.update {
+            it.copy(isRefreshing = true)
+        }
+        loadData()
     }
 
     fun onShowMoreClicked(hsl: HomeScreenList) {

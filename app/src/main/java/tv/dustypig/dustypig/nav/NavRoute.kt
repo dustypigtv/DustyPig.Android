@@ -1,6 +1,8 @@
 package tv.dustypig.dustypig.nav
 
 import android.util.Log
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -44,7 +46,34 @@ interface NavRoute<T : RouteNavigator> {
         builder: NavGraphBuilder,
         navHostController: NavHostController
     ) {
-        builder.composable(route, getArguments()) {
+        builder.composable(
+            route = route,
+            arguments = getArguments(),
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Companion.Left,
+                    animationSpec = tween(durationMillis = 250)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Companion.Left,
+                    animationSpec = tween(durationMillis = 250)
+                )
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
+                    animationSpec = tween(durationMillis = 250)
+                )
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
+                    animationSpec = tween(durationMillis = 250)
+                )
+            }
+        ) {
             val viewModel = viewModel()
             val viewStateAsState by viewModel.navigationState.collectAsState()
 

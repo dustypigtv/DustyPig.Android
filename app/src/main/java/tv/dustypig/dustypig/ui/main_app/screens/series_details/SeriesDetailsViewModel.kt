@@ -1,6 +1,5 @@
-package tv.dustypig.dustypig.ui.main_app.screens.movie_details
+package tv.dustypig.dustypig.ui.main_app.screens.series_details
 
-import android.annotation.SuppressLint
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,29 +11,22 @@ import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.Genres
 import tv.dustypig.dustypig.api.ThePig
 import tv.dustypig.dustypig.api.asString
-import tv.dustypig.dustypig.api.models.MediaTypes
-import tv.dustypig.dustypig.api.toTimeString
-import tv.dustypig.dustypig.download_manager.DownloadManager
+import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.nav.RouteNavigator
-import tv.dustypig.dustypig.ui.download_manager.DownloadStatus
-import java.text.SimpleDateFormat
 import javax.inject.Inject
 
-@SuppressLint("SimpleDateFormat")
 @HiltViewModel
-class MovieDetailsViewModel @Inject constructor(
-    private val routeNavigator: RouteNavigator,
-    //private val savedStateHandle: SavedStateHandle
+class SeriesDetailsViewModel  @Inject constructor(
+    private val routeNavigator: RouteNavigator
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val _uiState = MutableStateFlow(MovieDetailsUIState())
-    val uiState: StateFlow<MovieDetailsUIState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(SeriesDetailsUIState())
+    val uiState: StateFlow<SeriesDetailsUIState> = _uiState.asStateFlow()
 
     private val _id: Int = ThePig.selectedBasicMedia.id
+    private var _allEpisodes: List<DetailedEpisode> = listOf()
 
     init {
-        //_id = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_ID)
-
         _uiState.update {
             it.copy(
                 loading = true,
@@ -42,11 +34,26 @@ class MovieDetailsViewModel @Inject constructor(
             )
         }
 
-
-
         viewModelScope.launch {
             try {
-                val data = ThePig.Api.Movies.movieDetails(_id)
+
+                val data = ThePig.Api.Series.seriesDetails(_id)
+                _allEpisodes = data.episodes ?: listOf()
+                if(_allEpisodes.isEmpty()) {
+                    throw Exception("No episodes found.")
+                }
+
+                val allSeasons = ArrayList<UShort>()
+                for(ep in _allEpisodes) {
+                    if(!allSeasons.contains(ep.seasonNumber))
+                        allSeasons.add(ep.seasonNumber)
+                }
+
+                val upNext: DetailedEpisode = _allEpisodes.firstOrNull { it.upNext } ?: _allEpisodes.first()
+                var selEps = _allEpisodes.filter {
+                    it.seasonNumber == upNext.seasonNumber
+                }
+
 
                 _uiState.update {
                     it.copy(
@@ -55,19 +62,19 @@ class MovieDetailsViewModel @Inject constructor(
                         posterUrl = data.artworkUrl,
                         backdropUrl = data.backdropUrl ?: "",
                         title = data.title,
-                        year = SimpleDateFormat("yyyy").format(data.date),
                         canManage = data.canManage,
                         canPlay = data.canPlay,
                         rated = data.rated.asString(),
-                        length = data.length.toTimeString(),
-                        partiallyPlayed = (data.played ?: 0.0) > 0.0,
                         description = data.description ?: "",
                         genres = Genres(data.genres).toList(),
                         cast = data.cast ?: listOf(),
                         directors = data.directors ?: listOf(),
                         producers = data.producers ?: listOf(),
                         writers = data.writers ?: listOf(),
-                        owner = data.owner ?: ""
+                        owner = data.owner ?: "",
+                        seasons = allSeasons.toList(),
+                        selectedSeason = upNext.seasonNumber,
+                        episodes = selEps
                     )
                 }
             } catch (ex: Exception) {
@@ -83,6 +90,20 @@ class MovieDetailsViewModel @Inject constructor(
         }
     }
 
+    fun setSeason(season: UShort) {
+
+        val selEps = _allEpisodes.filter {
+            it.seasonNumber == season
+        }
+
+        _uiState.update {
+            it.copy(
+                selectedSeason = season,
+                episodes = selEps
+            )
+        }
+    }
+
     fun hideError(critical: Boolean) {
         if(critical) {
             popBackStack()
@@ -95,41 +116,45 @@ class MovieDetailsViewModel @Inject constructor(
     }
 
 
-    fun play() {
-        TODO()
+    fun playUpNext() {
+
+    }
+
+    fun playEpisode(id: Int) {
+
     }
 
     fun toggleDownload() {
-        if(DownloadManager.has(_id)) {
-            _uiState.update {
-                it.copy(showRemoveDownload = true)
-            }
-        } else {
-            DownloadManager.add(id = _id, mediaType = MediaTypes.Movie, count = 1)
-            _uiState.update {
-                it.copy(downloadStatus = DownloadStatus.Queued)
-            }
-        }
+//        if(DownloadManager.has(_id)) {
+//            _uiState.update {
+//                it.copy(showRemoveDownload = true)
+//            }
+//        } else {
+//            DownloadManager.add(id = _id, mediaType = MediaTypes.Movie, count = 1)
+//            _uiState.update {
+//                it.copy(downloadStatus = DownloadStatus.Queued)
+//            }
+//        }
     }
 
     fun hideDownload(confirmed: Boolean) {
-        if(confirmed) {
-            DownloadManager.delete(id = _id)
-            _uiState.update {
-                it.copy(
-                    showRemoveDownload = false,
-                    downloadStatus = DownloadStatus.NotDownloaded
-                )
-            }
-        } else {
-            _uiState.update {
-                it.copy(showRemoveDownload = false)
-            }
-        }
+//        if(confirmed) {
+//            DownloadManager.delete(id = _id)
+//            _uiState.update {
+//                it.copy(
+//                    showRemoveDownload = false,
+//                    downloadStatus = DownloadStatus.NotDownloaded
+//                )
+//            }
+//        } else {
+//            _uiState.update {
+//                it.copy(showRemoveDownload = false)
+//            }
+//        }
     }
 
     fun requestAccess() {
-        TODO()
+
     }
 
     fun toggleWatchList() {
@@ -193,10 +218,14 @@ class MovieDetailsViewModel @Inject constructor(
     }
 
     fun addToPlaylist() {
-        TODO()
+
     }
 
     fun manageParentalControls() {
-        TODO()
+
+    }
+
+    fun navToEpisodeInfo(id: Int) {
+
     }
 }

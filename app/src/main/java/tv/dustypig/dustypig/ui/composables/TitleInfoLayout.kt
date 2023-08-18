@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.RemoveRedEye
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -81,7 +82,11 @@ fun TitleInfoLayout(
     canManage: Boolean,
     canPlay: Boolean,
     partiallyPlayed: Boolean,
-    inWatchList: Boolean
+    markWatchedBusy: Boolean,
+    inWatchList: Boolean,
+    watchListBusy: Boolean,
+    seasonEpisode: String = "",
+    episodeTitle: String = ""
 ) {
 
     //Align buttons to center for phone, left for tablet
@@ -89,6 +94,10 @@ fun TitleInfoLayout(
     val alignment = if(configuration.isTablet()) Alignment.Start else Alignment.CenterHorizontally
     val modifier = if(configuration.isTablet()) Modifier.width(320.dp) else Modifier.fillMaxWidth()
     val buttonPadding = if(configuration.isTablet()) PaddingValues(0.dp, 0.dp  ) else PaddingValues(16.dp, 0.dp)
+
+    //This will leave at minimum just the colon, so check if
+    //length > 1 before displaying
+    val epHeader = "$seasonEpisode: $episodeTitle".trim()
 
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -173,7 +182,7 @@ fun TitleInfoLayout(
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(text = if (partiallyPlayed) "Resume" else "Play")
+                Text(text = if (partiallyPlayed) "Resume $seasonEpisode".trim() else "Play $seasonEpisode".trim())
             }
 
             Row(
@@ -183,10 +192,31 @@ fun TitleInfoLayout(
             ) {
 
 
-                ActionButton(
-                    onClick = toggleWatchList,
-                    caption = "Watchlist",
-                    icon = if (inWatchList) Icons.Filled.Check else Icons.Filled.Add)
+                if(watchListBusy) {
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .padding(12.dp)
+                        )
+                        Text(
+                            text = "Watchlist",
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.width(58.dp),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+
+                } else {
+                    ActionButton(
+                        onClick = toggleWatchList,
+                        caption = "Watchlist",
+                        icon = if (inWatchList) Icons.Filled.Check else Icons.Filled.Add
+                    )
+                }
 
                 ActionButton(
                     onClick = download,
@@ -201,21 +231,48 @@ fun TitleInfoLayout(
                 )
 
                 if(partiallyPlayed) {
-                    ActionButton(
-                        onClick = markWatched,
-                        caption = "Mark Watched",
-                        icon = Icons.Filled.RemoveRedEye
-                    )
+                    if(markWatchedBusy) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .padding(12.dp)
+                            )
+                            Text(
+                                text = "Mark Watched",
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.width(58.dp),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    } else {
+                        ActionButton(
+                            onClick = markWatched,
+                            caption = "Mark Watched",
+                            icon = Icons.Filled.RemoveRedEye
+                        )
+                    }
                 }
             }
         }
     } else {
+
         Button(
             onClick = requestAccess,
             modifier = Modifier.padding(buttonPadding)
         ) {
             Text(text = "Request Access")
         }
+    }
+
+
+    if(epHeader.length > 1) {
+        Text(
+            text = epHeader,
+            style = MaterialTheme.typography.titleSmall
+        )
     }
 
     Text(text = description)

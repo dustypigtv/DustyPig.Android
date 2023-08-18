@@ -32,7 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import tv.dustypig.dustypig.ui.composables.Avatar
-import tv.dustypig.dustypig.ui.composables.OkDialog
+import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.PinEntry
 
 
@@ -94,7 +94,7 @@ fun SelectProfileScreen(vm: SelectProfileViewModel) {
     }
 
     if(uiState.showError) {
-        OkDialog(onDismissRequest = { vm.hideError() }, title = "Error", message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = { vm.hideError() }, message = uiState.errorMessage)
     }
 
     if(uiState.showPinDialog) {

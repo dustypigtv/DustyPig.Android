@@ -1,0 +1,34 @@
+package tv.dustypig.dustypig.ui.composables
+
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
+
+
+@Composable
+fun YesNoDialog (onNo: () -> Unit, onYes: () -> Unit, title:String, message:String, yes: String = "Yes", no: String = "No", dismissOnClickOutside: Boolean = false) {
+    AlertDialog(
+        shape = RoundedCornerShape(8.dp),
+        onDismissRequest = onNo,
+        title = { Text(title) },
+        text = { Text(message) },
+        confirmButton = {
+            TextButton(onClick = onYes) {
+                Text(yes)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onNo) {
+                Text(no)
+            }
+        },
+        properties = DialogProperties(
+            dismissOnBackPress = dismissOnClickOutside,
+            dismissOnClickOutside = dismissOnClickOutside
+        )
+    )
+}

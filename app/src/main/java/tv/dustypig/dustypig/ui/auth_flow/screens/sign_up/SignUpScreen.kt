@@ -39,6 +39,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import tv.dustypig.dustypig.R
+import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OkDialog
 
 
@@ -144,7 +145,7 @@ fun SignUpScreen(vm: SignUpViewModel) {
 
 
     if (uiState.showError) {
-        OkDialog(onDismissRequest = { vm.hideError() }, title = "Error", message = uiState.message)
+        ErrorDialog(onDismissRequest = { vm.hideError() }, message = uiState.message)
     }
 
     if (uiState.showSuccess) {

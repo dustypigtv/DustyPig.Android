@@ -1,22 +1,31 @@
 package tv.dustypig.dustypig.ui.main_app.screens.home
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -25,17 +34,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideLazyListPreloader
 import tv.dustypig.dustypig.ui.composables.BasicMediaView
 
 
-@OptIn(ExperimentalGlideComposeApi::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalGlideComposeApi::class, ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(vm: HomeViewModel) {
 
@@ -51,7 +59,8 @@ fun HomeScreen(vm: HomeViewModel) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .pullRefresh(ptrState),
+                    .pullRefresh(ptrState)
+                    .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -88,25 +97,28 @@ fun HomeScreen(vm: HomeViewModel) {
             ) {
                 items(uiState.sections, key = { section -> section.listId }) { section ->
                     Column (
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .animateItemPlacement()
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                        Button(
+                            onClick = { vm.onShowMoreClicked(section) },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Transparent,
+                                contentColor = MaterialTheme.colorScheme.primary
+                            ),
+                            contentPadding = PaddingValues(6.dp, 0.dp)
                         ) {
                             Text(
                                 text = section.title,
                                 fontWeight = FontWeight.Bold
-                                )
-                            if(section.items.size >= 25) {
-                                TextButton(onClick = { vm.onShowMoreClicked(section) }) {
-                                    Text(
-                                        text = "More",
-                                        style = TextStyle(textDecoration = TextDecoration.Underline)
-                                    )
-                                }
-                            }
+                            )
+                            Icon(
+                                imageVector = Icons.Filled.ChevronRight,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp),
+                                tint = Color.White
+                            )
                         }
                         LazyRow(
                             state = lazyRowStates[section.listId]!!,
@@ -118,7 +130,8 @@ fun HomeScreen(vm: HomeViewModel) {
                             items(section.items, key = { basicMedia -> basicMedia.id }) { basicMedia ->
                                 BasicMediaView(
                                     basicMedia = basicMedia,
-                                    vm
+                                    vm,
+                                    modifier = Modifier.animateItemPlacement()
                                 )
                             }
                         }

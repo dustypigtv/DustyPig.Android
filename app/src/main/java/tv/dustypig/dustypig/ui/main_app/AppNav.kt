@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
@@ -28,6 +29,8 @@ import tv.dustypig.dustypig.ui.main_app.screens.downloads.DownloadsNav
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeNav
 import tv.dustypig.dustypig.ui.main_app.screens.movie_details.MovieDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.search.SearchNav
+import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
+import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsScreen
 import tv.dustypig.dustypig.ui.main_app.screens.settings.SettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
 
@@ -74,8 +77,7 @@ fun AppNav(){
                         icon = {
                             Icon(
                                 imageVector = screen.value,
-                                contentDescription = null,
-                                modifier = Modifier.size(48.dp)
+                                contentDescription = null
                             )
                         },
                         selected = isSelected(screen.key),
@@ -111,6 +113,8 @@ fun AppNav(){
             //Sub screens
             ShowMoreNav.composable(this, navController)
             MovieDetailsNav.composable(this, navController)
+            SeriesDetailsNav.composable(this, navController)
+
         }
     }
 }
