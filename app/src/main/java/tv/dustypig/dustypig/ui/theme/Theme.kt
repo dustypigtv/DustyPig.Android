@@ -35,6 +35,9 @@ private val DarkColorScheme = darkColorScheme(
     secondaryContainer = DarkGray,
     onSecondaryContainer = Color.White,
 
+    tertiaryContainer = DialogGray,
+    onTertiaryContainer = Color.White,
+
     background = Color.Black,
     onBackground = Color.White,
 

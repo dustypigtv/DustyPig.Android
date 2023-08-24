@@ -43,7 +43,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextOverflow
@@ -54,6 +53,7 @@ import tv.dustypig.dustypig.ui.composables.Credits
 import tv.dustypig.dustypig.ui.composables.OnDevice
 import tv.dustypig.dustypig.ui.composables.OnOrientation
 import tv.dustypig.dustypig.ui.composables.TitleInfoLayout
+import tv.dustypig.dustypig.ui.theme.DimOverlay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,7 +64,13 @@ fun SeriesDetailsScreen(vm: SeriesDetailsViewModel) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {  },
+                title = {
+                        Text(
+                            text = uiState.title,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                },
                 navigationIcon = {
                     IconButton(onClick = { vm.popBackStack() }) {
                         Icon(Icons.Filled.ArrowBack, null)
@@ -229,7 +235,9 @@ private fun PhoneLayout(vm: SeriesDetailsViewModel, innerPadding: PaddingValues)
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.Top,
-                    modifier = Modifier.height(64.dp)
+                    modifier = Modifier
+                        .height(64.dp)
+                        .background(color = MaterialTheme.colorScheme.tertiaryContainer)
                 ) {
                     Box(
                         modifier = Modifier
@@ -250,7 +258,7 @@ private fun PhoneLayout(vm: SeriesDetailsViewModel, innerPadding: PaddingValues)
                             modifier = Modifier
                                 .size(36.dp)
                                 .clip(shape = CircleShape)
-                                .background(Color(0x80000000))
+                                .background(DimOverlay)
                                 .clickable { vm.playEpisode(episode.id) }
                         )
 

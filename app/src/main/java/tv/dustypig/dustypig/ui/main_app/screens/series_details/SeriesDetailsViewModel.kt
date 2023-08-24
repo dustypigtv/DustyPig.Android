@@ -30,6 +30,7 @@ class SeriesDetailsViewModel  @Inject constructor(
         _uiState.update {
             it.copy(
                 loading = true,
+                title = ThePig.selectedBasicMedia.title,
                 posterUrl = ThePig.selectedBasicMedia.artworkUrl
             )
         }
