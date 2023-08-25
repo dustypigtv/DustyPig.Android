@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import tv.dustypig.dustypig.api.ThePig
+import tv.dustypig.dustypig.ThePig
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.nav.RouteNavigator
 import javax.inject.Inject

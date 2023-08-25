@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -49,9 +50,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.ui.composables.Credits
+import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
 import tv.dustypig.dustypig.ui.composables.OnOrientation
+import tv.dustypig.dustypig.ui.composables.TitleInfoData
 import tv.dustypig.dustypig.ui.composables.TitleInfoLayout
 import tv.dustypig.dustypig.ui.theme.DimOverlay
 
@@ -60,13 +64,14 @@ import tv.dustypig.dustypig.ui.theme.DimOverlay
 fun SeriesDetailsScreen(vm: SeriesDetailsViewModel) {
 
     val uiState: SeriesDetailsUIState by vm.uiState.collectAsState()
+    val titleInfoState: TitleInfoData by vm.titleInfoUIState.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                         Text(
-                            text = uiState.title,
+                            text = titleInfoState.title,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -97,7 +102,10 @@ fun SeriesDetailsScreen(vm: SeriesDetailsViewModel) {
                         )
                     },
                     onLandscape = {
-
+                        HorizontalTabletLayout(
+                            vm = vm,
+                            innerPadding = innerPadding
+                        )
                     })
             }
         )
@@ -112,11 +120,85 @@ fun SeriesDetailsScreen(vm: SeriesDetailsViewModel) {
 //            message = "Do you want to remove the download?"
 //        )
 //    }
-//
-//    if(uiState.showError) {
-//        ErrorDialog(onDismissRequest = { vm.hideError(uiState.criticalError) }, message = uiState.errorMessage)
-//    }
+
+    if(uiState.showError) {
+        ErrorDialog(onDismissRequest = { vm.hideError(uiState.criticalError) }, message = uiState.errorMessage)
+    }
 }
+
+
+@OptIn(ExperimentalGlideComposeApi::class)
+@Composable
+private fun EpisodeRow(episode: DetailedEpisode, vm: SeriesDetailsViewModel) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Top,
+        modifier = Modifier
+            .height(64.dp)
+            .background(color = MaterialTheme.colorScheme.tertiaryContainer)
+    ) {
+        Box(
+            modifier = Modifier
+                .width(114.dp)
+                .height(64.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            GlideImage(
+                model = episode.artworkUrl,
+                contentDescription = "",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+
+            Icon(
+                imageVector = Icons.Filled.PlayCircleOutline,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(shape = CircleShape)
+                    .background(DimOverlay)
+                    .clickable { vm.playEpisode(episode.id) }
+            )
+
+        }
+
+
+        Column(
+            modifier = Modifier.weight(1f)
+        ){
+            Text(
+                text = "E${episode.episodeNumber}: ${episode.title}",
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = episode.description ?: "No description",
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .width(24.dp)
+                .height(64.dp)
+                .offset(x = (-12).dp),
+            contentAlignment = Alignment.Center
+        ) {
+
+            IconButton(onClick = { vm.navToEpisodeInfo(episode.id) }) {
+                Icon(
+                    imageVector = Icons.Outlined.Info,
+                    contentDescription = null
+                )
+            }
+        }
+
+    }
+}
+
 
 
 @OptIn(ExperimentalGlideComposeApi::class)
@@ -124,6 +206,7 @@ fun SeriesDetailsScreen(vm: SeriesDetailsViewModel) {
 private fun PhoneLayout(vm: SeriesDetailsViewModel, innerPadding: PaddingValues) {
 
     val uiState: SeriesDetailsUIState by vm.uiState.collectAsState()
+    val titleInfoState: TitleInfoData by vm.titleInfoUIState.collectAsState()
 
     val configuration = LocalConfiguration.current
     val hdp = configuration.screenWidthDp.dp * 0.5625f
@@ -185,26 +268,7 @@ private fun PhoneLayout(vm: SeriesDetailsViewModel, innerPadding: PaddingValues)
                 CircularProgressIndicator()
             } else {
 
-                TitleInfoLayout(
-                    playClick = { vm.playUpNext() },
-                    toggleWatchList = { vm.toggleWatchList() },
-                    download = { vm.toggleDownload() },
-                    addToPlaylist = { vm.addToPlaylist() },
-                    markWatched = { vm.markWatched() },
-                    requestAccess = { vm.requestAccess() },
-                    manageClick = { vm.manageParentalControls() },
-                    title = uiState.title,
-                    year = "",
-                    rated = uiState.rated,
-                    length = "",
-                    description = uiState.description,
-                    canManage = uiState.canManage,
-                    canPlay = uiState.canPlay,
-                    partiallyPlayed = uiState.partiallyPlayed,
-                    markWatchedBusy = uiState.markWatchedBusy,
-                    inWatchList = uiState.inWatchList,
-                    watchListBusy = uiState.watchListBusy
-                )
+                TitleInfoLayout(titleInfoState)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -230,85 +294,11 @@ private fun PhoneLayout(vm: SeriesDetailsViewModel, innerPadding: PaddingValues)
 
 
         items(uiState.episodes) { episode ->
-
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.Top,
-                    modifier = Modifier
-                        .height(64.dp)
-                        .background(color = MaterialTheme.colorScheme.tertiaryContainer)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .width(114.dp)
-                            .height(64.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        GlideImage(
-                            model = episode.artworkUrl,
-                            contentDescription = "",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-
-                        Icon(
-                            imageVector = Icons.Filled.PlayCircleOutline,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(shape = CircleShape)
-                                .background(DimOverlay)
-                                .clickable { vm.playEpisode(episode.id) }
-                        )
-
-                    }
-
-
-                    Column(
-                        modifier = Modifier.weight(1f)
-                    ){
-                        Text(
-                            text = "E${episode.episodeNumber}: ${episode.title}",
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = episode.description ?: "No description",
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .width(24.dp)
-                            .height(64.dp)
-                            .offset(x = (-12).dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-
-                        IconButton(onClick = { vm.navToEpisodeInfo(episode.id) }) {
-                            Icon(
-                                imageVector = Icons.Outlined.Info,
-                                contentDescription = null
-                            )
-                        }
-                    }
-
-                }
+            EpisodeRow(episode = episode, vm = vm)
         }
 
         item {
-            Credits(
-                genres = uiState.genres,
-                cast = uiState.cast,
-                directors = uiState.directors,
-                producers = uiState.producers,
-                writers = uiState.writers,
-                owner = uiState.owner)
+            Credits(uiState.creditsData)
         }
 
     }
@@ -316,4 +306,84 @@ private fun PhoneLayout(vm: SeriesDetailsViewModel, innerPadding: PaddingValues)
 
 
 
+@OptIn(ExperimentalGlideComposeApi::class)
+@Composable
+private fun HorizontalTabletLayout(vm: SeriesDetailsViewModel, innerPadding: PaddingValues) {
 
+    val uiState: SeriesDetailsUIState by vm.uiState.collectAsState()
+    val titleInfoState: TitleInfoData by vm.titleInfoUIState.collectAsState()
+
+    val columnAlignment = if(uiState.loading) Alignment.CenterHorizontally else Alignment.Start
+
+
+    val criticalError = remember {
+        derivedStateOf {
+            uiState.showError && uiState.criticalError
+        }
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(paddingValues = innerPadding),
+        horizontalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+
+
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .fillMaxWidth(fraction = 0.33f)
+        ) {
+
+            GlideImage(
+                model = uiState.posterUrl,
+                contentDescription = "",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .blur(50.dp)
+            )
+
+            GlideImage(
+                model = uiState.posterUrl,
+                contentDescription = "",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalAlignment = columnAlignment,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                if (uiState.loading) {
+                    Spacer(modifier = Modifier.height(48.dp))
+                    CircularProgressIndicator()
+                } else if (!criticalError.value) {
+                    TitleInfoLayout(titleInfoState)
+                }
+            }
+
+            items(uiState.episodes) { episode ->
+                EpisodeRow(episode = episode, vm = vm)
+            }
+
+            item {
+                if (!uiState.loading && !criticalError.value) {
+                    Credits(uiState.creditsData)
+                }
+            }
+
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+    }
+
+}

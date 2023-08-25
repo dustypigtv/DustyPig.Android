@@ -25,8 +25,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
+import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.downloads.DownloadsNav
+import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeNav
+import tv.dustypig.dustypig.ui.main_app.screens.manage_parental_controls_for_title.ManageParentalControlsForTitleNav
 import tv.dustypig.dustypig.ui.main_app.screens.movie_details.MovieDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.search.SearchNav
 import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
@@ -114,6 +117,10 @@ fun AppNav(){
             ShowMoreNav.composable(this, navController)
             MovieDetailsNav.composable(this, navController)
             SeriesDetailsNav.composable(this, navController)
+            EpisodeDetailsNav.composable(this, navController)
+            AddToPlaylistNav.composable(this, navController)
+            ManageParentalControlsForTitleNav.composable(this, navController)
+
 
         }
     }

@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.AuthManager
-import tv.dustypig.dustypig.api.ThePig
+import tv.dustypig.dustypig.ThePig
 import tv.dustypig.dustypig.api.models.BasicProfile
 import tv.dustypig.dustypig.api.models.LoginTypes
 import tv.dustypig.dustypig.api.models.ProfileCredentials

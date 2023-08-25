@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import tv.dustypig.dustypig.R
-import tv.dustypig.dustypig.api.ThePig
+import tv.dustypig.dustypig.ThePig
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.nav.RouteNavigator
@@ -28,9 +28,16 @@ import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
 fun BasicMediaView(
     basicMedia: BasicMedia,
     routeNavigator: RouteNavigator,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    clicked: ((Int) -> Unit)? = null
 ) {
     fun onClicked() {
+
+        if(clicked != null) {
+            clicked(basicMedia.id)
+            return
+        }
+
         ThePig.selectedBasicMedia = basicMedia
         when (basicMedia.mediaType) {
             MediaTypes.Movie -> {
@@ -44,7 +51,7 @@ fun BasicMediaView(
 
             }
 
-            else -> {}
+            else -> { }
         }
     }
 

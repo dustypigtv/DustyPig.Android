@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.api.ThePig
+import tv.dustypig.dustypig.ThePig
 import tv.dustypig.dustypig.api.models.HomeScreenList
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav

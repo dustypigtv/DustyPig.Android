@@ -43,6 +43,7 @@ import tv.dustypig.dustypig.ui.composables.Credits
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
 import tv.dustypig.dustypig.ui.composables.OnOrientation
+import tv.dustypig.dustypig.ui.composables.TitleInfoData
 import tv.dustypig.dustypig.ui.composables.TitleInfoLayout
 import tv.dustypig.dustypig.ui.composables.YesNoDialog
 
@@ -51,13 +52,14 @@ import tv.dustypig.dustypig.ui.composables.YesNoDialog
 fun MovieDetailsScreen(vm: MovieDetailsViewModel) {
 
     val uiState: MovieDetailsUIState by vm.uiState.collectAsState()
+    val titleInfoState: TitleInfoData by vm.titleInfoUIState.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = uiState.title,
+                        text = titleInfoState.title,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -119,6 +121,7 @@ fun MovieDetailsScreen(vm: MovieDetailsViewModel) {
 private fun HorizontalTabletLayout(vm: MovieDetailsViewModel, innerPadding: PaddingValues) {
 
     val uiState: MovieDetailsUIState by vm.uiState.collectAsState()
+    val titleInfoState: TitleInfoData by vm.titleInfoUIState.collectAsState()
 
     //Left aligns content or center aligns busy indicator
     val columnAlignment = if(uiState.loading) Alignment.CenterHorizontally else Alignment.Start
@@ -169,36 +172,8 @@ private fun HorizontalTabletLayout(vm: MovieDetailsViewModel, innerPadding: Padd
                 Spacer(modifier = Modifier.height(48.dp))
                 CircularProgressIndicator()
             } else if(!criticalError.value) {
-
-                TitleInfoLayout(
-                    playClick = { vm.play() },
-                    toggleWatchList = { vm.toggleWatchList() },
-                    download = { vm.toggleDownload() },
-                    addToPlaylist = { vm.addToPlaylist() },
-                    markWatched = { vm.markWatched() },
-                    requestAccess = { vm.requestAccess() },
-                    manageClick = { vm.manageParentalControls() },
-                    title = uiState.title,
-                    year = uiState.year,
-                    rated = uiState.rated,
-                    length = uiState.length,
-                    description = uiState.description,
-                    canManage = uiState.canManage,
-                    canPlay = uiState.canPlay,
-                    partiallyPlayed = uiState.partiallyPlayed,
-                    markWatchedBusy = uiState.markWatchedBusy,
-                    inWatchList = uiState.inWatchList,
-                    watchListBusy = uiState.watchListBusy
-                )
-
-                Credits(
-                    genres = uiState.genres,
-                    cast = uiState.cast,
-                    directors = uiState.directors,
-                    producers = uiState.producers,
-                    writers = uiState.writers,
-                    owner = uiState.owner
-                )
+                TitleInfoLayout(titleInfoState)
+                Credits(uiState.creditsData)
             }
         }
     }
@@ -209,6 +184,7 @@ private fun HorizontalTabletLayout(vm: MovieDetailsViewModel, innerPadding: Padd
 private fun PhoneLayout(vm: MovieDetailsViewModel, innerPadding: PaddingValues) {
 
     val uiState: MovieDetailsUIState by vm.uiState.collectAsState()
+    val titleInfoState: TitleInfoData by vm.titleInfoUIState.collectAsState()
 
     val configuration = LocalConfiguration.current
     val hdp = configuration.screenWidthDp.dp * 0.5625f
@@ -270,38 +246,9 @@ private fun PhoneLayout(vm: MovieDetailsViewModel, innerPadding: PaddingValues) 
         if (uiState.loading) {
             Spacer(modifier = Modifier.height(48.dp))
             CircularProgressIndicator()
-
         } else if(!criticalError.value) {
-
-            TitleInfoLayout(
-                playClick = { vm.play() },
-                toggleWatchList = { vm.toggleWatchList() },
-                download = { vm.toggleDownload() },
-                addToPlaylist = { vm.addToPlaylist() },
-                markWatched = { vm.markWatched() },
-                requestAccess = { vm.requestAccess() },
-                manageClick = { vm.manageParentalControls() },
-                title = uiState.title,
-                year = uiState.year,
-                rated = uiState.rated,
-                length = uiState.length,
-                description = uiState.description,
-                canManage = uiState.canManage,
-                canPlay = uiState.canPlay,
-                partiallyPlayed = uiState.partiallyPlayed,
-                markWatchedBusy = uiState.markWatchedBusy,
-                inWatchList = uiState.inWatchList,
-                watchListBusy = uiState.watchListBusy
-            )
-
-            Credits(
-                genres = uiState.genres,
-                cast = uiState.cast,
-                directors = uiState.directors,
-                producers = uiState.producers,
-                writers = uiState.writers,
-                owner = uiState.owner
-            )
+            TitleInfoLayout(titleInfoState)
+            Credits(uiState.creditsData)
         }
     }
 }

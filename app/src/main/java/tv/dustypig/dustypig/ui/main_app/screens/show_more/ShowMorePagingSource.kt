@@ -2,7 +2,7 @@ package tv.dustypig.dustypig.ui.main_app.screens.show_more
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import tv.dustypig.dustypig.api.ThePig
+import tv.dustypig.dustypig.ThePig
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.LoadMoreHomeScreenItemsRequest
 
