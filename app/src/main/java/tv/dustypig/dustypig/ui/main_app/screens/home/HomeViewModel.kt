@@ -12,6 +12,8 @@ import tv.dustypig.dustypig.ThePig
 import tv.dustypig.dustypig.api.models.HomeScreenList
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
+import java.util.Calendar
+import java.util.Date
 import java.util.Timer
 import javax.inject.Inject
 import kotlin.concurrent.schedule
@@ -25,17 +27,39 @@ class HomeViewModel @Inject constructor(
     val uiState: StateFlow<HomeUIState> = _uiState.asStateFlow()
 
     private val _timer = Timer()
+    private var _timerBusy = false
+
+    companion object {
+        private var _nextTimerTick: Date = Calendar.getInstance().time
+        fun triggerUpdate() {
+            val calendar = Calendar.getInstance()
+            calendar.add(Calendar.SECOND, 1)
+            _nextTimerTick = calendar.time
+        }
+
+        private fun waitMinute() {
+            val calendar = Calendar.getInstance()
+            calendar.add(Calendar.MINUTE, 1)
+            _nextTimerTick = calendar.time
+        }
+    }
 
     init {
         _timer.schedule(
             delay = 0,
-            period = 60 * 1000
+            period = 1000
         ){
             loadData()
         }
     }
 
     private fun loadData() {
+
+        if(_timerBusy || Calendar.getInstance().time < _nextTimerTick)
+            return
+
+        _timerBusy = true
+
         viewModelScope.launch {
             try {
                 val data = ThePig.Api.Media.homeScreen()
@@ -59,6 +83,9 @@ class HomeViewModel @Inject constructor(
                     }
                 }
             }
+
+            waitMinute()
+            _timerBusy = false
         }
     }
 

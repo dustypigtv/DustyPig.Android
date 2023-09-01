@@ -15,6 +15,7 @@ import tv.dustypig.dustypig.api.models.BasicPlaylist
 import tv.dustypig.dustypig.api.models.CreatePlaylist
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
+import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
 import javax.inject.Inject
 
 @HiltViewModel
@@ -88,6 +89,8 @@ class AddToPlaylistViewModel  @Inject constructor(
                 else {
                     ThePig.Api.Playlists.addItemToPlaylist(AddPlaylistItem(newId, _mediaId))
                 }
+
+                HomeViewModel.triggerUpdate()
                 popBackStack()
             } catch (ex: Exception) {
                 _uiState.update {
@@ -116,6 +119,8 @@ class AddToPlaylistViewModel  @Inject constructor(
                 else {
                     ThePig.Api.Playlists.addItemToPlaylist(AddPlaylistItem(id, _mediaId))
                 }
+
+                HomeViewModel.triggerUpdate()
                 popBackStack()
             } catch (ex: Exception) {
                 _uiState.update {

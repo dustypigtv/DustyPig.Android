@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import dagger.hilt.android.AndroidEntryPoint
+import tv.dustypig.dustypig.download_manager.DownloadManager
 import tv.dustypig.dustypig.ui.auth_flow.AuthNav
 import tv.dustypig.dustypig.ui.composables.LockScreenOrientation
 import tv.dustypig.dustypig.ui.isTablet
@@ -22,6 +23,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        AuthManager.init()
+        DownloadManager.start(this)
 
         setContent {
             DustyPigTheme {
@@ -39,9 +43,6 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun AppStateSwitcher() {
-
-        AuthManager.init()
-
 
         if(!LocalConfiguration.current.isTablet())
             LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)

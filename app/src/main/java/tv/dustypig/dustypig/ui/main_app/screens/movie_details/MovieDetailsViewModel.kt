@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.ThePig
 import tv.dustypig.dustypig.api.Genres
 import tv.dustypig.dustypig.api.asString
-import tv.dustypig.dustypig.api.models.MediaTypes
+import tv.dustypig.dustypig.api.models.DetailedMovie
 import tv.dustypig.dustypig.api.models.OverrideRequestStatus
 import tv.dustypig.dustypig.api.toTimeString
 import tv.dustypig.dustypig.download_manager.DownloadManager
@@ -20,6 +20,7 @@ import tv.dustypig.dustypig.ui.composables.CreditsData
 import tv.dustypig.dustypig.ui.download_manager.DownloadStatus
 import tv.dustypig.dustypig.ui.main_app.DetailsScreenBaseViewModel
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
+import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
 import tv.dustypig.dustypig.ui.main_app.screens.manage_parental_controls_for_title.ManageParentalControlsForTitleNav
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
 import java.text.SimpleDateFormat
@@ -41,7 +42,7 @@ class MovieDetailsViewModel @Inject constructor(
     private val _titleInfoUIState = getTitleInfoUIStateForUpdate()
 
     private val _id: Int = ThePig.selectedBasicMedia.id
-
+    private lateinit var _detailedMovie: DetailedMovie
 
     init {
         _uiState.update {
@@ -59,20 +60,20 @@ class MovieDetailsViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                val data = ThePig.Api.Movies.movieDetails(_id)
+                _detailedMovie = ThePig.Api.Movies.movieDetails(_id)
 
                 _uiState.update {
                     it.copy(
                         loading = false,
-                        posterUrl = data.artworkUrl,
-                        backdropUrl = data.backdropUrl ?: "",
+                        posterUrl = _detailedMovie.artworkUrl,
+                        backdropUrl = _detailedMovie.backdropUrl ?: "",
                         creditsData = CreditsData(
-                            genres = Genres(data.genres).toList(),
-                            cast = data.cast ?: listOf(),
-                            directors = data.directors ?: listOf(),
-                            producers = data.producers ?: listOf(),
-                            writers = data.writers ?: listOf(),
-                            owner = data.owner ?: ""
+                            genres = Genres(_detailedMovie.genres).toList(),
+                            cast = _detailedMovie.cast ?: listOf(),
+                            directors = _detailedMovie.directors ?: listOf(),
+                            producers = _detailedMovie.producers ?: listOf(),
+                            writers = _detailedMovie.writers ?: listOf(),
+                            owner = _detailedMovie.owner ?: ""
                         )
                     )
                 }
@@ -86,16 +87,16 @@ class MovieDetailsViewModel @Inject constructor(
                         markWatched = { markWatched() },
                         requestAccess = { requestAccess() },
                         manageClick = { manageParentalControls() },
-                        inWatchList = data.inWatchlist,
-                        title = data.title,
-                        year = SimpleDateFormat("yyyy").format(data.date),
-                        canManage = data.canManage,
-                        canPlay = data.canPlay,
-                        rated = data.rated.asString(),
-                        length = data.length.toTimeString(),
-                        partiallyPlayed = (data.played ?: 0.0) > 0.0,
-                        overview = data.description ?: "",
-                        accessRequestStatus = data.accessRequestStatus,
+                        inWatchList = _detailedMovie.inWatchlist,
+                        title = _detailedMovie.title,
+                        year = SimpleDateFormat("yyyy").format(_detailedMovie.date),
+                        canManage = _detailedMovie.canManage,
+                        canPlay = _detailedMovie.canPlay,
+                        rated = _detailedMovie.rated.asString(),
+                        length = _detailedMovie.length.toTimeString(),
+                        partiallyPlayed = (_detailedMovie.played ?: 0.0) > 0.0,
+                        overview = _detailedMovie.description ?: "",
+                        accessRequestStatus = _detailedMovie.accessRequestStatus,
                         accessRequestBusy = false,
                     )
                 }
@@ -125,7 +126,9 @@ class MovieDetailsViewModel @Inject constructor(
 
     fun hideDownload(confirmed: Boolean) {
         if(confirmed) {
-            DownloadManager.delete(id = _id)
+            viewModelScope.launch {
+                DownloadManager.delete(id = _id)
+            }
             _uiState.update {
                 it.copy(
                     showRemoveDownload = false
@@ -144,22 +147,25 @@ class MovieDetailsViewModel @Inject constructor(
     }
 
 
-
     private fun play() {
         navigateToRoute(PlayerNav.getRouteForId(_id))
     }
 
     private fun toggleDownload() {
-        if(DownloadManager.has(_id)) {
-            _uiState.update {
-                it.copy(showRemoveDownload = true)
-            }
-        } else {
-            DownloadManager.add(id = _id, mediaType = MediaTypes.Movie, count = 1)
-            _titleInfoUIState.update {
-                it.copy(
-                    downloadStatus = DownloadStatus.Queued
-                )
+
+        //Update UI
+        viewModelScope.launch {
+            if (DownloadManager.has(_id)) {
+                _uiState.update {
+                    it.copy(showRemoveDownload = true)
+                }
+            } else {
+                DownloadManager.addMovie(_detailedMovie)
+                _titleInfoUIState.update {
+                    it.copy(
+                        downloadStatus = DownloadStatus.Queued
+                    )
+                }
             }
         }
     }
@@ -214,6 +220,9 @@ class MovieDetailsViewModel @Inject constructor(
                         inWatchList = _titleInfoUIState.value.inWatchList.not()
                     )
                 }
+
+                HomeViewModel.triggerUpdate()
+
             } catch (ex: Exception) {
                 _titleInfoUIState.update {
                     it.copy(watchListBusy = false)
@@ -243,6 +252,8 @@ class MovieDetailsViewModel @Inject constructor(
                         partiallyPlayed = false
                     )
                 }
+
+                HomeViewModel.triggerUpdate()
             } catch (ex: Exception) {
                 _titleInfoUIState.update {
                     it.copy(markWatchedBusy = false)

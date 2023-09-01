@@ -17,6 +17,7 @@ import tv.dustypig.dustypig.ui.composables.CreditsData
 import tv.dustypig.dustypig.ui.main_app.DetailsScreenBaseViewModel
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNav
+import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
 import tv.dustypig.dustypig.ui.main_app.screens.manage_parental_controls_for_title.ManageParentalControlsForTitleNav
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
 import javax.inject.Inject
@@ -236,6 +237,8 @@ class SeriesDetailsViewModel  @Inject constructor(
                         inWatchList = _titleInfoUIState.value.inWatchList.not()
                     )
                 }
+
+                HomeViewModel.triggerUpdate()
             } catch (ex: Exception) {
                 _titleInfoUIState.update {
                     it.copy(
@@ -267,6 +270,8 @@ class SeriesDetailsViewModel  @Inject constructor(
                         partiallyPlayed = false
                     )
                 }
+
+                HomeViewModel.triggerUpdate()
             } catch (ex: Exception) {
                 _titleInfoUIState.update {
                     it.copy(markWatchedBusy = false)
