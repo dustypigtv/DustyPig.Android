@@ -4,5 +4,6 @@ enum class DownloadStatus {
     Pending,
     Running,
     Paused,
-    Error
+    Error,
+    Finished
 }

@@ -20,6 +20,9 @@ interface DownloadDao {
     @Query("SELECT * FROM fileSets ORDER BY added")
     suspend fun getFileSets(): List<FileSet>
 
+    @Transaction
+    @Query("SELECT * FROM fileSets ORDER BY added")
+    suspend fun getFileSetsAndDownloads(): List<FileSetWithDownloads>
 
     @Transaction
     @Query("SELECT * FROM fileSets WHERE mediaId = :mediaId")

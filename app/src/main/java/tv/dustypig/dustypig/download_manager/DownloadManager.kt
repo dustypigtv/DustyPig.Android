@@ -284,9 +284,64 @@ object DownloadManager {
 
 
         //Update the flow
+        val jobFileSetMTMS = _db.getJobFileSetMTMs()
+        val fileSetWithDownloadsList = _db.getFileSetsAndDownloads()
         val uiJobs = ArrayList<UIJob>()
+        for(job in jobs) {
+            val uiJob = UIJob(
+                mediaId = job.mediaId,
+                mediaType = job.mediaType,
+                title = job.title,
+                percent = 0.0f,
+                status = if(job.pending) DownloadStatus.Pending else DownloadStatus.Finished,
+                statusDetails = "",
+                downloads = listOf()
+            )
+            uiJobs.add(uiJob)
 
+            var jobTotalSize = 0L
+            var jobCompleted = 0L
+            val uiDownloads = ArrayList<UIDownload>()
 
+            for(jobFileSetMTM in jobFileSetMTMS.filter { it.jobMediaId == job.mediaId }) {
+                val fileSetWithDownloads = fileSetWithDownloadsList.first{ it.fileSet.mediaId == jobFileSetMTM.fileSetMediaId }
+                var fileSetTotalSize = 0L
+                var fileSetCompleted = 0L
+                var fileSetStatus = DownloadStatus.Finished
+                var fileSetStatusDetails = ""
+                for(download in fileSetWithDownloads.downloads) {
+                    fileSetTotalSize += download.totalBytes
+                    fileSetCompleted += download.downloadedBytes
+                    if(!download.complete) {
+                        if(fileSetStatus == DownloadStatus.Finished) {
+                            fileSetStatus = download.status
+                            fileSetStatusDetails = download.statusDetails
+
+                            if(uiJob.status == DownloadStatus.Finished || uiJob.status == DownloadStatus.Running) {
+                                uiJob.status = download.status
+                                uiJob.statusDetails = download.statusDetails
+                            }
+                        }
+                    }
+                }
+
+                uiDownloads.add(
+                    UIDownload(
+                        title = fileSetWithDownloads.fileSet.title,
+                        percent = if(fileSetTotalSize > 0) fileSetCompleted.toFloat() / fileSetTotalSize.toFloat() else 0.0f,
+                        status = fileSetStatus,
+                        statusDetails = fileSetStatusDetails
+                ))
+
+                jobTotalSize += fileSetTotalSize
+                jobCompleted += fileSetCompleted
+            }
+
+            uiJob.percent = if(jobTotalSize > 0) jobCompleted.toFloat() / jobTotalSize.toFloat() else 0.0f
+            uiJob.downloads = uiDownloads.toList()
+        }
+
+        _downloadFlow.tryEmit(uiJobs.toList())
 
     }
 
