@@ -24,12 +24,13 @@ data class Download(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     var androidId: Long = 0,
     var url: String,
-    var totalBytes: Long,
+    var totalBytes: Long = -1,
     var downloadedBytes: Long = 0,
     var fileName: String,
     var complete: Boolean = false,
     var status: DownloadStatus = DownloadStatus.Pending,
     var statusDetails: String = "",
     val mediaId: Int,
-    var added: Date = Date()
+    var added: Date = Date(),
+    var lastRetry: Date = Date()
 )

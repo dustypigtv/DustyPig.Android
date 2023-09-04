@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
-import okhttp3.Request
 import tv.dustypig.dustypig.DustyPigApplication
 import tv.dustypig.dustypig.SettingsManager
 import tv.dustypig.dustypig.ThePig
@@ -23,7 +22,6 @@ import tv.dustypig.dustypig.api.models.DetailedSeries
 import tv.dustypig.dustypig.api.models.ExternalSubtitle
 import tv.dustypig.dustypig.api.models.MediaTypes
 import java.io.File
-import java.io.IOException
 import java.util.Calendar
 import java.util.Date
 import java.util.Timer
@@ -107,17 +105,13 @@ object DownloadManager {
         return cursor.getInt(index)
     }
 
-    private fun getSize(url: String): Long {
-        val request = Request.Builder()
-            .url(url)
-            .head()
-            .build()
+    private fun Date.secondsSince(): Long {
+        val diff = Date().time - this.time
+        return diff / 1000
+    }
 
-        return _client.newCall(request).execute().use { response ->
-            if (!response.isSuccessful)
-                throw IOException("Unexpected code $response")
-            response.header("Content-Length")?.toLong() ?: 0
-        }
+    private fun Date.minutesSince(): Long {
+        return this.secondsSince() / 60
     }
 
     private fun statusTimerTick() {
@@ -187,17 +181,18 @@ object DownloadManager {
                         else -> "Unknown Error"
                     }
 
-                    if (statusReasonCode == AndroidDownloadManager.ERROR_CANNOT_RESUME) {
-                        //Try Again
+                    if (download.status != DownloadStatus.Error || download.statusDetails != statusDetails) {
+                        download.status = DownloadStatus.Error
+                        download.statusDetails = statusDetails
+                        _db.update(download)
+                    }
+
+                    //Retry once every 10 seconds
+                    if (download.lastRetry.secondsSince() >= 10) {
                         _androidDownloadManager.remove(androidId)
                         download.androidId = 0
+                        download.lastRetry = Date()
                         _db.update(download)
-                    } else {
-                        if (download.status != DownloadStatus.Error || download.statusDetails != statusDetails) {
-                            download.status = DownloadStatus.Error
-                            download.statusDetails = statusDetails
-                            _db.update(download)
-                        }
                     }
 
                 } else {
@@ -235,7 +230,6 @@ object DownloadManager {
         val jobs = _db.getJobs()
         for (file in rootDir().listFiles()!!) {
 
-            val x = file.name
             var valid = file.name == ".nomedia"
 
             //Jobs store info in json files
@@ -260,8 +254,6 @@ object DownloadManager {
 
             if(!valid)
                 file.delete()
-
-            Log.d(TAG, x)
         }
 
 
@@ -310,19 +302,25 @@ object DownloadManager {
                 var fileSetStatus = DownloadStatus.Finished
                 var fileSetStatusDetails = ""
                 for(download in fileSetWithDownloads.downloads) {
-                    fileSetTotalSize += download.totalBytes
-                    fileSetCompleted += download.downloadedBytes
-                    if(!download.complete) {
-                        if(fileSetStatus == DownloadStatus.Finished) {
-                            fileSetStatus = download.status
-                            fileSetStatusDetails = download.statusDetails
 
-                            if(uiJob.status == DownloadStatus.Finished || uiJob.status == DownloadStatus.Running) {
-                                uiJob.status = download.status
-                                uiJob.statusDetails = download.statusDetails
+                    if(download.totalBytes < 0) {
+                        uiJob.status = DownloadStatus.Pending
+                    } else {
+                        fileSetTotalSize += 0L.coerceAtLeast(download.totalBytes)
+                        fileSetCompleted += download.downloadedBytes
+                        if (!download.complete) {
+                            if (fileSetStatus == DownloadStatus.Finished) {
+                                fileSetStatus = download.status
+                                fileSetStatusDetails = download.statusDetails
+
+                                if (uiJob.status == DownloadStatus.Finished || uiJob.status == DownloadStatus.Running) {
+                                    uiJob.status = download.status
+                                    uiJob.statusDetails = download.statusDetails
+                                }
                             }
                         }
                     }
+
                 }
 
                 uiDownloads.add(
@@ -333,7 +331,7 @@ object DownloadManager {
                         statusDetails = fileSetStatusDetails
                 ))
 
-                jobTotalSize += fileSetTotalSize
+                jobTotalSize += 0L.coerceAtLeast(fileSetTotalSize)
                 jobCompleted += fileSetCompleted
             }
 
@@ -366,10 +364,7 @@ object DownloadManager {
             try {
                 var update = job.pending
                 if(!update && (job.mediaType == MediaTypes.Series || job.mediaType == MediaTypes.Playlist)){
-                    val diff = Date().time - job.lastUpdate.time
-                    val seconds: Long = diff / 1000
-                    val minutes = seconds / 60
-                    update = minutes >= UPDATE_MINUTES
+                    update = job.lastUpdate.minutesSince() >= UPDATE_MINUTES
                 }
 
                 if (update) {
@@ -388,10 +383,10 @@ object DownloadManager {
 
         //Cleanup orphaned downloads
         val fileSets = _db.getFileSets()
-        val mtms = _db.getJobFileSetMTMs()
+        val jobFileSetMTMs = _db.getJobFileSetMTMs()
 
         for(fileSet in fileSets) {
-            val valid = mtms.any {
+            val valid = jobFileSetMTMs.any {
                 it.fileSetMediaId == fileSet.mediaId
             }
             if(!valid)
@@ -427,7 +422,7 @@ object DownloadManager {
 
             dl = Download(
                 url = url,
-                totalBytes = getSize(url),
+                totalBytes = -1, //getSize(url),
                 fileName = fileName,
                 mediaId = fileSetWithDownloads.fileSet.mediaId,
                 status = DownloadStatus.Pending,
@@ -443,7 +438,7 @@ object DownloadManager {
                 dl.url = url
                 dl.fileName = fileName
                 dl.complete = false
-                dl.totalBytes = getSize(url)
+                dl.totalBytes = -1 //getSize(url)
                 dl.complete = false
                 dl.androidId = 0
                 dl.downloadedBytes = 0
@@ -475,7 +470,7 @@ object DownloadManager {
         if(dl == null) {
             dl = Download(
                 url = sub.url,
-                totalBytes = getSize(sub.url),
+                totalBytes = -1, //getSize(sub.url),
                 fileName = fileName,
                 mediaId = fileSetWithDownloads.fileSet.mediaId,
                 status = DownloadStatus.Pending,
@@ -487,7 +482,7 @@ object DownloadManager {
                 dl.url = sub.url
                 dl.fileName = fileName
                 dl.complete = false
-                dl.totalBytes = getSize(sub.url)
+                dl.totalBytes = -1 //getSize(sub.url)
                 dl.complete = false
                 dl.androidId = 0
                 dl.downloadedBytes = 0
