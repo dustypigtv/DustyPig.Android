@@ -17,8 +17,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -36,10 +38,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -53,10 +58,12 @@ import com.bumptech.glide.integration.compose.GlideImage
 import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.ui.composables.Credits
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
+import tv.dustypig.dustypig.ui.composables.MultiDownloadDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
 import tv.dustypig.dustypig.ui.composables.OnOrientation
 import tv.dustypig.dustypig.ui.composables.TitleInfoData
 import tv.dustypig.dustypig.ui.composables.TitleInfoLayout
+import tv.dustypig.dustypig.ui.composables.YesNoDialog
 import tv.dustypig.dustypig.ui.theme.DimOverlay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,12 +73,37 @@ fun SeriesDetailsScreen(vm: SeriesDetailsViewModel) {
     val uiState: SeriesDetailsUIState by vm.uiState.collectAsState()
     val titleInfoState: TitleInfoData by vm.titleInfoUIState.collectAsState()
 
+    val criticalError by remember {
+        derivedStateOf {
+            uiState.showError && uiState.criticalError
+        }
+    }
+
+
+    var initialScrolled by remember {
+        mutableStateOf(false)
+    }
+    val seasonsListState = rememberLazyListState()
+    var selSeasonIdx = 0
+    if(!(initialScrolled || uiState.loading)) {
+        initialScrolled = false
+        for (season in uiState.seasons) {
+            if (season == uiState.selectedSeason)
+                break
+            selSeasonIdx++
+        }
+        LaunchedEffect(false){
+            seasonsListState.scrollToItem(selSeasonIdx)
+        }
+    }
+
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                         Text(
-                            text = titleInfoState.title,
+                            text = "Series Info",
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -90,7 +122,11 @@ fun SeriesDetailsScreen(vm: SeriesDetailsViewModel) {
             onPhone = {
                 PhoneLayout(
                     vm = vm,
-                    innerPadding = innerPadding
+                    innerPadding = innerPadding,
+                    uiState = uiState,
+                    titleInfoState = titleInfoState,
+                    criticalError = criticalError,
+                    seasonsListState = seasonsListState
                 )
             },
             onTablet = {
@@ -98,31 +134,47 @@ fun SeriesDetailsScreen(vm: SeriesDetailsViewModel) {
                     onPortrait = {
                         PhoneLayout(
                             vm = vm,
-                            innerPadding = innerPadding
+                            innerPadding = innerPadding,
+                            uiState = uiState,
+                            titleInfoState = titleInfoState,
+                            criticalError = criticalError,
+                            seasonsListState = seasonsListState
                         )
                     },
                     onLandscape = {
                         HorizontalTabletLayout(
                             vm = vm,
-                            innerPadding = innerPadding
+                            innerPadding = innerPadding,
+                            uiState = uiState,
+                            titleInfoState = titleInfoState,
+                            criticalError = criticalError,
+                            seasonsListState = seasonsListState
                         )
                     })
             }
         )
     }
 
+    if(uiState.showMarkWatchedDialog) {
+        YesNoDialog(
+            onNo = { vm.hideMarkWatched(false) },
+            onYes = { vm.hideMarkWatched(true) },
+            title = "Mark Watched",
+            message = "Do you want to also block this series from appearing in 'Continue Watching'?"
+        )
+    }
 
-//    if(uiState.showRemoveDownload) {
-//        YesNoDialog(
-//            onNo = { vm.hideDownload(confirmed = false) },
-//            onYes = { vm.hideDownload(confirmed = true) },
-//            title = "Confirm",
-//            message = "Do you want to remove the download?"
-//        )
-//    }
+    if(uiState.showDownloadDialog) {
+        MultiDownloadDialog(
+            onSave = vm::hideDownloadDialog,
+            title = "Download Series",
+            itemName = "episode",
+            currentDownloadCount = uiState.currentDownloadCount
+        )
+    }
 
     if(uiState.showError) {
-        ErrorDialog(onDismissRequest = { vm.hideError(uiState.criticalError) }, message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = vm::hideError, message = uiState.errorMessage)
     }
 }
 
@@ -167,7 +219,7 @@ private fun EpisodeRow(episode: DetailedEpisode, vm: SeriesDetailsViewModel) {
             modifier = Modifier.weight(1f)
         ){
             Text(
-                text = "E${episode.episodeNumber}: ${episode.title}",
+                text = episode.shortDisplayTitle(),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.titleMedium
@@ -203,10 +255,7 @@ private fun EpisodeRow(episode: DetailedEpisode, vm: SeriesDetailsViewModel) {
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-private fun PhoneLayout(vm: SeriesDetailsViewModel, innerPadding: PaddingValues) {
-
-    val uiState: SeriesDetailsUIState by vm.uiState.collectAsState()
-    val titleInfoState: TitleInfoData by vm.titleInfoUIState.collectAsState()
+private fun PhoneLayout(vm: SeriesDetailsViewModel, innerPadding: PaddingValues, uiState: SeriesDetailsUIState, titleInfoState: TitleInfoData, criticalError: Boolean, seasonsListState: LazyListState) {
 
     val configuration = LocalConfiguration.current
     val hdp = configuration.screenWidthDp.dp * 0.5625f
@@ -214,11 +263,6 @@ private fun PhoneLayout(vm: SeriesDetailsViewModel, innerPadding: PaddingValues)
     //Left aligns content or center aligns busy indicator
     val columnAlignment = if (uiState.loading) Alignment.CenterHorizontally else Alignment.Start
 
-    val criticalError = remember {
-        derivedStateOf {
-            uiState.showError && uiState.criticalError
-        }
-    }
 
     LazyColumn(
         modifier = Modifier
@@ -266,41 +310,47 @@ private fun PhoneLayout(vm: SeriesDetailsViewModel, innerPadding: PaddingValues)
             if (uiState.loading) {
                 Spacer(modifier = Modifier.height(48.dp))
                 CircularProgressIndicator()
-            } else {
-
+            } else  if (!criticalError) {
                 TitleInfoLayout(titleInfoState)
             }
 
+
             Spacer(modifier = Modifier.height(24.dp))
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                items(uiState.seasons) {season ->
-                    val seasonName = if(season == 0.toUShort()) "Specials" else "Season $season"
-                    if(season == uiState.selectedSeason) {
-                        Button(onClick = { /*Do nothing*/ }) {
-                            Text(text = seasonName)
-                        }
-                    }
-                    else {
-                        OutlinedButton(onClick = { vm.setSeason(season) }) {
-                            Text(text = seasonName)
+            if(uiState.seasons.count() > 1) {
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    state = seasonsListState
+                ) {
+                    items(uiState.seasons) { season ->
+                        val seasonName = if (season == 0.toUShort()) "Specials" else "Season $season"
+                        if (season == uiState.selectedSeason) {
+                            Button(onClick = { /*Do nothing*/ }) {
+                                Text(text = seasonName)
+                            }
+                        } else {
+                            OutlinedButton(onClick = { vm.setSeason(season) }) {
+                                Text(text = seasonName)
+                            }
                         }
                     }
                 }
             }
+
         }
 
 
         items(uiState.episodes) { episode ->
-            EpisodeRow(episode = episode, vm = vm)
+            if (!uiState.loading && !criticalError) {
+                EpisodeRow(episode = episode, vm = vm)
+            }
         }
 
         item {
-            Credits(uiState.creditsData)
+            if (!criticalError) {
+                Credits(uiState.creditsData)
+            }
         }
-
     }
 }
 
@@ -308,19 +358,9 @@ private fun PhoneLayout(vm: SeriesDetailsViewModel, innerPadding: PaddingValues)
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-private fun HorizontalTabletLayout(vm: SeriesDetailsViewModel, innerPadding: PaddingValues) {
-
-    val uiState: SeriesDetailsUIState by vm.uiState.collectAsState()
-    val titleInfoState: TitleInfoData by vm.titleInfoUIState.collectAsState()
+private fun HorizontalTabletLayout(vm: SeriesDetailsViewModel, innerPadding: PaddingValues, uiState: SeriesDetailsUIState, titleInfoState: TitleInfoData, criticalError: Boolean, seasonsListState: LazyListState) {
 
     val columnAlignment = if(uiState.loading) Alignment.CenterHorizontally else Alignment.Start
-
-
-    val criticalError = remember {
-        derivedStateOf {
-            uiState.showError && uiState.criticalError
-        }
-    }
 
     Row(
         modifier = Modifier
@@ -365,17 +405,43 @@ private fun HorizontalTabletLayout(vm: SeriesDetailsViewModel, innerPadding: Pad
                 if (uiState.loading) {
                     Spacer(modifier = Modifier.height(48.dp))
                     CircularProgressIndicator()
-                } else if (!criticalError.value) {
+                } else if (!criticalError) {
                     TitleInfoLayout(titleInfoState)
                 }
             }
 
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                if (uiState.seasons.count() > 1) {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        state = seasonsListState
+                    ) {
+                        items(uiState.seasons) { season ->
+                            val seasonName = if (season == 0.toUShort()) "Specials" else "Season $season"
+                            if (season == uiState.selectedSeason) {
+                                Button(onClick = { /*Do nothing*/ }) {
+                                    Text(text = seasonName)
+                                }
+                            } else {
+                                OutlinedButton(onClick = { vm.setSeason(season) }) {
+                                    Text(text = seasonName)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             items(uiState.episodes) { episode ->
-                EpisodeRow(episode = episode, vm = vm)
+                if (!uiState.loading && !criticalError) {
+                    EpisodeRow(episode = episode, vm = vm)
+                }
             }
 
             item {
-                if (!uiState.loading && !criticalError.value) {
+                if (!uiState.loading && !criticalError) {
                     Credits(uiState.creditsData)
                 }
             }

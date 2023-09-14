@@ -1,6 +1,7 @@
 package tv.dustypig.dustypig.api.models
 
 import com.google.gson.annotations.SerializedName
+import java.text.SimpleDateFormat
 import java.util.Date
 
 
@@ -35,7 +36,12 @@ data class DetailedMovie (
 //    @SerializedName("library_id") val libraryId: Int?,
 //    @SerializedName("extra_search_terms") val extraSearchTerms: List<String>?
 
-)
+) {
+    fun displayTitle(): String{
+        val year = SimpleDateFormat("yyyy").format(date)
+        return "$title ($year)"
+    }
+}
 
 
 

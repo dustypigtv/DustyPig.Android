@@ -49,13 +49,13 @@ fun HomeScreen(vm: HomeViewModel) {
 
     val uiState by vm.uiState.collectAsState()
     val ptrState = rememberPullRefreshState(uiState.isRefreshing, { vm.onRefresh() })
-    val showLoading = remember { derivedStateOf { uiState.isRefreshing && uiState.sections.isEmpty() } }
-    val showEmpty = remember { derivedStateOf { uiState.sections.isEmpty() && !uiState.isRefreshing }}
-    val showLoadingOrEmpty = remember { derivedStateOf { showLoading.value || showEmpty.value }}
+    val showLoading by remember { derivedStateOf { uiState.isRefreshing && uiState.sections.isEmpty() } }
+    val showEmpty by remember { derivedStateOf { uiState.sections.isEmpty() && !uiState.isRefreshing }}
+    val showLoadingOrEmpty by remember { derivedStateOf { showLoading || showEmpty }}
 
     Box(modifier = Modifier.fillMaxSize()) {
 
-        if (showLoadingOrEmpty.value) {
+        if (showLoadingOrEmpty) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -64,7 +64,7 @@ fun HomeScreen(vm: HomeViewModel) {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if(showEmpty.value) {
+                if(showEmpty) {
                     Text(text = "No Media Available")
                 } else {
                     Text(text = "Loading")
@@ -130,8 +130,7 @@ fun HomeScreen(vm: HomeViewModel) {
                             items(section.items, key = { basicMedia -> basicMedia.id }) { basicMedia ->
                                 BasicMediaView(
                                     basicMedia = basicMedia,
-                                    vm,
-                                    modifier = Modifier.animateItemPlacement()
+                                    vm
                                 )
                             }
                         }

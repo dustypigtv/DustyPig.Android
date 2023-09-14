@@ -6,9 +6,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.composables.TitleInfoData
-import javax.inject.Inject
 
-open class DetailsScreenBaseViewModel @Inject constructor(
+abstract class DetailsScreenBaseViewModel constructor(
     private val routeNavigator: RouteNavigator
 ): ViewModel(), RouteNavigator by routeNavigator{
 
@@ -17,4 +16,6 @@ open class DetailsScreenBaseViewModel @Inject constructor(
     fun getTitleInfoUIStateForUpdate() = _titleInfoUIState
 
     val titleInfoUIState: StateFlow<TitleInfoData> = _titleInfoUIState.asStateFlow()
+
+    abstract val mediaId: Int
 }

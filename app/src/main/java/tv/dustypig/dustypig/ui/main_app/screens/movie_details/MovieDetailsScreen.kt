@@ -54,12 +54,18 @@ fun MovieDetailsScreen(vm: MovieDetailsViewModel) {
     val uiState: MovieDetailsUIState by vm.uiState.collectAsState()
     val titleInfoState: TitleInfoData by vm.titleInfoUIState.collectAsState()
 
+    val criticalError by remember {
+        derivedStateOf {
+            uiState.showError && uiState.criticalError
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = titleInfoState.title,
+                        text = "Movie Info",
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -78,6 +84,9 @@ fun MovieDetailsScreen(vm: MovieDetailsViewModel) {
             onPhone = {
                 PhoneLayout(
                     vm = vm,
+                    uiState = uiState,
+                    titleInfoState = titleInfoState,
+                    criticalError = criticalError,
                     innerPadding = innerPadding
                 )
             },
@@ -86,12 +95,18 @@ fun MovieDetailsScreen(vm: MovieDetailsViewModel) {
                     onPortrait = {
                         PhoneLayout(
                             vm = vm,
+                            uiState = uiState,
+                            titleInfoState = titleInfoState,
+                            criticalError = criticalError,
                             innerPadding = innerPadding
                         )
                     },
                     onLandscape = {
                         HorizontalTabletLayout(
                             vm = vm,
+                            uiState = uiState,
+                            titleInfoState = titleInfoState,
+                            criticalError = criticalError,
                             innerPadding = innerPadding
                         )
                     })
@@ -110,7 +125,7 @@ fun MovieDetailsScreen(vm: MovieDetailsViewModel) {
     }
 
     if(uiState.showError) {
-        ErrorDialog(onDismissRequest = { vm.hideError(uiState.criticalError) }, message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = { vm.hideError() }, message = uiState.errorMessage)
     }
 
 }
@@ -118,19 +133,11 @@ fun MovieDetailsScreen(vm: MovieDetailsViewModel) {
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-private fun HorizontalTabletLayout(vm: MovieDetailsViewModel, innerPadding: PaddingValues) {
-
-    val uiState: MovieDetailsUIState by vm.uiState.collectAsState()
-    val titleInfoState: TitleInfoData by vm.titleInfoUIState.collectAsState()
+private fun HorizontalTabletLayout(vm: MovieDetailsViewModel, uiState: MovieDetailsUIState, titleInfoState: TitleInfoData, criticalError: Boolean, innerPadding: PaddingValues) {
 
     //Left aligns content or center aligns busy indicator
     val columnAlignment = if(uiState.loading) Alignment.CenterHorizontally else Alignment.Start
 
-    val criticalError = remember {
-        derivedStateOf {
-            uiState.showError && uiState.criticalError
-        }
-    }
 
     Row(
         modifier = Modifier
@@ -171,7 +178,7 @@ private fun HorizontalTabletLayout(vm: MovieDetailsViewModel, innerPadding: Padd
             if (uiState.loading) {
                 Spacer(modifier = Modifier.height(48.dp))
                 CircularProgressIndicator()
-            } else if(!criticalError.value) {
+            } else if(!criticalError) {
                 TitleInfoLayout(titleInfoState)
                 Credits(uiState.creditsData)
             }
@@ -181,22 +188,13 @@ private fun HorizontalTabletLayout(vm: MovieDetailsViewModel, innerPadding: Padd
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-private fun PhoneLayout(vm: MovieDetailsViewModel, innerPadding: PaddingValues) {
-
-    val uiState: MovieDetailsUIState by vm.uiState.collectAsState()
-    val titleInfoState: TitleInfoData by vm.titleInfoUIState.collectAsState()
+private fun PhoneLayout(vm: MovieDetailsViewModel, uiState: MovieDetailsUIState, titleInfoState: TitleInfoData, criticalError: Boolean, innerPadding: PaddingValues) {
 
     val configuration = LocalConfiguration.current
     val hdp = configuration.screenWidthDp.dp * 0.5625f
 
     //Left aligns content or center aligns busy indicator
     val columnAlignment = if(uiState.loading) Alignment.CenterHorizontally else Alignment.Start
-
-    val criticalError = remember {
-        derivedStateOf {
-            uiState.showError && uiState.criticalError
-        }
-    }
 
     Column(
         modifier = Modifier
@@ -246,7 +244,7 @@ private fun PhoneLayout(vm: MovieDetailsViewModel, innerPadding: PaddingValues) 
         if (uiState.loading) {
             Spacer(modifier = Modifier.height(48.dp))
             CircularProgressIndicator()
-        } else if(!criticalError.value) {
+        } else if(!criticalError) {
             TitleInfoLayout(titleInfoState)
             Credits(uiState.creditsData)
         }

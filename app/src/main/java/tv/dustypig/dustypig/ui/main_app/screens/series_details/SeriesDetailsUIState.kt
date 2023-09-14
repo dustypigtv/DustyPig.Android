@@ -8,11 +8,13 @@ data class SeriesDetailsUIState(
     val showError: Boolean = false,
     val errorMessage: String = "",
     val criticalError: Boolean = false,
-    val showRemoveDownload: Boolean = false,
+    val showDownloadDialog: Boolean = false,
+    val currentDownloadCount: Int = 0,
     val posterUrl: String = "",
     val backdropUrl: String = "",
     val creditsData: CreditsData = CreditsData(),
     val seasons: List<UShort> = listOf(),
     val selectedSeason: UShort = 0u,
-    val episodes: List<DetailedEpisode> = listOf()
+    val episodes: List<DetailedEpisode> = listOf(),
+    val showMarkWatchedDialog: Boolean = false
 )

@@ -13,7 +13,9 @@ import tv.dustypig.dustypig.api.models.BasicProfile
 import tv.dustypig.dustypig.api.models.CreateAccount
 import tv.dustypig.dustypig.api.models.CreateAccountResponse
 import tv.dustypig.dustypig.api.models.CreatePlaylist
+import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.api.models.DetailedMovie
+import tv.dustypig.dustypig.api.models.DetailedPlaylist
 import tv.dustypig.dustypig.api.models.DetailedSeries
 import tv.dustypig.dustypig.api.models.HomeScreen
 import tv.dustypig.dustypig.api.models.LoadMoreHomeScreenItemsRequest
@@ -45,6 +47,10 @@ interface ApiService {
     @POST("Auth/ProfileLogin")
     suspend fun profileLogin(@Body profileCredentials: ProfileCredentials): Response<ResponseWrapperOf<LoginResponse>>
 
+
+    // ***** Episodes *****
+    @GET("Episodes/Details/{id}")
+    suspend fun episodeDetails(@Path("id") id: Int): Response<ResponseWrapperOf<DetailedEpisode>>
 
 
     // ***** Media *****
@@ -86,6 +92,9 @@ interface ApiService {
     @POST("Playlists/AddSeries")
     suspend fun addSeriesToPlaylist(@Body addPlaylistItem: AddPlaylistItem): Response<ResponseWrapper>
 
+    @GET("Playlists/Details/{id}")
+    suspend fun playlistDetails(@Path("id") id: Int): Response<ResponseWrapperOf<DetailedPlaylist>>
+
 
 
     @POST("Playlists/Create")
@@ -105,4 +114,9 @@ interface ApiService {
     @GET("Series/Details/{id}")
     suspend fun seriesDetails(@Path("id") id: Int): Response<ResponseWrapperOf<DetailedSeries>>
 
+    @GET("Series/MarkSeriesWatched/{id}")
+    suspend fun markSeriesWatched(@Path("id") id: Int): Response<ResponseWrapper>
+
+    @GET("Series/RemoveFromContinueWatching/{id}")
+    suspend fun removeFromContinueWatching(@Path("id") id: Int): Response<ResponseWrapper>
 }

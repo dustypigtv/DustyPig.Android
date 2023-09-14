@@ -18,9 +18,14 @@ data class DetailedEpisode(
     @SerializedName("credit_start_time") val creditStartTime: Double?,
     @SerializedName("season_number") val seasonNumber: UShort,
     @SerializedName("episode_number") val episodeNumber: UShort,
+    @SerializedName("series_id") val seriesId: Int,
+    @SerializedName("series_title") val seriesTitle: String?
 
 
 //    @SerializedName("tmdb_id") val tmdbId: Int?,
 //    val date: Date?,
-//    @SerializedName("series_id") val seriesId: Int
-)
+
+) {
+    fun fullDisplayTitle() = "S$seasonNumber:E$episodeNumber - $title"
+    fun shortDisplayTitle() = "E$episodeNumber: $title"
+}

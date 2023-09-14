@@ -33,7 +33,7 @@ class HomeViewModel @Inject constructor(
         private var _nextTimerTick: Date = Calendar.getInstance().time
         fun triggerUpdate() {
             val calendar = Calendar.getInstance()
-            calendar.add(Calendar.SECOND, 1)
+            calendar.add(Calendar.SECOND, -1)
             _nextTimerTick = calendar.time
         }
 
@@ -45,6 +45,7 @@ class HomeViewModel @Inject constructor(
     }
 
     init {
+        triggerUpdate()
         _timer.schedule(
             delay = 0,
             period = 1000
@@ -93,7 +94,7 @@ class HomeViewModel @Inject constructor(
         _uiState.update {
             it.copy(isRefreshing = true)
         }
-        loadData()
+        triggerUpdate()
     }
 
     fun onShowMoreClicked(hsl: HomeScreenList) {

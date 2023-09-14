@@ -18,6 +18,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.DownloadDone
+import androidx.compose.material.icons.filled.Downloading
 import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.RemoveRedEye
 import androidx.compose.material3.Button
@@ -36,18 +38,21 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Play
 import compose.icons.fontawesomeicons.solid.UserLock
 import tv.dustypig.dustypig.api.models.OverrideRequestStatus
-import tv.dustypig.dustypig.ui.download_manager.DownloadStatus
+import tv.dustypig.dustypig.download_manager.DownloadManager
+import tv.dustypig.dustypig.download_manager.DownloadStatus
 import tv.dustypig.dustypig.ui.isTablet
 
 
 @Composable
-private fun ActionButton(onClick: () -> Unit, caption: String, icon: ImageVector) {
+fun ActionButton(onClick: () -> Unit, caption: String, icon: ImageVector) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -60,15 +65,17 @@ private fun ActionButton(onClick: () -> Unit, caption: String, icon: ImageVector
         }
         Text(
             text = caption,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.width(58.dp),
+            style = MaterialTheme.typography.labelSmall,
+            //modifier = Modifier.width(58.dp),
             textAlign = TextAlign.Center
         )
     }
 }
 
 
+
 data class TitleInfoData(
+    val mediaId: Int = 0,
     val playClick: () -> Unit = { },
     val toggleWatchList: () -> Unit = { },
     val download: () -> Unit = { },
@@ -90,8 +97,7 @@ data class TitleInfoData(
     val seasonEpisode: String = "",
     val episodeTitle: String = "",
     val accessRequestStatus: OverrideRequestStatus = OverrideRequestStatus.NotRequested,
-    val accessRequestBusy: Boolean = false,
-    val downloadStatus: DownloadStatus = DownloadStatus.NotDownloaded
+    val accessRequestBusy: Boolean = false
 )
 
 @Composable
@@ -109,6 +115,25 @@ fun TitleInfoLayout(info: TitleInfoData) {
     //This will leave at minimum just the colon, so check if
     //length > 1 before displaying
     val epHeader = "${info.seasonEpisode}: ${info.episodeTitle}".trim()
+
+
+
+    val status = DownloadManager
+        .downloads
+        .collectAsStateWithLifecycle(initialValue = listOf())
+        .value
+        .firstOrNull{ it.mediaId == info.mediaId }
+        ?.status
+    val downloadIcon = when(status) {
+        DownloadStatus.Finished -> Icons.Filled.DownloadDone
+        null -> Icons.Filled.Download
+        else -> Icons.Filled.Downloading
+    }
+    val downloadText = when(status) {
+        DownloadStatus.Finished -> "Downloaded"
+        null -> "Download"
+        else -> "Downloading"
+    }
 
 
     Row(
@@ -206,21 +231,11 @@ fun TitleInfoLayout(info: TitleInfoData) {
 
                 if(info.watchListBusy) {
 
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .padding(12.dp)
-                        )
-                        Text(
-                            text = "Watchlist",
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.width(58.dp),
-                            textAlign = TextAlign.Center
-                        )
-                    }
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .padding(12.dp)
+                    )
 
                 } else {
                     ActionButton(
@@ -232,8 +247,8 @@ fun TitleInfoLayout(info: TitleInfoData) {
 
                 ActionButton(
                     onClick = info.download,
-                    caption = "Download",
-                    icon = Icons.Filled.Download
+                    caption = downloadText,
+                    icon = downloadIcon
                 )
 
                 ActionButton(
@@ -269,6 +284,7 @@ fun TitleInfoLayout(info: TitleInfoData) {
                 }
             }
         }
+        Spacer(modifier = Modifier.height(16.dp))
     } else {
 
         val btnTxt = when(info.accessRequestStatus) {
@@ -298,10 +314,8 @@ fun TitleInfoLayout(info: TitleInfoData) {
 
 
     if(epHeader.length > 1) {
-        Text(
-            text = epHeader,
-            style = MaterialTheme.typography.titleSmall
-        )
+        Text(text = epHeader, textDecoration = TextDecoration.Underline)
+        Spacer(modifier = Modifier.height(8.dp))
     }
 
     Text(text = info.overview)

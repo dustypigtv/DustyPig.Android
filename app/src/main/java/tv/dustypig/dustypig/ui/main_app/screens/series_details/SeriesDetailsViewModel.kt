@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig.ui.main_app.screens.series_details
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,8 +12,11 @@ import tv.dustypig.dustypig.ThePig
 import tv.dustypig.dustypig.api.Genres
 import tv.dustypig.dustypig.api.asString
 import tv.dustypig.dustypig.api.models.DetailedEpisode
+import tv.dustypig.dustypig.api.models.DetailedSeries
 import tv.dustypig.dustypig.api.models.OverrideRequestStatus
+import tv.dustypig.dustypig.download_manager.DownloadManager
 import tv.dustypig.dustypig.nav.RouteNavigator
+import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.composables.CreditsData
 import tv.dustypig.dustypig.ui.main_app.DetailsScreenBaseViewModel
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
@@ -24,7 +28,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SeriesDetailsViewModel  @Inject constructor(
-    private val routeNavigator: RouteNavigator
+    private val routeNavigator: RouteNavigator,
+    savedStateHandle: SavedStateHandle
 ): DetailsScreenBaseViewModel(routeNavigator) {
 
     private val _uiState = MutableStateFlow(SeriesDetailsUIState())
@@ -32,28 +37,16 @@ class SeriesDetailsViewModel  @Inject constructor(
 
     private val _titleInfoUIState = getTitleInfoUIStateForUpdate()
 
-    private val _id: Int = ThePig.selectedBasicMedia.id
+    override val mediaId: Int = savedStateHandle.getOrThrow(SeriesDetailsNav.KEY_ID)
+    private lateinit var _detailedSeries: DetailedSeries
     private var _allEpisodes: List<DetailedEpisode> = listOf()
 
     init {
-        _uiState.update {
-            it.copy(
-                loading = true,
-                posterUrl = ThePig.selectedBasicMedia.artworkUrl
-            )
-        }
-
-        _titleInfoUIState.update {
-            it.copy(
-                title = ThePig.selectedBasicMedia.title
-            )
-        }
-
         viewModelScope.launch {
             try {
 
-                val data = ThePig.Api.Series.seriesDetails(_id)
-                _allEpisodes = data.episodes ?: listOf()
+                _detailedSeries = ThePig.Api.Series.seriesDetails(mediaId)
+                _allEpisodes = _detailedSeries.episodes ?: listOf()
                 if(_allEpisodes.isEmpty()) {
                     throw Exception("No episodes found.")
                 }
@@ -69,22 +62,24 @@ class SeriesDetailsViewModel  @Inject constructor(
                     it.seasonNumber == upNext.seasonNumber
                 }
 
+                val unPlayed = upNext.id == _allEpisodes.first().id && (upNext.played == null || upNext.played < 1);
+                val fullyPlayed = upNext.id == _allEpisodes.last().id && (upNext.played ?: 0.0) >= (upNext.creditStartTime ?: (upNext.length - 30.0))
 
                 _uiState.update {
                     it.copy(
                         loading = false,
-                        posterUrl = data.artworkUrl,
-                        backdropUrl = data.backdropUrl ?: "",
+                        posterUrl = _detailedSeries.artworkUrl,
+                        backdropUrl = _detailedSeries.backdropUrl ?: "",
                         seasons = allSeasons.toList(),
                         selectedSeason = upNext.seasonNumber,
                         episodes = selEps,
                         creditsData = CreditsData(
-                            genres = Genres(data.genres).toList(),
-                            cast = data.cast ?: listOf(),
-                            directors = data.directors ?: listOf(),
-                            producers = data.producers ?: listOf(),
-                            writers = data.writers ?: listOf(),
-                            owner = data.owner ?: ""
+                            genres = Genres(_detailedSeries.genres).toList(),
+                            cast = _detailedSeries.cast ?: listOf(),
+                            directors = _detailedSeries.directors ?: listOf(),
+                            producers = _detailedSeries.producers ?: listOf(),
+                            writers = _detailedSeries.writers ?: listOf(),
+                            owner = _detailedSeries.owner ?: ""
                         )
                     )
                 }
@@ -93,19 +88,23 @@ class SeriesDetailsViewModel  @Inject constructor(
                     it.copy(
                         playClick = { playUpNext() },
                         toggleWatchList = { toggleWatchList() },
-                        download = { toggleDownload() },
+                        download = { showDownloadDialog() },
                         addToPlaylist = { addToPlaylist() },
-                        markWatched = { markWatched() },
+                        markWatched = { showMarkWatched() },
                         requestAccess = { requestAccess() },
                         manageClick = { manageParentalControls() },
-                        inWatchList = data.inWatchlist,
-                        title = data.title,
-                        canManage = data.canManage,
-                        canPlay = data.canPlay,
-                        rated = data.rated.asString(),
-                        overview = data.description ?: "",
-                        accessRequestStatus = data.accessRequestStatus,
+                        inWatchList = _detailedSeries.inWatchlist,
+                        title = _detailedSeries.title,
+                        canManage = _detailedSeries.canManage,
+                        canPlay = _detailedSeries.canPlay,
+                        rated = _detailedSeries.rated.asString(),
+                        overview = (if(unPlayed) _detailedSeries.description else upNext.description) ?: "",
+                        partiallyPlayed = !(unPlayed || fullyPlayed),
+                        seasonEpisode = if(unPlayed) "" else "S${upNext.seasonNumber}E${upNext.episodeNumber}",
+                        episodeTitle = if(unPlayed) "" else upNext.title,
+                        accessRequestStatus = _detailedSeries.accessRequestStatus,
                         accessRequestBusy = false,
+                        mediaId = mediaId
                     )
                 }
             } catch (ex: Exception) {
@@ -135,8 +134,8 @@ class SeriesDetailsViewModel  @Inject constructor(
         }
     }
 
-    fun hideError(critical: Boolean) {
-        if(critical) {
+    fun hideError() {
+        if(_uiState.value.criticalError) {
             popBackStack()
         }
         else {
@@ -156,34 +155,29 @@ class SeriesDetailsViewModel  @Inject constructor(
         navigateToRoute(PlayerNav.getRouteForId(id))
     }
 
-    private fun toggleDownload() {
-//        if(DownloadManager.has(_id)) {
-//            _uiState.update {
-//                it.copy(showRemoveDownload = true)
-//            }
-//        } else {
-//            DownloadManager.add(id = _id, mediaType = MediaTypes.Movie, count = 1)
-//            _uiState.update {
-//                it.copy(downloadStatus = DownloadStatus.Queued)
-//            }
-//        }
+    private fun showDownloadDialog() {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    showDownloadDialog = true,
+                    currentDownloadCount = DownloadManager.getJobCount(mediaId)
+                )
+            }
+        }
     }
 
-    fun hideDownload(confirmed: Boolean) {
-//        if(confirmed) {
-//            DownloadManager.delete(id = _id)
-//            _uiState.update {
-//                it.copy(
-//                    showRemoveDownload = false,
-//                    downloadStatus = DownloadStatus.NotDownloaded
-//                )
-//            }
-//        } else {
-//            _uiState.update {
-//                it.copy(showRemoveDownload = false)
-//            }
-//        }
+    fun hideDownloadDialog(newCount: Int) {
+        _uiState.update {
+            it.copy(showDownloadDialog = false)
+        }
+        viewModelScope.launch {
+            if (newCount == 0)
+                DownloadManager.delete(_detailedSeries.id)
+            else
+                DownloadManager.addOrUpdateSeries(_detailedSeries, newCount)
+        }
     }
+
 
     private fun requestAccess() {
         _titleInfoUIState.update {
@@ -192,7 +186,7 @@ class SeriesDetailsViewModel  @Inject constructor(
 
         viewModelScope.launch {
             try{
-                ThePig.Api.Media.requestAccessOverride(_id)
+                ThePig.Api.Media.requestAccessOverride(mediaId)
                 _titleInfoUIState.update {
                     it.copy(
                         accessRequestBusy = false,
@@ -226,9 +220,9 @@ class SeriesDetailsViewModel  @Inject constructor(
             try {
 
                 if(_titleInfoUIState.value.inWatchList) {
-                    ThePig.Api.Media.deleteFromWatchlist(_id)
+                    ThePig.Api.Media.deleteFromWatchlist(mediaId)
                 } else {
-                    ThePig.Api.Media.addToWatchlist(_id)
+                    ThePig.Api.Media.addToWatchlist(mediaId)
                 }
 
                 _titleInfoUIState.update {
@@ -255,7 +249,16 @@ class SeriesDetailsViewModel  @Inject constructor(
         }
     }
 
-    private fun markWatched() {
+    private fun showMarkWatched() {
+        _uiState.update {
+            it.copy(showMarkWatchedDialog = true)
+        }
+    }
+
+    fun hideMarkWatched(removeFromContinueWatching: Boolean) {
+        _uiState.update {
+            it.copy(showMarkWatchedDialog = false)
+        }
 
         _titleInfoUIState.update {
             it.copy(markWatchedBusy = true)
@@ -263,14 +266,17 @@ class SeriesDetailsViewModel  @Inject constructor(
 
         viewModelScope.launch {
             try{
-                ThePig.Api.Media.updatePlaybackProgress(id = _id, seconds = -1.0)
+                if(removeFromContinueWatching) {
+                    ThePig.Api.Series.removeFromContinueWatching(mediaId)
+                } else {
+                    ThePig.Api.Series.markSeriesWatched(mediaId)
+                }
                 _titleInfoUIState.update {
                     it.copy(
                         markWatchedBusy = false,
                         partiallyPlayed = false
                     )
                 }
-
                 HomeViewModel.triggerUpdate()
             } catch (ex: Exception) {
                 _titleInfoUIState.update {
@@ -286,16 +292,16 @@ class SeriesDetailsViewModel  @Inject constructor(
         }
     }
 
+
     private fun addToPlaylist() {
-        navigateToRoute(AddToPlaylistNav.getRouteForId(_id, true))
+        navigateToRoute(AddToPlaylistNav.getRouteForId(mediaId, true))
     }
 
     private fun manageParentalControls() {
-        navigateToRoute(ManageParentalControlsForTitleNav.getRouteForId(_id))
+        navigateToRoute(ManageParentalControlsForTitleNav.getRouteForId(mediaId))
     }
 
     fun navToEpisodeInfo(id: Int) {
-        ThePig.selectedDetailedEpisode = _allEpisodes.first { ep -> ep.id == id }
-        navigateToRoute(EpisodeDetailsNav.getRouteForId(id))
+        navigateToRoute(EpisodeDetailsNav.getRoute(id, _detailedSeries.canPlay, true))
     }
 }

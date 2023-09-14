@@ -8,14 +8,11 @@ import retrofit2.converter.gson.GsonConverterFactory
 import tv.dustypig.dustypig.api.ApiService
 import tv.dustypig.dustypig.api.AuthorizationInterceptor
 import tv.dustypig.dustypig.api.models.AddPlaylistItem
-import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.CreateAccount
 import tv.dustypig.dustypig.api.models.CreatePlaylist
-import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.api.models.HomeScreen
 import tv.dustypig.dustypig.api.models.HomeScreenList
 import tv.dustypig.dustypig.api.models.LoadMoreHomeScreenItemsRequest
-import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.PasswordCredentials
 import tv.dustypig.dustypig.api.models.PlaybackProgress
 import tv.dustypig.dustypig.api.models.ProfileCredentials
@@ -36,22 +33,6 @@ object ThePig{
      * Temporarily stores data for the ShowMore screen, reducing network calls
       */
     var showMoreData: HomeScreenList = HomeScreenList(0, "", listOf())
-
-    /**
-     * Temporarily stores data for details screens
-      */
-    var selectedBasicMedia: BasicMedia = BasicMedia(0, MediaTypes.Movie, "", "")
-
-
-    /**
-     * Temporarily stores data for details screen
-     */
-    var selectedDetailedEpisode: DetailedEpisode? = null
-
-
-
-
-
 
 
 
@@ -196,6 +177,10 @@ object ThePig{
                 wrapAPICallWithReturnData { authenticatedApi.profileLogin(profileCredentials) }
         }
 
+        object Episodes {
+            suspend fun episodeDetails(id: Int) = wrapAPICallWithReturnData { authenticatedApi.episodeDetails(id) }
+        }
+
 
 
         object Media {
@@ -232,6 +217,8 @@ object ThePig{
 
             suspend fun createPlaylist(createPlaylist: CreatePlaylist) = wrapAPICallWithReturnSimpleValue { authenticatedApi.createPlaylist(createPlaylist) }
 
+            suspend fun playlistDetails(id: Int) = wrapAPICallWithReturnData { authenticatedApi.playlistDetails(id) }
+
             suspend fun listPlaylists() = wrapAPICallWithReturnData { authenticatedApi.listPlaylists() }
         }
 
@@ -244,6 +231,10 @@ object ThePig{
 
         object Series {
             suspend fun seriesDetails(id: Int) = wrapAPICallWithReturnData { authenticatedApi.seriesDetails(id) }
+
+            suspend fun markSeriesWatched(id: Int) = wrapAPICall { authenticatedApi.markSeriesWatched(id) }
+
+            suspend fun removeFromContinueWatching(id: Int) = wrapAPICall { authenticatedApi.removeFromContinueWatching(id) }
         }
     }
 

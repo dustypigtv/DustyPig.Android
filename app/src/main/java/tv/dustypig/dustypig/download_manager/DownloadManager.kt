@@ -17,7 +17,9 @@ import okhttp3.OkHttpClient
 import tv.dustypig.dustypig.DustyPigApplication
 import tv.dustypig.dustypig.SettingsManager
 import tv.dustypig.dustypig.ThePig
+import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.api.models.DetailedMovie
+import tv.dustypig.dustypig.api.models.DetailedPlaylist
 import tv.dustypig.dustypig.api.models.DetailedSeries
 import tv.dustypig.dustypig.api.models.ExternalSubtitle
 import tv.dustypig.dustypig.api.models.MediaTypes
@@ -75,6 +77,7 @@ object DownloadManager {
             updateTimerTick()
         }
     }
+
 
     fun start(context: Context) {
         Log.d(TAG, "Started")
@@ -224,7 +227,7 @@ object DownloadManager {
                 }
             }
         }
-
+        cursor.close()
 
         //Remove any files that are invalid
         val jobs = _db.getJobs()
@@ -306,7 +309,7 @@ object DownloadManager {
                     if(download.totalBytes < 0) {
                         uiJob.status = DownloadStatus.Pending
                     } else {
-                        fileSetTotalSize += 0L.coerceAtLeast(download.totalBytes)
+                        fileSetTotalSize += download.totalBytes.coerceAtLeast(0L)
                         fileSetCompleted += download.downloadedBytes
                         if (!download.complete) {
                             if (fileSetStatus == DownloadStatus.Finished) {
@@ -331,7 +334,7 @@ object DownloadManager {
                         statusDetails = fileSetStatusDetails
                 ))
 
-                jobTotalSize += 0L.coerceAtLeast(fileSetTotalSize)
+                jobTotalSize += fileSetTotalSize.coerceAtLeast(0L)
                 jobCompleted += fileSetCompleted
             }
 
@@ -462,7 +465,7 @@ object DownloadManager {
         if(ext.isBlank())
             ext = ".dat"
 
-        val fileName = "${fileSetWithDownloads.fileSet.mediaId}.subtitle.${sub.name}.$ext"
+        val fileName = "${fileSetWithDownloads.fileSet.mediaId}.subtitle.${sub.name}$ext"
 
         var dl = fileSetWithDownloads.downloads.firstOrNull {
             it.fileName == fileName
@@ -504,7 +507,7 @@ object DownloadManager {
             _db.insert(
                 FileSet(
                 mediaId = job.mediaId,
-                title = detailedMovie.title
+                title = detailedMovie.displayTitle()
             ))
             fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId)!!
         }
@@ -595,8 +598,10 @@ object DownloadManager {
             if (!itemIds.any {
                     it == jobMTM.fileSetMediaId
                 }) {
-                _db.delete(jobMTM)
-                changed = true
+                if(jobMTM.fileSetMediaId != job.mediaId) {
+                    _db.delete(jobMTM)
+                    changed = true
+                }
             }
         }
         if(changed)
@@ -614,7 +619,7 @@ object DownloadManager {
                     _db.insert(
                         FileSet(
                             mediaId = episode.id,
-                            title = detailedSeries.title
+                            title = episode.fullDisplayTitle()
                         )
                     )
                     fileSetWithDownloads = _db.getFileSet(mediaId = episode.id)!!
@@ -650,18 +655,162 @@ object DownloadManager {
 
     private suspend fun updateEpisode(job: Job) {
 
+        val detailedEpisode = ThePig.Api.Episodes.episodeDetails(id = job.mediaId)
+        saveFile(fileName = "${detailedEpisode.id}.json", data = detailedEpisode)
+
+        var fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId);
+        if(fileSetWithDownloads == null) {
+            _db.insert(
+                FileSet(
+                    mediaId = job.mediaId,
+                    title = detailedEpisode.fullDisplayTitle()
+                ))
+            fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId)!!
+        }
+
+        if(_db.getJobFileSetMTM(job.mediaId, fileSetWithDownloads.fileSet.mediaId) == null) {
+            _db.insert(
+                jobFileSetMTM = JobFileSetMTM(
+                    jobMediaId = job.mediaId,
+                    fileSetMediaId = job.mediaId
+                )
+            )
+        }
+
+
+        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedEpisode.artworkUrl, disposition = "poster")
+        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedEpisode.bifUrl, disposition = "bif")
+
+        if(detailedEpisode.externalSubtitles?.isNotEmpty() == true) {
+            for(sub in detailedEpisode.externalSubtitles) {
+                addOrUpdateSubtitleDownload(fileSetWithDownloads = fileSetWithDownloads, sub = sub)
+            }
+        }
+
+        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedEpisode.videoUrl, disposition = "video")
+
+        job.pending = false
+        job.lastUpdate = Date()
+        _db.update(job)
+
     }
 
     private suspend fun updatePlaylist(job: Job) {
 
+        val detailedPlaylist = ThePig.Api.Playlists.playlistDetails(job.mediaId)
+        saveFile(fileName = "${detailedPlaylist.id}.json", data = detailedPlaylist)
+
+        var fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId);
+        if(fileSetWithDownloads == null) {
+            _db.insert(
+                FileSet(
+                    mediaId = job.mediaId,
+                    title = detailedPlaylist.name
+                ))
+            fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId)!!
+        }
+
+        //Used for tracking orphaned downloads
+        if(_db.getJobFileSetMTM(job.mediaId, fileSetWithDownloads.fileSet.mediaId) == null) {
+            _db.insert(
+                jobFileSetMTM = JobFileSetMTM(
+                    jobMediaId = job.mediaId,
+                    fileSetMediaId = job.mediaId
+                )
+            )
+        }
+
+        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedPlaylist.artworkUrl, disposition = "poster")
+
+
+        //Identify ids of items that should be downloaded
+        var upNext = detailedPlaylist.items?.firstOrNull {
+            it.index == detailedPlaylist.currentIndex
+        }
+        if(upNext == null)
+            upNext = detailedPlaylist.items?.first()
+
+        var reachedUpNext = false
+        var count = 0
+        val itemIds = ArrayList<Int>()
+        if(upNext != null) {
+            for (episode in detailedPlaylist.items!!) {
+                if (upNext.id == episode.id)
+                    reachedUpNext = true
+                if (reachedUpNext) {
+                    itemIds.add(episode.id)
+                    count++
+                    if (count >= job.count)
+                        break
+                }
+            }
+        }
+
+        //Remove any items that should no longer be downloaded
+        var jobMTMs = _db.getJobFileSetMTMs(jobMediaId = job.mediaId)
+        var changed = false
+        for(jobMTM in jobMTMs) {
+            if (!itemIds.any {
+                    it == jobMTM.fileSetMediaId
+                }) {
+                if(jobMTM.fileSetMediaId != job.mediaId) {
+                    _db.delete(jobMTM)
+                    changed = true
+                }
+            }
+        }
+        if(changed)
+            jobMTMs = _db.getJobFileSetMTMs(jobMediaId = job.mediaId)
+
+
+        //Add any items that should be downloaded
+        if(upNext != null) {
+            for (mediaId in itemIds) {
+                val playlistItem = detailedPlaylist.items!!.first {
+                    it.id == mediaId
+                }
+                fileSetWithDownloads = _db.getFileSet(mediaId = playlistItem.id);
+                if (fileSetWithDownloads == null) {
+                    _db.insert(
+                        FileSet(
+                            mediaId = playlistItem.id,
+                            title = playlistItem.title
+                        )
+                    )
+                    fileSetWithDownloads = _db.getFileSet(mediaId = playlistItem.id)!!
+                }
+
+                //Used for tracking orphaned downloads
+                if (_db.getJobFileSetMTM(job.mediaId, playlistItem.id) == null) {
+                    _db.insert(
+                        jobFileSetMTM = JobFileSetMTM(
+                            jobMediaId = job.mediaId,
+                            fileSetMediaId = playlistItem.id
+                        )
+                    )
+                }
+
+                addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = playlistItem.artworkUrl, disposition = "screenshot")
+                addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = playlistItem.bifUrl, disposition = "bif")
+
+                if (playlistItem.externalSubtitles != null) {
+                    for (sub in playlistItem.externalSubtitles)
+                        addOrUpdateSubtitleDownload(fileSetWithDownloads = fileSetWithDownloads, sub = sub)
+                }
+
+                addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = playlistItem.videoUrl, disposition = "video")
+
+            }
+        }
+
+        job.pending = false
+        job.lastUpdate = Date()
+        _db.update(job)
     }
 
 
 
     suspend fun addMovie(detailedMovie: DetailedMovie) {
-
-        if(has(detailedMovie.id))
-            return
 
         val lastUpdate = Calendar.getInstance()
         lastUpdate.add(Calendar.MINUTE, -2 * UPDATE_MINUTES)
@@ -670,24 +819,85 @@ object DownloadManager {
             Job(
                 mediaId = detailedMovie.id,
                 mediaType = MediaTypes.Movie,
-                title = detailedMovie.title,
+                title = detailedMovie.displayTitle(),
                 count = 1,
                 pending = true,
                 lastUpdate = lastUpdate.time
             )
         )
-
-        saveFile("${detailedMovie.id}.json", detailedMovie)
     }
 
     suspend fun addOrUpdateSeries(detailedSeries: DetailedSeries, count: Int) {
 
-        saveFile("${detailedSeries.id}.json", detailedSeries)
+        if(count == 0) {
+            delete(detailedSeries.id)
+            return
+        }
+
+        val lastUpdate = Calendar.getInstance()
+        lastUpdate.add(Calendar.MINUTE, -2 * UPDATE_MINUTES)
+
+        val job = _db.getJob(detailedSeries.id)
+        if(job == null) {
+            _db.insert(
+                Job(
+                    mediaId = detailedSeries.id,
+                    mediaType = MediaTypes.Series,
+                    title = detailedSeries.title,
+                    count = count,
+                    pending = true,
+                    lastUpdate = lastUpdate.time
+                )
+            )
+        } else if(job.count != count) {
+            job.pending = true
+            job.count = count
+            job.lastUpdate = lastUpdate.time
+            _db.update(job)
+        }
 
     }
 
+    suspend fun addEpisode(detailedEpisode: DetailedEpisode) {
 
-    suspend fun addOrUpdatePlaylist(mediaId: Int, count: Int) {
+        val lastUpdate = Calendar.getInstance()
+        lastUpdate.add(Calendar.MINUTE, -2 * UPDATE_MINUTES)
+
+        _db.insert(
+            Job(
+                mediaId = detailedEpisode.id,
+                mediaType = MediaTypes.Episode,
+                title = "S${detailedEpisode.seasonNumber}:${detailedEpisode.episodeNumber}: ${detailedEpisode.title}",
+                count = 1,
+                pending = true,
+                lastUpdate = lastUpdate.time
+            )
+        )
+    }
+
+    suspend fun addOrUpdatePlaylist(detailedPlaylist: DetailedPlaylist, count: Int) {
+
+        val lastUpdate = Calendar.getInstance()
+        lastUpdate.add(Calendar.MINUTE, -2 * UPDATE_MINUTES)
+
+        val job = _db.getJob(detailedPlaylist.id)
+        if(job == null) {
+            _db.insert(
+                Job(
+                    mediaId = detailedPlaylist.id,
+                    mediaType = MediaTypes.Playlist,
+                    title = detailedPlaylist.name,
+                    count = count,
+                    pending = true,
+                    lastUpdate = lastUpdate.time
+                )
+            )
+        } else if(job.count != count) {
+            job.pending = true
+            job.count = count
+            job.lastUpdate = lastUpdate.time
+            _db.update(job)
+        }
 
     }
 
@@ -699,7 +909,8 @@ object DownloadManager {
             _db.delete(job)
     }
 
-    suspend fun has(id: Int): Boolean {
-        return _db.getJob(id) != null
+    suspend fun getJobCount(id: Int): Int {
+        return _db.getJob(id)?.count ?: 0
     }
+
 }

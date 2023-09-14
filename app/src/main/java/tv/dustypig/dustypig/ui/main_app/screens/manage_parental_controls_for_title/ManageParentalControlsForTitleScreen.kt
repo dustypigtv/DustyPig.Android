@@ -31,6 +31,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -96,13 +97,13 @@ fun ManageParentalControlsForTitleScreen(vm: ManageParentalControlsForTitleViewM
 
             items(uiState.permissionInfo.profiles) {
 
-                val checked = remember{
+                var checked by remember{
                     mutableStateOf(it.state == OverrideState.Allow)
                 }
 
                 fun toggle() {
                     vm.togglePermission(it.profileId)
-                    checked.value = checked.value.not()
+                    checked = checked.not()
                 }
 
                 Row(
@@ -119,7 +120,7 @@ fun ManageParentalControlsForTitleScreen(vm: ManageParentalControlsForTitleViewM
 
                     Switch(
                         modifier = Modifier.padding(12.dp, 0.dp),
-                        checked = checked.value,
+                        checked = checked,
                         onCheckedChange = { toggle() })
                 }
 

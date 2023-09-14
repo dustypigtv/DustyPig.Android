@@ -1,6 +1,7 @@
 package tv.dustypig.dustypig.ui.main_app.screens.movie_details
 
 import android.annotation.SuppressLint
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,8 +17,8 @@ import tv.dustypig.dustypig.api.models.OverrideRequestStatus
 import tv.dustypig.dustypig.api.toTimeString
 import tv.dustypig.dustypig.download_manager.DownloadManager
 import tv.dustypig.dustypig.nav.RouteNavigator
+import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.composables.CreditsData
-import tv.dustypig.dustypig.ui.download_manager.DownloadStatus
 import tv.dustypig.dustypig.ui.main_app.DetailsScreenBaseViewModel
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
@@ -33,7 +34,8 @@ import javax.inject.Inject
 @SuppressLint("SimpleDateFormat")
 @HiltViewModel
 class MovieDetailsViewModel @Inject constructor(
-    private val routeNavigator: RouteNavigator
+    private val routeNavigator: RouteNavigator,
+    savedStateHandle: SavedStateHandle
 ): DetailsScreenBaseViewModel(routeNavigator) {
 
     private val _uiState = MutableStateFlow(MovieDetailsUIState())
@@ -41,27 +43,14 @@ class MovieDetailsViewModel @Inject constructor(
 
     private val _titleInfoUIState = getTitleInfoUIStateForUpdate()
 
-    private val _id: Int = ThePig.selectedBasicMedia.id
+    override val mediaId: Int = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_ID)
     private lateinit var _detailedMovie: DetailedMovie
 
     init {
-        _uiState.update {
-            it.copy(
-                loading = true,
-                posterUrl = ThePig.selectedBasicMedia.artworkUrl
-            )
-        }
-
-        _titleInfoUIState.update {
-            it.copy(
-                title = ThePig.selectedBasicMedia.title
-            )
-        }
 
         viewModelScope.launch {
             try {
-                _detailedMovie = ThePig.Api.Movies.movieDetails(_id)
-
+                _detailedMovie = ThePig.Api.Movies.movieDetails(mediaId)
                 _uiState.update {
                     it.copy(
                         loading = false,
@@ -78,7 +67,7 @@ class MovieDetailsViewModel @Inject constructor(
                     )
                 }
 
-                _titleInfoUIState.update {
+                _titleInfoUIState.update { it ->
                     it.copy(
                         playClick = { play() },
                         toggleWatchList = { toggleWatchList() },
@@ -98,6 +87,7 @@ class MovieDetailsViewModel @Inject constructor(
                         overview = _detailedMovie.description ?: "",
                         accessRequestStatus = _detailedMovie.accessRequestStatus,
                         accessRequestBusy = false,
+                        mediaId = mediaId
                     )
                 }
             } catch (ex: Exception) {
@@ -113,8 +103,8 @@ class MovieDetailsViewModel @Inject constructor(
         }
     }
 
-    fun hideError(critical: Boolean) {
-        if(critical) {
+    fun hideError() {
+        if(_uiState.value.criticalError) {
             popBackStack()
         }
         else {
@@ -127,16 +117,11 @@ class MovieDetailsViewModel @Inject constructor(
     fun hideDownload(confirmed: Boolean) {
         if(confirmed) {
             viewModelScope.launch {
-                DownloadManager.delete(id = _id)
+                DownloadManager.delete(id = mediaId)
             }
             _uiState.update {
                 it.copy(
                     showRemoveDownload = false
-                )
-            }
-            _titleInfoUIState.update {
-                it.copy(
-                    downloadStatus = DownloadStatus.NotDownloaded
                 )
             }
         } else {
@@ -148,24 +133,18 @@ class MovieDetailsViewModel @Inject constructor(
 
 
     private fun play() {
-        navigateToRoute(PlayerNav.getRouteForId(_id))
+        navigateToRoute(PlayerNav.getRouteForId(mediaId))
     }
 
     private fun toggleDownload() {
 
-        //Update UI
         viewModelScope.launch {
-            if (DownloadManager.has(_id)) {
+            if (DownloadManager.getJobCount(mediaId) > 0) {
                 _uiState.update {
                     it.copy(showRemoveDownload = true)
                 }
             } else {
                 DownloadManager.addMovie(_detailedMovie)
-                _titleInfoUIState.update {
-                    it.copy(
-                        downloadStatus = DownloadStatus.Queued
-                    )
-                }
             }
         }
     }
@@ -177,7 +156,7 @@ class MovieDetailsViewModel @Inject constructor(
 
         viewModelScope.launch {
             try{
-                ThePig.Api.Media.requestAccessOverride(_id)
+                ThePig.Api.Media.requestAccessOverride(mediaId)
                 _titleInfoUIState.update {
                     it.copy(
                         accessRequestBusy = false,
@@ -209,9 +188,9 @@ class MovieDetailsViewModel @Inject constructor(
             try {
 
                 if(_titleInfoUIState.value.inWatchList) {
-                    ThePig.Api.Media.deleteFromWatchlist(_id)
+                    ThePig.Api.Media.deleteFromWatchlist(mediaId)
                 } else {
-                    ThePig.Api.Media.addToWatchlist(_id)
+                    ThePig.Api.Media.addToWatchlist(mediaId)
                 }
 
                 _titleInfoUIState.update {
@@ -245,7 +224,7 @@ class MovieDetailsViewModel @Inject constructor(
 
         viewModelScope.launch {
             try{
-                ThePig.Api.Media.updatePlaybackProgress(id = _id, seconds = -1.0)
+                ThePig.Api.Media.updatePlaybackProgress(id = mediaId, seconds = -1.0)
                 _titleInfoUIState.update {
                     it.copy(
                         markWatchedBusy = false,
@@ -269,10 +248,10 @@ class MovieDetailsViewModel @Inject constructor(
     }
 
     private fun addToPlaylist() {
-        navigateToRoute(AddToPlaylistNav.getRouteForId(_id, false))
+        navigateToRoute(AddToPlaylistNav.getRouteForId(mediaId, false))
     }
 
     private fun manageParentalControls() {
-        navigateToRoute(ManageParentalControlsForTitleNav.getRouteForId(_id))
+        navigateToRoute(ManageParentalControlsForTitleNav.getRouteForId(mediaId))
     }
 }
