@@ -339,9 +339,8 @@ private fun PhoneLayout(vm: SeriesDetailsViewModel, innerPadding: PaddingValues,
 
         }
 
-
-        items(uiState.episodes) { episode ->
-            if (!uiState.loading && !criticalError) {
+        if (!uiState.loading && !criticalError) {
+            items(uiState.episodes) { episode ->
                 EpisodeRow(episode = episode, vm = vm)
             }
         }
@@ -434,8 +433,8 @@ private fun HorizontalTabletLayout(vm: SeriesDetailsViewModel, innerPadding: Pad
                 }
             }
 
-            items(uiState.episodes) { episode ->
-                if (!uiState.loading && !criticalError) {
+            if (!uiState.loading && !criticalError) {
+                items(uiState.episodes) { episode ->
                     EpisodeRow(episode = episode, vm = vm)
                 }
             }

@@ -20,6 +20,7 @@ import tv.dustypig.dustypig.api.models.DetailedSeries
 import tv.dustypig.dustypig.api.models.HomeScreen
 import tv.dustypig.dustypig.api.models.LoadMoreHomeScreenItemsRequest
 import tv.dustypig.dustypig.api.models.LoginResponse
+import tv.dustypig.dustypig.api.models.MovePlaylistItem
 import tv.dustypig.dustypig.api.models.PasswordCredentials
 import tv.dustypig.dustypig.api.models.PlaybackProgress
 import tv.dustypig.dustypig.api.models.ProfileCredentials
@@ -27,6 +28,7 @@ import tv.dustypig.dustypig.api.models.ResponseWrapper
 import tv.dustypig.dustypig.api.models.ResponseWrapperOf
 import tv.dustypig.dustypig.api.models.SimpleValue
 import tv.dustypig.dustypig.api.models.TitlePermissionInfo
+import tv.dustypig.dustypig.api.models.UpdatesPlaylist
 
 interface ApiService {
 
@@ -92,16 +94,28 @@ interface ApiService {
     @POST("Playlists/AddSeries")
     suspend fun addSeriesToPlaylist(@Body addPlaylistItem: AddPlaylistItem): Response<ResponseWrapper>
 
-    @GET("Playlists/Details/{id}")
-    suspend fun playlistDetails(@Path("id") id: Int): Response<ResponseWrapperOf<DetailedPlaylist>>
-
-
-
     @POST("Playlists/Create")
     suspend fun createPlaylist(@Body createPlaylist: CreatePlaylist): Response<ResponseWrapperOf<SimpleValue<Int>>>
 
+    @DELETE("Playlists/Delete/{id}")
+    suspend fun deletePlaylist(@Path("id") id: Int): Response<ResponseWrapper>
+
+    @DELETE("Playlists/DeleteItem/{id}")
+    suspend fun deletePlaylistItem(@Path("id") id: Int): Response<ResponseWrapper>
+
     @GET("Playlists/List")
     suspend fun listPlaylists(): Response<ResponseWrapperOf<List<BasicPlaylist>>>
+
+    @POST("Playlists/Update")
+    suspend fun updatePlaylist(@Body updatesPlaylist: UpdatesPlaylist): Response<ResponseWrapper>
+
+    @GET("Playlists/Details/{id}")
+    suspend fun playlistDetails(@Path("id") id: Int): Response<ResponseWrapperOf<DetailedPlaylist>>
+
+    @POST("Playlists/MoveItemToNewIndex")
+    suspend fun movePlaylistItemToNewIndex(@Body movePlaylistItem: MovePlaylistItem): Response<ResponseWrapper>
+
+
 
 
 

@@ -31,6 +31,7 @@ import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNa
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeNav
 import tv.dustypig.dustypig.ui.main_app.screens.manage_parental_controls_for_title.ManageParentalControlsForTitleNav
 import tv.dustypig.dustypig.ui.main_app.screens.movie_details.MovieDetailsNav
+import tv.dustypig.dustypig.ui.main_app.screens.playlist_details.PlaylistDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.search.SearchNav
 import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsScreen
@@ -118,6 +119,7 @@ fun AppNav(){
             MovieDetailsNav.composable(this, navController)
             SeriesDetailsNav.composable(this, navController)
             EpisodeDetailsNav.composable(this, navController)
+            PlaylistDetailsNav.composable(this, navController)
             AddToPlaylistNav.composable(this, navController)
             ManageParentalControlsForTitleNav.composable(this, navController)
 

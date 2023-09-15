@@ -7,5 +7,5 @@ data class DetailedPlaylist (
     val name: String,
     @SerializedName("artwork_url") val artworkUrl: String,
     @SerializedName("current_index") val currentIndex: Int,
-    val items: List<PlaylistItem>?
+    var items: List<PlaylistItem>?
 )

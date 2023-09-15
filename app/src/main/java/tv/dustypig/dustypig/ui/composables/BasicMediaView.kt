@@ -19,6 +19,7 @@ import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.main_app.screens.movie_details.MovieDetailsNav
+import tv.dustypig.dustypig.ui.main_app.screens.playlist_details.PlaylistDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
 
 
@@ -44,7 +45,7 @@ fun BasicMediaView(
                 routeNavigator.navigateToRoute(SeriesDetailsNav.getRouteForId(basicMedia.id))
             }
             MediaTypes.Playlist -> {
-
+                routeNavigator.navigateToRoute(PlaylistDetailsNav.getRouteForId(basicMedia.id))
             }
 
             else -> { }

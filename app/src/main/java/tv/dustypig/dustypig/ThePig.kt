@@ -13,6 +13,7 @@ import tv.dustypig.dustypig.api.models.CreatePlaylist
 import tv.dustypig.dustypig.api.models.HomeScreen
 import tv.dustypig.dustypig.api.models.HomeScreenList
 import tv.dustypig.dustypig.api.models.LoadMoreHomeScreenItemsRequest
+import tv.dustypig.dustypig.api.models.MovePlaylistItem
 import tv.dustypig.dustypig.api.models.PasswordCredentials
 import tv.dustypig.dustypig.api.models.PlaybackProgress
 import tv.dustypig.dustypig.api.models.ProfileCredentials
@@ -20,6 +21,7 @@ import tv.dustypig.dustypig.api.models.ResponseWrapper
 import tv.dustypig.dustypig.api.models.ResponseWrapperOf
 import tv.dustypig.dustypig.api.models.SimpleValue
 import tv.dustypig.dustypig.api.models.TitlePermissionInfo
+import tv.dustypig.dustypig.api.models.UpdatesPlaylist
 import java.io.IOException
 
 /**
@@ -217,9 +219,18 @@ object ThePig{
 
             suspend fun createPlaylist(createPlaylist: CreatePlaylist) = wrapAPICallWithReturnSimpleValue { authenticatedApi.createPlaylist(createPlaylist) }
 
-            suspend fun playlistDetails(id: Int) = wrapAPICallWithReturnData { authenticatedApi.playlistDetails(id) }
+            suspend fun deletePlaylist(id: Int) = wrapAPICall { authenticatedApi.deletePlaylist(id) }
+
+            suspend fun deletePlaylistItem(id: Int) = wrapAPICall { authenticatedApi.deletePlaylistItem(id) }
 
             suspend fun listPlaylists() = wrapAPICallWithReturnData { authenticatedApi.listPlaylists() }
+
+            suspend fun movePlaylistItemToNewIndex(id: Int, newIndex: Int) = wrapAPICall { authenticatedApi.movePlaylistItemToNewIndex(MovePlaylistItem(id, newIndex)) }
+
+            suspend fun updatePlaylist(updatesPlaylist: UpdatesPlaylist) = wrapAPICall { authenticatedApi.updatePlaylist(updatesPlaylist) }
+
+            suspend fun playlistDetails(id: Int) = wrapAPICallWithReturnData { authenticatedApi.playlistDetails(id) }
+
         }
 
 

@@ -126,6 +126,7 @@ fun HomeScreen(vm: HomeViewModel) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(150.dp)
+                                .animateItemPlacement()
                         ) {
                             items(section.items, key = { basicMedia -> basicMedia.id }) { basicMedia ->
                                 BasicMediaView(
