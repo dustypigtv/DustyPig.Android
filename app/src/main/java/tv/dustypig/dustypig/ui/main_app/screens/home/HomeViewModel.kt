@@ -8,11 +8,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.ThePig
 import tv.dustypig.dustypig.api.API
 import tv.dustypig.dustypig.api.models.HomeScreenList
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
+import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMorePagingSource
 import java.util.Calendar
 import java.util.Date
 import java.util.Timer
@@ -99,7 +99,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onShowMoreClicked(hsl: HomeScreenList) {
-        ThePig.showMoreData = hsl
+        ShowMorePagingSource.showMoreData = hsl
         navigateToRoute(ShowMoreNav.route)
     }
 }

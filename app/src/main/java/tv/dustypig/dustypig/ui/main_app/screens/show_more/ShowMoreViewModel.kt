@@ -1,6 +1,5 @@
 package tv.dustypig.dustypig.ui.main_app.screens.show_more
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
@@ -13,16 +12,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import tv.dustypig.dustypig.ThePig
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.nav.RouteNavigator
 import javax.inject.Inject
 
 @HiltViewModel
 class ShowMoreViewModel @Inject constructor(
-    private val routeNavigator: RouteNavigator,
-    private val savedStateHandle: SavedStateHandle
+    private val routeNavigator: RouteNavigator
 ): ViewModel(), RouteNavigator by routeNavigator {
+
 
     private val _uiState = MutableStateFlow(ShowMoreUIState())
     val uiState: StateFlow<ShowMoreUIState> = _uiState.asStateFlow()
@@ -36,13 +34,9 @@ class ShowMoreViewModel @Inject constructor(
     ).flow.cachedIn(viewModelScope)
 
     init {
-        _listId = ThePig.showMoreData.listId ?: 0
-        _uiState.update { it.copy(title = ThePig.showMoreData.title) }
+        _listId = ShowMorePagingSource.showMoreData.listId
+        _uiState.update { it.copy(title = ShowMorePagingSource.showMoreData.title) }
     }
 
-
-    fun onItemClicked(basicMedia: BasicMedia) {
-
-    }
 
 }
