@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.ThePig
+import tv.dustypig.dustypig.api.API
 import tv.dustypig.dustypig.nav.RouteNavigator
 import javax.inject.Inject
 
@@ -43,7 +43,7 @@ class SearchViewModel @Inject constructor(
 
         viewModelScope.launch {
             try{
-                val response = ThePig.Api.Media.search(ltquery, true)
+                val response = API.Media.search(ltquery, true)
 
                 _uiState.update {
                     it.copy(

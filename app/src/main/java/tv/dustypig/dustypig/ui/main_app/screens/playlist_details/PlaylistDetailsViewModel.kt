@@ -4,12 +4,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.ThePig
+import tv.dustypig.dustypig.api.API
 import tv.dustypig.dustypig.api.models.DetailedPlaylist
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.PlaylistItem
@@ -27,7 +26,6 @@ import javax.inject.Inject
 @HiltViewModel
 class PlaylistDetailsViewModel @Inject constructor(
     private val routeNavigator: RouteNavigator,
-    private val screenLoadingInfo: ScreenLoadingInfo,
     savedStateHandle: SavedStateHandle
 ): ViewModel(), RouteNavigator by routeNavigator {
 
@@ -44,14 +42,14 @@ class PlaylistDetailsViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 loading = true,
-                posterUrl = screenLoadingInfo.posterUrl,
-                title = screenLoadingInfo.title
+                posterUrl = ScreenLoadingInfo.posterUrl,
+                title = ScreenLoadingInfo.title
             )
         }
 
         viewModelScope.launch {
             try{
-                _detailedPlaylist = ThePig.Api.Playlists.playlistDetails(_playlistId)
+                _detailedPlaylist = API.Playlists.playlistDetails(_playlistId)
                 val items = _detailedPlaylist.items ?: listOf()
                 _localItems.addAll(items)
                 val upNext = items.firstOrNull { it.index == _detailedPlaylist.currentIndex } ?: items.firstOrNull()
@@ -117,7 +115,7 @@ class PlaylistDetailsViewModel @Inject constructor(
             }
             viewModelScope.launch {
                 try {
-                    ThePig.Api.Playlists.updatePlaylist(UpdatesPlaylist(
+                    API.Playlists.updatePlaylist(UpdatesPlaylist(
                         id = _playlistId,
                         name = newName
                     ))
@@ -181,7 +179,7 @@ class PlaylistDetailsViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                ThePig.Api.Playlists.movePlaylistItemToNewIndex(_detailedPlaylist.items!![from].id, to)
+                API.Playlists.movePlaylistItemToNewIndex(_detailedPlaylist.items!![from].id, to)
                 _detailedPlaylist.items = _detailedPlaylist.items!!.toMutableList().apply {
                     add(to, removeAt(from))
                 }
@@ -215,7 +213,7 @@ class PlaylistDetailsViewModel @Inject constructor(
         }
         viewModelScope.launch {
             try {
-                ThePig.Api.Playlists.deletePlaylistItem(id)
+                API.Playlists.deletePlaylistItem(id)
                 _detailedPlaylist.items = _detailedPlaylist.items!!.toMutableList().apply {
                     remove(_detailedPlaylist.items!!.first{it.id == id})
                 }
@@ -250,7 +248,7 @@ class PlaylistDetailsViewModel @Inject constructor(
             }
             viewModelScope.launch {
                 try {
-                    ThePig.Api.Playlists.deletePlaylist(_detailedPlaylist.id)
+                    API.Playlists.deletePlaylist(_detailedPlaylist.id)
                     DownloadManager.delete(_detailedPlaylist.id)
                     HomeViewModel.triggerUpdate()
                     popBackStack()

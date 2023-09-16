@@ -59,6 +59,7 @@ import tv.dustypig.dustypig.api.models.BasicTMDB
 import tv.dustypig.dustypig.api.models.TMDB_MediaTypes
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.composables.BasicMediaView
+import tv.dustypig.dustypig.ui.main_app.ScreenLoadingInfo
 import tv.dustypig.dustypig.ui.main_app.screens.tmdb_details.TMDBDetailsNav
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
@@ -281,7 +282,7 @@ fun TMDBMediaView(
             clicked(basicTMDB.tmdbId)
         }
 
-        routeNavigator.setScreenLoadingInfo(title = basicTMDB.title, posterUrl = basicTMDB.artworkUrl ?: "", backdropUrl = basicTMDB.backdropUrl ?: "")
+        ScreenLoadingInfo.setInfo(title = basicTMDB.title, posterUrl = basicTMDB.artworkUrl ?: "", backdropUrl = basicTMDB.backdropUrl ?: "")
 
         when (basicTMDB.mediaType) {
             TMDB_MediaTypes.Movie -> {

@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.AuthManager
-import tv.dustypig.dustypig.ThePig
+import tv.dustypig.dustypig.api.API
 import tv.dustypig.dustypig.api.models.BasicProfile
 import tv.dustypig.dustypig.api.models.LoginTypes
 import tv.dustypig.dustypig.api.models.ProfileCredentials
@@ -32,7 +32,7 @@ class SelectProfileViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             try {
-                val data = ThePig.Api.Profiles.listProfiles()
+                val data = API.Profiles.listProfiles()
                 _uiState.update { it.copy(busy = false, profiles = data) }
             } catch (ex: Exception) {
                 _loadingError = true
@@ -59,7 +59,7 @@ class SelectProfileViewModel @Inject constructor(
         _uiState.update { it.copy(busy = true, showPinDialog = false) }
         viewModelScope.launch {
             try{
-                val data = ThePig.Api.Auth.profileLogin(ProfileCredentials(_profileId, pin, null))
+                val data = API.Auth.profileLogin(ProfileCredentials(_profileId, pin, null))
                 AuthManager.setAuthState(data.token!!, data.profileId!!, data.loginType == LoginTypes.MainProfile)
             } catch (ex: Exception) {
                 _loadingError = false

@@ -3,7 +3,6 @@ package tv.dustypig.dustypig.nav
 import androidx.annotation.VisibleForTesting
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import tv.dustypig.dustypig.ui.main_app.ScreenLoadingInfo
 import javax.inject.Inject
 
 /**
@@ -15,13 +14,10 @@ interface RouteNavigator {
     fun popToRoute(route: String)
     fun popBackStack()
     fun navigateToRoute(route: String)
-    fun setScreenLoadingInfo(title: String, posterUrl: String, backdropUrl: String)
     val navigationState: StateFlow<NavigationState>
 }
 
-class MyRouteNavigator @Inject constructor(
-    val screenLoadingInfo: ScreenLoadingInfo
-) : RouteNavigator {
+class MyRouteNavigator @Inject constructor() : RouteNavigator {
 
     /**
      * Note that I'm using a single state here, not a list of states. As a result, if you quickly
@@ -43,12 +39,6 @@ class MyRouteNavigator @Inject constructor(
     override fun popBackStack() = navigate(NavigationState.PopBackStack())
 
     override fun navigateToRoute(route: String) = navigate(NavigationState.NavigateToRoute(route))
-
-    override fun setScreenLoadingInfo(title: String, posterUrl: String, backdropUrl: String) {
-        screenLoadingInfo.title = title
-        screenLoadingInfo.posterUrl = posterUrl
-        screenLoadingInfo.backdropUrl = backdropUrl
-    }
 
 
     @VisibleForTesting

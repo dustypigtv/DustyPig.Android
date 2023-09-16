@@ -407,7 +407,7 @@ fun InfoLayout(vm: TMDBDetailsViewModel, uiState: TMDBDetailsUIState, criticalEr
             } else {
 
                 Text(text = "Available on Dusty Pig")
-
+                Spacer(modifier = Modifier.height(4.dp))
                 LazyRow(
                     state = rememberLazyListState(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp),

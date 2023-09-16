@@ -3,13 +3,12 @@ package tv.dustypig.dustypig.ui.main_app.screens.series_details
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.ThePig
+import tv.dustypig.dustypig.api.API
 import tv.dustypig.dustypig.api.Genres
 import tv.dustypig.dustypig.api.asString
 import tv.dustypig.dustypig.api.models.DetailedEpisode
@@ -31,7 +30,6 @@ import javax.inject.Inject
 @HiltViewModel
 class SeriesDetailsViewModel  @Inject constructor(
     routeNavigator: RouteNavigator,
-    screenLoadingInfo: ScreenLoadingInfo,
     savedStateHandle: SavedStateHandle
 ): DetailsScreenBaseViewModel(routeNavigator) {
 
@@ -47,20 +45,20 @@ class SeriesDetailsViewModel  @Inject constructor(
     init {
 
         _titleInfoUIState.update {
-            it.copy(title = screenLoadingInfo.title)
+            it.copy(title = ScreenLoadingInfo.title)
         }
 
         _uiState.update {
             it.copy(
-                posterUrl = screenLoadingInfo.posterUrl,
-                backdropUrl = screenLoadingInfo.backdropUrl
+                posterUrl = ScreenLoadingInfo.posterUrl,
+                backdropUrl = ScreenLoadingInfo.backdropUrl
             )
         }
 
 
         viewModelScope.launch {
             try {
-                _detailedSeries = ThePig.Api.Series.seriesDetails(mediaId)
+                _detailedSeries = API.Series.seriesDetails(mediaId)
                 _allEpisodes = _detailedSeries.episodes ?: listOf()
                 if(_allEpisodes.isEmpty()) {
                     throw Exception("No episodes found.")
@@ -201,7 +199,7 @@ class SeriesDetailsViewModel  @Inject constructor(
 
         viewModelScope.launch {
             try{
-                ThePig.Api.Media.requestAccessOverride(mediaId)
+                API.Media.requestAccessOverride(mediaId)
                 _titleInfoUIState.update {
                     it.copy(
                         accessRequestBusy = false,
@@ -235,9 +233,9 @@ class SeriesDetailsViewModel  @Inject constructor(
             try {
 
                 if(_titleInfoUIState.value.inWatchList) {
-                    ThePig.Api.Media.deleteFromWatchlist(mediaId)
+                    API.Media.deleteFromWatchlist(mediaId)
                 } else {
-                    ThePig.Api.Media.addToWatchlist(mediaId)
+                    API.Media.addToWatchlist(mediaId)
                 }
 
                 _titleInfoUIState.update {
@@ -282,9 +280,9 @@ class SeriesDetailsViewModel  @Inject constructor(
         viewModelScope.launch {
             try{
                 if(removeFromContinueWatching) {
-                    ThePig.Api.Series.removeFromContinueWatching(mediaId)
+                    API.Series.removeFromContinueWatching(mediaId)
                 } else {
-                    ThePig.Api.Series.markSeriesWatched(mediaId)
+                    API.Series.markSeriesWatched(mediaId)
                 }
                 _titleInfoUIState.update {
                     it.copy(
@@ -317,7 +315,7 @@ class SeriesDetailsViewModel  @Inject constructor(
     }
 
     fun navToEpisodeInfo(id: Int) {
-        setScreenLoadingInfo(_detailedSeries.title, _detailedSeries.artworkUrl, _detailedSeries.backdropUrl ?: "")
+        ScreenLoadingInfo.setInfo(_detailedSeries.title, _detailedSeries.artworkUrl, _detailedSeries.backdropUrl ?: "")
         navigateToRoute(EpisodeDetailsNav.getRoute(id, _detailedSeries.canPlay, true))
     }
 }

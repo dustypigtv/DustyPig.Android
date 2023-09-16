@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.ThePig
+import tv.dustypig.dustypig.api.API
 import tv.dustypig.dustypig.api.models.HomeScreenList
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
@@ -63,7 +64,7 @@ class HomeViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                val data = ThePig.Api.Media.homeScreen()
+                val data = API.Media.homeScreen()
                 val sections = data.sections ?: listOf()
                 _uiState.update {
                     it.copy(

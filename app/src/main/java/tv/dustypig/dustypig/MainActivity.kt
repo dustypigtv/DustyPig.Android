@@ -19,13 +19,13 @@ import tv.dustypig.dustypig.ui.main_app.AppNav
 import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity: ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         AuthManager.init()
-        DownloadManager.start(this)
+        DownloadManager.start()
 
         setContent {
             DustyPigTheme {

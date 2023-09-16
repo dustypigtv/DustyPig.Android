@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.ThePig
+import tv.dustypig.dustypig.api.API
 import tv.dustypig.dustypig.api.models.OverrideState
 import tv.dustypig.dustypig.api.models.ProfileTitleOverrideInfo
 import tv.dustypig.dustypig.api.models.TitlePermissionInfo
@@ -43,7 +43,7 @@ class ManageParentalControlsForTitleViewModel  @Inject constructor(
 
         viewModelScope.launch {
             try{
-                _data = ThePig.Api.Media.getTitlePermissions(_mediaId);
+                _data = API.Media.getTitlePermissions(_mediaId);
 
                 for(profile in _data.profiles) {
                     _origValues[profile.profileId] = profile.state == OverrideState.Allow
@@ -110,7 +110,7 @@ class ManageParentalControlsForTitleViewModel  @Inject constructor(
                         titleId = _mediaId,
                         profiles = profiles
                     )
-                    ThePig.Api.Media.setTitlePermissions(tpi)
+                    API.Media.setTitlePermissions(tpi)
 
                     for(p in _data.profiles) {
                         _origValues[p.profileId] = (p.state == OverrideState.Allow)

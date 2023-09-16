@@ -37,7 +37,6 @@ import tv.dustypig.dustypig.api.models.UpdatesPlaylist
 
 interface ApiService {
 
-
     // ***** Account *****
     @POST("Account/Create")
     suspend fun createAccount(@Body createAccount: CreateAccount): Response<ResponseWrapperOf<CreateAccountResponse>>
@@ -55,15 +54,20 @@ interface ApiService {
     suspend fun profileLogin(@Body profileCredentials: ProfileCredentials): Response<ResponseWrapperOf<LoginResponse>>
 
 
+
+
     // ***** Episodes *****
     @GET("Episodes/Details/{id}")
     suspend fun episodeDetails(@Path("id") id: Int): Response<ResponseWrapperOf<DetailedEpisode>>
 
 
 
+
     // ***** Friends *****
     @GET("Friends/List")
     suspend fun listFriends(): Response<ResponseWrapperOf<List<BasicFriend>>>
+
+
 
 
 
@@ -100,6 +104,8 @@ interface ApiService {
     // *** Movies ***
     @GET("Movies/Details/{id}")
     suspend fun movieDetails(@Path("id") id: Int): Response<ResponseWrapperOf<DetailedMovie>>
+
+
 
 
     // ***** Playlists *****
@@ -150,6 +156,7 @@ interface ApiService {
     suspend fun removeFromContinueWatching(@Path("id") id: Int): Response<ResponseWrapper>
 
 
+
     // ***** TMDB *****
     @GET("TMDB/GetMovie/{id}")
     suspend fun getTMDBMovie(@Path("id") id: Int): Response<ResponseWrapperOf<DetailedTMDB>>
@@ -162,5 +169,4 @@ interface ApiService {
 
     @POST("TMDB/CancelTitleRequest")
     suspend fun cancelTMDBTitleRequest(@Body titleRequest: TitleRequest): Response<ResponseWrapper>
-
 }

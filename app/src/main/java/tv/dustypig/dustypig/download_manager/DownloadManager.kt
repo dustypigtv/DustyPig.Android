@@ -16,7 +16,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import tv.dustypig.dustypig.DustyPigApplication
 import tv.dustypig.dustypig.SettingsManager
-import tv.dustypig.dustypig.ThePig
+import tv.dustypig.dustypig.api.API
 import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.api.models.DetailedMovie
 import tv.dustypig.dustypig.api.models.DetailedPlaylist
@@ -33,9 +33,9 @@ import android.app.DownloadManager as AndroidDownloadManager
 @OptIn(DelicateCoroutinesApi::class)
 object DownloadManager {
 
-    private const val TAG = "DownloadManager"
+    private val TAG = "DownloadManager"
 
-    private const val UPDATE_MINUTES = 5
+    private val UPDATE_MINUTES = 5
 
     private val _androidDownloadManager = getContext().getSystemService(Context.DOWNLOAD_SERVICE) as AndroidDownloadManager
 
@@ -79,7 +79,7 @@ object DownloadManager {
     }
 
 
-    fun start(context: Context) {
+    fun start() {
         Log.d(TAG, "Started")
     }
 
@@ -499,7 +499,7 @@ object DownloadManager {
 
     private suspend fun updateMovie(job: Job) {
 
-        val detailedMovie = ThePig.Api.Movies.movieDetails(id = job.mediaId)
+        val detailedMovie = API.Movies.movieDetails(id = job.mediaId)
         saveFile(fileName = "${detailedMovie.id}.json", data = detailedMovie)
 
         var fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId);
@@ -541,7 +541,7 @@ object DownloadManager {
 
     private suspend fun updateSeries(job: Job) {
 
-        val detailedSeries = ThePig.Api.Series.seriesDetails(job.mediaId)
+        val detailedSeries = API.Series.seriesDetails(job.mediaId)
         saveFile(fileName = "${detailedSeries.id}.json", data = detailedSeries)
 
         var fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId);
@@ -655,7 +655,7 @@ object DownloadManager {
 
     private suspend fun updateEpisode(job: Job) {
 
-        val detailedEpisode = ThePig.Api.Episodes.episodeDetails(id = job.mediaId)
+        val detailedEpisode = API.Episodes.details(id = job.mediaId)
         saveFile(fileName = "${detailedEpisode.id}.json", data = detailedEpisode)
 
         var fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId);
@@ -697,7 +697,7 @@ object DownloadManager {
 
     private suspend fun updatePlaylist(job: Job) {
 
-        val detailedPlaylist = ThePig.Api.Playlists.playlistDetails(job.mediaId)
+        val detailedPlaylist = API.Playlists.playlistDetails(job.mediaId)
         saveFile(fileName = "${detailedPlaylist.id}.json", data = detailedPlaylist)
 
         var fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId);

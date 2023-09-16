@@ -3,6 +3,7 @@ package tv.dustypig.dustypig.ui.main_app.screens.show_more
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import tv.dustypig.dustypig.ThePig
+import tv.dustypig.dustypig.api.API
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.LoadMoreHomeScreenItemsRequest
 
@@ -26,7 +27,7 @@ class ShowMorePagingSource (
             val data = if(key == 0)
                 ThePig.showMoreData.items
             else
-                ThePig.Api.Media.loadMoreHomeScreenItems(LoadMoreHomeScreenItemsRequest(listId, start))
+                API.Media.loadMoreHomeScreenItems(LoadMoreHomeScreenItemsRequest(listId, start))
 
             val nextKey = when {
                 data.size < 25 -> null

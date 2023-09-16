@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.ThePig
+import tv.dustypig.dustypig.api.API
 import tv.dustypig.dustypig.api.models.AddPlaylistItem
 import tv.dustypig.dustypig.api.models.BasicPlaylist
 import tv.dustypig.dustypig.api.models.CreatePlaylist
@@ -42,7 +42,7 @@ class AddToPlaylistViewModel  @Inject constructor(
 
         viewModelScope.launch {
             try {
-                _data = ThePig.Api.Playlists.listPlaylists()
+                _data = API.Playlists.listPlaylists()
                 _uiState.update {
                     it.copy(
                         busy = false,
@@ -82,12 +82,12 @@ class AddToPlaylistViewModel  @Inject constructor(
 
         viewModelScope.launch {
             try{
-                val newId = ThePig.Api.Playlists.createPlaylist(CreatePlaylist(name))
+                val newId = API.Playlists.createPlaylist(CreatePlaylist(name))
                 if(_isSeries) {
-                    ThePig.Api.Playlists.addSeriesToPlaylist(AddPlaylistItem(newId, _mediaId))
+                    API.Playlists.addSeriesToPlaylist(AddPlaylistItem(newId, _mediaId))
                 }
                 else {
-                    ThePig.Api.Playlists.addItemToPlaylist(AddPlaylistItem(newId, _mediaId))
+                    API.Playlists.addItemToPlaylist(AddPlaylistItem(newId, _mediaId))
                 }
 
                 HomeViewModel.triggerUpdate()
@@ -114,10 +114,10 @@ class AddToPlaylistViewModel  @Inject constructor(
         viewModelScope.launch {
             try{
                 if(_isSeries) {
-                    ThePig.Api.Playlists.addSeriesToPlaylist(AddPlaylistItem(id, _mediaId))
+                    API.Playlists.addSeriesToPlaylist(AddPlaylistItem(id, _mediaId))
                 }
                 else {
-                    ThePig.Api.Playlists.addItemToPlaylist(AddPlaylistItem(id, _mediaId))
+                    API.Playlists.addItemToPlaylist(AddPlaylistItem(id, _mediaId))
                 }
 
                 HomeViewModel.triggerUpdate()

@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.AuthManager
-import tv.dustypig.dustypig.ThePig
+import tv.dustypig.dustypig.api.API
 import tv.dustypig.dustypig.api.models.LoginTypes
 import tv.dustypig.dustypig.api.models.PasswordCredentials
 import tv.dustypig.dustypig.nav.RouteNavigator
@@ -67,7 +67,7 @@ class SignInViewModel  @Inject constructor(
         viewModelScope.launch {
             try {
 
-                val data = ThePig.Api.Auth.passwordLogin(
+                val data = API.Auth.passwordLogin(
                     PasswordCredentials(
                         uiState.value.email,
                         uiState.value.password,
@@ -93,7 +93,7 @@ class SignInViewModel  @Inject constructor(
         _uiState.update { it.copy(forgotPasswordBusy = true) }
         viewModelScope.launch {
             try {
-                val response = ThePig.Api.Auth.sendPasswordResetEmail(uiState.value.email)
+                val response = API.Auth.sendPasswordResetEmail(uiState.value.email)
                 _uiState.update { it.copy(forgotPasswordBusy = false, showForgotPassword = false, showForgotPasswordSuccess = true) }
             } catch (ex: Exception) {
                 _uiState.update { it.copy(forgotPasswordBusy = false, showForgotPassword = false, showForgotPasswordError = true, errorMessage = ex.localizedMessage ?: "Unknown Error") }

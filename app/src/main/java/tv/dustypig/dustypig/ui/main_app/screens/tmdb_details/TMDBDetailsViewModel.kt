@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.ThePig
+import tv.dustypig.dustypig.api.API
 import tv.dustypig.dustypig.api.Genres
 import tv.dustypig.dustypig.api.models.DetailedTMDB
 import tv.dustypig.dustypig.api.models.RequestStatus
@@ -24,8 +24,7 @@ import javax.inject.Inject
 @HiltViewModel
 class TMDBDetailsViewModel @Inject constructor(
     private val routeNavigator: RouteNavigator,
-    savedStateHandle: SavedStateHandle,
-    private val screenLoadingInfo: ScreenLoadingInfo
+    savedStateHandle: SavedStateHandle
 ): ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(TMDBDetailsUIState())
@@ -39,18 +38,18 @@ class TMDBDetailsViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 loading = true,
-                posterUrl = screenLoadingInfo.posterUrl,
-                backdropUrl = screenLoadingInfo.backdropUrl,
-                title = screenLoadingInfo.title,
+                posterUrl = ScreenLoadingInfo.posterUrl,
+                backdropUrl = ScreenLoadingInfo.backdropUrl,
+                title = ScreenLoadingInfo.title,
                 isMovie = _isMovie
             )
         }
         viewModelScope.launch {
             try {
                 _detailedTMDB = if(_isMovie)
-                    ThePig.Api.TMDB.getTMDBMovie(_tmdbId)
+                    API.TMDB.getMovie(_tmdbId)
                 else
-                    ThePig.Api.TMDB.getTMDBSeries(_tmdbId)
+                    API.TMDB.getSeries(_tmdbId)
 
                  _uiState.update {
                     it.copy(
@@ -112,7 +111,8 @@ class TMDBDetailsViewModel @Inject constructor(
 
             viewModelScope.launch {
                 try {
-                    ThePig.Api.TMDB.requestTMDBTitle(titleRequest = TitleRequest(tmdbId = _tmdbId, mediaType = _detailedTMDB.mediaType))
+                    //API.TMDB.requestTMDBTitle(titleRequest = TitleRequest(tmdbId = _tmdbId, mediaType = _detailedTMDB.mediaType))
+                    API.TMDB.requestTitle(titleRequest = TitleRequest(tmdbId = _tmdbId, mediaType = _detailedTMDB.mediaType))
                     _uiState.update {
                         it.copy(
                             busy = false,
@@ -127,7 +127,7 @@ class TMDBDetailsViewModel @Inject constructor(
         } else {
             viewModelScope.launch {
                 try {
-                    val friends = ThePig.Api.Friends.listFriends()
+                    val friends = API.Friends.list()
                     _uiState.update {
                         it.copy(
                             showFriendsDialog = true,
@@ -153,7 +153,8 @@ class TMDBDetailsViewModel @Inject constructor(
 
         viewModelScope.launch {
             try{
-                ThePig.Api.TMDB.requestTMDBTitle(titleRequest = TitleRequest(tmdbId = _tmdbId, friendId = friendId, mediaType = _detailedTMDB.mediaType))
+                //API.TMDB.requestTMDBTitle(titleRequest = TitleRequest(tmdbId = _tmdbId, friendId = friendId, mediaType = _detailedTMDB.mediaType))
+                API.TMDB.requestTitle(titleRequest = TitleRequest(tmdbId = _tmdbId, friendId = friendId, mediaType = _detailedTMDB.mediaType))
                 _uiState.update {
                     it.copy(
                         busy = false,
@@ -172,7 +173,8 @@ class TMDBDetailsViewModel @Inject constructor(
         }
         viewModelScope.launch {
             try{
-                ThePig.Api.TMDB.cancelTMDBTitleRequest(titleRequest = TitleRequest(tmdbId = _tmdbId, mediaType = _detailedTMDB.mediaType))
+                //API.TMDB.cancelTMDBTitleRequest(titleRequest = TitleRequest(tmdbId = _tmdbId, mediaType = _detailedTMDB.mediaType))
+                API.TMDB.cancelTitleRequest(titleRequest = TitleRequest(tmdbId = _tmdbId, mediaType = _detailedTMDB.mediaType))
                 _uiState.update {
                     it.copy(
                         busy = false,
@@ -184,5 +186,4 @@ class TMDBDetailsViewModel @Inject constructor(
             }
         }
     }
-
 }

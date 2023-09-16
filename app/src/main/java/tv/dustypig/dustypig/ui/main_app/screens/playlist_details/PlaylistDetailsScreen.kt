@@ -627,7 +627,7 @@ private fun PlaylistItemLayout(vm: PlaylistDetailsViewModel, playlistItem: Playl
                             style = MaterialTheme.typography.titleMedium
                         )
                         Text(
-                            text = playlistItem.description ?: "No description",
+                            text = playlistItem.description,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.bodyMedium

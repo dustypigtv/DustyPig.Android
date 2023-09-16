@@ -15,5 +15,7 @@ class ViewModelModule {
 
     @Provides
     @ViewModelScoped
-    fun provideRouteNavigator(screenLoadingInfo: ScreenLoadingInfo): RouteNavigator = MyRouteNavigator(screenLoadingInfo)
+    fun provideRouteNavigator(): RouteNavigator = MyRouteNavigator()
+
+
 }

@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.ThePig
+import tv.dustypig.dustypig.api.API
 import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.api.toTimeString
 import tv.dustypig.dustypig.download_manager.DownloadManager
@@ -24,7 +24,6 @@ import javax.inject.Inject
 @HiltViewModel
 class EpisodeDetailsViewModel  @Inject constructor(
     private val routeNavigator: RouteNavigator,
-    private val screenLoadingInfo: ScreenLoadingInfo,
     savedStateHandle: SavedStateHandle
 ): ViewModel(), RouteNavigator by routeNavigator {
 
@@ -41,14 +40,14 @@ class EpisodeDetailsViewModel  @Inject constructor(
 
         _uiState.update {
             it.copy(
-                artworkUrl = screenLoadingInfo.backdropUrl,
-                episodeTitle = screenLoadingInfo.title
+                artworkUrl = ScreenLoadingInfo.backdropUrl,
+                episodeTitle = ScreenLoadingInfo.title
             )
         }
 
         viewModelScope.launch {
             try {
-                _detailedEpisode = ThePig.Api.Episodes.episodeDetails(_mediaId)
+                _detailedEpisode = API.Episodes.details(_mediaId)
                 _uiState.update {
                     it.copy(
                         mediaId = _mediaId,
@@ -124,7 +123,7 @@ class EpisodeDetailsViewModel  @Inject constructor(
     }
 
     fun goToSeries() {
-        setScreenLoadingInfo(_detailedEpisode.seriesTitle ?: "", "", "")
+        ScreenLoadingInfo.setInfo(_detailedEpisode.seriesTitle ?: "", "", "")
         navigateToRoute(SeriesDetailsNav.getRouteForId(_detailedEpisode.seriesId))
     }
 }

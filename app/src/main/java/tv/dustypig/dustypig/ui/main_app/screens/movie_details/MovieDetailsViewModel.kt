@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.ThePig
+import tv.dustypig.dustypig.api.API
 import tv.dustypig.dustypig.api.Genres
 import tv.dustypig.dustypig.api.asString
 import tv.dustypig.dustypig.api.models.DetailedMovie
@@ -36,8 +36,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MovieDetailsViewModel @Inject constructor(
     routeNavigator: RouteNavigator,
-    screenLoadingInfo: ScreenLoadingInfo,
-    savedStateHandle: SavedStateHandle,
+    private val savedStateHandle: SavedStateHandle
 ): DetailsScreenBaseViewModel(routeNavigator) {
 
     private val _uiState = MutableStateFlow(MovieDetailsUIState())
@@ -51,19 +50,19 @@ class MovieDetailsViewModel @Inject constructor(
     init {
 
         _titleInfoUIState.update {
-            it.copy(title = screenLoadingInfo.title)
+            it.copy(title = ScreenLoadingInfo.title)
         }
 
         _uiState.update {
             it.copy(
-                posterUrl = screenLoadingInfo.posterUrl,
-                backdropUrl = screenLoadingInfo.backdropUrl
+                posterUrl = ScreenLoadingInfo.posterUrl,
+                backdropUrl = ScreenLoadingInfo.backdropUrl
             )
         }
 
         viewModelScope.launch {
             try {
-                _detailedMovie = ThePig.Api.Movies.movieDetails(mediaId)
+                _detailedMovie = API.Movies.movieDetails(mediaId)
                 _uiState.update {
                     it.copy(
                         loading = false,
@@ -169,7 +168,7 @@ class MovieDetailsViewModel @Inject constructor(
 
         viewModelScope.launch {
             try{
-                ThePig.Api.Media.requestAccessOverride(mediaId)
+                API.Media.requestAccessOverride(mediaId)
                 _titleInfoUIState.update {
                     it.copy(
                         accessRequestBusy = false,
@@ -201,9 +200,9 @@ class MovieDetailsViewModel @Inject constructor(
             try {
 
                 if(_titleInfoUIState.value.inWatchList) {
-                    ThePig.Api.Media.deleteFromWatchlist(mediaId)
+                    API.Media.deleteFromWatchlist(mediaId)
                 } else {
-                    ThePig.Api.Media.addToWatchlist(mediaId)
+                    API.Media.addToWatchlist(mediaId)
                 }
 
                 _titleInfoUIState.update {
@@ -237,7 +236,7 @@ class MovieDetailsViewModel @Inject constructor(
 
         viewModelScope.launch {
             try{
-                ThePig.Api.Media.updatePlaybackProgress(id = mediaId, seconds = -1.0)
+                API.Media.updatePlaybackProgress(id = mediaId, seconds = -1.0)
                 _titleInfoUIState.update {
                     it.copy(
                         markWatchedBusy = false,
