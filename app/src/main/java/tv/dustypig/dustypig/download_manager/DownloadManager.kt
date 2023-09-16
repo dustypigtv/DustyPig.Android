@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
 import tv.dustypig.dustypig.DustyPigApplication
 import tv.dustypig.dustypig.SettingsManager
 import tv.dustypig.dustypig.api.API
@@ -33,9 +32,9 @@ import android.app.DownloadManager as AndroidDownloadManager
 @OptIn(DelicateCoroutinesApi::class)
 object DownloadManager {
 
-    private val TAG = "DownloadManager"
+    private const val TAG = "DownloadManager"
 
-    private val UPDATE_MINUTES = 5
+    private const val UPDATE_MINUTES = 5
 
     private val _androidDownloadManager = getContext().getSystemService(Context.DOWNLOAD_SERVICE) as AndroidDownloadManager
 
@@ -54,8 +53,6 @@ object DownloadManager {
 
     private val _updateTimer = Timer()
     private var _updateTimerBusy = false
-
-    private val _client = OkHttpClient()
 
     private val _downloadFlow = MutableSharedFlow<List<UIJob>>(replay = 1)
     val downloads = _downloadFlow.asSharedFlow()
@@ -99,12 +96,12 @@ object DownloadManager {
     }
 
     private fun getLong(cursor: Cursor, column: String): Long {
-        val index = cursor.getColumnIndex(column);
+        val index = cursor.getColumnIndex(column)
         return cursor.getLong(index)
     }
 
     private fun getInt(cursor: Cursor, column: String): Int {
-        val index = cursor.getColumnIndex(column);
+        val index = cursor.getColumnIndex(column)
         return cursor.getInt(index)
     }
 
@@ -502,7 +499,7 @@ object DownloadManager {
         val detailedMovie = API.Movies.movieDetails(id = job.mediaId)
         saveFile(fileName = "${detailedMovie.id}.json", data = detailedMovie)
 
-        var fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId);
+        var fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId)
         if(fileSetWithDownloads == null) {
             _db.insert(
                 FileSet(
@@ -544,7 +541,7 @@ object DownloadManager {
         val detailedSeries = API.Series.seriesDetails(job.mediaId)
         saveFile(fileName = "${detailedSeries.id}.json", data = detailedSeries)
 
-        var fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId);
+        var fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId)
         if(fileSetWithDownloads == null) {
             _db.insert(
                 FileSet(
@@ -592,20 +589,16 @@ object DownloadManager {
         }
 
         //Remove any episodes that should no longer be downloaded
-        var jobMTMs = _db.getJobFileSetMTMs(jobMediaId = job.mediaId)
-        var changed = false
+        val jobMTMs = _db.getJobFileSetMTMs(jobMediaId = job.mediaId)
         for(jobMTM in jobMTMs) {
             if (!itemIds.any {
                     it == jobMTM.fileSetMediaId
                 }) {
                 if(jobMTM.fileSetMediaId != job.mediaId) {
                     _db.delete(jobMTM)
-                    changed = true
                 }
             }
         }
-        if(changed)
-            jobMTMs = _db.getJobFileSetMTMs(jobMediaId = job.mediaId)
 
 
         //Add any episodes that should be downloaded
@@ -614,7 +607,7 @@ object DownloadManager {
                 val episode = detailedSeries.episodes!!.first {
                     it.id == mediaId
                 }
-                fileSetWithDownloads = _db.getFileSet(mediaId = episode.id);
+                fileSetWithDownloads = _db.getFileSet(mediaId = episode.id)
                 if (fileSetWithDownloads == null) {
                     _db.insert(
                         FileSet(
@@ -658,7 +651,7 @@ object DownloadManager {
         val detailedEpisode = API.Episodes.details(id = job.mediaId)
         saveFile(fileName = "${detailedEpisode.id}.json", data = detailedEpisode)
 
-        var fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId);
+        var fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId)
         if(fileSetWithDownloads == null) {
             _db.insert(
                 FileSet(
@@ -700,7 +693,7 @@ object DownloadManager {
         val detailedPlaylist = API.Playlists.playlistDetails(job.mediaId)
         saveFile(fileName = "${detailedPlaylist.id}.json", data = detailedPlaylist)
 
-        var fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId);
+        var fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId)
         if(fileSetWithDownloads == null) {
             _db.insert(
                 FileSet(
@@ -747,20 +740,17 @@ object DownloadManager {
         }
 
         //Remove any items that should no longer be downloaded
-        var jobMTMs = _db.getJobFileSetMTMs(jobMediaId = job.mediaId)
-        var changed = false
+        val jobMTMs = _db.getJobFileSetMTMs(jobMediaId = job.mediaId)
         for(jobMTM in jobMTMs) {
             if (!itemIds.any {
                     it == jobMTM.fileSetMediaId
                 }) {
                 if(jobMTM.fileSetMediaId != job.mediaId) {
                     _db.delete(jobMTM)
-                    changed = true
                 }
             }
         }
-        if(changed)
-            jobMTMs = _db.getJobFileSetMTMs(jobMediaId = job.mediaId)
+
 
 
         //Add any items that should be downloaded
@@ -769,7 +759,7 @@ object DownloadManager {
                 val playlistItem = detailedPlaylist.items!!.first {
                     it.id == mediaId
                 }
-                fileSetWithDownloads = _db.getFileSet(mediaId = playlistItem.id);
+                fileSetWithDownloads = _db.getFileSet(mediaId = playlistItem.id)
                 if (fileSetWithDownloads == null) {
                     _db.insert(
                         FileSet(

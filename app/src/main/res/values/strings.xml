@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Dusty Pig</string>
+    <string name="nomedia_filename">.nomedia</string>
 </resources>
