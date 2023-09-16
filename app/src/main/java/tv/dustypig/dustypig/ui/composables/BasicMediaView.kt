@@ -34,18 +34,19 @@ fun BasicMediaView(
 
         if(clicked != null) {
             clicked(basicMedia.id)
-            return
         }
+
+        routeNavigator.setScreenLoadingInfo(title = basicMedia.title, posterUrl = basicMedia.artworkUrl, backdropUrl = basicMedia.backdropUrl ?: "")
 
         when (basicMedia.mediaType) {
             MediaTypes.Movie -> {
-                routeNavigator.navigateToRoute(MovieDetailsNav.getRouteForId(basicMedia.id))
+                routeNavigator.navigateToRoute(route = MovieDetailsNav.getRouteForId(id = basicMedia.id))
             }
             MediaTypes.Series -> {
-                routeNavigator.navigateToRoute(SeriesDetailsNav.getRouteForId(basicMedia.id))
+                routeNavigator.navigateToRoute(route = SeriesDetailsNav.getRouteForId(id = basicMedia.id))
             }
             MediaTypes.Playlist -> {
-                routeNavigator.navigateToRoute(PlaylistDetailsNav.getRouteForId(basicMedia.id))
+                routeNavigator.navigateToRoute(route = PlaylistDetailsNav.getRouteForId(id = basicMedia.id))
             }
 
             else -> { }

@@ -213,7 +213,7 @@ private fun PhoneLayout(vm: MovieDetailsViewModel, uiState: MovieDetailsUIState,
                 .height(hdp)
                 .background(MaterialTheme.colorScheme.secondaryContainer)
         ) {
-            if (uiState.loading || uiState.backdropUrl.isBlank()) {
+            if (uiState.backdropUrl.isBlank()) {
                 GlideImage(
                     model = uiState.posterUrl,
                     contentDescription = "",
@@ -223,14 +223,12 @@ private fun PhoneLayout(vm: MovieDetailsViewModel, uiState: MovieDetailsUIState,
                         .blur(50.dp)
                 )
 
-                if (uiState.backdropUrl.isBlank()) {
-                    GlideImage(
-                        model = uiState.posterUrl,
-                        contentDescription = "",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
+                GlideImage(
+                    model = uiState.posterUrl,
+                    contentDescription = "",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize()
+                )
             } else {
                 GlideImage(
                     model = uiState.backdropUrl,

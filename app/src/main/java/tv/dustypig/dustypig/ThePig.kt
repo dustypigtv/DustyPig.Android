@@ -19,8 +19,10 @@ import tv.dustypig.dustypig.api.models.PlaybackProgress
 import tv.dustypig.dustypig.api.models.ProfileCredentials
 import tv.dustypig.dustypig.api.models.ResponseWrapper
 import tv.dustypig.dustypig.api.models.ResponseWrapperOf
+import tv.dustypig.dustypig.api.models.SearchRequest
 import tv.dustypig.dustypig.api.models.SimpleValue
 import tv.dustypig.dustypig.api.models.TitlePermissionInfo
+import tv.dustypig.dustypig.api.models.TitleRequest
 import tv.dustypig.dustypig.api.models.UpdatesPlaylist
 import java.io.IOException
 
@@ -183,6 +185,9 @@ object ThePig{
             suspend fun episodeDetails(id: Int) = wrapAPICallWithReturnData { authenticatedApi.episodeDetails(id) }
         }
 
+        object Friends {
+            suspend fun listFriends() = wrapAPICallWithReturnData { authenticatedApi.listFriends() }
+        }
 
 
         object Media {
@@ -195,10 +200,11 @@ object ThePig{
 
             suspend fun homeScreen(): HomeScreen = wrapAPICallWithReturnData { authenticatedApi.homeScreen() }
 
-            suspend fun loadMoreHomeScreenItems(loadMoreHomeScreenListItemsRequest: LoadMoreHomeScreenItemsRequest) =
-                wrapAPICallWithReturnData { authenticatedApi.loadMoreHomeScreenItems(loadMoreHomeScreenListItemsRequest) }
+            suspend fun loadMoreHomeScreenItems(loadMoreHomeScreenListItemsRequest: LoadMoreHomeScreenItemsRequest) = wrapAPICallWithReturnData { authenticatedApi.loadMoreHomeScreenItems(loadMoreHomeScreenListItemsRequest) }
 
             suspend fun requestAccessOverride (id: Int) = wrapAPICall { authenticatedApi.requestAccessOverride(id) }
+
+            suspend fun search(query: String, searchTMDB: Boolean) = wrapAPICallWithReturnData { authenticatedApi.search(SearchRequest(query, searchTMDB)) }
 
             suspend fun setTitlePermissions(titlePermissionInfo: TitlePermissionInfo) = wrapAPICall { authenticatedApi.setTitlePermissions(titlePermissionInfo) }
 
@@ -246,6 +252,18 @@ object ThePig{
             suspend fun markSeriesWatched(id: Int) = wrapAPICall { authenticatedApi.markSeriesWatched(id) }
 
             suspend fun removeFromContinueWatching(id: Int) = wrapAPICall { authenticatedApi.removeFromContinueWatching(id) }
+        }
+
+        object TMDB {
+
+            suspend fun getTMDBMovie(id: Int) = wrapAPICallWithReturnData { authenticatedApi.getTMDBMovie(id) }
+
+            suspend fun getTMDBSeries(id: Int) = wrapAPICallWithReturnData { authenticatedApi.getTMDBSeries(id) }
+
+            suspend fun requestTMDBTitle(titleRequest: TitleRequest) = wrapAPICall { authenticatedApi.requestTMDBTitle(titleRequest) }
+
+            suspend fun cancelTMDBTitleRequest(titleRequest: TitleRequest) = wrapAPICall { authenticatedApi.cancelTMDBTitleRequest(titleRequest) }
+
         }
     }
 

@@ -164,8 +164,10 @@ private fun HorizontalTabletLayout(vm: EpisodeDetailsViewModel, uiState: Episode
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(8.dp)
                 .verticalScroll(rememberScrollState()),
-            horizontalAlignment = columnAlignment
+            horizontalAlignment = columnAlignment,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
 
             if (uiState.loading) {
@@ -219,7 +221,12 @@ private fun PhoneLayout(vm: EpisodeDetailsViewModel, uiState: EpisodeDetailsUISt
             Spacer(modifier = Modifier.height(48.dp))
             CircularProgressIndicator()
         } else if(!criticalError) {
-            InfoLayout(vm, uiState)
+            Column (
+                modifier = Modifier.padding(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                InfoLayout(vm, uiState)
+            }
         }
     }
 }

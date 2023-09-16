@@ -9,7 +9,7 @@ import tv.dustypig.dustypig.ui.composables.TitleInfoData
 
 abstract class DetailsScreenBaseViewModel constructor(
     private val routeNavigator: RouteNavigator
-): ViewModel(), RouteNavigator by routeNavigator{
+): ViewModel(), RouteNavigator by routeNavigator {
 
     private val _titleInfoUIState = MutableStateFlow(TitleInfoData())
 

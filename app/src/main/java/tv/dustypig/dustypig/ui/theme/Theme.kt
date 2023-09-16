@@ -23,11 +23,11 @@ private val DarkColorScheme = darkColorScheme(
     primary = Color.White,
     onPrimary = Color.Black,
 
-    secondary = Color.Red,
-    onSecondary = Color.Green,
+    secondary = Color.White,
+    onSecondary = Gray,
 
-    tertiary = Color.Green,
-    onTertiary = Color.Red,
+    tertiary = Color.Black,
+    onTertiary = Color.White,
 
     primaryContainer = Color.White,
     onPrimaryContainer = Color.Black,

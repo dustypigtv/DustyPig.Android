@@ -15,6 +15,7 @@ import tv.dustypig.dustypig.api.toTimeString
 import tv.dustypig.dustypig.download_manager.DownloadManager
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
+import tv.dustypig.dustypig.ui.main_app.ScreenLoadingInfo
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
 import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
@@ -23,6 +24,7 @@ import javax.inject.Inject
 @HiltViewModel
 class EpisodeDetailsViewModel  @Inject constructor(
     private val routeNavigator: RouteNavigator,
+    private val screenLoadingInfo: ScreenLoadingInfo,
     savedStateHandle: SavedStateHandle
 ): ViewModel(), RouteNavigator by routeNavigator {
 
@@ -36,6 +38,14 @@ class EpisodeDetailsViewModel  @Inject constructor(
     private lateinit var _detailedEpisode: DetailedEpisode
 
     init {
+
+        _uiState.update {
+            it.copy(
+                artworkUrl = screenLoadingInfo.backdropUrl,
+                episodeTitle = screenLoadingInfo.title
+            )
+        }
+
         viewModelScope.launch {
             try {
                 _detailedEpisode = ThePig.Api.Episodes.episodeDetails(_mediaId)
@@ -114,6 +124,7 @@ class EpisodeDetailsViewModel  @Inject constructor(
     }
 
     fun goToSeries() {
+        setScreenLoadingInfo(_detailedEpisode.seriesTitle ?: "", "", "")
         navigateToRoute(SeriesDetailsNav.getRouteForId(_detailedEpisode.seriesId))
     }
 }

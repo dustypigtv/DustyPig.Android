@@ -3,6 +3,7 @@ package tv.dustypig.dustypig.ui.main_app.screens.series_details
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,6 +20,7 @@ import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.composables.CreditsData
 import tv.dustypig.dustypig.ui.main_app.DetailsScreenBaseViewModel
+import tv.dustypig.dustypig.ui.main_app.ScreenLoadingInfo
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
@@ -28,7 +30,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SeriesDetailsViewModel  @Inject constructor(
-    private val routeNavigator: RouteNavigator,
+    routeNavigator: RouteNavigator,
+    screenLoadingInfo: ScreenLoadingInfo,
     savedStateHandle: SavedStateHandle
 ): DetailsScreenBaseViewModel(routeNavigator) {
 
@@ -42,9 +45,21 @@ class SeriesDetailsViewModel  @Inject constructor(
     private var _allEpisodes: List<DetailedEpisode> = listOf()
 
     init {
+
+        _titleInfoUIState.update {
+            it.copy(title = screenLoadingInfo.title)
+        }
+
+        _uiState.update {
+            it.copy(
+                posterUrl = screenLoadingInfo.posterUrl,
+                backdropUrl = screenLoadingInfo.backdropUrl
+            )
+        }
+
+
         viewModelScope.launch {
             try {
-
                 _detailedSeries = ThePig.Api.Series.seriesDetails(mediaId)
                 _allEpisodes = _detailedSeries.episodes ?: listOf()
                 if(_allEpisodes.isEmpty()) {
@@ -302,6 +317,7 @@ class SeriesDetailsViewModel  @Inject constructor(
     }
 
     fun navToEpisodeInfo(id: Int) {
+        setScreenLoadingInfo(_detailedSeries.title, _detailedSeries.artworkUrl, _detailedSeries.backdropUrl ?: "")
         navigateToRoute(EpisodeDetailsNav.getRoute(id, _detailedSeries.canPlay, true))
     }
 }

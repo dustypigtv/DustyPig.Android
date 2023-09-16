@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -16,6 +17,7 @@ import tv.dustypig.dustypig.api.models.UpdatesPlaylist
 import tv.dustypig.dustypig.download_manager.DownloadManager
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
+import tv.dustypig.dustypig.ui.main_app.ScreenLoadingInfo
 import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
 import tv.dustypig.dustypig.ui.main_app.screens.movie_details.MovieDetailsNav
@@ -25,6 +27,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PlaylistDetailsViewModel @Inject constructor(
     private val routeNavigator: RouteNavigator,
+    private val screenLoadingInfo: ScreenLoadingInfo,
     savedStateHandle: SavedStateHandle
 ): ViewModel(), RouteNavigator by routeNavigator {
 
@@ -37,6 +40,15 @@ class PlaylistDetailsViewModel @Inject constructor(
     private val _localItems = mutableListOf<PlaylistItem>()
 
     init {
+
+        _uiState.update {
+            it.copy(
+                loading = true,
+                posterUrl = screenLoadingInfo.posterUrl,
+                title = screenLoadingInfo.title
+            )
+        }
+
         viewModelScope.launch {
             try{
                 _detailedPlaylist = ThePig.Api.Playlists.playlistDetails(_playlistId)
@@ -100,7 +112,7 @@ class PlaylistDetailsViewModel @Inject constructor(
             _uiState.update {
                 it.copy(
                     showRenameDialog = false,
-                    renameBusy = true
+                    busy = true
                 )
             }
             viewModelScope.launch {
@@ -111,14 +123,14 @@ class PlaylistDetailsViewModel @Inject constructor(
                     ))
                     _uiState.update {
                         it.copy(
-                            renameBusy = false,
+                            busy = false,
                             title = newName
                         )
                     }
                 } catch (ex: Exception) {
                     _uiState.update {
                         it.copy(
-                            renameBusy = false,
+                            busy = false,
                             showErrorDialog = true,
                             errorMessage = ex.localizedMessage
                         )
@@ -163,11 +175,18 @@ class PlaylistDetailsViewModel @Inject constructor(
 
     fun updateListOrderOnServer(from: Int, to: Int) {
 
+        _uiState.update {
+            it.copy(busy = true)
+        }
+
         viewModelScope.launch {
             try {
                 ThePig.Api.Playlists.movePlaylistItemToNewIndex(_detailedPlaylist.items!![from].id, to)
                 _detailedPlaylist.items = _detailedPlaylist.items!!.toMutableList().apply {
                     add(to, removeAt(from))
+                }
+                _uiState.update {
+                    it.copy(busy = false)
                 }
             } catch (ex: Exception) {
                 _localItems.clear()
@@ -177,7 +196,8 @@ class PlaylistDetailsViewModel @Inject constructor(
                         showErrorDialog = true,
                         errorMessage = ex.localizedMessage,
                         items = _localItems,
-                        updateList = true
+                        updateList = true,
+                        busy = false
                     )
                 }
             }
@@ -189,7 +209,8 @@ class PlaylistDetailsViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 updateList = true,
-                items = _localItems
+                items = _localItems,
+                busy = true
             )
         }
         viewModelScope.launch {
@@ -198,9 +219,13 @@ class PlaylistDetailsViewModel @Inject constructor(
                 _detailedPlaylist.items = _detailedPlaylist.items!!.toMutableList().apply {
                     remove(_detailedPlaylist.items!!.first{it.id == id})
                 }
+                _uiState.update {
+                    it.copy(busy = false)
+                }
             } catch (ex: Exception) {
                 _uiState.update {
                     it.copy(
+                        busy = false,
                         showErrorDialog = true,
                         errorMessage = ex.localizedMessage
                     )
@@ -220,7 +245,7 @@ class PlaylistDetailsViewModel @Inject constructor(
             _uiState.update {
                 it.copy(
                     showDeleteDialog = false,
-                    deleteBusy = true
+                    busy = true
                 )
             }
             viewModelScope.launch {
@@ -232,7 +257,7 @@ class PlaylistDetailsViewModel @Inject constructor(
                 } catch (ex: Exception) {
                     _uiState.update {
                         it.copy(
-                            deleteBusy = false,
+                            busy = false,
                             showErrorDialog = true,
                             errorMessage = ex.localizedMessage
                         )

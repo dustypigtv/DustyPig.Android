@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -23,6 +24,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import tv.dustypig.dustypig.ui.theme.DimOverlay
@@ -32,11 +34,13 @@ private fun CountRow(count: Int, newDownloadCount: MutableIntState) {
 
     val text = if(count == 0) "0 (Remove Downloads)" else count.toString()
     val backgroundColor = if(newDownloadCount.intValue == count) DimOverlay else Color.Transparent
+    val color = if(newDownloadCount.intValue == count) MaterialTheme.colorScheme.primary else AlertDialogDefaults.textContentColor
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(backgroundColor)
+            .background(backgroundColor, shape = RoundedCornerShape(size = 8.dp))
+            .clip(shape = RoundedCornerShape(size = 8.dp))
             .clickable { newDownloadCount.intValue = count },
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
@@ -44,7 +48,7 @@ private fun CountRow(count: Int, newDownloadCount: MutableIntState) {
         Text(
             text = text,
             modifier = Modifier.padding(0.dp, 8.dp),
-            color = MaterialTheme.colorScheme.primary
+            color = color
         )
     }
 }

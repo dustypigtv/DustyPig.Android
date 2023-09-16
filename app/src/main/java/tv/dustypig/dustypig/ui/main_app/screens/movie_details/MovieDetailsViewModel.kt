@@ -20,6 +20,7 @@ import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.composables.CreditsData
 import tv.dustypig.dustypig.ui.main_app.DetailsScreenBaseViewModel
+import tv.dustypig.dustypig.ui.main_app.ScreenLoadingInfo
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
 import tv.dustypig.dustypig.ui.main_app.screens.manage_parental_controls_for_title.ManageParentalControlsForTitleNav
@@ -34,8 +35,9 @@ import javax.inject.Inject
 @SuppressLint("SimpleDateFormat")
 @HiltViewModel
 class MovieDetailsViewModel @Inject constructor(
-    private val routeNavigator: RouteNavigator,
-    savedStateHandle: SavedStateHandle
+    routeNavigator: RouteNavigator,
+    screenLoadingInfo: ScreenLoadingInfo,
+    savedStateHandle: SavedStateHandle,
 ): DetailsScreenBaseViewModel(routeNavigator) {
 
     private val _uiState = MutableStateFlow(MovieDetailsUIState())
@@ -47,6 +49,17 @@ class MovieDetailsViewModel @Inject constructor(
     private lateinit var _detailedMovie: DetailedMovie
 
     init {
+
+        _titleInfoUIState.update {
+            it.copy(title = screenLoadingInfo.title)
+        }
+
+        _uiState.update {
+            it.copy(
+                posterUrl = screenLoadingInfo.posterUrl,
+                backdropUrl = screenLoadingInfo.backdropUrl
+            )
+        }
 
         viewModelScope.launch {
             try {

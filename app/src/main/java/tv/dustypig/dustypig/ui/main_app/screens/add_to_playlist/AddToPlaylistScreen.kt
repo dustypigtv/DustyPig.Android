@@ -151,6 +151,7 @@ fun AddToPlaylistScreen(vm: AddToPlaylistViewModel) {
                                     id = it.id,
                                     mediaType = MediaTypes.Playlist,
                                     artworkUrl = it.artworkUrl,
+                                    backdropUrl = "",
                                     title = it.name
                                 ),
                                 routeNavigator = vm

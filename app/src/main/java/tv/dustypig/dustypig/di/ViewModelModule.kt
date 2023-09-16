@@ -7,6 +7,7 @@ import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.android.scopes.ViewModelScoped
 import tv.dustypig.dustypig.nav.MyRouteNavigator
 import tv.dustypig.dustypig.nav.RouteNavigator
+import tv.dustypig.dustypig.ui.main_app.ScreenLoadingInfo
 
 @Module
 @InstallIn(ViewModelComponent::class)
@@ -14,5 +15,5 @@ class ViewModelModule {
 
     @Provides
     @ViewModelScoped
-    fun bindRouteNavigator(): RouteNavigator = MyRouteNavigator()
+    fun provideRouteNavigator(screenLoadingInfo: ScreenLoadingInfo): RouteNavigator = MyRouteNavigator(screenLoadingInfo)
 }

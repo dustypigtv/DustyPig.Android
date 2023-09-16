@@ -7,6 +7,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
 import tv.dustypig.dustypig.api.models.AddPlaylistItem
+import tv.dustypig.dustypig.api.models.BasicFriend
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.BasicPlaylist
 import tv.dustypig.dustypig.api.models.BasicProfile
@@ -17,6 +18,7 @@ import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.api.models.DetailedMovie
 import tv.dustypig.dustypig.api.models.DetailedPlaylist
 import tv.dustypig.dustypig.api.models.DetailedSeries
+import tv.dustypig.dustypig.api.models.DetailedTMDB
 import tv.dustypig.dustypig.api.models.HomeScreen
 import tv.dustypig.dustypig.api.models.LoadMoreHomeScreenItemsRequest
 import tv.dustypig.dustypig.api.models.LoginResponse
@@ -26,8 +28,11 @@ import tv.dustypig.dustypig.api.models.PlaybackProgress
 import tv.dustypig.dustypig.api.models.ProfileCredentials
 import tv.dustypig.dustypig.api.models.ResponseWrapper
 import tv.dustypig.dustypig.api.models.ResponseWrapperOf
+import tv.dustypig.dustypig.api.models.SearchRequest
+import tv.dustypig.dustypig.api.models.SearchResults
 import tv.dustypig.dustypig.api.models.SimpleValue
 import tv.dustypig.dustypig.api.models.TitlePermissionInfo
+import tv.dustypig.dustypig.api.models.TitleRequest
 import tv.dustypig.dustypig.api.models.UpdatesPlaylist
 
 interface ApiService {
@@ -55,6 +60,13 @@ interface ApiService {
     suspend fun episodeDetails(@Path("id") id: Int): Response<ResponseWrapperOf<DetailedEpisode>>
 
 
+
+    // ***** Friends *****
+    @GET("Friends/List")
+    suspend fun listFriends(): Response<ResponseWrapperOf<List<BasicFriend>>>
+
+
+
     // ***** Media *****
     @GET("Media/AddToWatchlist/{id}")
     suspend fun addToWatchlist(@Path("id") id: Int): Response<ResponseWrapper>
@@ -73,6 +85,9 @@ interface ApiService {
 
     @GET("Media/RequestAccessOverride/{id}")
     suspend fun requestAccessOverride(@Path("id") id: Int): Response<ResponseWrapper>
+
+    @POST("Media/Search")
+    suspend fun search(@Body searchRequest: SearchRequest): Response<ResponseWrapperOf<SearchResults>>
 
     @POST("Media/SetTitlePermissions")
     suspend fun setTitlePermissions(@Body titlePermissionInfo: TitlePermissionInfo) : Response<ResponseWrapper>
@@ -133,4 +148,19 @@ interface ApiService {
 
     @GET("Series/RemoveFromContinueWatching/{id}")
     suspend fun removeFromContinueWatching(@Path("id") id: Int): Response<ResponseWrapper>
+
+
+    // ***** TMDB *****
+    @GET("TMDB/GetMovie/{id}")
+    suspend fun getTMDBMovie(@Path("id") id: Int): Response<ResponseWrapperOf<DetailedTMDB>>
+
+    @GET("TMDB/GetSeries/{id}")
+    suspend fun getTMDBSeries(@Path("id") id: Int): Response<ResponseWrapperOf<DetailedTMDB>>
+
+    @POST("TMDB/RequestTitle")
+    suspend fun requestTMDBTitle(@Body titleRequest: TitleRequest): Response<ResponseWrapper>
+
+    @POST("TMDB/CancelTitleRequest")
+    suspend fun cancelTMDBTitleRequest(@Body titleRequest: TitleRequest): Response<ResponseWrapper>
+
 }

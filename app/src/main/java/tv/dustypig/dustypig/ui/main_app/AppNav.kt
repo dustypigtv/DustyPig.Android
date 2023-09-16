@@ -37,6 +37,7 @@ import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsScreen
 import tv.dustypig.dustypig.ui.main_app.screens.settings.SettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
+import tv.dustypig.dustypig.ui.main_app.screens.tmdb_details.TMDBDetailsNav
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -120,6 +121,7 @@ fun AppNav(){
             SeriesDetailsNav.composable(this, navController)
             EpisodeDetailsNav.composable(this, navController)
             PlaylistDetailsNav.composable(this, navController)
+            TMDBDetailsNav.composable(this, navController)
             AddToPlaylistNav.composable(this, navController)
             ManageParentalControlsForTitleNav.composable(this, navController)
 

@@ -288,18 +288,18 @@ private fun HorizontalTabletLayout(vm: PlaylistDetailsViewModel, uiState: Playli
         LazyColumn(
             state = state.listState,
             modifier = Modifier
-                .padding(innerPadding)
+                .padding(8.dp)
                 .fillMaxWidth()
                 .reorderable(state),
             horizontalAlignment = columnAlignment,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            item {
-                PlaybackLayout(vm = vm, uiState = uiState, criticalError = criticalError)
-            }
-
             if (!uiState.loading && !criticalError) {
+                item {
+                    PlaybackLayout(vm = vm, uiState = uiState, criticalError = criticalError)
+                }
+
                 items(data.value, { it.id }) { playlistItem ->
                     ReorderableItem(state, key = playlistItem.id) { isDragging ->
                         PlaylistItemLayout(playlistItem = playlistItem, vm = vm, isDragging = isDragging, state = state)
@@ -330,7 +330,7 @@ private fun PhoneLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetailsUI
         mutableStateOf(uiState.items)
     }
 
-    if(uiState.updateList) {
+    if (uiState.updateList) {
         data.value = uiState.items
         vm.listUpdated()
     }
@@ -338,67 +338,78 @@ private fun PhoneLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetailsUI
     //There are 2 items before the playlist items, so subtract 2 from indices
     val state = rememberReorderableLazyListState(
         onMove = { from, to ->
-            try{
+            try {
                 data.value = data.value.toMutableList().apply {
                     add(to.index - 2, removeAt(from.index - 2))
                 }
-            } catch(_: Throwable) { }
+            } catch (_: Throwable) {
+            }
         },
         onDragEnd = { from, to ->
             vm.updateListOrderOnServer(from - 2, to - 2)
         }
     )
 
-    LazyColumn(
-        state = state.listState,
-        modifier = Modifier
-            .padding(innerPadding)
-            .fillMaxWidth()
-            .reorderable(state),
-        horizontalAlignment = columnAlignment,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
     ) {
+        LazyColumn(
+            state = state.listState,
+            modifier = Modifier
+                .padding(innerPadding)
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .reorderable(state),
+            horizontalAlignment = columnAlignment,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
 
-        item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(hdp)
-                    .background(MaterialTheme.colorScheme.secondaryContainer)
-            ) {
-                GlideImage(
-                    model = uiState.posterUrl,
-                    contentDescription = "",
-                    contentScale = ContentScale.Crop,
+            item {
+                Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .blur(50.dp)
-                )
+                        .fillMaxWidth()
+                        .height(hdp)
+                        .background(MaterialTheme.colorScheme.secondaryContainer)
+                ) {
+                    GlideImage(
+                        model = uiState.posterUrl,
+                        contentDescription = "",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .blur(50.dp)
+                    )
 
-                GlideImage(
-                    model = uiState.posterUrl,
-                    contentDescription = "",
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-        }
-
-        item {
-            PlaybackLayout(vm = vm, uiState = uiState, criticalError = criticalError)
-        }
-
-        if (!uiState.loading && !criticalError) {
-            items(data.value, { it.id }) { playlistItem ->
-                ReorderableItem(state, key = playlistItem.id) { isDragging ->
-                    PlaylistItemLayout(playlistItem = playlistItem, vm = vm, isDragging = isDragging, state = state)
+                    GlideImage(
+                        model = uiState.posterUrl,
+                        contentDescription = "",
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
             }
 
-            item {
-                DeleteLayout(vm = vm, uiState = uiState)
-            }
+            if (!uiState.loading && !criticalError) {
+                item {
+                    PlaybackLayout(vm = vm, uiState = uiState, criticalError = criticalError)
+                }
 
+                items(data.value, { it.id }) { playlistItem ->
+                    ReorderableItem(state, key = playlistItem.id) { isDragging ->
+                        PlaylistItemLayout(playlistItem = playlistItem, vm = vm, isDragging = isDragging, state = state)
+                    }
+                }
+
+                item {
+                    DeleteLayout(vm = vm, uiState = uiState)
+                }
+
+            }
+        }
+
+        if(uiState.loading || uiState.busy) {
+            CircularProgressIndicator()
         }
     }
 }
@@ -434,6 +445,7 @@ private fun PlaybackLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetail
         }
 
         Row(
+            modifier = Modifier.padding(8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Top
         ) {
@@ -660,20 +672,16 @@ private fun DeleteLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetailsU
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center
     ) {
-
-        if (uiState.deleteBusy) {
-            CircularProgressIndicator()
-        } else {
-            Button(
-                onClick = vm::deletePlaylist,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Red,
-                    contentColor = Color.White
-                ),
-                modifier = modifier
-            ) {
-                Text(text = "Delete")
-            }
+        Button(
+            enabled = !(uiState.loading || uiState.busy),
+            onClick = vm::deletePlaylist,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Red,
+                contentColor = Color.White
+            ),
+            modifier = modifier
+        ) {
+            Text(text = "Delete")
         }
     }
     Spacer(modifier = Modifier.height(16.dp))
