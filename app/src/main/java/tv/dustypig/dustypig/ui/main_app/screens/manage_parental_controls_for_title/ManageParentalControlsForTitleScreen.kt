@@ -121,6 +121,7 @@ fun ManageParentalControlsForTitleScreen(vm: ManageParentalControlsForTitleViewM
                     Switch(
                         modifier = Modifier.padding(12.dp, 0.dp),
                         checked = checked,
+                        enabled = !uiState.busy,
                         onCheckedChange = { toggle() })
                 }
 
@@ -132,7 +133,7 @@ fun ManageParentalControlsForTitleScreen(vm: ManageParentalControlsForTitleViewM
                         .fillMaxSize(),
                     contentAlignment = Alignment.BottomCenter
                 ) {
-                   if(uiState.saving) {
+                   if(uiState.busy) {
                         CircularProgressIndicator()
                    } else {
                        Button(
@@ -155,7 +156,7 @@ fun ManageParentalControlsForTitleScreen(vm: ManageParentalControlsForTitleViewM
     }
 
 
-    if(uiState.showError) {
+    if(uiState.showErrorDialog) {
         ErrorDialog(
             onDismissRequest = { vm.hideError(uiState.criticalError) },
             message = uiState.errorMessage

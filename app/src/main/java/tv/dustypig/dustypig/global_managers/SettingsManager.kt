@@ -1,4 +1,4 @@
-package tv.dustypig.dustypig
+package tv.dustypig.dustypig.global_managers
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -8,10 +8,15 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+import javax.inject.Singleton
 
-object SettingsManager {
+
+@Singleton
+class SettingsManager @Inject constructor(@ApplicationContext private val context: Context) {
 
     private val AUTH_TOKEN_KEY = stringPreferencesKey("auth_token")
     private val PROFILE_ID_KEY = intPreferencesKey("profile_id")
@@ -21,18 +26,15 @@ object SettingsManager {
 
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
-    private fun getContext(): Context = DustyPigApplication.Instance.appContext.get()!!
-
-
 
     fun loadToken(): Flow<String> {
-        return getContext().dataStore.data.map { preferences ->
+        return context.dataStore.data.map { preferences ->
             preferences[AUTH_TOKEN_KEY] ?: ""
         }
     }
 
     suspend fun saveToken(token: String) {
-        getContext().dataStore.edit { preferences ->
+        context.dataStore.edit { preferences ->
             preferences[AUTH_TOKEN_KEY] = token
         }
     }
@@ -41,13 +43,13 @@ object SettingsManager {
 
 
     fun loadProfileId() : Flow<Int>{
-        return getContext().dataStore.data.map { preferences ->
+        return context.dataStore.data.map { preferences ->
             preferences[PROFILE_ID_KEY] ?: 0
         }
     }
 
     suspend fun saveProfileId(profileId: Int){
-        getContext().dataStore.edit { preferences ->
+        context.dataStore.edit { preferences ->
             preferences[PROFILE_ID_KEY] = profileId
         }
     }
@@ -57,7 +59,7 @@ object SettingsManager {
 
     fun loadStoreDownloadsExternally(): Flow<Boolean> {
 
-        return getContext().dataStore.data.map { preferences ->
+        return context.dataStore.data.map { preferences ->
             if(android.os.Environment.getExternalStorageState() == android.os.Environment.MEDIA_MOUNTED) {
                 preferences[STORE_DOWNLOADS_EXTERNALLY_KEY] ?: true
             }
@@ -68,7 +70,7 @@ object SettingsManager {
     }
 
     suspend fun saveStoreDownloadsExternally(value: Boolean) {
-        getContext().dataStore.edit { preferences ->
+        context.dataStore.edit { preferences ->
             preferences[STORE_DOWNLOADS_EXTERNALLY_KEY] = value
         }
     }
@@ -77,13 +79,13 @@ object SettingsManager {
 
 
     fun loadIsMainProfile(): Flow<Boolean> {
-        return getContext().dataStore.data.map { preferences ->
+        return context.dataStore.data.map { preferences ->
             preferences[IS_MAIN_PROFILE_KEY] ?: false
         }
     }
 
     suspend fun saveIsMainProfile(isMainProfile: Boolean) {
-        getContext().dataStore.edit { preferences ->
+        context.dataStore.edit { preferences ->
             preferences[IS_MAIN_PROFILE_KEY] = isMainProfile
         }
     }
@@ -91,13 +93,13 @@ object SettingsManager {
 
 
     fun loadDownloadOverCellular() : Flow<Boolean> {
-        return getContext().dataStore.data.map { preferences ->
+        return context.dataStore.data.map { preferences ->
             preferences[DOWNLOAD_OVER_CELLULAR_KEY] ?: false
         }
     }
 
     suspend fun saveDownloadOverCellular(value: Boolean) {
-        getContext().dataStore.edit { preferences ->
+        context.dataStore.edit { preferences ->
             preferences[DOWNLOAD_OVER_CELLULAR_KEY] = value
         }
     }

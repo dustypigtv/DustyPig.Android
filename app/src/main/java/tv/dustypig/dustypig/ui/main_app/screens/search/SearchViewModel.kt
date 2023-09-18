@@ -8,13 +8,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.api.API
+import tv.dustypig.dustypig.api.models.SearchRequest
+import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.nav.RouteNavigator
 import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
-    private val routeNavigator: RouteNavigator
+    private val routeNavigator: RouteNavigator,
+    private val mediaRepository: MediaRepository
 ): ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(SearchUIState())
@@ -43,7 +45,7 @@ class SearchViewModel @Inject constructor(
 
         viewModelScope.launch {
             try{
-                val response = API.Media.search(ltquery, true)
+                val response = mediaRepository.search(SearchRequest(query = ltquery, searchTMDB = true))
 
                 _uiState.update {
                     it.copy(

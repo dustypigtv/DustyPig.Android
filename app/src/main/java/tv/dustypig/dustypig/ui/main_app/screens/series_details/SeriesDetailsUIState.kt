@@ -5,8 +5,8 @@ import tv.dustypig.dustypig.ui.composables.CreditsData
 
 data class SeriesDetailsUIState(
     val loading: Boolean = true,
-    val showError: Boolean = false,
-    val errorMessage: String = "",
+    val showErrorDialog: Boolean = false,
+    val errorMessage: String? = null,
     val criticalError: Boolean = false,
     val showDownloadDialog: Boolean = false,
     val currentDownloadCount: Int = 0,

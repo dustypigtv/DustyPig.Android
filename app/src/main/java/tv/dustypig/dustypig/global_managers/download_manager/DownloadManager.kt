@@ -1,10 +1,11 @@
-package tv.dustypig.dustypig.download_manager
+package tv.dustypig.dustypig.global_managers.download_manager
 
 import android.content.Context
 import android.database.Cursor
 import android.util.Log
 import androidx.room.Room
 import com.google.gson.Gson
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -13,33 +14,48 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import tv.dustypig.dustypig.DustyPigApplication
-import tv.dustypig.dustypig.SettingsManager
-import tv.dustypig.dustypig.api.API
 import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.api.models.DetailedMovie
 import tv.dustypig.dustypig.api.models.DetailedPlaylist
 import tv.dustypig.dustypig.api.models.DetailedSeries
 import tv.dustypig.dustypig.api.models.ExternalSubtitle
 import tv.dustypig.dustypig.api.models.MediaTypes
+import tv.dustypig.dustypig.api.repositories.EpisodesRepository
+import tv.dustypig.dustypig.api.repositories.MoviesRepository
+import tv.dustypig.dustypig.api.repositories.PlaylistRepository
+import tv.dustypig.dustypig.api.repositories.SeriesRepository
+import tv.dustypig.dustypig.global_managers.AuthManager
+import tv.dustypig.dustypig.global_managers.SettingsManager
 import java.io.File
 import java.util.Calendar
 import java.util.Date
 import java.util.Timer
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.concurrent.schedule
 import android.app.DownloadManager as AndroidDownloadManager
 
-@OptIn(DelicateCoroutinesApi::class)
-object DownloadManager {
 
-    private const val TAG = "DownloadManager"
+@Singleton
+class DownloadManager @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val settingsManager: SettingsManager,
+    private val moviesRepository: MoviesRepository,
+    private val seriesRepository: SeriesRepository,
+    private val episodesRepository: EpisodesRepository,
+    private val playlistRepository: PlaylistRepository,
+    private val authManager: AuthManager
+) {
 
-    private const val UPDATE_MINUTES = 5
-
-    private val _androidDownloadManager = getContext().getSystemService(Context.DOWNLOAD_SERVICE) as AndroidDownloadManager
+    companion object {
+        private const val TAG = "DownloadManager"
+        private const val UPDATE_MINUTES = 5
+    }
+    
+    private val _androidDownloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as AndroidDownloadManager
 
     private val _db = Room.databaseBuilder(
-        context = getContext(),
+        context = context,
         klass = DownloadsDB::class.java,
         name = "downloads.db"
     )
@@ -80,13 +96,12 @@ object DownloadManager {
         Log.d(TAG, "Started")
     }
 
-    private fun getContext() = DustyPigApplication.Instance.appContext.get()!!
-
+    
     private suspend fun rootDir(): File {
-        val ret = if (SettingsManager.loadStoreDownloadsExternally().first())
-            getContext().getExternalFilesDir(null)!!
+        val ret = if (settingsManager.loadStoreDownloadsExternally().first())
+            context.getExternalFilesDir(null)!!
         else
-            getContext().filesDir!!
+            context.filesDir!!
 
         withContext(Dispatchers.IO) {
             File(ret, ".nomedia").createNewFile()
@@ -114,6 +129,7 @@ object DownloadManager {
         return this.secondsSince() / 60
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     private fun statusTimerTick() {
 
         if(_statusTimerBusy)
@@ -268,7 +284,7 @@ object DownloadManager {
             val url = android.net.Uri.parse(download.url)
             val request = android.app.DownloadManager.Request(url)
             request.setDestinationUri(android.net.Uri.fromFile(file))
-            request.setAllowedOverMetered(SettingsManager.loadDownloadOverCellular().first())
+            request.setAllowedOverMetered(settingsManager.loadDownloadOverCellular().first())
             request.setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_HIDDEN)
             download.androidId = _androidDownloadManager.enqueue(request)
             _db.update(download)
@@ -329,7 +345,8 @@ object DownloadManager {
                         percent = if(fileSetTotalSize > 0) fileSetCompleted.toFloat() / fileSetTotalSize.toFloat() else 0.0f,
                         status = fileSetStatus,
                         statusDetails = fileSetStatusDetails
-                ))
+                    )
+                )
 
                 jobTotalSize += fileSetTotalSize.coerceAtLeast(0L)
                 jobCompleted += fileSetCompleted
@@ -343,6 +360,7 @@ object DownloadManager {
 
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     private fun updateTimerTick(){
         if(_updateTimerBusy)
             return
@@ -358,6 +376,9 @@ object DownloadManager {
     }
 
     private suspend fun updateTimerWork() {
+
+        if(authManager.loginState != AuthManager.LOGIN_STATE_LOGGED_IN)
+            return
 
         val jobs = _db.getJobs()
         for(job in jobs) {
@@ -496,16 +517,17 @@ object DownloadManager {
 
     private suspend fun updateMovie(job: Job) {
 
-        val detailedMovie = API.Movies.movieDetails(id = job.mediaId)
+        val detailedMovie = moviesRepository.details(id = job.mediaId)
         saveFile(fileName = "${detailedMovie.id}.json", data = detailedMovie)
 
         var fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId)
         if(fileSetWithDownloads == null) {
             _db.insert(
                 FileSet(
-                mediaId = job.mediaId,
-                title = detailedMovie.displayTitle()
-            ))
+                    mediaId = job.mediaId,
+                    title = detailedMovie.displayTitle()
+                )
+            )
             fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId)!!
         }
 
@@ -538,7 +560,7 @@ object DownloadManager {
 
     private suspend fun updateSeries(job: Job) {
 
-        val detailedSeries = API.Series.seriesDetails(job.mediaId)
+        val detailedSeries = seriesRepository.details(job.mediaId)
         saveFile(fileName = "${detailedSeries.id}.json", data = detailedSeries)
 
         var fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId)
@@ -547,7 +569,8 @@ object DownloadManager {
                 FileSet(
                     mediaId = job.mediaId,
                     title = detailedSeries.title
-                ))
+                )
+            )
             fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId)!!
         }
 
@@ -648,7 +671,7 @@ object DownloadManager {
 
     private suspend fun updateEpisode(job: Job) {
 
-        val detailedEpisode = API.Episodes.details(id = job.mediaId)
+        val detailedEpisode = episodesRepository.details(id = job.mediaId)
         saveFile(fileName = "${detailedEpisode.id}.json", data = detailedEpisode)
 
         var fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId)
@@ -657,7 +680,8 @@ object DownloadManager {
                 FileSet(
                     mediaId = job.mediaId,
                     title = detailedEpisode.fullDisplayTitle()
-                ))
+                )
+            )
             fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId)!!
         }
 
@@ -690,7 +714,7 @@ object DownloadManager {
 
     private suspend fun updatePlaylist(job: Job) {
 
-        val detailedPlaylist = API.Playlists.playlistDetails(job.mediaId)
+        val detailedPlaylist = playlistRepository.details(job.mediaId)
         saveFile(fileName = "${detailedPlaylist.id}.json", data = detailedPlaylist)
 
         var fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId)
@@ -699,7 +723,8 @@ object DownloadManager {
                 FileSet(
                     mediaId = job.mediaId,
                     title = detailedPlaylist.name
-                ))
+                )
+            )
             fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId)!!
         }
 

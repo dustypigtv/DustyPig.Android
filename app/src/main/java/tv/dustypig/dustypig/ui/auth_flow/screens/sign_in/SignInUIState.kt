@@ -5,7 +5,7 @@ data class SignInUIState(
     val email: String = "",
     val password: String = "",
     val showError: Boolean = false,
-    val errorMessage: String = "",
+    val errorMessage: String? = null,
     val busy: Boolean = false,
     val showForgotPassword: Boolean = false,
     val forgotPasswordBusy: Boolean = false,

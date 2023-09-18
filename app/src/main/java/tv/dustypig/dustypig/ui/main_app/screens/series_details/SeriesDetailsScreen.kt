@@ -75,7 +75,7 @@ fun SeriesDetailsScreen(vm: SeriesDetailsViewModel) {
 
     val criticalError by remember {
         derivedStateOf {
-            uiState.showError && uiState.criticalError
+            uiState.showErrorDialog && uiState.criticalError
         }
     }
 
@@ -173,7 +173,7 @@ fun SeriesDetailsScreen(vm: SeriesDetailsViewModel) {
         )
     }
 
-    if(uiState.showError) {
+    if(uiState.showErrorDialog) {
         ErrorDialog(onDismissRequest = vm::hideError, message = uiState.errorMessage)
     }
 }

@@ -56,7 +56,7 @@ fun MovieDetailsScreen(vm: MovieDetailsViewModel) {
 
     val criticalError by remember {
         derivedStateOf {
-            uiState.showError && uiState.criticalError
+            uiState.showErrorDialog && uiState.criticalError
         }
     }
 
@@ -83,7 +83,6 @@ fun MovieDetailsScreen(vm: MovieDetailsViewModel) {
         OnDevice(
             onPhone = {
                 PhoneLayout(
-                    vm = vm,
                     uiState = uiState,
                     titleInfoState = titleInfoState,
                     criticalError = criticalError,
@@ -94,7 +93,6 @@ fun MovieDetailsScreen(vm: MovieDetailsViewModel) {
                 OnOrientation(
                     onPortrait = {
                         PhoneLayout(
-                            vm = vm,
                             uiState = uiState,
                             titleInfoState = titleInfoState,
                             criticalError = criticalError,
@@ -103,7 +101,6 @@ fun MovieDetailsScreen(vm: MovieDetailsViewModel) {
                     },
                     onLandscape = {
                         HorizontalTabletLayout(
-                            vm = vm,
                             uiState = uiState,
                             titleInfoState = titleInfoState,
                             criticalError = criticalError,
@@ -124,7 +121,7 @@ fun MovieDetailsScreen(vm: MovieDetailsViewModel) {
         )
     }
 
-    if(uiState.showError) {
+    if(uiState.showErrorDialog) {
         ErrorDialog(onDismissRequest = { vm.hideError() }, message = uiState.errorMessage)
     }
 
@@ -133,7 +130,7 @@ fun MovieDetailsScreen(vm: MovieDetailsViewModel) {
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-private fun HorizontalTabletLayout(vm: MovieDetailsViewModel, uiState: MovieDetailsUIState, titleInfoState: TitleInfoData, criticalError: Boolean, innerPadding: PaddingValues) {
+private fun HorizontalTabletLayout(uiState: MovieDetailsUIState, titleInfoState: TitleInfoData, criticalError: Boolean, innerPadding: PaddingValues) {
 
     //Left aligns content or center aligns busy indicator
     val columnAlignment = if(uiState.loading) Alignment.CenterHorizontally else Alignment.Start
@@ -188,7 +185,7 @@ private fun HorizontalTabletLayout(vm: MovieDetailsViewModel, uiState: MovieDeta
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-private fun PhoneLayout(vm: MovieDetailsViewModel, uiState: MovieDetailsUIState, titleInfoState: TitleInfoData, criticalError: Boolean, innerPadding: PaddingValues) {
+private fun PhoneLayout(uiState: MovieDetailsUIState, titleInfoState: TitleInfoData, criticalError: Boolean, innerPadding: PaddingValues) {
 
     val configuration = LocalConfiguration.current
     val hdp = configuration.screenWidthDp.dp * 0.5625f

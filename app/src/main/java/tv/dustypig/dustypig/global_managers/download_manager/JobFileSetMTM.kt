@@ -1,8 +1,7 @@
-package tv.dustypig.dustypig.download_manager
+package tv.dustypig.dustypig.global_managers.download_manager
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
-import androidx.room.PrimaryKey
 
 
 @Entity(

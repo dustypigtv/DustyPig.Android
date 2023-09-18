@@ -258,7 +258,7 @@ private fun TMDBLayout(vm: SearchViewModel, uiState: SearchUIState, listState: L
             uiState.tmdbItems.count()
         ) { index ->
             TMDBMediaView(
-                basicTMDB = uiState.tmdbItems[index]!!,
+                basicTMDB = uiState.tmdbItems[index],
                 routeNavigator = vm,
                 clicked = { keyboardController?.hide() }
             )
@@ -278,9 +278,9 @@ fun TMDBMediaView(
 ) {
     fun onClicked() {
 
-        if(clicked != null) {
+        if(clicked != null)
             clicked(basicTMDB.tmdbId)
-        }
+
 
         ScreenLoadingInfo.setInfo(title = basicTMDB.title, posterUrl = basicTMDB.artworkUrl ?: "", backdropUrl = basicTMDB.backdropUrl ?: "")
 

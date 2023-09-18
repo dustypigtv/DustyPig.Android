@@ -4,8 +4,8 @@ import tv.dustypig.dustypig.ui.composables.CreditsData
 
 data class MovieDetailsUIState(
     val loading: Boolean = true,
-    val showError: Boolean = false,
-    val errorMessage: String = "",
+    val showErrorDialog: Boolean = false,
+    val errorMessage: String? = null,
     val criticalError: Boolean = false,
     val showRemoveDownload: Boolean = false,
     val posterUrl: String = "",

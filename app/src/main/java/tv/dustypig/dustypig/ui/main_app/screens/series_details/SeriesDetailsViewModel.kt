@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig.ui.main_app.screens.series_details
 
+//import tv.dustypig.dustypig.download_manager.DownloadManager
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -8,13 +9,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.api.API
 import tv.dustypig.dustypig.api.Genres
 import tv.dustypig.dustypig.api.asString
 import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.api.models.DetailedSeries
 import tv.dustypig.dustypig.api.models.OverrideRequestStatus
-import tv.dustypig.dustypig.download_manager.DownloadManager
+import tv.dustypig.dustypig.api.repositories.MediaRepository
+import tv.dustypig.dustypig.api.repositories.SeriesRepository
+import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.composables.CreditsData
@@ -29,9 +31,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SeriesDetailsViewModel  @Inject constructor(
+    private val mediaRepository: MediaRepository,
+    private val seriesRepository: SeriesRepository,
     routeNavigator: RouteNavigator,
+    downloadManager: DownloadManager,
     savedStateHandle: SavedStateHandle
-): DetailsScreenBaseViewModel(routeNavigator) {
+): DetailsScreenBaseViewModel(routeNavigator, downloadManager) {
 
     private val _uiState = MutableStateFlow(SeriesDetailsUIState())
     val uiState: StateFlow<SeriesDetailsUIState> = _uiState.asStateFlow()
@@ -58,7 +63,7 @@ class SeriesDetailsViewModel  @Inject constructor(
 
         viewModelScope.launch {
             try {
-                _detailedSeries = API.Series.seriesDetails(mediaId)
+                _detailedSeries = seriesRepository.details(mediaId)
                 _allEpisodes = _detailedSeries.episodes ?: listOf()
                 if(_allEpisodes.isEmpty()) {
                     throw Exception("No episodes found.")
@@ -75,7 +80,7 @@ class SeriesDetailsViewModel  @Inject constructor(
                     it.seasonNumber == upNext.seasonNumber
                 }
 
-                val unPlayed = upNext.id == _allEpisodes.first().id && (upNext.played == null || upNext.played < 1);
+                val unPlayed = upNext.id == _allEpisodes.first().id && (upNext.played == null || upNext.played < 1)
                 val fullyPlayed = upNext.id == _allEpisodes.last().id && (upNext.played ?: 0.0) >= (upNext.creditStartTime ?: (upNext.length - 30.0))
 
                 _uiState.update {
@@ -121,15 +126,26 @@ class SeriesDetailsViewModel  @Inject constructor(
                     )
                 }
             } catch (ex: Exception) {
-                _uiState.update {
-                    it.copy(
-                        loading = false,
-                        showError = true,
-                        errorMessage = ex.localizedMessage ?: "Unknown Error",
-                        criticalError = true
-                    )
-                }
+                setError(ex = ex, criticalError = true)
             }
+        }
+    }
+
+    private fun setError(ex: Exception, criticalError: Boolean) {
+        _uiState.update {
+            it.copy(
+                loading = false,
+                showErrorDialog = true,
+                errorMessage = ex.localizedMessage,
+                criticalError = criticalError
+            )
+        }
+        _titleInfoUIState.update {
+            it.copy(
+                accessRequestBusy = false,
+                watchListBusy = false,
+                markWatchedBusy = false
+            )
         }
     }
 
@@ -153,7 +169,7 @@ class SeriesDetailsViewModel  @Inject constructor(
         }
         else {
             _uiState.update {
-                it.copy(showError = false)
+                it.copy(showErrorDialog = false)
             }
         }
     }
@@ -173,7 +189,7 @@ class SeriesDetailsViewModel  @Inject constructor(
             _uiState.update {
                 it.copy(
                     showDownloadDialog = true,
-                    currentDownloadCount = DownloadManager.getJobCount(mediaId)
+                    currentDownloadCount = downloadManager.getJobCount(mediaId)
                 )
             }
         }
@@ -185,9 +201,9 @@ class SeriesDetailsViewModel  @Inject constructor(
         }
         viewModelScope.launch {
             if (newCount == 0)
-                DownloadManager.delete(_detailedSeries.id)
+                downloadManager.delete(_detailedSeries.id)
             else
-                DownloadManager.addOrUpdateSeries(_detailedSeries, newCount)
+                downloadManager.addOrUpdateSeries(_detailedSeries, newCount)
         }
     }
 
@@ -199,7 +215,7 @@ class SeriesDetailsViewModel  @Inject constructor(
 
         viewModelScope.launch {
             try{
-                API.Media.requestAccessOverride(mediaId)
+                mediaRepository.requestAccessOverride(mediaId)
                 _titleInfoUIState.update {
                     it.copy(
                         accessRequestBusy = false,
@@ -207,18 +223,7 @@ class SeriesDetailsViewModel  @Inject constructor(
                     )
                 }
             } catch (ex: Exception) {
-                _uiState.update {
-                    it.copy(
-                        showError = true,
-                        errorMessage = ex.localizedMessage ?: "Unknown Error"
-                    )
-                }
-
-                _titleInfoUIState.update {
-                    it.copy(
-                        accessRequestBusy = false
-                    )
-                }
+                setError(ex = ex, criticalError = false)
             }
         }
     }
@@ -233,9 +238,9 @@ class SeriesDetailsViewModel  @Inject constructor(
             try {
 
                 if(_titleInfoUIState.value.inWatchList) {
-                    API.Media.deleteFromWatchlist(mediaId)
+                    mediaRepository.deleteFromWatchlist(mediaId)
                 } else {
-                    API.Media.addToWatchlist(mediaId)
+                    mediaRepository.addToWatchlist(mediaId)
                 }
 
                 _titleInfoUIState.update {
@@ -247,17 +252,7 @@ class SeriesDetailsViewModel  @Inject constructor(
 
                 HomeViewModel.triggerUpdate()
             } catch (ex: Exception) {
-                _titleInfoUIState.update {
-                    it.copy(
-                        watchListBusy = false
-                    )
-                }
-                _uiState.update{
-                    it.copy(
-                        showError = true,
-                        errorMessage = ex.localizedMessage ?: "Unknown Error"
-                    )
-                }
+                setError(ex = ex, criticalError = false)
             }
         }
     }
@@ -280,9 +275,9 @@ class SeriesDetailsViewModel  @Inject constructor(
         viewModelScope.launch {
             try{
                 if(removeFromContinueWatching) {
-                    API.Series.removeFromContinueWatching(mediaId)
+                    seriesRepository.removeFromContinueWatching(mediaId)
                 } else {
-                    API.Series.markSeriesWatched(mediaId)
+                    seriesRepository.markWatched(mediaId)
                 }
                 _titleInfoUIState.update {
                     it.copy(
@@ -292,15 +287,7 @@ class SeriesDetailsViewModel  @Inject constructor(
                 }
                 HomeViewModel.triggerUpdate()
             } catch (ex: Exception) {
-                _titleInfoUIState.update {
-                    it.copy(markWatchedBusy = false)
-                }
-                _uiState.update {
-                    it.copy(
-                        showError = true,
-                        errorMessage = ex.localizedMessage ?: "Unknown Error"
-                    )
-                }
+                setError(ex = ex, criticalError = false)
             }
         }
     }

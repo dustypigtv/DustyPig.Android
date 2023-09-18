@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig.ui.main_app.screens.episode_details
 
+//import tv.dustypig.dustypig.download_manager.DownloadManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -50,8 +51,7 @@ import com.bumptech.glide.integration.compose.GlideImage
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Play
-import tv.dustypig.dustypig.download_manager.DownloadManager
-import tv.dustypig.dustypig.download_manager.DownloadStatus
+import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
 import tv.dustypig.dustypig.ui.composables.ActionButton
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
@@ -67,7 +67,7 @@ fun EpisodeDetailsScreen (vm: EpisodeDetailsViewModel) {
 
     val criticalError by remember {
         derivedStateOf {
-            uiState.showError && uiState.criticalError
+            uiState.showErrorDialog && uiState.criticalError
         }
     }
 
@@ -131,7 +131,7 @@ fun EpisodeDetailsScreen (vm: EpisodeDetailsViewModel) {
         )
     }
 
-    if(uiState.showError) {
+    if(uiState.showErrorDialog) {
         ErrorDialog(onDismissRequest = { vm.hideError() }, message = uiState.errorMessage)
     }
 
@@ -254,7 +254,7 @@ private fun InfoLayout(vm: EpisodeDetailsViewModel, uiState: EpisodeDetailsUISta
         val configuration = LocalConfiguration.current
         val buttonPadding = if(configuration.isTablet()) PaddingValues(0.dp, 0.dp) else PaddingValues(16.dp, 0.dp)
 
-        val status = DownloadManager
+        val status = uiState.downloadManager
             .downloads
             .collectAsStateWithLifecycle(initialValue = listOf())
             .value
@@ -272,6 +272,7 @@ private fun InfoLayout(vm: EpisodeDetailsViewModel, uiState: EpisodeDetailsUISta
             null -> "Download"
             else -> "Downloading"
         }
+
 
 
         Button(

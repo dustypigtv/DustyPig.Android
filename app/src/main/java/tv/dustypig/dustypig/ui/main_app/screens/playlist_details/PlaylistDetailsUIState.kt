@@ -1,6 +1,7 @@
 package tv.dustypig.dustypig.ui.main_app.screens.playlist_details
 
 import tv.dustypig.dustypig.api.models.PlaylistItem
+import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
 
 data class PlaylistDetailsUIState (
     val loading: Boolean = true,
@@ -19,5 +20,6 @@ data class PlaylistDetailsUIState (
     val playlistId: Int = 0,
     val items: List<PlaylistItem> = listOf(),
     val updateList: Boolean = false,
-    val showDeleteDialog: Boolean = false
+    val showDeleteDialog: Boolean = false,
+    val downloadManager: DownloadManager
 )

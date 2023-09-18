@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig.ui.main_app.screens.playlist_details
 
+//import tv.dustypig.dustypig.download_manager.DownloadManager
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,12 +9,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.api.API
 import tv.dustypig.dustypig.api.models.DetailedPlaylist
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.PlaylistItem
 import tv.dustypig.dustypig.api.models.UpdatesPlaylist
-import tv.dustypig.dustypig.download_manager.DownloadManager
+import tv.dustypig.dustypig.api.repositories.PlaylistRepository
+import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.main_app.ScreenLoadingInfo
@@ -26,10 +27,12 @@ import javax.inject.Inject
 @HiltViewModel
 class PlaylistDetailsViewModel @Inject constructor(
     private val routeNavigator: RouteNavigator,
+    private val playlistRepository: PlaylistRepository,
+    private val downloadManager: DownloadManager,
     savedStateHandle: SavedStateHandle
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val _uiState = MutableStateFlow(PlaylistDetailsUIState())
+    private val _uiState = MutableStateFlow(PlaylistDetailsUIState(downloadManager = downloadManager))
     val uiState = _uiState.asStateFlow()
 
 
@@ -49,7 +52,7 @@ class PlaylistDetailsViewModel @Inject constructor(
 
         viewModelScope.launch {
             try{
-                _detailedPlaylist = API.Playlists.playlistDetails(_playlistId)
+                _detailedPlaylist = playlistRepository.details(_playlistId)
                 val items = _detailedPlaylist.items ?: listOf()
                 _localItems.addAll(items)
                 val upNext = items.firstOrNull { it.index == _detailedPlaylist.currentIndex } ?: items.firstOrNull()
@@ -76,15 +79,20 @@ class PlaylistDetailsViewModel @Inject constructor(
                     )
                 }
             } catch(ex: Exception) {
-                _uiState.update {
-                    it.copy(
-                        loading = false,
-                        showErrorDialog = true,
-                        errorMessage = ex.localizedMessage,
-                        criticalError = true
-                    )
-                }
+                setError(ex = ex, criticalError = true)
             }
+        }
+    }
+
+    private fun setError(ex: Exception, criticalError: Boolean) {
+        _uiState.update {
+            it.copy(
+                loading = false,
+                busy = false,
+                showErrorDialog = true,
+                errorMessage = ex.localizedMessage,
+                criticalError = criticalError
+            )
         }
     }
 
@@ -115,7 +123,7 @@ class PlaylistDetailsViewModel @Inject constructor(
             }
             viewModelScope.launch {
                 try {
-                    API.Playlists.updatePlaylist(UpdatesPlaylist(
+                    playlistRepository.rename(UpdatesPlaylist(
                         id = _playlistId,
                         name = newName
                     ))
@@ -126,13 +134,7 @@ class PlaylistDetailsViewModel @Inject constructor(
                         )
                     }
                 } catch (ex: Exception) {
-                    _uiState.update {
-                        it.copy(
-                            busy = false,
-                            showErrorDialog = true,
-                            errorMessage = ex.localizedMessage
-                        )
-                    }
+                    setError(ex = ex, criticalError = false)
                 }
             }
         } else {
@@ -147,7 +149,7 @@ class PlaylistDetailsViewModel @Inject constructor(
             _uiState.update {
                 it.copy(
                     showDownloadDialog = true,
-                    currentDownloadCount = DownloadManager.getJobCount(_playlistId)
+                    currentDownloadCount = downloadManager.getJobCount(_playlistId)
                 )
             }
         }
@@ -159,9 +161,9 @@ class PlaylistDetailsViewModel @Inject constructor(
         }
         viewModelScope.launch {
             if (newCount == 0)
-                DownloadManager.delete(_playlistId)
+                downloadManager.delete(_playlistId)
             else
-                DownloadManager.addOrUpdatePlaylist(_detailedPlaylist, newCount)
+                downloadManager.addOrUpdatePlaylist(_detailedPlaylist, newCount)
         }
     }
 
@@ -179,7 +181,7 @@ class PlaylistDetailsViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                API.Playlists.movePlaylistItemToNewIndex(_detailedPlaylist.items!![from].id, to)
+                playlistRepository.moveItem(_detailedPlaylist.items!![from].id, to)
                 _detailedPlaylist.items = _detailedPlaylist.items!!.toMutableList().apply {
                     add(to, removeAt(from))
                 }
@@ -213,7 +215,7 @@ class PlaylistDetailsViewModel @Inject constructor(
         }
         viewModelScope.launch {
             try {
-                API.Playlists.deletePlaylistItem(id)
+                playlistRepository.deleteItem(id)
                 _detailedPlaylist.items = _detailedPlaylist.items!!.toMutableList().apply {
                     remove(_detailedPlaylist.items!!.first{it.id == id})
                 }
@@ -221,13 +223,7 @@ class PlaylistDetailsViewModel @Inject constructor(
                     it.copy(busy = false)
                 }
             } catch (ex: Exception) {
-                _uiState.update {
-                    it.copy(
-                        busy = false,
-                        showErrorDialog = true,
-                        errorMessage = ex.localizedMessage
-                    )
-                }
+                setError(ex = ex, criticalError = false)
             }
         }
     }
@@ -248,18 +244,12 @@ class PlaylistDetailsViewModel @Inject constructor(
             }
             viewModelScope.launch {
                 try {
-                    API.Playlists.deletePlaylist(_detailedPlaylist.id)
-                    DownloadManager.delete(_detailedPlaylist.id)
+                    playlistRepository.deletePlaylist(_detailedPlaylist.id)
+                    //DownloadManager.delete(_detailedPlaylist.id)
                     HomeViewModel.triggerUpdate()
                     popBackStack()
                 } catch (ex: Exception) {
-                    _uiState.update {
-                        it.copy(
-                            busy = false,
-                            showErrorDialog = true,
-                            errorMessage = ex.localizedMessage
-                        )
-                    }
+                    setError(ex = ex, criticalError = false)
                 }
             }
         } else {

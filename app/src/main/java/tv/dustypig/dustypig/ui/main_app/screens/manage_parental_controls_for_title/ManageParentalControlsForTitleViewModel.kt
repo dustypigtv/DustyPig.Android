@@ -11,10 +11,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.api.API
 import tv.dustypig.dustypig.api.models.OverrideState
 import tv.dustypig.dustypig.api.models.ProfileTitleOverrideInfo
 import tv.dustypig.dustypig.api.models.TitlePermissionInfo
+import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
@@ -23,6 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ManageParentalControlsForTitleViewModel  @Inject constructor(
     private val routeNavigator: RouteNavigator,
+    private val mediaRepository: MediaRepository,
     savedStateHandle: SavedStateHandle
 ): ViewModel(), RouteNavigator by routeNavigator{
 
@@ -43,7 +44,7 @@ class ManageParentalControlsForTitleViewModel  @Inject constructor(
 
         viewModelScope.launch {
             try{
-                _data = API.Media.getTitlePermissions(_mediaId);
+                _data = mediaRepository.getTitlePermissions(_mediaId)
 
                 for(profile in _data.profiles) {
                     _origValues[profile.profileId] = profile.state == OverrideState.Allow
@@ -55,21 +56,26 @@ class ManageParentalControlsForTitleViewModel  @Inject constructor(
                     )
                 }
             } catch (ex: Exception) {
-                _uiState.update {
-                    it.copy(
-                        loading = false,
-                        showError = true,
-                        criticalError = true,
-                        errorMessage = ex.localizedMessage ?: "Unknown Error"
-                    )
-                }
+                setError(ex = ex, criticalError = true)
             }
+        }
+    }
+
+    private fun setError(ex: Exception, criticalError: Boolean) {
+        _uiState.update {
+            it.copy(
+                loading = false,
+                busy = false,
+                showErrorDialog = true,
+                criticalError = criticalError,
+                errorMessage = ex.localizedMessage
+            )
         }
     }
 
     fun hideError(critical: Boolean) {
         _uiState.update {
-            it.copy(showError = false)
+            it.copy(showErrorDialog = false)
         }
         if(critical) {
             popBackStack()
@@ -94,7 +100,7 @@ class ManageParentalControlsForTitleViewModel  @Inject constructor(
 
     fun saveChanges(context: Context) {
         _uiState.update {
-            it.copy(saving = true)
+            it.copy(busy = true)
         }
 
         viewModelScope.launch {
@@ -110,7 +116,7 @@ class ManageParentalControlsForTitleViewModel  @Inject constructor(
                         titleId = _mediaId,
                         profiles = profiles
                     )
-                    API.Media.setTitlePermissions(tpi)
+                    mediaRepository.setTitlePermissions(tpi)
 
                     for(p in _data.profiles) {
                         _origValues[p.profileId] = (p.state == OverrideState.Allow)
@@ -118,7 +124,7 @@ class ManageParentalControlsForTitleViewModel  @Inject constructor(
 
                     _uiState.update {
                         it.copy(
-                            saving = false,
+                            busy = false,
                             pendingChanges = false
                         )
                     }
@@ -126,13 +132,7 @@ class ManageParentalControlsForTitleViewModel  @Inject constructor(
                     Toast.makeText(context, "Changes Saved", Toast.LENGTH_SHORT).show()
                 }
             } catch (ex: Exception){
-                _uiState.update {
-                    it.copy(
-                        saving = false,
-                        showError = true,
-                        errorMessage = ex.localizedMessage ?: "Unknown Error"
-                    )
-                }
+                setError(ex = ex, criticalError = false)
             }
         }
     }

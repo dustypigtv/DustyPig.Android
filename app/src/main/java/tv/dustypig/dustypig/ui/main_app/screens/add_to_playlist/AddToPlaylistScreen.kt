@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -74,7 +75,7 @@ fun AddToPlaylistScreen(vm: AddToPlaylistViewModel) {
         }
     ) { innerPadding ->
 
-        if(uiState.busy) {
+        if(uiState.loading) {
 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -86,99 +87,111 @@ fun AddToPlaylistScreen(vm: AddToPlaylistViewModel) {
 
 
         } else {
-            LazyColumn(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                state = listState
+
+            Box (
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
-                item {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Spacer(modifier = Modifier.height(24.dp))
-                        OutlinedTextField(
-                            value = newName.value,
-                            onValueChange = { newName.value = it },
-                            placeholder = { Text(text = "New Playlist Name") },
-                            label = { Text(text = "New Playlist Name") },
-                            singleLine = true,
-                            enabled = !uiState.busy,
-                            modifier = Modifier.width(300.dp),
-                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                            keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
-                        )
 
-                        Button(
-                            onClick = { vm.newPlaylist(newName.value) },
-                            enabled = !uiState.busy,
-                            modifier = Modifier.width(300.dp)
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    state = listState
+                ) {
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            Text(text = "Save")
-                        }
+                            Spacer(modifier = Modifier.height(24.dp))
+                            OutlinedTextField(
+                                value = newName.value,
+                                onValueChange = { newName.value = it },
+                                placeholder = { Text(text = "New Playlist Name") },
+                                label = { Text(text = "New Playlist Name") },
+                                singleLine = true,
+                                enabled = !uiState.busy,
+                                modifier = Modifier.width(300.dp),
+                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                                keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
+                            )
 
-                        if (uiState.playlists.isNotEmpty()) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(text = "Or Choose a Playlist Below")
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Button(
+                                onClick = { vm.newPlaylist(newName.value) },
+                                enabled = !uiState.busy,
+                                modifier = Modifier.width(300.dp)
+                            ) {
+                                Text(text = "Save")
+                            }
+
+                            if (uiState.playlists.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(text = "Or Choose a Playlist Below")
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
                         }
                     }
-                }
 
-                items(uiState.playlists) {
-                    val id = it.id
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(150.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-
-                        Box(
-                            modifier = Modifier
-                                .height(150.dp)
-                                .width(100.dp),
-                            contentAlignment = Alignment.TopStart
-                        )
-                        {
-                            BasicMediaView(
-                                basicMedia = BasicMedia(
-                                    id = it.id,
-                                    mediaType = MediaTypes.Playlist,
-                                    artworkUrl = it.artworkUrl,
-                                    backdropUrl = "",
-                                    title = it.name
-                                ),
-                                routeNavigator = vm
-                            ) { vm.selectPlaylist(id) }
-                        }
-
-                        Text(
-                            text = it.name,
+                    items(uiState.playlists) {
+                        val id = it.id
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { vm.selectPlaylist(id) },
-                            maxLines = 4,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                                .height(150.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+
+                            Box(
+                                modifier = Modifier
+                                    .height(150.dp)
+                                    .width(100.dp),
+                                contentAlignment = Alignment.TopStart
+                            )
+                            {
+                                BasicMediaView(
+                                    basicMedia = BasicMedia(
+                                        id = it.id,
+                                        mediaType = MediaTypes.Playlist,
+                                        artworkUrl = it.artworkUrl,
+                                        backdropUrl = "",
+                                        title = it.name
+                                    ),
+                                    routeNavigator = vm,
+                                    navigateOnClick = false,
+                                ) { vm.selectPlaylist(id) }
+                            }
+
+                            Text(
+                                text = it.name,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { vm.selectPlaylist(id) },
+                                maxLines = 4,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
 
-                item {
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
+                if(uiState.busy)
+                    CircularProgressIndicator()
+
             }
         }
     }
 
 
 
-    if(uiState.showError) {
+    if(uiState.showErrorDialog) {
         ErrorDialog(
             onDismissRequest = {
                 vm.hideError(uiState.criticalError)

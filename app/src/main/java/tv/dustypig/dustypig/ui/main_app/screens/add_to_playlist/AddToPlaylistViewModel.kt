@@ -9,10 +9,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.api.API
 import tv.dustypig.dustypig.api.models.AddPlaylistItem
 import tv.dustypig.dustypig.api.models.BasicPlaylist
 import tv.dustypig.dustypig.api.models.CreatePlaylist
+import tv.dustypig.dustypig.api.repositories.PlaylistRepository
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
@@ -21,6 +21,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AddToPlaylistViewModel  @Inject constructor(
     private val routeNavigator: RouteNavigator,
+    private val playlistRepository: PlaylistRepository,
     savedStateHandle: SavedStateHandle
 ): ViewModel(), RouteNavigator by routeNavigator {
 
@@ -35,37 +36,41 @@ class AddToPlaylistViewModel  @Inject constructor(
     init {
         _uiState.update {
             it.copy(
-                busy = true
+                loading = true
             )
         }
 
-
         viewModelScope.launch {
             try {
-                _data = API.Playlists.listPlaylists()
+                _data = playlistRepository.list()
                 _uiState.update {
                     it.copy(
-                        busy = false,
+                        loading = false,
                         playlists = _data
                     )
                 }
             } catch(ex: Exception) {
-                _uiState.update {
-                    it.copy(
-                        busy = false,
-                        showError = true,
-                        criticalError = true,
-                        errorMessage = ex.localizedMessage ?: "Unknown Error"
-                    )
-                }
+                setError(ex = ex, criticalError = true)
             }
+        }
+    }
+
+    private fun setError(ex: Exception, criticalError: Boolean) {
+        _uiState.update {
+            it.copy(
+                loading = false,
+                busy = false,
+                showErrorDialog = true,
+                errorMessage = ex.message,
+                criticalError = criticalError
+            )
         }
     }
 
     fun hideError(critical: Boolean) {
         _uiState.update {
             it.copy(
-                showError = false
+                showErrorDialog = false
             )
         }
         if(critical) {
@@ -82,24 +87,18 @@ class AddToPlaylistViewModel  @Inject constructor(
 
         viewModelScope.launch {
             try{
-                val newId = API.Playlists.createPlaylist(CreatePlaylist(name))
+                val newId = playlistRepository.create(CreatePlaylist(name))
                 if(_isSeries) {
-                    API.Playlists.addSeriesToPlaylist(AddPlaylistItem(newId, _mediaId))
+                    playlistRepository.addSeries(AddPlaylistItem(newId, _mediaId))
                 }
                 else {
-                    API.Playlists.addItemToPlaylist(AddPlaylistItem(newId, _mediaId))
+                    playlistRepository.addItem(AddPlaylistItem(newId, _mediaId))
                 }
 
                 HomeViewModel.triggerUpdate()
                 popBackStack()
             } catch (ex: Exception) {
-                _uiState.update {
-                    it.copy(
-                        busy = false,
-                        showError = true,
-                        errorMessage = ex.localizedMessage ?: "Unknown Error"
-                    )
-                }
+                setError(ex = ex, criticalError = false)
             }
         }
     }
@@ -114,22 +113,16 @@ class AddToPlaylistViewModel  @Inject constructor(
         viewModelScope.launch {
             try{
                 if(_isSeries) {
-                    API.Playlists.addSeriesToPlaylist(AddPlaylistItem(id, _mediaId))
+                    playlistRepository.addSeries(AddPlaylistItem(id, _mediaId))
                 }
                 else {
-                    API.Playlists.addItemToPlaylist(AddPlaylistItem(id, _mediaId))
+                    playlistRepository.addItem(AddPlaylistItem(id, _mediaId))
                 }
 
                 HomeViewModel.triggerUpdate()
                 popBackStack()
             } catch (ex: Exception) {
-                _uiState.update {
-                    it.copy(
-                        busy = false,
-                        showError = true,
-                        errorMessage = ex.localizedMessage ?: "Unknown Error"
-                    )
-                }
+                setError(ex = ex, criticalError = false)
             }
         }
     }

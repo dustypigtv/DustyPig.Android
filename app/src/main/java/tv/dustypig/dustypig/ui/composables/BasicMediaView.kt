@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -24,18 +25,23 @@ import tv.dustypig.dustypig.ui.main_app.screens.playlist_details.PlaylistDetails
 import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
 
 
-@OptIn(ExperimentalGlideComposeApi::class)
+@OptIn(ExperimentalGlideComposeApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun BasicMediaView(
     basicMedia: BasicMedia,
     routeNavigator: RouteNavigator,
+    navigateOnClick: Boolean = true,
     clicked: ((Int) -> Unit)? = null
 ) {
+
     fun onClicked() {
 
-        if(clicked != null) {
+        if(clicked != null)
             clicked(basicMedia.id)
-        }
+
+
+        if(!navigateOnClick)
+            return
 
         ScreenLoadingInfo.setInfo(title = basicMedia.title, posterUrl = basicMedia.artworkUrl, backdropUrl = basicMedia.backdropUrl ?: "")
 

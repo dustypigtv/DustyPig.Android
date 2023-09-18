@@ -2,13 +2,14 @@ package tv.dustypig.dustypig.ui.main_app.screens.show_more
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import tv.dustypig.dustypig.api.API
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.HomeScreenList
 import tv.dustypig.dustypig.api.models.LoadMoreHomeScreenItemsRequest
+import tv.dustypig.dustypig.api.repositories.MediaRepository
 
 class ShowMorePagingSource (
-    private val listId: Long
+    private val listId: Long,
+    private val mediaRepository: MediaRepository
 ): PagingSource<Int, BasicMedia>() {
 
     companion object {
@@ -32,7 +33,7 @@ class ShowMorePagingSource (
             val data = if(key == 0)
                 showMoreData.items
             else
-                API.Media.loadMoreHomeScreenItems(LoadMoreHomeScreenItemsRequest(listId, start))
+                mediaRepository.loadMoreHomeScreenItems(LoadMoreHomeScreenItemsRequest(listId, start))
 
             val nextKey = when {
                 data.size < 25 -> null

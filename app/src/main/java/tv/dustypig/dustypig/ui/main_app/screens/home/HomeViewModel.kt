@@ -8,8 +8,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.api.API
 import tv.dustypig.dustypig.api.models.HomeScreenList
+import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
 import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMorePagingSource
@@ -21,7 +21,8 @@ import kotlin.concurrent.schedule
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val routeNavigator: RouteNavigator
+    private val routeNavigator: RouteNavigator,
+    private val mediaRepository: MediaRepository
 ): ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(HomeUIState())
@@ -64,7 +65,7 @@ class HomeViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                val data = API.Media.homeScreen()
+                val data = mediaRepository.homeScreen()
                 val sections = data.sections ?: listOf()
                 _uiState.update {
                     it.copy(
@@ -79,8 +80,8 @@ class HomeViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isRefreshing = false,
-                            showError = true,
-                            errorMessage = ex.localizedMessage ?: "Unknown Error"
+                            showErrorDialog = true,
+                            errorMessage = ex.localizedMessage
                         )
                     }
                 }

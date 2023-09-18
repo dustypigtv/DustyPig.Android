@@ -6,6 +6,6 @@ import tv.dustypig.dustypig.api.models.HomeScreenList
 data class HomeUIState(
     val isRefreshing: Boolean = true,
     val sections: List<HomeScreenList> = listOf(),
-    val showError: Boolean = false,
-    val errorMessage: String = "",
+    val showErrorDialog: Boolean = false,
+    val errorMessage: String? = null,
 )

@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig.ui.main_app.screens.playlist_details
 
+//import tv.dustypig.dustypig.download_manager.DownloadManager
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
@@ -92,8 +93,7 @@ import org.burnoutcrew.reorderable.detectReorder
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 import tv.dustypig.dustypig.api.models.PlaylistItem
-import tv.dustypig.dustypig.download_manager.DownloadManager
-import tv.dustypig.dustypig.download_manager.DownloadStatus
+import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.MultiDownloadDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
@@ -427,7 +427,7 @@ private fun PlaybackLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetail
         CircularProgressIndicator()
     } else  if (!criticalError) {
 
-        val status = DownloadManager
+        val status = uiState.downloadManager
             .downloads
             .collectAsStateWithLifecycle(initialValue = listOf())
             .value
@@ -443,6 +443,7 @@ private fun PlaybackLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetail
             null -> "Download"
             else -> "Downloading"
         }
+
 
         Row(
             modifier = Modifier.padding(8.dp),
@@ -528,7 +529,6 @@ fun DismissBackground(dismissState: DismissState) {
     ) {
         if (direction == DismissDirection.EndToStart) {
             Icon(
-                // make sure add baseline_archive_24 resource to drawable folder
                 imageVector = Icons.Filled.Delete,
                 contentDescription = "Delete"
             )
@@ -666,24 +666,29 @@ private fun DeleteLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetailsU
     val configuration = LocalConfiguration.current
     val modifier = if(configuration.isTablet()) Modifier.width(320.dp) else Modifier.fillMaxWidth()
 
-    Spacer(modifier = Modifier.height(16.dp))
-
-    Row (
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center
+    Box (
+        modifier = Modifier
+            .fillMaxSize(),
+        contentAlignment = Alignment.BottomCenter
     ) {
-        Button(
-            enabled = !(uiState.loading || uiState.busy),
-            onClick = vm::deletePlaylist,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Red,
-                contentColor = Color.White
-            ),
-            modifier = modifier
-        ) {
-            Text(text = "Delete")
-        }
-    }
-    Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Button(
+                enabled = !(uiState.loading || uiState.busy),
+                onClick = vm::deletePlaylist,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Red,
+                    contentColor = Color.White
+                ),
+                modifier = modifier
+            ) {
+                Text(text = "Delete")
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+    }
 }

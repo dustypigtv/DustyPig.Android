@@ -1,23 +1,29 @@
-package tv.dustypig.dustypig
+package tv.dustypig.dustypig.global_managers
 
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import javax.inject.Inject
+import javax.inject.Singleton
 
-object AuthManager {
 
-    private const val LOGIN_STATE_UNKNOWN: Int = 0
-    const val LOGIN_STATE_LOGGED_IN: Int = 1
-    const val LOGIN_STATE_LOGGED_OUT: Int = 2
+@Singleton
+class AuthManager @Inject constructor(private val settingsManager: SettingsManager) {
 
-    const val TEST_USER: String = "testuser@dustypig.tv"
-    const val TEST_PASSWORD: String = "test password"
+    companion object {
+        private const val LOGIN_STATE_UNKNOWN: Int = 0
+        const val LOGIN_STATE_LOGGED_IN: Int = 1
+        const val LOGIN_STATE_LOGGED_OUT: Int = 2
 
-    var loginState by mutableStateOf(LOGIN_STATE_UNKNOWN)
+        const val TEST_USER: String = "testuser@dustypig.tv"
+        const val TEST_PASSWORD: String = "test password"
+    }
+
+    var loginState by mutableIntStateOf(LOGIN_STATE_UNKNOWN)
         private set
 
     var currentToken: String = ""
@@ -33,9 +39,9 @@ object AuthManager {
     fun init() {
         GlobalScope.launch {
             setState(
-                SettingsManager.loadToken().first(),
-                SettingsManager.loadProfileId().first(),
-                SettingsManager.loadIsMainProfile().first()
+                token = settingsManager.loadToken().first(),
+                profileId = settingsManager.loadProfileId().first(),
+                isMain = settingsManager.loadIsMainProfile().first()
             )
         }
     }
@@ -43,17 +49,19 @@ object AuthManager {
     @OptIn(DelicateCoroutinesApi::class)
     fun setAuthState(token: String, profileId: Int, isMain: Boolean) {
         GlobalScope.launch {
-            SettingsManager.saveToken(token)
-            SettingsManager.saveProfileId(profileId)
-            SettingsManager.saveIsMainProfile(isMain)
-            setState(token, profileId, isMain)
+            settingsManager.saveToken(token)
+            settingsManager.saveProfileId(profileId)
+            settingsManager.saveIsMainProfile(isMain)
+            setState(token = token, profileId = profileId, isMain = isMain)
         }
     }
 
-    fun logout() = setAuthState("", 0, false)
+    fun logout() {
+        setAuthState(token = "", profileId = 0, isMain = false)
+    }
 
     //Use this to set a temp auth token between logging int and selecting the profile
-    fun setTempAuthToken(token:String){
+    fun setTempAuthToken(token:String) {
         currentToken = token
         currentProfileId = 0
         currentProfileIsMain = false

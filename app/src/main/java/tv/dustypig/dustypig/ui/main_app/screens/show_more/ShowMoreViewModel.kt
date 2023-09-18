@@ -13,12 +13,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import tv.dustypig.dustypig.api.models.BasicMedia
+import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.nav.RouteNavigator
 import javax.inject.Inject
 
 @HiltViewModel
 class ShowMoreViewModel @Inject constructor(
-    private val routeNavigator: RouteNavigator
+    private val routeNavigator: RouteNavigator,
+    private val mediaRepository: MediaRepository
 ): ViewModel(), RouteNavigator by routeNavigator {
 
 
@@ -30,7 +32,7 @@ class ShowMoreViewModel @Inject constructor(
     val itemData: Flow<PagingData<BasicMedia>> = Pager(
         config = PagingConfig(pageSize = 25),
         initialKey = 0,
-        pagingSourceFactory = { ShowMorePagingSource(_listId) }
+        pagingSourceFactory = { ShowMorePagingSource(listId = _listId, mediaRepository = mediaRepository) }
     ).flow.cachedIn(viewModelScope)
 
     init {

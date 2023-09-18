@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig.ui.composables
 
+//import tv.dustypig.dustypig.download_manager.DownloadManager
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -46,8 +47,8 @@ import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Play
 import compose.icons.fontawesomeicons.solid.UserLock
 import tv.dustypig.dustypig.api.models.OverrideRequestStatus
-import tv.dustypig.dustypig.download_manager.DownloadManager
-import tv.dustypig.dustypig.download_manager.DownloadStatus
+import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
+import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
 import tv.dustypig.dustypig.ui.isTablet
 
 
@@ -97,7 +98,8 @@ data class TitleInfoData(
     val seasonEpisode: String = "",
     val episodeTitle: String = "",
     val accessRequestStatus: OverrideRequestStatus = OverrideRequestStatus.NotRequested,
-    val accessRequestBusy: Boolean = false
+    val accessRequestBusy: Boolean = false,
+    val downloadManager: DownloadManager
 )
 
 @Composable
@@ -118,7 +120,7 @@ fun TitleInfoLayout(info: TitleInfoData) {
 
 
 
-    val status = DownloadManager
+    val status = info.downloadManager
         .downloads
         .collectAsStateWithLifecycle(initialValue = listOf())
         .value

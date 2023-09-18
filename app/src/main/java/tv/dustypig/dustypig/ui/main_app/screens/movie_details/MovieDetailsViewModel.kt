@@ -9,13 +9,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.api.API
 import tv.dustypig.dustypig.api.Genres
 import tv.dustypig.dustypig.api.asString
 import tv.dustypig.dustypig.api.models.DetailedMovie
 import tv.dustypig.dustypig.api.models.OverrideRequestStatus
+import tv.dustypig.dustypig.api.models.PlaybackProgress
+import tv.dustypig.dustypig.api.repositories.MediaRepository
+import tv.dustypig.dustypig.api.repositories.MoviesRepository
 import tv.dustypig.dustypig.api.toTimeString
-import tv.dustypig.dustypig.download_manager.DownloadManager
+import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.composables.CreditsData
@@ -36,8 +38,11 @@ import javax.inject.Inject
 @HiltViewModel
 class MovieDetailsViewModel @Inject constructor(
     routeNavigator: RouteNavigator,
-    private val savedStateHandle: SavedStateHandle
-): DetailsScreenBaseViewModel(routeNavigator) {
+    savedStateHandle: SavedStateHandle,
+    private val mediaRepository: MediaRepository,
+    private val moviesRepository: MoviesRepository,
+    downloadManager: DownloadManager
+): DetailsScreenBaseViewModel(routeNavigator, downloadManager) {
 
     private val _uiState = MutableStateFlow(MovieDetailsUIState())
     val uiState: StateFlow<MovieDetailsUIState> = _uiState.asStateFlow()
@@ -62,7 +67,7 @@ class MovieDetailsViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                _detailedMovie = API.Movies.movieDetails(mediaId)
+                _detailedMovie = moviesRepository.details(mediaId)
                 _uiState.update {
                     it.copy(
                         loading = false,
@@ -103,15 +108,26 @@ class MovieDetailsViewModel @Inject constructor(
                     )
                 }
             } catch (ex: Exception) {
-                _uiState.update {
-                    it.copy(
-                        loading = false,
-                        showError = true,
-                        errorMessage = ex.localizedMessage ?: "Unknown Error",
-                        criticalError = true
-                    )
-                }
+                setError(ex = ex, criticalError = true)
             }
+        }
+    }
+
+    private fun setError(ex: Exception, criticalError: Boolean) {
+        _uiState.update {
+            it.copy(
+                loading = false,
+                showErrorDialog = true,
+                errorMessage = ex.localizedMessage,
+                criticalError = criticalError
+            )
+        }
+        _titleInfoUIState.update {
+            it.copy(
+                accessRequestBusy = false,
+                watchListBusy = false,
+                markWatchedBusy = false
+            )
         }
     }
 
@@ -121,7 +137,7 @@ class MovieDetailsViewModel @Inject constructor(
         }
         else {
             _uiState.update {
-                it.copy(showError = false)
+                it.copy(showErrorDialog = false)
             }
         }
     }
@@ -129,7 +145,7 @@ class MovieDetailsViewModel @Inject constructor(
     fun hideDownload(confirmed: Boolean) {
         if(confirmed) {
             viewModelScope.launch {
-                DownloadManager.delete(id = mediaId)
+                downloadManager.delete(id = mediaId)
             }
             _uiState.update {
                 it.copy(
@@ -151,12 +167,12 @@ class MovieDetailsViewModel @Inject constructor(
     private fun toggleDownload() {
 
         viewModelScope.launch {
-            if (DownloadManager.getJobCount(mediaId) > 0) {
+            if (downloadManager.getJobCount(mediaId) > 0) {
                 _uiState.update {
                     it.copy(showRemoveDownload = true)
                 }
             } else {
-                DownloadManager.addMovie(_detailedMovie)
+                downloadManager.addMovie(_detailedMovie)
             }
         }
     }
@@ -168,7 +184,7 @@ class MovieDetailsViewModel @Inject constructor(
 
         viewModelScope.launch {
             try{
-                API.Media.requestAccessOverride(mediaId)
+                mediaRepository.requestAccessOverride(mediaId)
                 _titleInfoUIState.update {
                     it.copy(
                         accessRequestBusy = false,
@@ -176,16 +192,7 @@ class MovieDetailsViewModel @Inject constructor(
                     )
                 }
             } catch (ex: Exception) {
-                _titleInfoUIState.update {
-                    it.copy(accessRequestBusy = false)
-                }
-
-                _uiState.update {
-                    it.copy(
-                        showError = true,
-                        errorMessage = ex.localizedMessage ?: "Unknown Error"
-                    )
-                }
+                setError(ex = ex, criticalError = false)
             }
         }
     }
@@ -200,9 +207,9 @@ class MovieDetailsViewModel @Inject constructor(
             try {
 
                 if(_titleInfoUIState.value.inWatchList) {
-                    API.Media.deleteFromWatchlist(mediaId)
+                    mediaRepository.deleteFromWatchlist(mediaId)
                 } else {
-                    API.Media.addToWatchlist(mediaId)
+                    mediaRepository.addToWatchlist(mediaId)
                 }
 
                 _titleInfoUIState.update {
@@ -215,15 +222,7 @@ class MovieDetailsViewModel @Inject constructor(
                 HomeViewModel.triggerUpdate()
 
             } catch (ex: Exception) {
-                _titleInfoUIState.update {
-                    it.copy(watchListBusy = false)
-                }
-                _uiState.update{
-                    it.copy(
-                        showError = true,
-                        errorMessage = ex.localizedMessage ?: "Unknown Error"
-                    )
-                }
+                setError(ex = ex, criticalError = false)
             }
         }
     }
@@ -236,7 +235,7 @@ class MovieDetailsViewModel @Inject constructor(
 
         viewModelScope.launch {
             try{
-                API.Media.updatePlaybackProgress(id = mediaId, seconds = -1.0)
+                mediaRepository.updatePlaybackProgress(PlaybackProgress(id = mediaId, seconds = -1.0))
                 _titleInfoUIState.update {
                     it.copy(
                         markWatchedBusy = false,
@@ -246,15 +245,7 @@ class MovieDetailsViewModel @Inject constructor(
 
                 HomeViewModel.triggerUpdate()
             } catch (ex: Exception) {
-                _titleInfoUIState.update {
-                    it.copy(markWatchedBusy = false)
-                }
-                _uiState.update {
-                    it.copy(
-                        showError = true,
-                        errorMessage = ex.localizedMessage ?: "Unknown Error"
-                    )
-                }
+                setError(ex = ex, criticalError = false)
             }
         }
     }

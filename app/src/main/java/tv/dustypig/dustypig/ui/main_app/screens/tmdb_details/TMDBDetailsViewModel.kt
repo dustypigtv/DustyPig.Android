@@ -8,13 +8,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.api.API
 import tv.dustypig.dustypig.api.Genres
 import tv.dustypig.dustypig.api.models.DetailedTMDB
 import tv.dustypig.dustypig.api.models.RequestStatus
 import tv.dustypig.dustypig.api.models.TMDB_MediaTypes
 import tv.dustypig.dustypig.api.models.TitleRequest
 import tv.dustypig.dustypig.api.models.TitleRequestPermissions
+import tv.dustypig.dustypig.api.repositories.FriendsRepository
+import tv.dustypig.dustypig.api.repositories.TMDBRepository
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.composables.CreditsData
@@ -24,6 +25,8 @@ import javax.inject.Inject
 @HiltViewModel
 class TMDBDetailsViewModel @Inject constructor(
     private val routeNavigator: RouteNavigator,
+    private val friendsRepository: FriendsRepository,
+    private val tmdbRepository: TMDBRepository,
     savedStateHandle: SavedStateHandle
 ): ViewModel(), RouteNavigator by routeNavigator {
 
@@ -47,9 +50,9 @@ class TMDBDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _detailedTMDB = if(_isMovie)
-                    API.TMDB.getMovie(_tmdbId)
+                    tmdbRepository.getMovie(_tmdbId)
                 else
-                    API.TMDB.getSeries(_tmdbId)
+                    tmdbRepository.getSeries(_tmdbId)
 
                  _uiState.update {
                     it.copy(
@@ -74,12 +77,12 @@ class TMDBDetailsViewModel @Inject constructor(
                     )
                 }
             } catch (ex: Exception) {
-                showErrorDialog(ex = ex, criticalError = true)
+                setError(ex = ex, criticalError = true)
             }
         }
     }
 
-    private fun showErrorDialog(ex: Exception, criticalError: Boolean) {
+    private fun setError(ex: Exception, criticalError: Boolean) {
         _uiState.update {
             it.copy(
                 loading = false,
@@ -111,8 +114,7 @@ class TMDBDetailsViewModel @Inject constructor(
 
             viewModelScope.launch {
                 try {
-                    //API.TMDB.requestTMDBTitle(titleRequest = TitleRequest(tmdbId = _tmdbId, mediaType = _detailedTMDB.mediaType))
-                    API.TMDB.requestTitle(titleRequest = TitleRequest(tmdbId = _tmdbId, mediaType = _detailedTMDB.mediaType))
+                    tmdbRepository.requestTitle(titleRequest = TitleRequest(tmdbId = _tmdbId, mediaType = _detailedTMDB.mediaType))
                     _uiState.update {
                         it.copy(
                             busy = false,
@@ -120,14 +122,14 @@ class TMDBDetailsViewModel @Inject constructor(
                         )
                     }
                 } catch (ex: Exception) {
-                    showErrorDialog(ex = ex, criticalError = false)
+                    setError(ex = ex, criticalError = false)
                 }
             }
 
         } else {
             viewModelScope.launch {
                 try {
-                    val friends = API.Friends.list()
+                    val friends = friendsRepository.list()
                     _uiState.update {
                         it.copy(
                             showFriendsDialog = true,
@@ -135,7 +137,7 @@ class TMDBDetailsViewModel @Inject constructor(
                         )
                     }
                 } catch (ex: Exception) {
-                    showErrorDialog(ex = ex, criticalError = false)
+                    setError(ex = ex, criticalError = false)
                 }
             }
         }
@@ -153,8 +155,7 @@ class TMDBDetailsViewModel @Inject constructor(
 
         viewModelScope.launch {
             try{
-                //API.TMDB.requestTMDBTitle(titleRequest = TitleRequest(tmdbId = _tmdbId, friendId = friendId, mediaType = _detailedTMDB.mediaType))
-                API.TMDB.requestTitle(titleRequest = TitleRequest(tmdbId = _tmdbId, friendId = friendId, mediaType = _detailedTMDB.mediaType))
+                tmdbRepository.requestTitle(titleRequest = TitleRequest(tmdbId = _tmdbId, friendId = friendId, mediaType = _detailedTMDB.mediaType))
                 _uiState.update {
                     it.copy(
                         busy = false,
@@ -162,7 +163,7 @@ class TMDBDetailsViewModel @Inject constructor(
                     )
                 }
             } catch (ex: Exception) {
-                showErrorDialog(ex = ex, criticalError = false)
+                setError(ex = ex, criticalError = false)
             }
         }
     }
@@ -173,8 +174,7 @@ class TMDBDetailsViewModel @Inject constructor(
         }
         viewModelScope.launch {
             try{
-                //API.TMDB.cancelTMDBTitleRequest(titleRequest = TitleRequest(tmdbId = _tmdbId, mediaType = _detailedTMDB.mediaType))
-                API.TMDB.cancelTitleRequest(titleRequest = TitleRequest(tmdbId = _tmdbId, mediaType = _detailedTMDB.mediaType))
+                tmdbRepository.cancelTitleRequest(titleRequest = TitleRequest(tmdbId = _tmdbId, mediaType = _detailedTMDB.mediaType))
                 _uiState.update {
                     it.copy(
                         busy = false,
@@ -182,7 +182,7 @@ class TMDBDetailsViewModel @Inject constructor(
                     )
                 }
             } catch (ex: Exception) {
-                showErrorDialog(ex = ex, criticalError = false)
+                setError(ex = ex, criticalError = false)
             }
         }
     }

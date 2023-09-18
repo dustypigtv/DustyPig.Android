@@ -8,10 +8,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.AuthManager
-import tv.dustypig.dustypig.api.API
 import tv.dustypig.dustypig.api.models.LoginTypes
 import tv.dustypig.dustypig.api.models.PasswordCredentials
+import tv.dustypig.dustypig.api.repositories.AuthRepository
+import tv.dustypig.dustypig.global_managers.AuthManager
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.auth_flow.SharedEmailModel
 import tv.dustypig.dustypig.ui.auth_flow.screens.select_profile.SelectProfileNav
@@ -20,8 +20,10 @@ import javax.inject.Inject
 
 
 @HiltViewModel
-class SignInViewModel  @Inject constructor(
-    private val routeNavigator: RouteNavigator
+class SignInViewModel @Inject constructor(
+    private val routeNavigator: RouteNavigator,
+    private val authManager: AuthManager,
+    private val authRepository: AuthRepository
 ): ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(SignInUIState(email = SharedEmailModel.uiState.value.email))
@@ -67,7 +69,7 @@ class SignInViewModel  @Inject constructor(
         viewModelScope.launch {
             try {
 
-                val data = API.Auth.passwordLogin(
+                val data = authRepository.passwordLogin(
                     PasswordCredentials(
                         uiState.value.email,
                         uiState.value.password,
@@ -75,15 +77,15 @@ class SignInViewModel  @Inject constructor(
                     )
                 )
                 if (data.loginType == LoginTypes.Account) {
-                    AuthManager.setTempAuthToken(data.token!!)
-                    _uiState.update { it.copy(busy = false) }
+                    authManager.setTempAuthToken(data.token!!)
                     navigateToRoute(SelectProfileNav.route)
+                    _uiState.update { it.copy(busy = false) }
                 } else {
-                    AuthManager.setAuthState(data.token!!, data.profileId!!, data.loginType == LoginTypes.MainProfile)
+                    authManager.setAuthState(data.token!!, data.profileId!!, data.loginType == LoginTypes.MainProfile)
                 }
 
             } catch (ex: Exception) {
-                _uiState.update { it.copy(busy = false, showError = true, errorMessage = ex.localizedMessage ?: "Unknown Error") }
+                _uiState.update { it.copy(busy = false, showError = true, errorMessage = ex.localizedMessage) }
             }
         }
     }
@@ -93,10 +95,10 @@ class SignInViewModel  @Inject constructor(
         _uiState.update { it.copy(forgotPasswordBusy = true) }
         viewModelScope.launch {
             try {
-                val response = API.Auth.sendPasswordResetEmail(uiState.value.email)
+                authRepository.sendPasswordResetEmail(uiState.value.email)
                 _uiState.update { it.copy(forgotPasswordBusy = false, showForgotPassword = false, showForgotPasswordSuccess = true) }
             } catch (ex: Exception) {
-                _uiState.update { it.copy(forgotPasswordBusy = false, showForgotPassword = false, showForgotPasswordError = true, errorMessage = ex.localizedMessage ?: "Unknown Error") }
+                _uiState.update { it.copy(forgotPasswordBusy = false, showForgotPassword = false, showForgotPasswordError = true, errorMessage = ex.localizedMessage) }
             }
         }
     }

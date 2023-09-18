@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig.ui.main_app.screens.episode_details
 
+//import tv.dustypig.dustypig.download_manager.DownloadManager
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,10 +10,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.api.API
 import tv.dustypig.dustypig.api.models.DetailedEpisode
+import tv.dustypig.dustypig.api.repositories.EpisodesRepository
 import tv.dustypig.dustypig.api.toTimeString
-import tv.dustypig.dustypig.download_manager.DownloadManager
+import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.main_app.ScreenLoadingInfo
@@ -24,10 +25,12 @@ import javax.inject.Inject
 @HiltViewModel
 class EpisodeDetailsViewModel  @Inject constructor(
     private val routeNavigator: RouteNavigator,
+    private val episodesRepository: EpisodesRepository,
+    private val downloadManager: DownloadManager,
     savedStateHandle: SavedStateHandle
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val _uiState = MutableStateFlow(EpisodeDetailsUIState())
+    private val _uiState = MutableStateFlow(EpisodeDetailsUIState(downloadManager = downloadManager))
     val uiState: StateFlow<EpisodeDetailsUIState> = _uiState.asStateFlow()
 
     private val _mediaId: Int = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_ID)
@@ -47,7 +50,7 @@ class EpisodeDetailsViewModel  @Inject constructor(
 
         viewModelScope.launch {
             try {
-                _detailedEpisode = API.Episodes.details(_mediaId)
+                _detailedEpisode = episodesRepository.details(_mediaId)
                 _uiState.update {
                     it.copy(
                         mediaId = _mediaId,
@@ -55,18 +58,23 @@ class EpisodeDetailsViewModel  @Inject constructor(
                         canPlay = _canPlay,
                         episodeTitle = _detailedEpisode.fullDisplayTitle(),
                         overview = _detailedEpisode.description ?: "No description",
-                        artworkUrl = _detailedEpisode.artworkUrl,
                         seriesTitle = _detailedEpisode.seriesTitle!!,
                         showGoToSeries = !_fromSeriesDetails,
                         length = _detailedEpisode.length.toTimeString()
                     )
                 }
+
+                //Prevent flicker
+                if(_uiState.value.artworkUrl != _detailedEpisode.artworkUrl)
+                    _uiState.update {
+                        it.copy(artworkUrl = _detailedEpisode.artworkUrl)
+                    }
             } catch(ex: Exception) {
                 _uiState.update {
                     it.copy(
-                        showError = true,
+                        showErrorDialog = true,
                         criticalError = true,
-                        errorMessage = ex.message ?: "Unknown Error"
+                        errorMessage = ex.message
                     )
                 }
             }
@@ -80,19 +88,19 @@ class EpisodeDetailsViewModel  @Inject constructor(
         }
         else {
             _uiState.update {
-                it.copy(showError = false)
+                it.copy(showErrorDialog = false)
             }
         }
     }
 
     fun toggleDownload() {
         viewModelScope.launch {
-            if (DownloadManager.getJobCount(_mediaId) > 0) {
+            if (downloadManager.getJobCount(_mediaId) > 0) {
                 _uiState.update {
                     it.copy(showRemoveDownloadDialog = true)
                 }
             } else {
-                DownloadManager.addEpisode(_detailedEpisode)
+                downloadManager.addEpisode(_detailedEpisode)
             }
         }
     }
@@ -100,7 +108,7 @@ class EpisodeDetailsViewModel  @Inject constructor(
     fun hideDownload(confirmed: Boolean) {
         if(confirmed) {
             viewModelScope.launch {
-                DownloadManager.delete(id = _mediaId)
+                //DownloadManager.delete(id = _mediaId)
             }
             _uiState.update {
                 it.copy(

@@ -8,11 +8,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.AuthManager
-import tv.dustypig.dustypig.api.API
+import tv.dustypig.dustypig.global_managers.AuthManager
 import tv.dustypig.dustypig.api.models.CreateAccount
 import tv.dustypig.dustypig.api.models.LoginTypes
 import tv.dustypig.dustypig.api.models.PasswordCredentials
+import tv.dustypig.dustypig.api.repositories.AccountRepository
+import tv.dustypig.dustypig.api.repositories.AuthRepository
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.auth_flow.SharedEmailModel
 import tv.dustypig.dustypig.ui.auth_flow.screens.select_profile.SelectProfileNav
@@ -20,7 +21,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SignUpViewModel @Inject constructor(
-    private val routeNavigator: RouteNavigator
+    private val routeNavigator: RouteNavigator,
+    private val accountRepository: AccountRepository,
+    private val authManager: AuthManager,
+    private val authRepository: AuthRepository
 ): ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(SignUpUIState(email = SharedEmailModel.uiState.value.email))
@@ -51,7 +55,7 @@ class SignUpViewModel @Inject constructor(
         _uiState.update { it.copy(busy = true) }
         viewModelScope.launch {
             try {
-                val data = API.Account.create(CreateAccount(uiState.value.email, uiState.value.password, uiState.value.name, null, null))
+                val data = accountRepository.create(CreateAccount(uiState.value.email, uiState.value.password, uiState.value.name, null, null))
 
                 if(data.emailVerificationRequired == true) {
                     _uiState.update { it.copy(busy = false, showSuccess = true, message = "Please check your email to complete sign up") }
@@ -59,13 +63,13 @@ class SignUpViewModel @Inject constructor(
 
                     //Email has been verified before, try to sign in
                     try{
-                        val data2 = API.Auth.passwordLogin(PasswordCredentials(uiState.value.email, uiState.value.password, null))
+                        val data2 = authRepository.passwordLogin(PasswordCredentials(uiState.value.email, uiState.value.password, null))
                         if (data2.loginType == LoginTypes.Account) {
-                            AuthManager.setTempAuthToken(data2.token!!)
+                            authManager.setTempAuthToken(data2.token!!)
                             _uiState.update { it.copy(busy = false) }
                             navigateToRoute(SelectProfileNav.route)
                         } else {
-                            AuthManager.setAuthState(data2.token!!, data2.profileId!!, data2.loginType == LoginTypes.MainProfile)
+                            authManager.setAuthState(data2.token!!, data2.profileId!!, data2.loginType == LoginTypes.MainProfile)
                         }
                     } catch (_: Exception) {
 
