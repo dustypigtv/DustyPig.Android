@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig.ui.composables
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -8,7 +9,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -16,61 +24,6 @@ import tv.dustypig.dustypig.R
 
 
 private val spacerHeight = 12.dp
-
-
-@Composable
-private fun HeaderText(header: String, headerWidth: Dp) {
-    Text(
-        text = header,
-        modifier = Modifier.width(headerWidth),
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-    )
-}
-
-@Composable
-private fun ItemsText(items: String) {
-    Text(
-        text = items,
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-    )
-}
-
-@Composable
-private fun ItemsText(items: List<String>) {
-    ItemsText(items.joinToString(", "))
-}
-
-
-
-@Composable
-private fun CreditsRow(header: String, headerWidth: Dp, items: String) {
-
-    if(items.isNotBlank()) {
-        Spacer(modifier = Modifier.height(spacerHeight))
-        Row(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            HeaderText(header = header, headerWidth)
-            ItemsText(items = items)
-        }
-    }
-}
-
-
-@Composable
-private fun CreditsRow(header: String, headerWidth: Dp, items: List<String>) {
-
-    if(items.isNotEmpty()) {
-        Spacer(modifier = Modifier.height(spacerHeight))
-        Row(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            HeaderText(header = header, headerWidth)
-            ItemsText(items = items)
-        }
-    }
-}
 
 
 data class CreditsData(
@@ -82,24 +35,56 @@ data class CreditsData(
     val owner: String = ""
 )
 
+
+@Composable
+private fun CreditsRow(header: String, maxHeaderWidth: MutableState<Dp>, items: List<String>) {
+
+    //Draw twice:
+    //First, draw the header rows, and get the max width.
+    //Then redraw with both fields, setting the header width
+    //Yes it sucks. I can't find another way
+
+    if(items.isNotEmpty()) {
+
+        val density = LocalDensity.current
+        var measured by remember {mutableStateOf(false)}
+
+        Spacer(modifier = Modifier.height(spacerHeight))
+        Row (
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            if(measured) {
+                Text(
+                    text = header,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.width(maxHeaderWidth.value)
+                )
+                Text(
+                    text = items.joinToString(", "),
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                Text(
+                    text = header,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .onGloballyPositioned {
+                            val width = with(density) { it.size.width.toDp() }
+                            if (width > maxHeaderWidth.value)
+                                maxHeaderWidth.value = width
+                            measured = true
+                        }
+                )
+            }
+        }
+    }
+}
+
+
 @Composable
 fun Credits(creditsData: CreditsData) {
-
-    //Cast: = 40
-    //Owner: = 53
-    //Genres: = 58
-    //Writers: = 59
-    //Directors: = 74
-    //Producers: = 82
-    //Add 12 to final size
-
-    val headerWidth =
-        if(creditsData.producers.isNotEmpty()) 94.dp
-        else if(creditsData.directors.isNotEmpty()) 86.dp
-        else if(creditsData.writers.isNotEmpty()) 71.dp
-        else if(creditsData.genres.isNotEmpty()) 70.dp
-        else if(creditsData.owner.isNotBlank()) 65.dp
-        else 52.dp
 
     val genresHeader = if(creditsData.genres.count() > 1) stringResource(R.string.genres) else stringResource(R.string.genre)
     val directorsHeader = if(creditsData.directors.count() > 1) stringResource(R.string.directors) else stringResource(R.string.director)
@@ -108,12 +93,14 @@ fun Credits(creditsData: CreditsData) {
 
     Spacer(modifier = Modifier.height(spacerHeight))
 
-    CreditsRow(header = genresHeader, headerWidth = headerWidth, items = creditsData.genres)
-    CreditsRow(header = stringResource(R.string.cast), headerWidth = headerWidth, items = creditsData.cast)
-    CreditsRow(header = directorsHeader, headerWidth = headerWidth, items = creditsData.directors)
-    CreditsRow(header = producersHeader, headerWidth = headerWidth, items = creditsData.producers)
-    CreditsRow(header = writersHeader, headerWidth = headerWidth, items = creditsData.writers)
-    CreditsRow(header = stringResource(R.string.owner), headerWidth = headerWidth, items = creditsData.owner)
+    val maxHeaderWidth = remember { mutableStateOf(0.dp) }
+
+    CreditsRow(header = genresHeader, maxHeaderWidth = maxHeaderWidth, items = creditsData.genres)
+    CreditsRow(header = stringResource(R.string.cast), maxHeaderWidth = maxHeaderWidth, items = creditsData.cast)
+    CreditsRow(header = directorsHeader, maxHeaderWidth = maxHeaderWidth, items = creditsData.directors)
+    CreditsRow(header = producersHeader, maxHeaderWidth = maxHeaderWidth, items = creditsData.producers)
+    CreditsRow(header = writersHeader, maxHeaderWidth = maxHeaderWidth, items = creditsData.writers)
+    CreditsRow(header = stringResource(R.string.owner), maxHeaderWidth = maxHeaderWidth, items = listOf(creditsData.owner))
 
     Spacer(modifier = Modifier.height(spacerHeight))
 }
