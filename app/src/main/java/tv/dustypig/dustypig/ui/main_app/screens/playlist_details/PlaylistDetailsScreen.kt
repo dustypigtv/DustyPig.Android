@@ -208,7 +208,7 @@ fun PlaylistDetailsScreen(vm: PlaylistDetailsViewModel) {
         MultiDownloadDialog(
             onSave = vm::hideDownloadDialog,
             title = stringResource(R.string.download_playlist),
-            itemName = stringResource(R.string.item),
+            text = stringResource(R.string.how_many_unwatched_items_do_you_want_to_keep_downloaded),
             currentDownloadCount = uiState.currentDownloadCount
         )
     }
@@ -466,7 +466,7 @@ private fun PlaybackLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetail
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(text = "Up Next: ${uiState.upNextTitle}")
+        Text(text = stringResource(R.string.up_next, uiState.upNextTitle))
 
         Spacer(modifier = Modifier.height(16.dp))
 

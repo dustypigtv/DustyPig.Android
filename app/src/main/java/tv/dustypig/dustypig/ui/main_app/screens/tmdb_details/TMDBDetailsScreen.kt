@@ -391,15 +391,15 @@ fun InfoLayout(vm: TMDBDetailsViewModel, uiState: TMDBDetailsUIState, criticalEr
                         }
 
                         RequestStatus.Denied -> {
-                            Text(text = "Your request for this $titleType was denied")
+                            Text(text = if(uiState.isMovie) stringResource(R.string.your_request_for_this_movie_was_denied) else stringResource(R.string.your_request_for_this_series_was_denied))
                         }
 
                         RequestStatus.Pending -> {
-                            Text(text = "Your request for this $titleType was accepted and is pending")
+                            Text(text = if(uiState.isMovie) stringResource(R.string.your_request_for_this_movie_was_accepted_and_is_pending) else stringResource(R.string.your_request_for_this_series_was_accepted_and_is_pending))
                         }
 
                         RequestStatus.Fulfilled -> {
-                            Text(text = "Your request for this $titleType was completed")
+                            Text(text = if(uiState.isMovie) stringResource(R.string.your_request_for_this_movie_was_completed) else stringResource(R.string.your_request_for_this_series_was_completed))
                         }
                     }
 

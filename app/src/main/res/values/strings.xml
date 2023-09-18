@@ -79,4 +79,17 @@
     <string name="request">Request</string>
     <string name="cancel_request">Cancel Request</string>
     <string name="available_on_dusty_pig">Available on Dusty Pig</string>
+    <string name="how_many_unwatched_items_do_you_want_to_keep_downloaded">How many unwatched items do you want to keep downloaded?</string>
+    <string name="how_many_unwatched_episodes_do_you_want_to_keep_downloaded">How many unwatched episodes do you want to keep downloaded?</string>
+    <string name="resume_season_episode">Resume %1$s</string>
+    <string name="play_season_episode">Play %1$s</string>
+    <string name="watchlist">Watchlist</string>
+    <string name="up_next">Up Next: %1$s</string>
+    <string name="season_episode">S%1$sE%2$s</string>
+    <string name="your_request_for_this_movie_was_denied">Your request for this movie was denied</string>
+    <string name="your_request_for_this_series_was_denied">Your request for this series was denied</string>
+    <string name="your_request_for_this_series_was_accepted_and_is_pending">Your request for this series was accepted and is pending</string>
+    <string name="your_request_for_this_movie_was_accepted_and_is_pending">Your request for this movie was accepted and is pending</string>
+    <string name="your_request_for_this_series_was_completed">Your request for this series was completed</string>
+    <string name="your_request_for_this_movie_was_completed">Your request for this movie was completed</string>
 </resources>

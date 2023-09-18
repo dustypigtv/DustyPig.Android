@@ -142,13 +142,10 @@ fun ManageParentalControlsForTitleScreen(vm: ManageParentalControlsForTitleViewM
                            enabled = uiState.pendingChanges,
                            onClick = { vm.saveChanges(context) }
                        ) {
-                           Text(text = "Save")
+                           Text(text = stringResource(R.string.save))
                        }
                    }
                 }
-            }
-
-            item {
                 Spacer(modifier = Modifier.height(12.dp))
             }
 

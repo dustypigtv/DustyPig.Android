@@ -170,7 +170,7 @@ fun SeriesDetailsScreen(vm: SeriesDetailsViewModel) {
         MultiDownloadDialog(
             onSave = vm::hideDownloadDialog,
             title = stringResource(R.string.download_series),
-            itemName = stringResource(R.string.episode),
+            text = stringResource(R.string.how_many_unwatched_episodes_do_you_want_to_keep_downloaded),
             currentDownloadCount = uiState.currentDownloadCount
         )
     }

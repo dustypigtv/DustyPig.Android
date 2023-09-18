@@ -56,7 +56,7 @@ private fun CountRow(count: Int, newDownloadCount: MutableIntState) {
 }
 
 @Composable
-fun MultiDownloadDialog(onSave: (Int) -> Unit, title:String, itemName: String, currentDownloadCount: Int) {
+fun MultiDownloadDialog(onSave: (Int) -> Unit, title:String, text: String, currentDownloadCount: Int) {
 
     val newDownloadCount = remember {
         mutableIntStateOf(currentDownloadCount)
@@ -83,7 +83,7 @@ fun MultiDownloadDialog(onSave: (Int) -> Unit, title:String, itemName: String, c
         title = { Text(title) },
         text = {
             Column {
-                Text("How many unwatched ${itemName}s do you want to keep downloaded?")
+                Text(text = text)
                 Spacer(modifier = Modifier.height(24.dp))
                 LazyColumn(
                     state = listState,

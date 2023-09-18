@@ -53,26 +53,6 @@ import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
 import tv.dustypig.dustypig.ui.isTablet
 
 
-@Composable
-fun ActionButton(onClick: () -> Unit, caption: String, icon: ImageVector) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        IconButton(onClick = onClick) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(24.dp)
-            )
-        }
-        Text(
-            text = caption,
-            style = MaterialTheme.typography.labelSmall,
-            textAlign = TextAlign.Center
-        )
-    }
-}
-
 
 
 data class TitleInfoData(
@@ -102,6 +82,27 @@ data class TitleInfoData(
     val downloadManager: DownloadManager
 )
 
+
+@Composable
+fun ActionButton(onClick: () -> Unit, caption: String, icon: ImageVector) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        IconButton(onClick = onClick) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        Text(
+            text = caption,
+            style = MaterialTheme.typography.labelSmall,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
 @Composable
 fun TitleInfoLayout(info: TitleInfoData) {
 
@@ -111,7 +112,11 @@ fun TitleInfoLayout(info: TitleInfoData) {
     val modifier = if(configuration.isTablet()) Modifier.width(320.dp) else Modifier.fillMaxWidth()
     val buttonPadding = if(configuration.isTablet()) PaddingValues(0.dp, 0.dp  ) else PaddingValues(16.dp, 0.dp)
 
-    val playButtonText = if (info.partiallyPlayed) "Resume ${info.seasonEpisode}".trim() else "Play ${info.seasonEpisode}".trim()
+    val playButtonText =
+        if (info.partiallyPlayed)
+            stringResource(R.string.resume_season_episode, info.seasonEpisode).trim()
+        else
+            stringResource(R.string.play_season_episode, info.seasonEpisode).trim()
 
 
     //This will leave at minimum just the colon, so check if
@@ -242,7 +247,7 @@ fun TitleInfoLayout(info: TitleInfoData) {
                 } else {
                     ActionButton(
                         onClick = info.toggleWatchList,
-                        caption = "Watchlist",
+                        caption = stringResource(R.string.watchlist),
                         icon = if (info.inWatchList) Icons.Filled.Check else Icons.Filled.Add
                     )
                 }
@@ -255,7 +260,7 @@ fun TitleInfoLayout(info: TitleInfoData) {
 
                 ActionButton(
                     onClick = info.addToPlaylist,
-                    caption = "Add to Playlist",
+                    caption = stringResource(R.string.add_to_playlist),
                     icon = Icons.Filled.PlaylistAdd
                 )
 
@@ -270,7 +275,7 @@ fun TitleInfoLayout(info: TitleInfoData) {
                                     .padding(12.dp)
                             )
                             Text(
-                                text = "Mark Watched",
+                                text = stringResource(R.string.mark_watched),
                                 style = MaterialTheme.typography.bodySmall,
                                 modifier = Modifier.width(58.dp),
                                 textAlign = TextAlign.Center
@@ -279,7 +284,7 @@ fun TitleInfoLayout(info: TitleInfoData) {
                     } else {
                         ActionButton(
                             onClick = info.markWatched,
-                            caption = "Mark Watched",
+                            caption = stringResource(R.string.mark_watched),
                             icon = Icons.Filled.RemoveRedEye
                         )
                     }

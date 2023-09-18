@@ -1,14 +1,17 @@
 package tv.dustypig.dustypig.ui.main_app.screens.series_details
 
 //import tv.dustypig.dustypig.download_manager.DownloadManager
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.Genres
 import tv.dustypig.dustypig.api.asString
 import tv.dustypig.dustypig.api.models.DetailedEpisode
@@ -33,6 +36,7 @@ import javax.inject.Inject
 class SeriesDetailsViewModel  @Inject constructor(
     private val mediaRepository: MediaRepository,
     private val seriesRepository: SeriesRepository,
+    @ApplicationContext private val context: Context,
     routeNavigator: RouteNavigator,
     downloadManager: DownloadManager,
     savedStateHandle: SavedStateHandle
@@ -118,7 +122,7 @@ class SeriesDetailsViewModel  @Inject constructor(
                         rated = _detailedSeries.rated.asString(),
                         overview = (if(unPlayed) _detailedSeries.description else upNext.description) ?: "",
                         partiallyPlayed = !(unPlayed || fullyPlayed),
-                        seasonEpisode = if(unPlayed) "" else "S${upNext.seasonNumber}E${upNext.episodeNumber}",
+                        seasonEpisode = if(unPlayed) "" else context.getString(R.string.season_episode, upNext.seasonNumber.toString(), upNext.episodeNumber.toString()),
                         episodeTitle = if(unPlayed) "" else upNext.title,
                         accessRequestStatus = _detailedSeries.accessRequestStatus,
                         accessRequestBusy = false,
