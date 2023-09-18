@@ -51,10 +51,12 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.ui.composables.Credits
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
@@ -103,7 +105,7 @@ fun SeriesDetailsScreen(vm: SeriesDetailsViewModel) {
             TopAppBar(
                 title = {
                         Text(
-                            text = "Series Info",
+                            text = stringResource(R.string.series_info),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -159,16 +161,16 @@ fun SeriesDetailsScreen(vm: SeriesDetailsViewModel) {
         YesNoDialog(
             onNo = { vm.hideMarkWatched(false) },
             onYes = { vm.hideMarkWatched(true) },
-            title = "Mark Watched",
-            message = "Do you want to also block this series from appearing in 'Continue Watching'?"
+            title = stringResource(R.string.mark_watched),
+            message = stringResource(R.string.do_you_want_to_also_block_this_series_from_appearing_in_continue_watching)
         )
     }
 
     if(uiState.showDownloadDialog) {
         MultiDownloadDialog(
             onSave = vm::hideDownloadDialog,
-            title = "Download Series",
-            itemName = "episode",
+            title = stringResource(R.string.download_series),
+            itemName = stringResource(R.string.episode),
             currentDownloadCount = uiState.currentDownloadCount
         )
     }
@@ -225,7 +227,7 @@ private fun EpisodeRow(episode: DetailedEpisode, vm: SeriesDetailsViewModel) {
                 style = MaterialTheme.typography.titleMedium
             )
             Text(
-                text = episode.description ?: "No description",
+                text = episode.description ?: stringResource(R.string.no_description),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.bodyMedium
@@ -321,7 +323,7 @@ private fun PhoneLayout(vm: SeriesDetailsViewModel, innerPadding: PaddingValues,
                     state = seasonsListState
                 ) {
                     items(uiState.seasons) { season ->
-                        val seasonName = if (season == 0.toUShort()) "Specials" else "Season $season"
+                        val seasonName = if (season == 0.toUShort()) stringResource(R.string.specials) else stringResource(R.string.season, season)
                         if (season == uiState.selectedSeason) {
                             Button(onClick = { /*Do nothing*/ }) {
                                 Text(text = seasonName)
@@ -416,7 +418,7 @@ private fun HorizontalTabletLayout(vm: SeriesDetailsViewModel, innerPadding: Pad
                         state = seasonsListState
                     ) {
                         items(uiState.seasons) { season ->
-                            val seasonName = if (season == 0.toUShort()) "Specials" else "Season $season"
+                            val seasonName = if (season == 0.toUShort()) stringResource(R.string.specials) else stringResource(R.string.season, season)
                             if (season == uiState.selectedSeason) {
                                 Button(onClick = { /*Do nothing*/ }) {
                                     Text(text = seasonName)

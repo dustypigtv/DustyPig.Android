@@ -40,7 +40,7 @@ class SelectProfileViewModel @Inject constructor(
                 _uiState.update { it.copy(busy = false, profiles = data) }
             } catch (ex: Exception) {
                 _loadingError = true
-                _uiState.update { it.copy(busy = false, showError = true, errorMessage = ex.localizedMessage ?: "Unknown Error") }
+                _uiState.update { it.copy(busy = false, showError = true, errorMessage = ex.localizedMessage) }
             }
         }
     }
@@ -67,7 +67,7 @@ class SelectProfileViewModel @Inject constructor(
                 authManager.setAuthState(data.token!!, data.profileId!!, data.loginType == LoginTypes.MainProfile)
             } catch (ex: Exception) {
                 _loadingError = false
-                _uiState.update { it.copy(busy = false, showError = true, errorMessage = ex.localizedMessage ?: "Unknown Error") }
+                _uiState.update { it.copy(busy = false, showError = true, errorMessage = ex.localizedMessage) }
             }
         }
     }

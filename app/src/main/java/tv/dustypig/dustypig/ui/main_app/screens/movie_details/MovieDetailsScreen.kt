@@ -35,10 +35,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.ui.composables.Credits
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
@@ -65,7 +67,7 @@ fun MovieDetailsScreen(vm: MovieDetailsViewModel) {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Movie Info",
+                        text = stringResource(R.string.movie_info),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -116,8 +118,8 @@ fun MovieDetailsScreen(vm: MovieDetailsViewModel) {
         YesNoDialog(
             onNo = { vm.hideDownload(confirmed = false) },
             onYes = { vm.hideDownload(confirmed = true) },
-            title = "Confirm",
-            message = "Do you want to remove the download?"
+            title = stringResource(R.string.confirm),
+            message = stringResource(R.string.do_you_want_to_remove_the_download)
         )
     }
 

@@ -1,6 +1,5 @@
 package tv.dustypig.dustypig.ui.composables
 
-//import tv.dustypig.dustypig.download_manager.DownloadManager
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -37,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -46,6 +46,7 @@ import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Play
 import compose.icons.fontawesomeicons.solid.UserLock
+import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.OverrideRequestStatus
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
@@ -67,7 +68,6 @@ fun ActionButton(onClick: () -> Unit, caption: String, icon: ImageVector) {
         Text(
             text = caption,
             style = MaterialTheme.typography.labelSmall,
-            //modifier = Modifier.width(58.dp),
             textAlign = TextAlign.Center
         )
     }
@@ -132,9 +132,9 @@ fun TitleInfoLayout(info: TitleInfoData) {
         else -> Icons.Filled.Downloading
     }
     val downloadText = when(status) {
-        DownloadStatus.Finished -> "Downloaded"
-        null -> "Download"
-        else -> "Downloading"
+        DownloadStatus.Finished -> stringResource(R.string.downloaded)
+        null -> stringResource(R.string.download)
+        else -> stringResource(R.string.downloading)
     }
 
 
@@ -290,10 +290,10 @@ fun TitleInfoLayout(info: TitleInfoData) {
     } else {
 
         val btnTxt = when(info.accessRequestStatus) {
-            OverrideRequestStatus.NotRequested -> "Request Access"
-            OverrideRequestStatus.Requested -> "Access Already Requested"
-            OverrideRequestStatus.Denied -> "Access Denied"
-            OverrideRequestStatus.Granted -> "If you see this, it's a bug!"
+            OverrideRequestStatus.NotRequested -> stringResource(R.string.request_access)
+            OverrideRequestStatus.Requested -> stringResource(R.string.access_already_requested)
+            OverrideRequestStatus.Denied -> stringResource(R.string.access_denied)
+            OverrideRequestStatus.Granted -> stringResource(R.string.if_you_see_this_it_s_a_bug)
         }
 
         Column(

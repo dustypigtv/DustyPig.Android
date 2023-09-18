@@ -48,6 +48,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -91,7 +92,7 @@ fun SearchScreen(vm: SearchViewModel) {
         OutlinedTextField(
             value = query,
             onValueChange = ::updateQuery,
-            placeholder = { Text(text = "Search") },
+            placeholder = { Text(text = stringResource(R.string.search)) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Search),
@@ -131,7 +132,7 @@ fun SearchScreen(vm: SearchViewModel) {
         ) {
 
             if (uiState.emptyQuery) {
-                Text(text = "Enter Search")
+                Text(text = stringResource(R.string.enter_search))
 
             } else if (uiState.hasResults) {
 
@@ -157,7 +158,7 @@ fun SearchScreen(vm: SearchViewModel) {
                                             modifier = Modifier.size(36.dp),
                                             contentDescription = null
                                         )
-                                        Text(text = "Available")
+                                        Text(text = stringResource(R.string.available))
                                     }
                                 },
                                 selected = uiState.tabIndex == 0,
@@ -199,7 +200,7 @@ fun SearchScreen(vm: SearchViewModel) {
 
             } else {
                 if(!uiState.progressOnly)
-                    Text(text = "No Results")
+                    Text(text = stringResource(R.string.no_results))
             }
 
             if(uiState.loading)

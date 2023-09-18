@@ -36,10 +36,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideLazyListPreloader
+import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.ui.composables.BasicMediaView
 
 
@@ -65,9 +67,9 @@ fun HomeScreen(vm: HomeViewModel) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if(showEmpty) {
-                    Text(text = "No Media Available")
+                    Text(text = stringResource(R.string.no_media_available))
                 } else {
-                    Text(text = "Loading")
+                    Text(text = stringResource(R.string.loading))
                 }
             }
         } else {

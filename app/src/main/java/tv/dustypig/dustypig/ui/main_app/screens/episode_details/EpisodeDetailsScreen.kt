@@ -42,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -51,6 +52,7 @@ import com.bumptech.glide.integration.compose.GlideImage
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Play
+import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
 import tv.dustypig.dustypig.ui.composables.ActionButton
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
@@ -76,7 +78,7 @@ fun EpisodeDetailsScreen (vm: EpisodeDetailsViewModel) {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Episode Info",
+                        text = stringResource(R.string.episode_info),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -126,8 +128,8 @@ fun EpisodeDetailsScreen (vm: EpisodeDetailsViewModel) {
         YesNoDialog(
             onNo = { vm.hideDownload(confirmed = false) },
             onYes = { vm.hideDownload(confirmed = true) },
-            title = "Confirm",
-            message = "Do you want to remove the download?"
+            title = stringResource(R.string.confirm),
+            message = stringResource(R.string.do_you_want_to_remove_the_download)
         )
     }
 
@@ -268,9 +270,9 @@ private fun InfoLayout(vm: EpisodeDetailsViewModel, uiState: EpisodeDetailsUISta
         }
 
         val downloadText = when(status) {
-            DownloadStatus.Finished -> "Downloaded"
-            null -> "Download"
-            else -> "Downloading"
+            DownloadStatus.Finished -> stringResource(R.string.downloaded)
+            null -> stringResource(R.string.download)
+            else -> stringResource(R.string.downloading)
         }
 
 
@@ -286,7 +288,7 @@ private fun InfoLayout(vm: EpisodeDetailsViewModel, uiState: EpisodeDetailsUISta
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(12.dp))
-            Text(text = "Play")
+            Text(text = stringResource(R.string.play))
         }
 
 
@@ -306,7 +308,7 @@ private fun InfoLayout(vm: EpisodeDetailsViewModel, uiState: EpisodeDetailsUISta
 
             ActionButton(
                 onClick = { vm.addToPlaylist() },
-                caption = "Add to Playlist",
+                caption = stringResource(R.string.add_to_playlist),
                 icon = Icons.Filled.PlaylistAdd
             )
         }

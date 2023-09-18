@@ -63,12 +63,6 @@ class EpisodeDetailsViewModel  @Inject constructor(
                         length = _detailedEpisode.length.toTimeString()
                     )
                 }
-
-                //Prevent flicker
-                if(_uiState.value.artworkUrl != _detailedEpisode.artworkUrl)
-                    _uiState.update {
-                        it.copy(artworkUrl = _detailedEpisode.artworkUrl)
-                    }
             } catch(ex: Exception) {
                 _uiState.update {
                     it.copy(

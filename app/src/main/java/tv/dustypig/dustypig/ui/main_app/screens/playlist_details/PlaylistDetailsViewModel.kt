@@ -69,7 +69,6 @@ class PlaylistDetailsViewModel @Inject constructor(
                     it.copy(
                         playlistId = _playlistId,
                         loading = false,
-                        posterUrl = _detailedPlaylist.artworkUrl,
                         title = _detailedPlaylist.name,
                         canPlay = items.isNotEmpty(),
                         upNextTitle = upNext?.title ?: "",

@@ -26,13 +26,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.ui.theme.DimOverlay
 
 @Composable
 private fun CountRow(count: Int, newDownloadCount: MutableIntState) {
 
-    val text = if(count == 0) "0 (Remove Downloads)" else count.toString()
+    val text = if(count == 0) stringResource(R.string._0_remove_downloads) else count.toString()
     val backgroundColor = if(newDownloadCount.intValue == count) DimOverlay else Color.Transparent
     val color = if(newDownloadCount.intValue == count) MaterialTheme.colorScheme.primary else AlertDialogDefaults.textContentColor
 
@@ -99,12 +101,12 @@ fun MultiDownloadDialog(onSave: (Int) -> Unit, title:String, itemName: String, c
         },
         confirmButton = {
             TextButton(onClick = { onSave(newDownloadCount.intValue) }) {
-                Text("Save")
+                Text(stringResource(R.string.save))
             }
         },
         dismissButton = {
             TextButton(onClick = { onSave(currentDownloadCount) }) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel))
             }
         }
     )

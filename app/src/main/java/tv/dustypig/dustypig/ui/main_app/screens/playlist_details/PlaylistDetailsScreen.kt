@@ -75,6 +75,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -92,6 +93,7 @@ import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.detectReorder
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
+import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.PlaylistItem
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
@@ -119,7 +121,7 @@ fun PlaylistDetailsScreen(vm: PlaylistDetailsViewModel) {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Playlist Info",
+                        text = stringResource(R.string.playlist_info),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -173,13 +175,13 @@ fun PlaylistDetailsScreen(vm: PlaylistDetailsViewModel) {
         AlertDialog(
             shape = RoundedCornerShape(8.dp),
             properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
-            title = { Text(text = "Rename Playlist") },
+            title = { Text(text = stringResource(R.string.rename_playlist)) },
             text = {
                 OutlinedTextField(
                     value = newName,
                     onValueChange = { newName = it },
-                    placeholder = { Text(text = "New Name") },
-                    label = { Text(text = "New Name") },
+                    placeholder = { Text(text = stringResource(R.string.new_name)) },
+                    label = { Text(text = stringResource(R.string.new_name)) },
                     singleLine = true,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -191,12 +193,12 @@ fun PlaylistDetailsScreen(vm: PlaylistDetailsViewModel) {
             onDismissRequest = { vm.hideRenameDialog(confirmed = false) },
             confirmButton = {
                 TextButton(onClick = { vm.hideRenameDialog(confirmed = true, newName = newName) }) {
-                    Text(text = "Save")
+                    Text(text = stringResource(R.string.save))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { vm.hideRenameDialog(confirmed = false) }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -205,8 +207,8 @@ fun PlaylistDetailsScreen(vm: PlaylistDetailsViewModel) {
     if(uiState.showDownloadDialog) {
         MultiDownloadDialog(
             onSave = vm::hideDownloadDialog,
-            title = "Download Playlist",
-            itemName = "item",
+            title = stringResource(R.string.download_playlist),
+            itemName = stringResource(R.string.item),
             currentDownloadCount = uiState.currentDownloadCount
         )
     }
@@ -215,8 +217,8 @@ fun PlaylistDetailsScreen(vm: PlaylistDetailsViewModel) {
         YesNoDialog(
             onNo = { vm.hideDeletePlaylistDialog(false) },
             onYes = { vm.hideDeletePlaylistDialog(true) },
-            title = "Confirm Delete",
-            message = "Are you sure you want to delete this playlist?"
+            title = stringResource(R.string.confirm_delete),
+            message = stringResource(R.string.are_you_sure_you_want_to_delete_this_playlist)
         )
     }
 
@@ -392,7 +394,7 @@ private fun PhoneLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetailsUI
 
             if (!uiState.loading && !criticalError) {
                 item {
-                    PlaybackLayout(vm = vm, uiState = uiState, criticalError = criticalError)
+                    PlaybackLayout(vm = vm, uiState = uiState, criticalError = false)
                 }
 
                 items(data.value, { it.id }) { playlistItem ->
@@ -439,9 +441,9 @@ private fun PlaybackLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetail
             else -> Icons.Filled.Downloading
         }
         val downloadText = when(status) {
-            DownloadStatus.Finished -> "Downloaded"
-            null -> "Download"
-            else -> "Downloading"
+            DownloadStatus.Finished -> stringResource(R.string.downloaded)
+            null -> stringResource(R.string.download)
+            else -> stringResource(R.string.downloading)
         }
 
 
@@ -483,7 +485,7 @@ private fun PlaybackLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetail
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = if(uiState.partiallyPlayed) "Resume" else "Play"
+                    text = if(uiState.partiallyPlayed) stringResource(R.string.resume) else stringResource(R.string.play)
                 )
             }
 
@@ -530,7 +532,7 @@ fun DismissBackground(dismissState: DismissState) {
         if (direction == DismissDirection.EndToStart) {
             Icon(
                 imageVector = Icons.Filled.Delete,
-                contentDescription = "Delete"
+                contentDescription = stringResource(R.string.delete)
             )
         }
     }
@@ -686,7 +688,7 @@ private fun DeleteLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetailsU
                 ),
                 modifier = modifier
             ) {
-                Text(text = "Delete")
+                Text(text = stringResource(R.string.delete))
             }
         }
         Spacer(modifier = Modifier.height(16.dp))

@@ -59,8 +59,6 @@ class TMDBDetailsViewModel @Inject constructor(
                         loading = false,
                         isMovie = _detailedTMDB.mediaType == TMDB_MediaTypes.Movie,
                         title = _detailedTMDB.title,
-                        posterUrl = _detailedTMDB.artworkUrl ?: "",
-                        backdropUrl = _detailedTMDB.backdropUrl ?: "",
                         overview = _detailedTMDB.description ?: "",
                         creditsData = CreditsData(
                             genres = Genres(_detailedTMDB.genres).toList(),

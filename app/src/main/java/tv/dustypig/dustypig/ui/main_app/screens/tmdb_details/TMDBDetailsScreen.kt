@@ -52,11 +52,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.BasicProfile
 import tv.dustypig.dustypig.api.models.RequestStatus
 import tv.dustypig.dustypig.api.models.TitleRequestPermissions
@@ -86,7 +88,7 @@ fun TMDBDetailsScreen(vm: TMDBDetailsViewModel) {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Movie Info",
+                        text = if(uiState.isMovie) stringResource(R.string.movie_info) else stringResource(R.string.series_info) ,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -140,7 +142,7 @@ fun TMDBDetailsScreen(vm: TMDBDetailsViewModel) {
         AlertDialog(
             shape = RoundedCornerShape(8.dp),
             onDismissRequest = { vm.hideFriendsDialog(friendId = -1) },
-            title = { Text(text = "Request") },
+            title = { Text(text = stringResource(R.string.request)) },
             text = {
                 Column {
                     Text("Who do you want to request this $titleType from?")
@@ -183,12 +185,12 @@ fun TMDBDetailsScreen(vm: TMDBDetailsViewModel) {
                     enabled = friendId.intValue >= 0,
                     onClick = { vm.hideFriendsDialog(friendId = friendId.intValue) }
                 ) {
-                    Text("Save")
+                    Text(stringResource(R.string.save))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { vm.hideFriendsDialog(friendId = -1) }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -371,7 +373,7 @@ fun InfoLayout(vm: TMDBDetailsViewModel, uiState: TMDBDetailsUIState, criticalEr
                                 if(uiState.busy)
                                     CircularProgressIndicator(modifier = Modifier.size(20.dp))
                                 else
-                                    Text(text = "Request")
+                                    Text(text = stringResource(R.string.request))
                             }
                         }
 
@@ -384,7 +386,7 @@ fun InfoLayout(vm: TMDBDetailsViewModel, uiState: TMDBDetailsUIState, criticalEr
                                 if(uiState.busy)
                                     CircularProgressIndicator(modifier = Modifier.size(20.dp))
                                 else
-                                    Text(text = "Cancel Request")
+                                    Text(text = stringResource(R.string.cancel_request))
                             }
                         }
 
@@ -406,7 +408,7 @@ fun InfoLayout(vm: TMDBDetailsViewModel, uiState: TMDBDetailsUIState, criticalEr
 
             } else {
 
-                Text(text = "Available on Dusty Pig")
+                Text(text = stringResource(R.string.available_on_dusty_pig))
                 Spacer(modifier = Modifier.height(4.dp))
                 LazyRow(
                     state = rememberLazyListState(),

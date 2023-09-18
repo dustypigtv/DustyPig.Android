@@ -67,14 +67,15 @@ class AddToPlaylistViewModel  @Inject constructor(
         }
     }
 
-    fun hideError(critical: Boolean) {
-        _uiState.update {
-            it.copy(
-                showErrorDialog = false
-            )
-        }
-        if(critical) {
+    fun hideError() {
+        if(_uiState.value.criticalError) {
             popBackStack()
+        } else {
+            _uiState.update {
+                it.copy(
+                    showErrorDialog = false
+                )
+            }
         }
     }
 

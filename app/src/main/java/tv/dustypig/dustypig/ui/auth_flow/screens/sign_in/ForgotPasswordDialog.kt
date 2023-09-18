@@ -26,10 +26,12 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import tv.dustypig.dustypig.R
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
@@ -57,15 +59,15 @@ internal fun ForgotPasswordDialog(vm: SignInViewModel) {
         shape = RoundedCornerShape(8.dp),
         onDismissRequest = { vm.hideForgotPassword() },
         properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
-        title = { Text("Forgot Password") },
+        title = { Text(stringResource(R.string.forgot_password)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(20.dp, alignment = Alignment.CenterVertically)) {
-                Text("Enter your email address")
+                Text(stringResource(R.string.enter_your_email_address))
                 OutlinedTextField(
                     value = uiState.email,
                     onValueChange = { vm.updateEmail(it) },
-                    placeholder = { Text(text = "Email") },
-                    label = { Text(text = "Email") },
+                    placeholder = { Text(text = stringResource(R.string.email)) },
+                    label = { Text(text = stringResource(R.string.email)) },
                     singleLine = true,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -81,13 +83,13 @@ internal fun ForgotPasswordDialog(vm: SignInViewModel) {
                 if (uiState.forgotPasswordBusy) {
                     CircularProgressIndicator(modifier = Modifier.size(20.dp))
                 } else {
-                    Text("Submit")
+                    Text(stringResource(R.string.submit))
                 }
             }
         },
         dismissButton = {
             TextButton(onClick = { vm.hideForgotPassword() }) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel))
             }
         }
     )

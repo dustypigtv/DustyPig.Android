@@ -9,8 +9,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import tv.dustypig.dustypig.R
 
 
 private val spacerHeight = 12.dp
@@ -99,19 +101,19 @@ fun Credits(creditsData: CreditsData) {
         else if(creditsData.owner.isNotBlank()) 65.dp
         else 52.dp
 
-    val genresHeader = if(creditsData.genres.count() > 1) "Genres:" else "Genre:"
-    val directorsHeader = if(creditsData.directors.count() > 1) "Directors:" else "Director:"
-    val producersHeader = if(creditsData.producers.count() > 1) "Producers:" else "Producer:"
-    val writersHeader = if(creditsData.writers.count() > 1) "Writers:" else "Writer:"
+    val genresHeader = if(creditsData.genres.count() > 1) stringResource(R.string.genres) else stringResource(R.string.genre)
+    val directorsHeader = if(creditsData.directors.count() > 1) stringResource(R.string.directors) else stringResource(R.string.director)
+    val producersHeader = if(creditsData.producers.count() > 1) stringResource(R.string.producers) else stringResource(R.string.producer)
+    val writersHeader = if(creditsData.writers.count() > 1) stringResource(R.string.writers) else stringResource(R.string.writer)
 
     Spacer(modifier = Modifier.height(spacerHeight))
 
     CreditsRow(header = genresHeader, headerWidth = headerWidth, items = creditsData.genres)
-    CreditsRow(header = "Cast:", headerWidth = headerWidth, items = creditsData.cast)
+    CreditsRow(header = stringResource(R.string.cast), headerWidth = headerWidth, items = creditsData.cast)
     CreditsRow(header = directorsHeader, headerWidth = headerWidth, items = creditsData.directors)
     CreditsRow(header = producersHeader, headerWidth = headerWidth, items = creditsData.producers)
     CreditsRow(header = writersHeader, headerWidth = headerWidth, items = creditsData.writers)
-    CreditsRow(header = "Owner:", headerWidth = headerWidth, items = creditsData.owner)
+    CreditsRow(header = stringResource(R.string.owner), headerWidth = headerWidth, items = creditsData.owner)
 
     Spacer(modifier = Modifier.height(spacerHeight))
 }

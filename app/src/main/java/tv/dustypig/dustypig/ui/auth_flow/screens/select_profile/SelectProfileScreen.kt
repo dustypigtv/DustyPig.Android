@@ -32,7 +32,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.ui.composables.Avatar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.PinEntry
@@ -48,7 +50,7 @@ fun SelectProfileScreen(vm: SelectProfileViewModel) {
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(text = "Select Profile") },
+            TopAppBar(title = { Text(text = stringResource(R.string.select_profile)) },
                 navigationIcon = {
                     IconButton(onClick = { vm.popBackStack() }) {
                         Icon(Icons.Filled.ArrowBack, null)
@@ -112,19 +114,19 @@ fun SelectProfileScreen(vm: SelectProfileViewModel) {
         AlertDialog(
             shape = RoundedCornerShape(8.dp),
             onDismissRequest = { vm.cancelPinDialog() },
-            title = { Text("Enter Pin") },
+            title = { Text(stringResource(R.string.enter_pin)) },
             text = {
                 PinEntry(valueChanged = { vm.updatePin(it) }, autoFocus = true)
             },
             confirmButton = {
                 TextButton(enabled = confirmEnabled.value,
                     onClick = { vm.onPinSubmitted() }) {
-                    Text("OK")
+                    Text(stringResource(R.string.ok))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { vm.cancelPinDialog() }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )

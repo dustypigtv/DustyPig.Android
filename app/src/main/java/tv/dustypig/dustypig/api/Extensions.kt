@@ -23,7 +23,7 @@ inline fun <reified T> Response<T>.throwIfError(){
     val wrOf = T::class.java.isAssignableFrom(ResponseWrapperOf::class.java)
 
     if(wrOf)
-        (this.body()!! as ResponseWrapperOf<Any>).throwIfError()
+        (this.body()!! as ResponseWrapperOf<*>).throwIfError()
     else if(rw)
         (this.body()!! as ResponseWrapper).throwIfError()
 }

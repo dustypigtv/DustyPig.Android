@@ -35,7 +35,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.OverrideState
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 
@@ -52,7 +54,7 @@ fun ManageParentalControlsForTitleScreen(vm: ManageParentalControlsForTitleViewM
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = "Parental Controls")
+                    Text(text = stringResource(R.string.parental_controls))
                 },
                 navigationIcon = {
                     IconButton(onClick = { vm.popBackStack() }) {
@@ -83,12 +85,12 @@ fun ManageParentalControlsForTitleScreen(vm: ManageParentalControlsForTitleViewM
                         .background(MaterialTheme.colorScheme.tertiaryContainer)
                 ) {
                     Text(
-                        text = "Profile",
+                        text = stringResource(R.string.profile),
                         modifier = Modifier.padding(12.dp),
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
-                        text = "Allowed",
+                        text = stringResource(R.string.allowed),
                         modifier = Modifier.padding(12.dp),
                         style = MaterialTheme.typography.titleMedium
                     )

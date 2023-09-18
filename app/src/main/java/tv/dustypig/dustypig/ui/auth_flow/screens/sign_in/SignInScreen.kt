@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -81,8 +82,8 @@ fun SignInScreen(
         OutlinedTextField(
             value = uiState.email,
             onValueChange = { vm.updateEmail(it) },
-            placeholder = { Text(text = "Email") },
-            label = { Text(text = "Email") },
+            placeholder = { Text(text = stringResource(R.string.email)) },
+            label = { Text(text = stringResource(R.string.email)) },
             singleLine = true,
             enabled = !uiState.busy,
             modifier = Modifier.width(300.dp),
@@ -92,8 +93,8 @@ fun SignInScreen(
         OutlinedTextField(
             value = uiState.password,
             onValueChange = { vm.updatePassword(it) },
-            placeholder = { Text(text = "Password") },
-            label = { Text(text = "Password") },
+            placeholder = { Text(text = stringResource(R.string.password)) },
+            label = { Text(text = stringResource(R.string.password)) },
             singleLine = true,
             enabled = !uiState.busy,
             modifier = Modifier.width(300.dp),
@@ -119,7 +120,7 @@ fun SignInScreen(
         ) {
             TextButton(enabled = !uiState.busy,
                 onClick = { showForgotPassword() }) {
-                Text(text = "Forgot Password?")
+                Text(text = stringResource(R.string.forgot_password_question))
             }
 
             Button(enabled = signInEnabled.value,
@@ -128,14 +129,14 @@ fun SignInScreen(
                 if (uiState.busy) {
                     CircularProgressIndicator(modifier = Modifier.size(20.dp))
                 } else {
-                    Text(text = "Sign In")
+                    Text(text = stringResource(R.string.sign_in))
                 }
             }
         }
 
         TextButton(enabled = !uiState.busy,
             onClick = { vm.navToSignUp() }) {
-            Text(text = "Don't have an account? Sign Up")
+            Text(text = stringResource(R.string.don_t_have_an_account_sign_up))
         }
     }
 
@@ -148,7 +149,11 @@ fun SignInScreen(
     }
 
     if (uiState.showForgotPasswordSuccess) {
-        OkDialog(onDismissRequest = { vm.hideForgotPasswordSuccess() }, title = "Email Sent", message = "Check your email for password reset instructions")
+        OkDialog(
+            onDismissRequest = { vm.hideForgotPasswordSuccess() },
+            title = stringResource(R.string.email_sent),
+            message = stringResource(R.string.check_your_email_for_password_reset_instructions)
+        )
     }
 
     if(uiState.showForgotPasswordError) {

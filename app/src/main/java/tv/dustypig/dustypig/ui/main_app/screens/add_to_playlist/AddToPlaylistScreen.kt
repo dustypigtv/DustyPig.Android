@@ -38,9 +38,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.ui.composables.BasicMediaView
@@ -60,7 +62,7 @@ fun AddToPlaylistScreen(vm: AddToPlaylistViewModel) {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Add To Playlist",
+                        text = stringResource(R.string.add_to_playlist),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -111,8 +113,8 @@ fun AddToPlaylistScreen(vm: AddToPlaylistViewModel) {
                             OutlinedTextField(
                                 value = newName.value,
                                 onValueChange = { newName.value = it },
-                                placeholder = { Text(text = "New Playlist Name") },
-                                label = { Text(text = "New Playlist Name") },
+                                placeholder = { Text(text = stringResource(R.string.new_playlist_name)) },
+                                label = { Text(text = stringResource(R.string.new_playlist_name)) },
                                 singleLine = true,
                                 enabled = !uiState.busy,
                                 modifier = Modifier.width(300.dp),
@@ -125,12 +127,12 @@ fun AddToPlaylistScreen(vm: AddToPlaylistViewModel) {
                                 enabled = !uiState.busy,
                                 modifier = Modifier.width(300.dp)
                             ) {
-                                Text(text = "Save")
+                                Text(text = stringResource(R.string.save))
                             }
 
                             if (uiState.playlists.isNotEmpty()) {
                                 Spacer(modifier = Modifier.height(8.dp))
-                                Text(text = "Or Choose a Playlist Below")
+                                Text(text = stringResource(R.string.or_choose_a_playlist_below))
                                 Spacer(modifier = Modifier.height(8.dp))
                             }
                         }
@@ -163,14 +165,20 @@ fun AddToPlaylistScreen(vm: AddToPlaylistViewModel) {
                                     ),
                                     routeNavigator = vm,
                                     navigateOnClick = false,
-                                ) { vm.selectPlaylist(id) }
+                                ) {
+                                    if(!uiState.busy)
+                                        vm.selectPlaylist(id)
+                                }
                             }
 
                             Text(
                                 text = it.name,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { vm.selectPlaylist(id) },
+                                    .clickable {
+                                        if(!uiState.busy)
+                                            vm.selectPlaylist(id)
+                                    },
                                 maxLines = 4,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -193,9 +201,7 @@ fun AddToPlaylistScreen(vm: AddToPlaylistViewModel) {
 
     if(uiState.showErrorDialog) {
         ErrorDialog(
-            onDismissRequest = {
-                vm.hideError(uiState.criticalError)
-            },
+            onDismissRequest = vm::hideError,
             message = uiState.errorMessage
         )
     }

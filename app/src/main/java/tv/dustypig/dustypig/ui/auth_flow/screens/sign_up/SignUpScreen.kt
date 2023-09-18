@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -84,8 +85,8 @@ fun SignUpScreen(vm: SignUpViewModel) {
         OutlinedTextField(
             value = uiState.name,
             onValueChange = { vm.updateName(it) },
-            placeholder = { Text(text = "Name") },
-            label = { Text(text = "Name") },
+            placeholder = { Text(text = stringResource(R.string.name)) },
+            label = { Text(text = stringResource(R.string.name)) },
             singleLine = true,
             enabled = !uiState.busy,
             modifier = Modifier.width(300.dp),
@@ -95,8 +96,8 @@ fun SignUpScreen(vm: SignUpViewModel) {
         OutlinedTextField(
             value = uiState.email,
             onValueChange = { vm.updateEmail(it) },
-            placeholder = { Text(text = "Email") },
-            label = { Text(text = "Email") },
+            placeholder = { Text(text = stringResource(R.string.email)) },
+            label = { Text(text = stringResource(R.string.email)) },
             singleLine = true,
             enabled = !uiState.busy,
             modifier = Modifier.width(300.dp),
@@ -106,8 +107,8 @@ fun SignUpScreen(vm: SignUpViewModel) {
         OutlinedTextField(
             value = uiState.password,
             onValueChange = { vm.updatePassword(it) },
-            placeholder = { Text(text = "Password") },
-            label = { Text(text = "Password") },
+            placeholder = { Text(text = stringResource(R.string.password)) },
+            label = { Text(text = stringResource(R.string.password)) },
             singleLine = true,
             enabled = !uiState.busy,
             modifier = Modifier.width(300.dp),
@@ -133,12 +134,12 @@ fun SignUpScreen(vm: SignUpViewModel) {
             if (uiState.busy) {
                 CircularProgressIndicator(modifier = Modifier.size(20.dp))
             } else {
-                Text(text = "Sign Up")
+                Text(text = stringResource(R.string.sign_up))
             }
         }
 
         TextButton(onClick = { vm.navToSignIn() }) {
-            Text(text = "Already have an account? Sign In")
+            Text(text = stringResource(R.string.already_have_an_account_sign_in))
         }
 
     }
@@ -149,7 +150,7 @@ fun SignUpScreen(vm: SignUpViewModel) {
     }
 
     if (uiState.showSuccess) {
-        OkDialog(onDismissRequest = { vm.navToSignIn() }, title = "Success", message = uiState.message)
+        OkDialog(onDismissRequest = { vm.navToSignIn() }, title = stringResource(R.string.success), message = uiState.message)
     }
 }
 
