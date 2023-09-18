@@ -100,7 +100,8 @@ fun Credits(creditsData: CreditsData) {
     CreditsRow(header = directorsHeader, maxHeaderWidth = maxHeaderWidth, items = creditsData.directors)
     CreditsRow(header = producersHeader, maxHeaderWidth = maxHeaderWidth, items = creditsData.producers)
     CreditsRow(header = writersHeader, maxHeaderWidth = maxHeaderWidth, items = creditsData.writers)
-    CreditsRow(header = stringResource(R.string.owner), maxHeaderWidth = maxHeaderWidth, items = listOf(creditsData.owner))
+    if(creditsData.owner.isNotBlank())
+        CreditsRow(header = stringResource(R.string.owner), maxHeaderWidth = maxHeaderWidth, items = listOf(creditsData.owner))
 
     Spacer(modifier = Modifier.height(spacerHeight))
 }
