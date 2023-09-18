@@ -92,4 +92,7 @@
     <string name="your_request_for_this_movie_was_accepted_and_is_pending">Your request for this movie was accepted and is pending</string>
     <string name="your_request_for_this_series_was_completed">Your request for this series was completed</string>
     <string name="your_request_for_this_movie_was_completed">Your request for this movie was completed</string>
+    <string name="home">Home</string>
+    <string name="downloads">Downloads</string>
+    <string name="settings">Settings</string>
 </resources>

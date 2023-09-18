@@ -12,11 +12,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -25,6 +27,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
+import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.downloads.DownloadsNav
 import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNav
@@ -46,10 +49,10 @@ fun AppNav(){
     val navController = rememberNavController()
 
     val items = mapOf(
-        Pair(HomeNav.route, Icons.Filled.Home),
-        Pair(SearchNav.route, Icons.Filled.Search),
-        Pair(DownloadsNav.route, Icons.Filled.Download),
-        Pair(SettingsNav.route, Icons.Filled.Settings)
+        Pair(stringResource(R.string.home), Pair(HomeNav.route, Icons.Filled.Home)),
+        Pair(stringResource(R.string.search), Pair(SearchNav.route, Icons.Filled.Search)),
+        Pair(stringResource(R.string.downloads), Pair(DownloadsNav.route, Icons.Filled.Download)),
+        Pair(stringResource(R.string.settings), Pair(SettingsNav.route, Icons.Filled.Settings))
     )
 
     Scaffold(
@@ -69,7 +72,7 @@ fun AppNav(){
 
                     val newRoute = currentDestination?.route
                     if(newRoute != null) {
-                        if(items.any { it.key == newRoute }) {
+                        if(items.any { it.value.first == newRoute }) {
                             curRootRoute.value = newRoute
                         }
                     }
@@ -79,15 +82,16 @@ fun AppNav(){
 
                 items.forEach { screen ->
                     NavigationBarItem(
+                        label = { Text(text= screen.key) },
                         icon = {
                             Icon(
-                                imageVector = screen.value,
+                                imageVector = screen.value.second,
                                 contentDescription = null
                             )
                         },
-                        selected = isSelected(screen.key),
+                        selected = isSelected(screen.value.first),
                         onClick = {
-                            navController.navigate(screen.key) {
+                            navController.navigate(screen.value.first) {
                                 // Pop up to the start destination of the graph to
                                 // avoid building up a large stack of destinations
                                 // on the back stack as users select items
