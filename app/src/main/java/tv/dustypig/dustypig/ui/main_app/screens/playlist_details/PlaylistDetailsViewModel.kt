@@ -148,7 +148,7 @@ class PlaylistDetailsViewModel @Inject constructor(
             _uiState.update {
                 it.copy(
                     showDownloadDialog = true,
-                    currentDownloadCount = downloadManager.getJobCount(_playlistId)
+                    currentDownloadCount = downloadManager.getJobCount(_playlistId, MediaTypes.Playlist)
                 )
             }
         }
@@ -160,7 +160,7 @@ class PlaylistDetailsViewModel @Inject constructor(
         }
         viewModelScope.launch {
             if (newCount == 0)
-                downloadManager.delete(_playlistId)
+                downloadManager.delete(_playlistId, MediaTypes.Playlist)
             else
                 downloadManager.addOrUpdatePlaylist(_detailedPlaylist, newCount)
         }

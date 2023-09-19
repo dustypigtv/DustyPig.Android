@@ -16,6 +16,7 @@ import tv.dustypig.dustypig.api.Genres
 import tv.dustypig.dustypig.api.asString
 import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.api.models.DetailedSeries
+import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.OverrideRequestStatus
 import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.api.repositories.SeriesRepository
@@ -193,7 +194,7 @@ class SeriesDetailsViewModel  @Inject constructor(
             _uiState.update {
                 it.copy(
                     showDownloadDialog = true,
-                    currentDownloadCount = downloadManager.getJobCount(mediaId)
+                    currentDownloadCount = downloadManager.getJobCount(mediaId, MediaTypes.Series)
                 )
             }
         }
@@ -205,7 +206,7 @@ class SeriesDetailsViewModel  @Inject constructor(
         }
         viewModelScope.launch {
             if (newCount == 0)
-                downloadManager.delete(_detailedSeries.id)
+                downloadManager.delete(_detailedSeries.id, MediaTypes.Series)
             else
                 downloadManager.addOrUpdateSeries(_detailedSeries, newCount)
         }

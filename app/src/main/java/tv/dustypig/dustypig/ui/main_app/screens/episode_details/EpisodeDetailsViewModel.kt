@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.models.DetailedEpisode
+import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.repositories.EpisodesRepository
 import tv.dustypig.dustypig.api.toTimeString
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
@@ -89,7 +90,7 @@ class EpisodeDetailsViewModel  @Inject constructor(
 
     fun toggleDownload() {
         viewModelScope.launch {
-            if (downloadManager.getJobCount(_mediaId) > 0) {
+            if (downloadManager.hasJob(_mediaId, MediaTypes.Episode)) {
                 _uiState.update {
                     it.copy(showRemoveDownloadDialog = true)
                 }

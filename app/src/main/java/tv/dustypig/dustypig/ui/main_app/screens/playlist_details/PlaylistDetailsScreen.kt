@@ -560,7 +560,6 @@ private fun PlaylistItemLayout(vm: PlaylistDetailsViewModel, playlistItem: Playl
         SwipeToDismiss(
             state = dismissState,
             directions = setOf(DismissDirection.EndToStart),
-            modifier = Modifier,
             dismissThresholds = {
                 FractionalThreshold(0.5f)
             },

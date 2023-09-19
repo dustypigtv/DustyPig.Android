@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import tv.dustypig.dustypig.api.models.MediaTypes
 
 
 @Dao
@@ -14,8 +15,8 @@ interface DownloadDao {
     @Query("SELECT * FROM jobs ORDER BY added")
     suspend fun getJobs() : List<Job>
 
-    @Query("SELECT * FROM jobs WHERE mediaId = :mediaId")
-    suspend fun getJob(mediaId: Int) : Job?
+    @Query("SELECT * FROM jobs WHERE mediaId = :mediaId AND mediaType = :mediaType")
+    suspend fun getJob(mediaId: Int, mediaType: MediaTypes) : Job?
 
     @Query("SELECT * FROM fileSets ORDER BY added")
     suspend fun getFileSets(): List<FileSet>
@@ -31,11 +32,11 @@ interface DownloadDao {
     @Query("SELECT * FROM job_fileset_mtm")
     suspend fun getJobFileSetMTMs(): List<JobFileSetMTM>
 
-    @Query("SELECT * FROM job_fileset_mtm WHERE jobMediaId = :jobMediaId")
-    suspend fun getJobFileSetMTMs(jobMediaId: Int) : List<JobFileSetMTM>
+    @Query("SELECT * FROM job_fileset_mtm WHERE jobMediaId = :jobMediaId AND jobMediaType = :jobMediaType")
+    suspend fun getJobFileSetMTMs(jobMediaId: Int, jobMediaType: MediaTypes) : List<JobFileSetMTM>
 
-    @Query("SELECT * FROM job_fileset_mtm WHERE jobMediaId = :jobMediaId AND fileSetMediaId = :fileSetMediaId")
-    suspend fun getJobFileSetMTM(jobMediaId: Int, fileSetMediaId: Int) : JobFileSetMTM?
+    @Query("SELECT * FROM job_fileset_mtm WHERE jobMediaId = :jobMediaId AND jobMediaType = :jobMediaType AND fileSetMediaId = :fileSetMediaId")
+    suspend fun getJobFileSetMTM(jobMediaId: Int, jobMediaType: MediaTypes, fileSetMediaId: Int) : JobFileSetMTM?
 
 
     @Query("SELECT * FROM downloads ORDER BY added")

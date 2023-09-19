@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.Genres
 import tv.dustypig.dustypig.api.asString
 import tv.dustypig.dustypig.api.models.DetailedMovie
+import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.OverrideRequestStatus
 import tv.dustypig.dustypig.api.models.PlaybackProgress
 import tv.dustypig.dustypig.api.repositories.MediaRepository
@@ -145,7 +146,7 @@ class MovieDetailsViewModel @Inject constructor(
     fun hideDownload(confirmed: Boolean) {
         if(confirmed) {
             viewModelScope.launch {
-                downloadManager.delete(id = mediaId)
+                downloadManager.delete(mediaId = mediaId, mediaType = MediaTypes.Movie)
             }
             _uiState.update {
                 it.copy(
@@ -167,7 +168,7 @@ class MovieDetailsViewModel @Inject constructor(
     private fun toggleDownload() {
 
         viewModelScope.launch {
-            if (downloadManager.getJobCount(mediaId) > 0) {
+            if (downloadManager.hasJob(mediaId, MediaTypes.Movie)) {
                 _uiState.update {
                     it.copy(showRemoveDownload = true)
                 }

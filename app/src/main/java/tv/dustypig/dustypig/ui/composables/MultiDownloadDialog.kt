@@ -64,7 +64,7 @@ fun MultiDownloadDialog(onSave: (Int) -> Unit, title:String, text: String, curre
 
     val counts = sequence {
         yieldAll(listOf(0, 1, 3))
-        yieldAll(5..100 step 5)
+        yieldAll(5..25 step 5)
     }
 
     val listState = rememberLazyListState()

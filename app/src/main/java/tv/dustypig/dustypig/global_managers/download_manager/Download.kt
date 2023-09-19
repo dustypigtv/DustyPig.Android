@@ -31,6 +31,7 @@ data class Download(
     var status: DownloadStatus = DownloadStatus.Pending,
     var statusDetails: String = "",
     val mediaId: Int,
+    val disposition: String,
     var added: Date = Date(),
     var lastRetry: Date = Date()
 )
