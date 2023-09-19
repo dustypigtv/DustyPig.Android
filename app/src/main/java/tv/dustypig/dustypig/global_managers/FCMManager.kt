@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP
+import android.graphics.Color
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -51,13 +52,21 @@ class FCMManager: FirebaseMessagingService() {
 
     }
 
+
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
+
+        //This is only called when the app is in the foreground.
+        //Maybe instead of sending to the NotificationManager,
+        //we display an in-app dialog
+
+        Log.d(TAG, "onMessageReceived")
         remoteMessage.notification?.let { message ->
             sendNotification(message)
         }
     }
 
     private fun sendNotification(message: RemoteMessage.Notification) {
+
         val intent = Intent(this, MainActivity::class.java).apply {
             addFlags(FLAG_ACTIVITY_CLEAR_TOP)
         }
@@ -71,7 +80,9 @@ class FCMManager: FirebaseMessagingService() {
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
             .setContentTitle(message.title)
             .setContentText(message.body)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setColor(Color.BLACK)
+            .setColorized(true)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
 
