@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import tv.dustypig.dustypig.global_managers.FCMManager
 import tv.dustypig.dustypig.api.models.CreateAccount
 import tv.dustypig.dustypig.api.models.LoginTypes
 import tv.dustypig.dustypig.api.models.PasswordCredentials
@@ -56,7 +57,7 @@ class SignUpViewModel @Inject constructor(
         _uiState.update { it.copy(busy = true) }
         viewModelScope.launch {
             try {
-                val data = accountRepository.create(CreateAccount(uiState.value.email, uiState.value.password, uiState.value.name, null, null))
+                val data = accountRepository.create(CreateAccount(uiState.value.email, uiState.value.password, uiState.value.name, null, FCMManager.currentToken))
 
                 if(data.emailVerificationRequired == true) {
                     _uiState.update { it.copy(busy = false, showSuccess = true, message = "Please check your email to complete sign up") }
@@ -64,7 +65,7 @@ class SignUpViewModel @Inject constructor(
 
                     //Email has been verified before, try to sign in
                     try{
-                        val data2 = authRepository.passwordLogin(PasswordCredentials(uiState.value.email, uiState.value.password, null))
+                        val data2 = authRepository.passwordLogin(PasswordCredentials(uiState.value.email, uiState.value.password, FCMManager.currentToken))
                         if (data2.loginType == LoginTypes.Account) {
                             authManager.setTempAuthToken(data2.token!!)
                             _uiState.update { it.copy(busy = false) }

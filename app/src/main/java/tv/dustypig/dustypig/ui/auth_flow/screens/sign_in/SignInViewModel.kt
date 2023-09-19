@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import tv.dustypig.dustypig.global_managers.FCMManager
 import tv.dustypig.dustypig.api.models.LoginTypes
 import tv.dustypig.dustypig.api.models.PasswordCredentials
 import tv.dustypig.dustypig.api.repositories.AuthRepository
@@ -74,7 +75,7 @@ class SignInViewModel @Inject constructor(
                     PasswordCredentials(
                         uiState.value.email,
                         uiState.value.password,
-                        null
+                        FCMManager.currentToken
                     )
                 )
                 if (data.loginType == LoginTypes.Account) {

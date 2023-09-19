@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import tv.dustypig.dustypig.global_managers.FCMManager
 import tv.dustypig.dustypig.api.models.BasicProfile
 import tv.dustypig.dustypig.api.models.LoginTypes
 import tv.dustypig.dustypig.api.models.ProfileCredentials
@@ -65,7 +66,7 @@ class SelectProfileViewModel @Inject constructor(
         _uiState.update { it.copy(busy = true, showPinDialog = false) }
         viewModelScope.launch {
             try{
-                val data = authRepository.profileLogin(ProfileCredentials(_profileId, pin, null))
+                val data = authRepository.profileLogin(ProfileCredentials(_profileId, pin, FCMManager.currentToken))
                 authManager.setAuthState(data.token!!, data.profileId!!, data.loginType == LoginTypes.MainProfile)
             } catch (ex: Exception) {
                 ex.logToCrashlytics()

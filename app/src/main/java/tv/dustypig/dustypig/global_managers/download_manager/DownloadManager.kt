@@ -165,7 +165,6 @@ class DownloadManager @Inject constructor(
         GlobalScope.launch {
             try {
                 statusTimerWork()
-                Log.d(TAG, "statusTimerWork")
             } catch (ex: Exception) {
                 Log.e(TAG, ex.localizedMessage ?: "Unknown Error", ex)
                 ex.logToCrashlytics()
