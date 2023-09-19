@@ -21,6 +21,7 @@ import tv.dustypig.dustypig.api.models.OverrideRequestStatus
 import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.api.repositories.SeriesRepository
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
+import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.composables.CreditsData
@@ -137,6 +138,7 @@ class SeriesDetailsViewModel  @Inject constructor(
     }
 
     private fun setError(ex: Exception, criticalError: Boolean) {
+        ex.logToCrashlytics()
         _uiState.update {
             it.copy(
                 loading = false,

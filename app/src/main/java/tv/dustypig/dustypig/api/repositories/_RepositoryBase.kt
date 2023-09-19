@@ -1,10 +1,11 @@
 package tv.dustypig.dustypig.api.repositories
 
 import retrofit2.Response
-import tv.dustypig.dustypig.global_managers.AuthManager
 import tv.dustypig.dustypig.api.models.ResponseWrapper
 import tv.dustypig.dustypig.api.models.ResponseWrapperOf
 import tv.dustypig.dustypig.api.models.SimpleValue
+import tv.dustypig.dustypig.global_managers.AuthManager
+import tv.dustypig.dustypig.logToCrashlytics
 import java.io.IOException
 
 abstract class _RepositoryBase constructor(
@@ -27,9 +28,11 @@ abstract class _RepositoryBase constructor(
                 throw Exception(rw.error)
         }
         catch (ex: IOException) {
+            ex.logToCrashlytics()
             throw Exception("Not connected to the internet")
         }
         catch (ex: Exception) {
+            ex.logToCrashlytics()
             if(ex.localizedMessage.isNullOrBlank()) {
                 throw Exception("Unknown Error")
             }
@@ -56,9 +59,11 @@ abstract class _RepositoryBase constructor(
             return response.body()!!.data!!
         }
         catch (ex: IOException) {
+            ex.logToCrashlytics()
             throw Exception("Not connected to the internet")
         }
         catch (ex: Exception) {
+            ex.logToCrashlytics()
             if (ex.localizedMessage.isNullOrBlank()) {
                 throw Exception("Unknown Error")
             }
@@ -85,9 +90,11 @@ abstract class _RepositoryBase constructor(
             return response.body()!!.data!!.value
         }
         catch (ex: IOException) {
+            ex.logToCrashlytics()
             throw Exception("Not connected to the internet")
         }
         catch (ex: Exception) {
+            ex.logToCrashlytics()
             if (ex.localizedMessage.isNullOrBlank()) {
                 throw Exception("Unknown Error")
             }

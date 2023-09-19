@@ -15,6 +15,7 @@ import tv.dustypig.dustypig.api.models.OverrideState
 import tv.dustypig.dustypig.api.models.ProfileTitleOverrideInfo
 import tv.dustypig.dustypig.api.models.TitlePermissionInfo
 import tv.dustypig.dustypig.api.repositories.MediaRepository
+import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
@@ -62,6 +63,7 @@ class ManageParentalControlsForTitleViewModel  @Inject constructor(
     }
 
     private fun setError(ex: Exception, criticalError: Boolean) {
+        ex.logToCrashlytics()
         _uiState.update {
             it.copy(
                 loading = false,

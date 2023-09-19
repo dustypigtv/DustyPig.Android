@@ -6,6 +6,7 @@ import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.HomeScreenList
 import tv.dustypig.dustypig.api.models.LoadMoreHomeScreenItemsRequest
 import tv.dustypig.dustypig.api.repositories.MediaRepository
+import tv.dustypig.dustypig.logToCrashlytics
 
 class ShowMorePagingSource (
     private val listId: Long,
@@ -45,7 +46,9 @@ class ShowMorePagingSource (
                 nextKey = nextKey,
                 data = data
             )
-        } catch (_: Exception) {
+        } catch (ex: Exception) {
+
+            ex.logToCrashlytics()
 
             return LoadResult.Page(
                 prevKey = null,

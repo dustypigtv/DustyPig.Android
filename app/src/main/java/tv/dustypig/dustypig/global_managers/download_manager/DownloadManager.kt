@@ -29,6 +29,7 @@ import tv.dustypig.dustypig.api.repositories.PlaylistRepository
 import tv.dustypig.dustypig.api.repositories.SeriesRepository
 import tv.dustypig.dustypig.global_managers.AuthManager
 import tv.dustypig.dustypig.global_managers.SettingsManager
+import tv.dustypig.dustypig.logToCrashlytics
 import java.io.File
 import java.io.IOException
 import java.util.Calendar
@@ -167,6 +168,7 @@ class DownloadManager @Inject constructor(
                 Log.d(TAG, "statusTimerWork")
             } catch (ex: Exception) {
                 Log.e(TAG, ex.localizedMessage ?: "Unknown Error", ex)
+                ex.logToCrashlytics()
             }
             _statusTimerBusy = false
         }
@@ -477,6 +479,7 @@ class DownloadManager @Inject constructor(
                 updateTimerWork()
             } catch (ex: Exception) {
                 Log.e(TAG, ex.localizedMessage ?: "Unknown Error", ex)
+                ex.logToCrashlytics()
             }
             _updateTimerBusy = false
         }
@@ -505,6 +508,7 @@ class DownloadManager @Inject constructor(
 
                 }
             } catch (ex: Exception) {
+                ex.logToCrashlytics()
                 ex.printStackTrace()
             }
         }

@@ -14,6 +14,7 @@ import tv.dustypig.dustypig.api.models.ProfileCredentials
 import tv.dustypig.dustypig.api.repositories.AuthRepository
 import tv.dustypig.dustypig.api.repositories.ProfilesRepository
 import tv.dustypig.dustypig.global_managers.AuthManager
+import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import javax.inject.Inject
 
@@ -39,6 +40,7 @@ class SelectProfileViewModel @Inject constructor(
                 val data = profilesRepository.list()
                 _uiState.update { it.copy(busy = false, profiles = data) }
             } catch (ex: Exception) {
+                ex.logToCrashlytics()
                 _loadingError = true
                 _uiState.update { it.copy(busy = false, showError = true, errorMessage = ex.localizedMessage) }
             }
@@ -66,6 +68,7 @@ class SelectProfileViewModel @Inject constructor(
                 val data = authRepository.profileLogin(ProfileCredentials(_profileId, pin, null))
                 authManager.setAuthState(data.token!!, data.profileId!!, data.loginType == LoginTypes.MainProfile)
             } catch (ex: Exception) {
+                ex.logToCrashlytics()
                 _loadingError = false
                 _uiState.update { it.copy(busy = false, showError = true, errorMessage = ex.localizedMessage) }
             }
@@ -85,7 +88,8 @@ class SelectProfileViewModel @Inject constructor(
     fun onPinSubmitted() {
         val pin = try {
             Integer.parseUnsignedInt(uiState.value.pin)
-        } catch (_: Exception) {
+        } catch (ex: Exception) {
+            ex.logToCrashlytics()
             null
         }
 

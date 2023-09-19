@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.models.SearchRequest
 import tv.dustypig.dustypig.api.repositories.MediaRepository
+import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import javax.inject.Inject
 
@@ -59,6 +60,7 @@ class SearchViewModel @Inject constructor(
                 }
 
             } catch (ex: Exception) {
+                ex.logToCrashlytics()
                 _uiState.update {
                     it.copy(
                         loading = false,

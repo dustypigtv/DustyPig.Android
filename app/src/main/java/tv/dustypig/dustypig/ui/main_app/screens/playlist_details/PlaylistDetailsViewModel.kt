@@ -15,6 +15,7 @@ import tv.dustypig.dustypig.api.models.PlaylistItem
 import tv.dustypig.dustypig.api.models.UpdatesPlaylist
 import tv.dustypig.dustypig.api.repositories.PlaylistRepository
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
+import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.main_app.ScreenLoadingInfo
@@ -84,6 +85,7 @@ class PlaylistDetailsViewModel @Inject constructor(
     }
 
     private fun setError(ex: Exception, criticalError: Boolean) {
+        ex.logToCrashlytics()
         _uiState.update {
             it.copy(
                 loading = false,
@@ -188,6 +190,7 @@ class PlaylistDetailsViewModel @Inject constructor(
                     it.copy(busy = false)
                 }
             } catch (ex: Exception) {
+                ex.logToCrashlytics()
                 _localItems.clear()
                 _localItems.addAll(_detailedPlaylist.items ?: listOf())
                 _uiState.update {

@@ -16,6 +16,7 @@ import tv.dustypig.dustypig.api.models.TitleRequest
 import tv.dustypig.dustypig.api.models.TitleRequestPermissions
 import tv.dustypig.dustypig.api.repositories.FriendsRepository
 import tv.dustypig.dustypig.api.repositories.TMDBRepository
+import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.composables.CreditsData
@@ -81,6 +82,7 @@ class TMDBDetailsViewModel @Inject constructor(
     }
 
     private fun setError(ex: Exception, criticalError: Boolean) {
+        ex.logToCrashlytics()
         _uiState.update {
             it.copy(
                 loading = false,

@@ -1,0 +1,63 @@
+{
+  "project_info": {
+    "project_number": "233400762141",
+    "project_id": "dusty-pig",
+    "storage_bucket": "dusty-pig.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:233400762141:android:31157b4f732fe135c22bf4",
+        "android_client_info": {
+          "package_name": "tv.dustypig.dustypig"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "233400762141-l973jcje6nemp5ds5hmghf378nltg7do.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "tv.dustypig.dustypig",
+            "certificate_hash": "9bbb3186b2189ef16d8f272bdab59362c395cbb4"
+          }
+        },
+        {
+          "client_id": "233400762141-ugnrfob5e4d2auhd4j8g1cviecqq1fbp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "tv.dustypig.dustypig",
+            "certificate_hash": "baa2f0d944128165c899eed0510ce609912ed5d8"
+          }
+        },
+        {
+          "client_id": "233400762141-fibb1sigs61v1tsf66s1u6aqdh25ddd4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDabkN2wHGtFxw-m5yrbzRw0-UZzJ-qmAE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "233400762141-fibb1sigs61v1tsf66s1u6aqdh25ddd4.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "233400762141-vdjlpbv4vc8fgdgbjgooga87avgev9nr.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "tv.dustypig.dustypig",
+                "app_store_id": "1549161189"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

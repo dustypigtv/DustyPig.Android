@@ -19,6 +19,7 @@ import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.api.repositories.MoviesRepository
 import tv.dustypig.dustypig.api.toTimeString
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
+import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.composables.CreditsData
@@ -115,6 +116,7 @@ class MovieDetailsViewModel @Inject constructor(
     }
 
     private fun setError(ex: Exception, criticalError: Boolean) {
+        ex.logToCrashlytics()
         _uiState.update {
             it.copy(
                 loading = false,

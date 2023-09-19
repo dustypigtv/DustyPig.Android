@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.models.HomeScreenList
 import tv.dustypig.dustypig.api.repositories.MediaRepository
+import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
 import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMorePagingSource
@@ -74,6 +75,7 @@ class HomeViewModel @Inject constructor(
                     )
                 }
             } catch (ex: Exception) {
+                ex.logToCrashlytics()
 
                 //Only show error message if manually refreshing (or first load)
                 if(_uiState.value.isRefreshing) {

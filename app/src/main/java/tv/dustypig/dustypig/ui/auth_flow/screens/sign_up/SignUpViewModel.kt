@@ -8,12 +8,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.global_managers.AuthManager
 import tv.dustypig.dustypig.api.models.CreateAccount
 import tv.dustypig.dustypig.api.models.LoginTypes
 import tv.dustypig.dustypig.api.models.PasswordCredentials
 import tv.dustypig.dustypig.api.repositories.AccountRepository
 import tv.dustypig.dustypig.api.repositories.AuthRepository
+import tv.dustypig.dustypig.global_managers.AuthManager
+import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.auth_flow.SharedEmailModel
 import tv.dustypig.dustypig.ui.auth_flow.screens.select_profile.SelectProfileNav
@@ -71,13 +72,15 @@ class SignUpViewModel @Inject constructor(
                         } else {
                             authManager.setAuthState(data2.token!!, data2.profileId!!, data2.loginType == LoginTypes.MainProfile)
                         }
-                    } catch (_: Exception) {
+                    } catch (ex: Exception) {
 
+                        ex.logToCrashlytics()
                         //Login failed (wrong password), so just inform that they can sign in and go to the login screen
                         _uiState.update { it.copy(busy = false, showSuccess = true, message = "You may now sign in") }
                     }
                 }
             } catch (ex: Exception) {
+                ex.logToCrashlytics()
                 _uiState.update { it.copy(busy = false, showError = true, message = ex.localizedMessage ?: "Unknown Error") }
             }
         }

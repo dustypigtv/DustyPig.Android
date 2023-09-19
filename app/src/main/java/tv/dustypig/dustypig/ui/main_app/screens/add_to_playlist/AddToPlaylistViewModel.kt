@@ -13,6 +13,7 @@ import tv.dustypig.dustypig.api.models.AddPlaylistItem
 import tv.dustypig.dustypig.api.models.BasicPlaylist
 import tv.dustypig.dustypig.api.models.CreatePlaylist
 import tv.dustypig.dustypig.api.repositories.PlaylistRepository
+import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
@@ -56,6 +57,7 @@ class AddToPlaylistViewModel  @Inject constructor(
     }
 
     private fun setError(ex: Exception, criticalError: Boolean) {
+        ex.logToCrashlytics()
         _uiState.update {
             it.copy(
                 loading = false,

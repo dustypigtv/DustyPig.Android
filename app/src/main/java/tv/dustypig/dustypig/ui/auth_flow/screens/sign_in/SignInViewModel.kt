@@ -12,6 +12,7 @@ import tv.dustypig.dustypig.api.models.LoginTypes
 import tv.dustypig.dustypig.api.models.PasswordCredentials
 import tv.dustypig.dustypig.api.repositories.AuthRepository
 import tv.dustypig.dustypig.global_managers.AuthManager
+import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.auth_flow.SharedEmailModel
 import tv.dustypig.dustypig.ui.auth_flow.screens.select_profile.SelectProfileNav
@@ -85,6 +86,7 @@ class SignInViewModel @Inject constructor(
                 }
 
             } catch (ex: Exception) {
+                ex.logToCrashlytics()
                 _uiState.update { it.copy(busy = false, showError = true, errorMessage = ex.localizedMessage) }
             }
         }
@@ -98,6 +100,7 @@ class SignInViewModel @Inject constructor(
                 authRepository.sendPasswordResetEmail(uiState.value.email)
                 _uiState.update { it.copy(forgotPasswordBusy = false, showForgotPassword = false, showForgotPasswordSuccess = true) }
             } catch (ex: Exception) {
+                ex.logToCrashlytics()
                 _uiState.update { it.copy(forgotPasswordBusy = false, showForgotPassword = false, showForgotPasswordError = true, errorMessage = ex.localizedMessage) }
             }
         }
