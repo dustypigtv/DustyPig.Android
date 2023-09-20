@@ -12,11 +12,11 @@ import tv.dustypig.dustypig.api.models.MediaTypes
 @Dao
 interface DownloadDao {
 
-    @Query("SELECT * FROM jobs ORDER BY added")
-    suspend fun getJobs() : List<Job>
+    @Query("SELECT * FROM jobs WHERE profileId = :profileId ORDER BY added")
+    suspend fun getJobs(profileId: Int) : List<Job>
 
-    @Query("SELECT * FROM jobs WHERE mediaId = :mediaId AND mediaType = :mediaType")
-    suspend fun getJob(mediaId: Int, mediaType: MediaTypes) : Job?
+    @Query("SELECT * FROM jobs WHERE mediaId = :mediaId AND mediaType = :mediaType AND profileId = :profileId")
+    suspend fun getJob(mediaId: Int, mediaType: MediaTypes, profileId: Int) : Job?
 
     @Query("SELECT * FROM fileSets ORDER BY added")
     suspend fun getFileSets(): List<FileSet>
@@ -77,6 +77,6 @@ interface DownloadDao {
     @Delete
     suspend fun delete(jobFileSetMTM: JobFileSetMTM)
 
-    @Query("DELETE FROM jobs")
-    fun deleteAllJobs()
+    @Query("DELETE FROM jobs WHERE profileId = :profileId")
+    fun deleteAllJobs(profileId: Int)
 }

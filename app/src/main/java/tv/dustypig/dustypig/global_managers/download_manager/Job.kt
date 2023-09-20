@@ -13,6 +13,7 @@ import java.util.Date
 data class Job (
     val mediaId: Int,
     val mediaType: MediaTypes,
+    val profileId: Int,
     val title: String,
     val added: Date = Date(),
     var count: Int,

@@ -144,6 +144,8 @@ class DownloadManager @Inject constructor(
         return ret
     }
 
+    private suspend fun currentProfileId() = settingsManager.loadProfileId().first()
+
     private fun getLong(cursor: Cursor, column: String): Long {
         val index = cursor.getColumnIndex(column)
         return cursor.getLong(index)
@@ -294,7 +296,7 @@ class DownloadManager @Inject constructor(
         cursor.close()
 
         //Remove any files that are invalid
-        val jobs = _db.getJobs()
+        val jobs = _db.getJobs(currentProfileId())
         for (file in rootDir().listFiles()!!) {
 
             var valid = file.name == ".nomedia"
@@ -507,10 +509,31 @@ class DownloadManager @Inject constructor(
 
     private suspend fun updateTimerWork() {
 
+
+        //Cleanup orphaned downloads
+        val jobs = _db.getJobs(currentProfileId())
+        var jobFileSetMTMs = _db.getJobFileSetMTMs()
+        for(jobFileSetMTM in jobFileSetMTMs) {
+            val valid = jobs.any{it.mediaId == jobFileSetMTM.jobMediaId && it.mediaType == jobFileSetMTM.jobMediaType }
+            if(!valid)
+                _db.delete(jobFileSetMTM)
+        }
+
+
+        jobFileSetMTMs = _db.getJobFileSetMTMs()
+        val fileSets = _db.getFileSets()
+        for(fileSet in fileSets) {
+            val valid = jobFileSetMTMs.any {
+                it.fileSetMediaId == fileSet.mediaId
+            }
+            if(!valid)
+                _db.delete(fileSet)
+        }
+
+
         if(authManager.loginState != AuthManager.LOGIN_STATE_LOGGED_IN)
             return
 
-        val jobs = _db.getJobs()
         for(job in jobs) {
             try {
                 var update = job.pending
@@ -533,17 +556,6 @@ class DownloadManager @Inject constructor(
             }
         }
 
-        //Cleanup orphaned downloads
-        val fileSets = _db.getFileSets()
-        val jobFileSetMTMs = _db.getJobFileSetMTMs()
-
-        for(fileSet in fileSets) {
-            val valid = jobFileSetMTMs.any {
-                it.fileSetMediaId == fileSet.mediaId
-            }
-            if(!valid)
-                _db.delete(fileSet)
-        }
     }
 
     private suspend fun saveFile(fileName: String, data: Any) {
@@ -977,6 +989,7 @@ class DownloadManager @Inject constructor(
             Job(
                 mediaId = detailedMovie.id,
                 mediaType = MediaTypes.Movie,
+                profileId = currentProfileId(),
                 title = detailedMovie.displayTitle(),
                 count = 1,
                 pending = true,
@@ -995,12 +1008,13 @@ class DownloadManager @Inject constructor(
         val lastUpdate = Calendar.getInstance()
         lastUpdate.add(Calendar.MINUTE, -2 * UPDATE_MINUTES)
 
-        val job = _db.getJob(detailedSeries.id, MediaTypes.Series)
+        val job = _db.getJob(detailedSeries.id, MediaTypes.Series, currentProfileId())
         if(job == null) {
             _db.insert(
                 Job(
                     mediaId = detailedSeries.id,
                     mediaType = MediaTypes.Series,
+                    profileId = currentProfileId(),
                     title = detailedSeries.title,
                     count = count,
                     pending = true,
@@ -1020,7 +1034,7 @@ class DownloadManager @Inject constructor(
         val lastUpdate = Calendar.getInstance()
         lastUpdate.add(Calendar.MINUTE, -2 * UPDATE_MINUTES)
 
-        val job = _db.getJob(mediaId, MediaTypes.Series)
+        val job = _db.getJob(mediaId, MediaTypes.Series, currentProfileId())
         if (job != null) {
             if(newCount == 0) {
                 _db.delete(job)
@@ -1041,6 +1055,7 @@ class DownloadManager @Inject constructor(
             Job(
                 mediaId = detailedEpisode.id,
                 mediaType = MediaTypes.Episode,
+                profileId = currentProfileId(),
                 title = "S${detailedEpisode.seasonNumber}:${detailedEpisode.episodeNumber}: ${detailedEpisode.title}",
                 count = 1,
                 pending = true,
@@ -1054,12 +1069,13 @@ class DownloadManager @Inject constructor(
         val lastUpdate = Calendar.getInstance()
         lastUpdate.add(Calendar.MINUTE, -2 * UPDATE_MINUTES)
 
-        val job = _db.getJob(detailedPlaylist.id, MediaTypes.Playlist)
+        val job = _db.getJob(detailedPlaylist.id, MediaTypes.Playlist, currentProfileId())
         if(job == null) {
             _db.insert(
                 Job(
                     mediaId = detailedPlaylist.id,
                     mediaType = MediaTypes.Playlist,
+                    profileId = currentProfileId(),
                     title = detailedPlaylist.name,
                     count = count,
                     pending = true,
@@ -1078,7 +1094,7 @@ class DownloadManager @Inject constructor(
         val lastUpdate = Calendar.getInstance()
         lastUpdate.add(Calendar.MINUTE, -2 * UPDATE_MINUTES)
 
-        val job = _db.getJob(mediaId, MediaTypes.Playlist)
+        val job = _db.getJob(mediaId, MediaTypes.Playlist, currentProfileId())
         if (job != null) {
             if(newCount == 0) {
                 _db.delete(job)
@@ -1091,21 +1107,21 @@ class DownloadManager @Inject constructor(
     }
 
     suspend fun delete(mediaId: Int, mediaType: MediaTypes) {
-        val job = _db.getJob(mediaId, mediaType)
+        val job = _db.getJob(mediaId, mediaType, currentProfileId())
         if (job != null)
             _db.delete(job)
     }
 
     suspend fun deleteAll() {
-        _db.deleteAllJobs()
+        _db.deleteAllJobs(currentProfileId())
     }
 
     suspend fun getJobCount(mediaId: Int, mediaType: MediaTypes): Int {
-        return _db.getJob(mediaId, mediaType)?.count ?: 0
+        return _db.getJob(mediaId, mediaType, currentProfileId())?.count ?: 0
     }
 
     suspend fun hasJob(mediaId: Int, mediaType: MediaTypes): Boolean {
-        return _db.getJob(mediaId, mediaType) != null
+        return _db.getJob(mediaId, mediaType, currentProfileId()) != null
     }
 
 }
