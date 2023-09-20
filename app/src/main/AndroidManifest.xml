@@ -33,13 +33,12 @@
             android:theme="@style/Theme.DustyPig">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
         <service
-            android:name=".global_managers.FCMManager"
+            android:name=".global_managers.fcm_manager.FCMManager"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />

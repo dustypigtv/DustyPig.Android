@@ -1,9 +1,11 @@
 package tv.dustypig.dustypig
 
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -20,6 +22,7 @@ import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
 import tv.dustypig.dustypig.global_managers.AuthManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
+import tv.dustypig.dustypig.global_managers.fcm_manager.FCMManager
 import tv.dustypig.dustypig.ui.auth_flow.AuthNav
 import tv.dustypig.dustypig.ui.composables.LockScreenOrientation
 import tv.dustypig.dustypig.ui.isTablet
@@ -30,17 +33,20 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity: ComponentActivity() {
 
+    private val TAG = "MainActivity"
+
     @Inject
     lateinit var authManager: AuthManager
 
     @Inject
     lateinit var downloadManager: DownloadManager
 
-   private lateinit var analytics: FirebaseAnalytics
+    private lateinit var analytics: FirebaseAnalytics
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        FCMManager.init()
         analytics = Firebase.analytics
         authManager.init()
         downloadManager.start()
@@ -55,7 +61,34 @@ class MainActivity: ComponentActivity() {
                 }
             }
         }
+
+        checkIntent(intent)
     }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        checkIntent(intent)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        FCMManager.activityResumed()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        FCMManager.activityPaused()
+    }
+
+
+    private fun checkIntent(intent: Intent?) {
+        if(intent == null)
+            return
+        //val deepLink = intent.getStringExtra("deepLink")
+    }
+
+
+
 
 
     @Composable
@@ -71,6 +104,7 @@ class MainActivity: ComponentActivity() {
         } else if (authManager.loginState == AuthManager.LOGIN_STATE_LOGGED_OUT) {
             AuthNav()
         }
+
     }
 
 
@@ -101,10 +135,8 @@ class MainActivity: ComponentActivity() {
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { isGranted: Boolean ->
-        if (isGranted) {
-            // FCM SDK (and your app) can post notifications.
-        } else {
-            // TODO: Inform user that that your app will not show notifications.
+        if (!isGranted) {
+            Log.d(TAG, "Notification permission not granted")
         }
     }
 

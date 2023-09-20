@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.global_managers.FCMManager
+import tv.dustypig.dustypig.global_managers.fcm_manager.FCMManager
 import tv.dustypig.dustypig.api.models.BasicProfile
 import tv.dustypig.dustypig.api.models.LoginTypes
 import tv.dustypig.dustypig.api.models.ProfileCredentials

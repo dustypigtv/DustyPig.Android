@@ -1,7 +1,6 @@
 package tv.dustypig.dustypig.ui.main_app
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Home
@@ -12,6 +11,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,14 +19,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navigation
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.downloads.DownloadsNav
@@ -37,14 +34,13 @@ import tv.dustypig.dustypig.ui.main_app.screens.movie_details.MovieDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.playlist_details.PlaylistDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.search.SearchNav
 import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
-import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsScreen
 import tv.dustypig.dustypig.ui.main_app.screens.settings.SettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
 import tv.dustypig.dustypig.ui.main_app.screens.tmdb_details.TMDBDetailsNav
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppNav(){
+fun AppNav(vm: AppNavViewModel = hiltViewModel()){
 
     val navController = rememberNavController()
 
@@ -55,7 +51,12 @@ fun AppNav(){
         Pair(stringResource(R.string.settings), Pair(SettingsNav.route, Icons.Filled.Settings))
     )
 
+
+
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = vm.snackbarHostState)
+        },
         bottomBar = {
             NavigationBar {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -131,5 +132,8 @@ fun AppNav(){
 
 
         }
+
+
+
     }
 }
