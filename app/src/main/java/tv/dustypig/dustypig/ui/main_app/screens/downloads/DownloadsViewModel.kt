@@ -23,6 +23,22 @@ class DownloadsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(DownloadsUIState())
     val uiState = _uiState.asStateFlow()
 
+    private fun setError(ex: Exception) {
+        _uiState.update {
+            it.copy(
+                showErrorDialog = true,
+                errorMessage = ex.localizedMessage
+            )
+        }
+        ex.printStackTrace()
+    }
+
+    fun hideError() {
+        _uiState.update {
+            it.copy(showErrorDialog = false)
+        }
+    }
+
     fun playNext(mediaId: Int, mediaType: MediaTypes) {
 
     }
@@ -51,7 +67,11 @@ class DownloadsViewModel @Inject constructor(
 
     fun removeDownload(job: UIJob) {
         viewModelScope.launch {
-            downloadManager.delete(job.mediaId, job.mediaType)
+            try {
+                downloadManager.delete(job.mediaId, job.mediaType)
+            } catch (ex: Exception) {
+                setError(ex)
+            }
         }
     }
 
@@ -60,10 +80,24 @@ class DownloadsViewModel @Inject constructor(
             it.copy(showDownloadDialog = false)
         }
         viewModelScope.launch {
-            when(_uiState.value.downloadDialogJobMediaType) {
-                MediaTypes.Series -> downloadManager.updateSeries(_uiState.value.downloadDialogJobMediaId, newCount)
-                MediaTypes.Playlist -> downloadManager.updatePlaylist(_uiState.value.downloadDialogJobMediaId, newCount)
-                else -> { }
+            try {
+                when (_uiState.value.downloadDialogJobMediaType) {
+                    MediaTypes.Series -> downloadManager.updateSeries(_uiState.value.downloadDialogJobMediaId, newCount)
+                    MediaTypes.Playlist -> downloadManager.updatePlaylist(_uiState.value.downloadDialogJobMediaId, newCount)
+                    else -> {}
+                }
+            } catch (ex: Exception) {
+                setError(ex)
+            }
+        }
+    }
+
+    fun deleteAll() {
+        viewModelScope.launch {
+            try{
+                downloadManager.deleteAll()
+            } catch (ex: Exception) {
+                setError(ex)
             }
         }
     }

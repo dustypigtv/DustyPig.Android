@@ -16,12 +16,10 @@ import javax.inject.Singleton
 class NotificationsManager @Inject constructor(
     private val notificationsRepository: NotificationsRepository
 ) {
-
     private val _notificationsFlow = MutableSharedFlow<List<Notification>>(replay = 1)
     val notifications = _notificationsFlow.asSharedFlow()
 
-
-     fun markAsRead(id: Int) {
+    fun markAsRead(id: Int) {
         GlobalScope.launch {
             try {
                 notificationsRepository.markAsRead(id)

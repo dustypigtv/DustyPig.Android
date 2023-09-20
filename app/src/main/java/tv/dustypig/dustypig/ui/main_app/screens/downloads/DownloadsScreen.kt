@@ -35,6 +35,8 @@ import androidx.compose.material.icons.filled.HourglassBottom
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayCircleOutline
 import androidx.compose.material.rememberDismissState
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -52,6 +54,7 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -61,6 +64,7 @@ import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
 import tv.dustypig.dustypig.global_managers.download_manager.UIJob
+import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.MultiDownloadDialog
 import tv.dustypig.dustypig.ui.composables.YesNoDialog
 import tv.dustypig.dustypig.ui.theme.DimOverlay
@@ -478,6 +482,36 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
 
             item {
                 Spacer(modifier = Modifier.height(16.dp))
+                if(jobs.isNotEmpty()) {
+
+                    val configuration = LocalConfiguration.current
+                    val modifier = if(configuration.screenWidthDp >= 352) Modifier.width(320.dp) else Modifier.fillMaxWidth()
+
+                    Box (
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        contentAlignment = Alignment.BottomCenter
+                    ) {
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Button(
+                                onClick = vm::deleteAll,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Red,
+                                    contentColor = Color.White
+                                ),
+                                modifier = modifier
+                            ) {
+                                Text(text = stringResource(R.string.delete_all_downloads))
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                }
             }
         }
     }
@@ -513,6 +547,10 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
             },
             currentDownloadCount = uiState.downloadDialogCount
         )
+    }
+
+    if(uiState.showErrorDialog) {
+        ErrorDialog(onDismissRequest = vm::hideError, message = uiState.errorMessage)
     }
 
 }

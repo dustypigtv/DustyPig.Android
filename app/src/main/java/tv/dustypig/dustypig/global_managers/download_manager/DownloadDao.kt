@@ -76,4 +76,7 @@ interface DownloadDao {
 
     @Delete
     suspend fun delete(jobFileSetMTM: JobFileSetMTM)
+
+    @Query("DELETE FROM jobs")
+    fun deleteAllJobs()
 }

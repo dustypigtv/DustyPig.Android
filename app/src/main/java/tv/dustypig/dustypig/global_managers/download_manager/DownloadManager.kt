@@ -1,6 +1,7 @@
 package tv.dustypig.dustypig.global_managers.download_manager
 
 import android.content.Context
+import android.content.res.Resources
 import android.database.Cursor
 import android.os.StatFs
 import android.util.Log
@@ -55,6 +56,12 @@ class DownloadManager @Inject constructor(
     companion object {
         private const val TAG = "DownloadManager"
         private const val UPDATE_MINUTES = 5
+        private const val DISPOSITION_VIDEO = "video"
+        private const val DISPOSITION_POSTER = "poster"
+        private const val DISPOSITION_SCREENSHOT = "screenshot"
+        private const val DISPOSITION_BACKDROP = "backdrop"
+        private const val DISPOSITION_BIF = "bif"
+        private const val DISPOSITION_SUBTITLE = "subtitle"
     }
     
     private val _androidDownloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as AndroidDownloadManager
@@ -177,6 +184,7 @@ class DownloadManager @Inject constructor(
      * This syncs the db with the os downloader
      */
     private suspend fun statusTimerWork() {
+
 
         //Get active downloads
         var downloads = _db.getDownloads()
@@ -316,12 +324,15 @@ class DownloadManager @Inject constructor(
         }
 
 
+        val displayMetrics = Resources.getSystem().displayMetrics
+        val urlParms = "displayWidth=${displayMetrics.widthPixels}&displayHeight=${displayMetrics.heightPixels}"
+
         //Add any downloads that are not started (max of 3)
         val runningSupportFiles = downloads.filter {
-            it.androidId != 0L && it.disposition != "video" && !it.complete
+            it.androidId != 0L && it.disposition != DISPOSITION_VIDEO && !it.complete
         }
         if(runningSupportFiles.count() < 3) {
-            val nextDownload = downloads.firstOrNull { it.androidId == 0L && it.disposition != "video" }
+            val nextDownload = downloads.firstOrNull { it.androidId == 0L && it.disposition != DISPOSITION_VIDEO }
             if(nextDownload != null) {
                 var file = File(rootDir().absolutePath + "/${nextDownload.fileName}")
                 if (file.exists())
@@ -329,8 +340,14 @@ class DownloadManager @Inject constructor(
                 file = File(rootDir(), "${nextDownload.fileName}.tmp")
                 if (file.exists())
                     file.delete()
-                val url = android.net.Uri.parse(nextDownload.url)
-                val request = android.app.DownloadManager.Request(url)
+
+                var url = nextDownload.url
+                if(listOf(DISPOSITION_POSTER, DISPOSITION_BACKDROP, DISPOSITION_SCREENSHOT).contains(nextDownload.disposition)) {
+                    url += if (url.contains("?")) "&$urlParms" else "?$urlParms"
+                }
+
+                val uri = android.net.Uri.parse(url)
+                val request = android.app.DownloadManager.Request(uri)
                 request.setDestinationUri(android.net.Uri.fromFile(file))
                 request.setAllowedOverMetered(settingsManager.loadDownloadOverCellular().first())
                 request.setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_HIDDEN)
@@ -341,10 +358,10 @@ class DownloadManager @Inject constructor(
 
         //Only download 1 video at a time
         val runningVideos = downloads.filter {
-            it.androidId != 0L && it.disposition == "video" && !it.complete
+            it.androidId != 0L && it.disposition == DISPOSITION_VIDEO && !it.complete
         }
         if(runningVideos.isEmpty()) {
-            val nextDownload = downloads.firstOrNull { it.androidId == 0L && it.disposition == "video" }
+            val nextDownload = downloads.firstOrNull { it.androidId == 0L && it.disposition == DISPOSITION_VIDEO }
             if (nextDownload != null) {
                 var file = File(rootDir().absolutePath + "/${nextDownload.fileName}")
                 if (file.exists())
@@ -352,8 +369,12 @@ class DownloadManager @Inject constructor(
                 file = File(rootDir(), "${nextDownload.fileName}.tmp")
                 if (file.exists())
                     file.delete()
-                val url = android.net.Uri.parse(nextDownload.url)
-                val request = android.app.DownloadManager.Request(url)
+
+                var url = nextDownload.url
+                url += if(url.contains("?")) "&$urlParms" else "?$urlParms"
+
+                val uri = android.net.Uri.parse(url)
+                val request = android.app.DownloadManager.Request(uri)
                 request.setDestinationUri(android.net.Uri.fromFile(file))
                 request.setAllowedOverMetered(settingsManager.loadDownloadOverCellular().first())
                 request.setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_HIDDEN)
@@ -371,18 +392,18 @@ class DownloadManager @Inject constructor(
         for(job in jobs) {
 
             var artworkPoster = false
-            var artDL = downloads.firstOrNull { it.mediaId == job.mediaId && it.disposition == "screenshot" }
+            var artDL = downloads.firstOrNull { it.mediaId == job.mediaId && it.disposition == DISPOSITION_SCREENSHOT }
             if(artDL == null)
-                artDL = downloads.firstOrNull { it.mediaId == job.mediaId && it.disposition == "backdrop" }
+                artDL = downloads.firstOrNull { it.mediaId == job.mediaId && it.disposition == DISPOSITION_BACKDROP }
             if(artDL == null) {
-                artDL = downloads.firstOrNull { it.mediaId == job.mediaId && it.disposition == "poster" }
+                artDL = downloads.firstOrNull { it.mediaId == job.mediaId && it.disposition == DISPOSITION_POSTER }
                 artworkPoster = artDL != null
             }
 
             var artFile = rootDir().listFiles()?.firstOrNull { it.name == artDL?.fileName }?.path
             if(artFile == null) {
                 artFile = artDL?.url
-                artworkPoster = artDL?.disposition == "poster"
+                artworkPoster = artDL?.disposition == DISPOSITION_POSTER
             }
 
             val uiJob = UIJob(
@@ -430,18 +451,18 @@ class DownloadManager @Inject constructor(
                 }
 
                 artworkPoster = false
-                artDL = downloads.firstOrNull { it.mediaId == jobFileSetMTM.fileSetMediaId && it.disposition == "screenshot" }
+                artDL = downloads.firstOrNull { it.mediaId == jobFileSetMTM.fileSetMediaId && it.disposition == DISPOSITION_SCREENSHOT }
                 if(artDL == null)
-                    artDL = downloads.firstOrNull { it.mediaId == jobFileSetMTM.fileSetMediaId && it.disposition == "backdrop" }
+                    artDL = downloads.firstOrNull { it.mediaId == jobFileSetMTM.fileSetMediaId && it.disposition == DISPOSITION_BACKDROP }
                 if(artDL == null) {
-                    artDL = downloads.firstOrNull { it.mediaId == jobFileSetMTM.fileSetMediaId && it.disposition == "poster" }
+                    artDL = downloads.firstOrNull { it.mediaId == jobFileSetMTM.fileSetMediaId && it.disposition == DISPOSITION_POSTER }
                     artworkPoster = artDL != null
                 }
 
                 artFile = rootDir().listFiles()?.firstOrNull { it.name == artDL?.fileName }?.path
                 if(artFile == null) {
                     artFile = artDL?.url
-                    artworkPoster = artDL?.disposition == "poster"
+                    artworkPoster = artDL?.disposition == DISPOSITION_POSTER
                 }
 
                 uiDownloads.add(
@@ -610,7 +631,7 @@ class DownloadManager @Inject constructor(
                 mediaId = fileSetWithDownloads.fileSet.mediaId,
                 status = if(size > 0) DownloadStatus.None else DownloadStatus.Pending,
                 statusDetails = "",
-                disposition = "subtitle"
+                disposition = DISPOSITION_SUBTITLE
             )
             _db.insert(download = dl)
         } else {
@@ -658,9 +679,9 @@ class DownloadManager @Inject constructor(
         }
 
 
-        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedMovie.artworkUrl, disposition = "poster")
-        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedMovie.backdropUrl, disposition = "backdrop")
-        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedMovie.bifUrl, disposition = "bif")
+        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedMovie.artworkUrl, disposition = DISPOSITION_POSTER)
+        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedMovie.backdropUrl, disposition = DISPOSITION_BACKDROP)
+        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedMovie.bifUrl, disposition = DISPOSITION_BIF)
 
         if(detailedMovie.externalSubtitles?.isNotEmpty() == true) {
             for(sub in detailedMovie.externalSubtitles) {
@@ -668,7 +689,7 @@ class DownloadManager @Inject constructor(
             }
         }
 
-        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedMovie.videoUrl, disposition = "video")
+        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedMovie.videoUrl, disposition = DISPOSITION_VIDEO)
 
         job.pending = false
         job.lastUpdate = Date()
@@ -702,8 +723,8 @@ class DownloadManager @Inject constructor(
             )
         }
 
-        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedSeries.artworkUrl, disposition = "poster")
-        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedSeries.backdropUrl, disposition = "backdrop")
+        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedSeries.artworkUrl, disposition = DISPOSITION_POSTER)
+        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedSeries.backdropUrl, disposition = DISPOSITION_BACKDROP)
 
 
         //Identify ids of episodes that should be downloaded
@@ -770,15 +791,15 @@ class DownloadManager @Inject constructor(
                     )
                 }
 
-                addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = episode.artworkUrl, disposition = "screenshot")
-                addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = episode.bifUrl, disposition = "bif")
+                addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = episode.artworkUrl, disposition = DISPOSITION_SCREENSHOT)
+                addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = episode.bifUrl, disposition = DISPOSITION_BIF)
 
                 if (episode.externalSubtitles != null) {
                     for (sub in episode.externalSubtitles)
                         addOrUpdateSubtitleDownload(fileSetWithDownloads = fileSetWithDownloads, sub = sub)
                 }
 
-                addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = episode.videoUrl, disposition = "video")
+                addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = episode.videoUrl, disposition = DISPOSITION_VIDEO)
 
             }
         }
@@ -815,8 +836,8 @@ class DownloadManager @Inject constructor(
         }
 
 
-        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedEpisode.artworkUrl, disposition = "screenshot")
-        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedEpisode.bifUrl, disposition = "bif")
+        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedEpisode.artworkUrl, disposition = DISPOSITION_SCREENSHOT)
+        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedEpisode.bifUrl, disposition = DISPOSITION_BIF)
 
         if(detailedEpisode.externalSubtitles?.isNotEmpty() == true) {
             for(sub in detailedEpisode.externalSubtitles) {
@@ -824,7 +845,7 @@ class DownloadManager @Inject constructor(
             }
         }
 
-        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedEpisode.videoUrl, disposition = "video")
+        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedEpisode.videoUrl, disposition = DISPOSITION_VIDEO)
 
         job.pending = false
         job.lastUpdate = Date()
@@ -859,7 +880,7 @@ class DownloadManager @Inject constructor(
             )
         }
 
-        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedPlaylist.artworkUrl, disposition = "poster")
+        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedPlaylist.artworkUrl, disposition = DISPOSITION_POSTER)
 
 
         //Identify ids of items that should be downloaded
@@ -927,15 +948,15 @@ class DownloadManager @Inject constructor(
                     )
                 }
 
-                addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = playlistItem.artworkUrl, disposition = "screenshot")
-                addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = playlistItem.bifUrl, disposition = "bif")
+                addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = playlistItem.artworkUrl, disposition = DISPOSITION_SCREENSHOT)
+                addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = playlistItem.bifUrl, disposition = DISPOSITION_BIF)
 
                 if (playlistItem.externalSubtitles != null) {
                     for (sub in playlistItem.externalSubtitles)
                         addOrUpdateSubtitleDownload(fileSetWithDownloads = fileSetWithDownloads, sub = sub)
                 }
 
-                addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = playlistItem.videoUrl, disposition = "video")
+                addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = playlistItem.videoUrl, disposition = DISPOSITION_VIDEO)
 
             }
         }
@@ -1073,6 +1094,10 @@ class DownloadManager @Inject constructor(
         val job = _db.getJob(mediaId, mediaType)
         if (job != null)
             _db.delete(job)
+    }
+
+    suspend fun deleteAll() {
+        _db.deleteAllJobs()
     }
 
     suspend fun getJobCount(mediaId: Int, mediaType: MediaTypes): Int {

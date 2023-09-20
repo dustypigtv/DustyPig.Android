@@ -21,12 +21,14 @@ import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
 import tv.dustypig.dustypig.global_managers.AuthManager
+import tv.dustypig.dustypig.global_managers.NotificationsManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
 import tv.dustypig.dustypig.global_managers.fcm_manager.FCMManager
 import tv.dustypig.dustypig.ui.auth_flow.AuthNav
 import tv.dustypig.dustypig.ui.composables.LockScreenOrientation
 import tv.dustypig.dustypig.ui.isTablet
 import tv.dustypig.dustypig.ui.main_app.AppNav
+import tv.dustypig.dustypig.ui.main_app.AppNavViewModel
 import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 import javax.inject.Inject
 
@@ -40,6 +42,9 @@ class MainActivity: ComponentActivity() {
 
     @Inject
     lateinit var downloadManager: DownloadManager
+
+    @Inject
+    lateinit var notificationsManager: NotificationsManager
 
     private lateinit var analytics: FirebaseAnalytics
 
@@ -82,12 +87,23 @@ class MainActivity: ComponentActivity() {
 
 
     private fun checkIntent(intent: Intent?) {
-        if(intent == null)
-            return
-        val id = intent.getIntegerArrayListExtra(FCMManager.DATA_ID)
-        val title = intent.getStringExtra(FCMManager.DATA_TITLE)
-        val message = intent.getStringExtra(FCMManager.DATA_MESSAGE)
-        val deepLink = intent.getStringExtra(FCMManager.DATA_DEEP_LINK)
+        try {
+            if(intent == null)
+                return
+
+            val id = intent.getIntExtra(FCMManager.DATA_ID, -1)
+            if(id < 0)
+                return
+
+            notificationsManager.markAsRead(id)
+
+            val deepLink = intent.getStringExtra(FCMManager.DATA_DEEP_LINK)
+            if(!deepLink.isNullOrEmpty()) {
+                AppNavViewModel.queueNavRoute(deepLink)
+            }
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+        }
     }
 
 

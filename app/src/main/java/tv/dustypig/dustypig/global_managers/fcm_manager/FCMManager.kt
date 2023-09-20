@@ -105,8 +105,6 @@ class FCMManager: FirebaseMessagingService() {
             addFlags(Intent.FLAG_FROM_BACKGROUND or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         }
         intent.putExtra(DATA_ID, remoteMessage.data[DATA_ID]!!.toInt())
-        intent.putExtra(DATA_TITLE, remoteMessage.data[DATA_TITLE])
-        intent.putExtra(DATA_MESSAGE, remoteMessage.data[DATA_MESSAGE])
         intent.putExtra(DATA_DEEP_LINK, remoteMessage.data[DATA_DEEP_LINK])
 
         val pendingIntent = PendingIntent.getActivity(

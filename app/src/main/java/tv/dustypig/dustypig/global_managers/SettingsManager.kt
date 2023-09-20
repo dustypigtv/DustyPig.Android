@@ -23,6 +23,8 @@ class SettingsManager @Inject constructor(@ApplicationContext private val contex
     private val IS_MAIN_PROFILE_KEY = booleanPreferencesKey("is_main_profile")
     private val STORE_DOWNLOADS_EXTERNALLY_KEY = booleanPreferencesKey("store_downloads_externally")
     private val DOWNLOAD_OVER_CELLULAR_KEY = booleanPreferencesKey("download_over_cellular")
+    private val SKIP_INTROS = booleanPreferencesKey("skip_intros")
+    private val SKIP_CREDITS = booleanPreferencesKey("skip_credits")
 
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 

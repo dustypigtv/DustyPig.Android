@@ -7,5 +7,7 @@ data class DownloadsUIState(
     val downloadDialogCount: Int = 0,
     val downloadDialogJobMediaId: Int = 0,
     val downloadDialogJobMediaType: MediaTypes = MediaTypes.Series,
-    val showRemoveDownloadDialog: Boolean = false
+    val showRemoveDownloadDialog: Boolean = false,
+    val showErrorDialog: Boolean = false,
+    val errorMessage: String? = null
 )

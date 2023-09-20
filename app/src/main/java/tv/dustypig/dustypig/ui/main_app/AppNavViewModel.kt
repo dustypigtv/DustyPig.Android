@@ -6,6 +6,8 @@ import androidx.compose.material3.SnackbarResult
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.global_managers.NotificationsManager
@@ -17,6 +19,17 @@ class AppNavViewModel @Inject constructor(
     private val notificationsManager: NotificationsManager
 ): ViewModel() {
 
+    companion object {
+
+        //Logic: Static flow that can be updated from MainActivity
+        //Flow updates the main scaffold, which will then call navigate
+        private val _navFlow = MutableStateFlow<String?>(null)
+        val navFlow = _navFlow.asStateFlow()
+
+        fun queueNavRoute(deepLink: String) = _navFlow.tryEmit(deepLink)
+    }
+
+
     val snackbarHostState = SnackbarHostState()
 
     init {
@@ -26,15 +39,12 @@ class AppNavViewModel @Inject constructor(
                 if(it != null) {
                     val result = snackbarHostState.showSnackbar(
                         message = it.title,
-                        //actionLabel = "",
+                        actionLabel = "View",
                         duration = SnackbarDuration.Long
                     )
-                    when (result) {
-                        SnackbarResult.ActionPerformed -> {
-                        }
 
-                        SnackbarResult.Dismissed -> {
-                        }
+                    if(result == SnackbarResult.ActionPerformed) {
+                        queueNavRoute(it.deepLink!!)
                     }
 
                     //Snackbar notifications are seen

@@ -665,7 +665,7 @@ private fun PlaylistItemLayout(vm: PlaylistDetailsViewModel, playlistItem: Playl
 private fun DeleteLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetailsUIState) {
 
     val configuration = LocalConfiguration.current
-    val modifier = if(configuration.isTablet()) Modifier.width(320.dp) else Modifier.fillMaxWidth()
+    val modifier = if(configuration.screenWidthDp >= 352) Modifier.width(320.dp) else Modifier.fillMaxWidth()
 
     Box (
         modifier = Modifier
