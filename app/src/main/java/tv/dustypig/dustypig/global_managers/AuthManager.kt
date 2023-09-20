@@ -15,7 +15,7 @@ import javax.inject.Singleton
 class AuthManager @Inject constructor(private val settingsManager: SettingsManager) {
 
     companion object {
-        private const val LOGIN_STATE_UNKNOWN: Int = 0
+        const val LOGIN_STATE_UNKNOWN: Int = 0
         const val LOGIN_STATE_LOGGED_IN: Int = 1
         const val LOGIN_STATE_LOGGED_OUT: Int = 2
 

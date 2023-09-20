@@ -187,6 +187,10 @@ class DownloadManager @Inject constructor(
      */
     private suspend fun statusTimerWork() {
 
+        //Don't do anything until we know what to do
+        if(authManager.loginState == AuthManager.LOGIN_STATE_UNKNOWN)
+            return
+
 
         //Get active downloads
         var downloads = _db.getDownloads()
@@ -508,6 +512,10 @@ class DownloadManager @Inject constructor(
     }
 
     private suspend fun updateTimerWork() {
+
+        //Don't do anything until we know what to do
+        if(authManager.loginState == AuthManager.LOGIN_STATE_UNKNOWN)
+            return
 
 
         //Cleanup orphaned downloads
