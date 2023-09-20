@@ -8,12 +8,13 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import tv.dustypig.dustypig.global_managers.NotificationsManager
 import tv.dustypig.dustypig.global_managers.fcm_manager.FCMManager
 import javax.inject.Inject
 
 @HiltViewModel
 class AppNavViewModel @Inject constructor(
-
+    private val notificationsManager: NotificationsManager
 ): ViewModel() {
 
     val snackbarHostState = SnackbarHostState()
@@ -24,17 +25,20 @@ class AppNavViewModel @Inject constructor(
 
                 if(it != null) {
                     val result = snackbarHostState.showSnackbar(
-                        message = it.message,
+                        message = it.title,
                         //actionLabel = "",
                         duration = SnackbarDuration.Long
                     )
-                    when(result) {
+                    when (result) {
                         SnackbarResult.ActionPerformed -> {
                         }
 
                         SnackbarResult.Dismissed -> {
                         }
                     }
+
+                    //Snackbar notifications are seen
+                    notificationsManager.markAsRead(it.id)
                 }
             }
         }

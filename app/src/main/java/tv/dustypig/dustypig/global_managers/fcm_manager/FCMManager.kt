@@ -24,6 +24,11 @@ class FCMManager: FirebaseMessagingService() {
 
     companion object {
 
+        const val DATA_ID = "id"
+        const val DATA_TITLE = "title"
+        const val DATA_MESSAGE = "message"
+        const val DATA_DEEP_LINK = "deeplink"
+
         private const val TAG = "FCMManager"
         private const val CHANNEL_NAME = "Notifications"
 
@@ -86,8 +91,10 @@ class FCMManager: FirebaseMessagingService() {
     private fun addAlert(remoteMessage: RemoteMessage) {
         _inAppAlertFlow.tryEmit(
             FCMAlertData(
-                message = remoteMessage.data["message"]!!,
-                deepLink = remoteMessage.data["deeplink"]
+                id = remoteMessage.data[DATA_ID]!!.toInt(),
+                title = remoteMessage.data[DATA_TITLE]!!,
+                message = remoteMessage.data[DATA_MESSAGE]!!,
+                deepLink = remoteMessage.data[DATA_DEEP_LINK]
             )
         )
     }
@@ -97,7 +104,10 @@ class FCMManager: FirebaseMessagingService() {
         val intent = Intent(this, MainActivity::class.java).apply {
             addFlags(Intent.FLAG_FROM_BACKGROUND or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         }
-        //intent.putExtra("deepLink", remoteMessage.data["deeplink"])
+        intent.putExtra(DATA_ID, remoteMessage.data[DATA_ID]!!.toInt())
+        intent.putExtra(DATA_TITLE, remoteMessage.data[DATA_TITLE])
+        intent.putExtra(DATA_MESSAGE, remoteMessage.data[DATA_MESSAGE])
+        intent.putExtra(DATA_DEEP_LINK, remoteMessage.data[DATA_DEEP_LINK])
 
         val pendingIntent = PendingIntent.getActivity(
             this, 1, intent, PendingIntent.FLAG_IMMUTABLE
@@ -107,10 +117,10 @@ class FCMManager: FirebaseMessagingService() {
         val channelId = this.getString(R.string.default_notification_channel_id)
 
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
-            .setContentTitle(remoteMessage.data["message"]!!)
+            .setContentTitle(remoteMessage.data[DATA_TITLE])
+            .setContentText(remoteMessage.data[DATA_MESSAGE])
             .setSmallIcon(R.drawable.ic_notification)
             .setColor(Color.BLACK)
-            .setColorized(true)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
 

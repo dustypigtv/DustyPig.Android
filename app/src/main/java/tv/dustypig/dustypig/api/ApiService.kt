@@ -23,6 +23,7 @@ import tv.dustypig.dustypig.api.models.HomeScreen
 import tv.dustypig.dustypig.api.models.LoadMoreHomeScreenItemsRequest
 import tv.dustypig.dustypig.api.models.LoginResponse
 import tv.dustypig.dustypig.api.models.MovePlaylistItem
+import tv.dustypig.dustypig.api.models.Notification
 import tv.dustypig.dustypig.api.models.PasswordCredentials
 import tv.dustypig.dustypig.api.models.PlaybackProgress
 import tv.dustypig.dustypig.api.models.ProfileCredentials
@@ -101,10 +102,20 @@ interface ApiService {
 
 
 
-    // *** Movies ***
+    // ***** Movies *****
     @GET("Movies/Details/{id}")
     suspend fun movieDetails(@Path("id") id: Int): Response<ResponseWrapperOf<DetailedMovie>>
 
+
+    // ***** Notifications *****
+    @DELETE("Notifications/Delete/{id}")
+    suspend fun deleteNotification(@Path("id") id: Int): Response<ResponseWrapper>
+
+    @GET("Notifications/List")
+    suspend fun listNotifications(): Response<ResponseWrapperOf<List<Notification>>>
+
+    @GET("Notifications/MarkAsRead/{id}")
+    suspend fun markNotificationRead(@Path("id") id: Int): Response<ResponseWrapper>
 
 
 

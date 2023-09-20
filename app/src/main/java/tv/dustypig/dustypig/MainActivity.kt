@@ -84,7 +84,10 @@ class MainActivity: ComponentActivity() {
     private fun checkIntent(intent: Intent?) {
         if(intent == null)
             return
-        //val deepLink = intent.getStringExtra("deepLink")
+        val id = intent.getIntegerArrayListExtra(FCMManager.DATA_ID)
+        val title = intent.getStringExtra(FCMManager.DATA_TITLE)
+        val message = intent.getStringExtra(FCMManager.DATA_MESSAGE)
+        val deepLink = intent.getStringExtra(FCMManager.DATA_DEEP_LINK)
     }
 
 
