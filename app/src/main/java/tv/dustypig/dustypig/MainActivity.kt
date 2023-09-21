@@ -91,13 +91,13 @@ class MainActivity: ComponentActivity() {
             if(intent == null)
                 return
 
-            val id = intent.getIntExtra(FCMManager.DATA_ID, -1)
+            val id = intent.getIntExtra(FCMManager.INTENT_DATA_ID, -1)
             if(id < 0)
                 return
 
             notificationsManager.markAsRead(id)
 
-            val deepLink = intent.getStringExtra(FCMManager.DATA_DEEP_LINK)
+            val deepLink = intent.getStringExtra(FCMManager.INTENT_DATA_DEEP_LINK)
             if(!deepLink.isNullOrEmpty()) {
                 AppNavViewModel.queueNavRoute(deepLink)
             }

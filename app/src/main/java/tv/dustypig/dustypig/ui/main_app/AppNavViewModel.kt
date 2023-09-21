@@ -8,10 +8,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.global_managers.NotificationsManager
 import tv.dustypig.dustypig.global_managers.fcm_manager.FCMManager
@@ -29,17 +28,12 @@ class AppNavViewModel @Inject constructor(
 
         //Logic: Static flow that can be updated from MainActivity
         //Flow updates the main scaffold, which will then call navigate
-        private val _mutableNavFlow = MutableStateFlow<AppNavUIState>(AppNavUIState())
+        private val _mutableNavFlow = MutableSharedFlow<String>(replay = 1)
 
-        fun queueNavRoute(deepLink: String) = _mutableNavFlow.update {
-            it.copy(
-                navFromNotification = true,
-                navRoute = deepLink
-            )
-        }
+        fun queueNavRoute(deepLink: String) = _mutableNavFlow.tryEmit(deepLink)
     }
 
-    val navFlow = _mutableNavFlow.asStateFlow()
+    val navFlow = _mutableNavFlow.asSharedFlow()
 
     val snackbarHostState = SnackbarHostState()
 
@@ -49,7 +43,7 @@ class AppNavViewModel @Inject constructor(
             FCMManager.inAppAlerts.collectLatest {
 
                 var text = it.title
-                if(!it.message.isNullOrBlank())
+                if(it.message.isNotBlank())
                     text += "\n\n" + it.message + "\n"
 
                 val result = if(it.deepLink.isNullOrBlank()) {
@@ -78,10 +72,6 @@ class AppNavViewModel @Inject constructor(
     }
 
     fun doNav(navHostController: NavHostController, route: String) {
-        _mutableNavFlow.update {
-            it.copy(navFromNotification = false)
-        }
-
         try {
 
             if(route.isBlank())

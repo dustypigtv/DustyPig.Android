@@ -33,6 +33,10 @@ class FCMManager: FirebaseMessagingService() {
         const val DATA_DEEP_LINK = "deeplink"
         const val DATA_PROFILE_ID = "profileid"
 
+        private const val INTENT_PREFIX = "tv.dustypig.dustypig"
+        const val INTENT_DATA_ID = "${INTENT_PREFIX}.notification_id"
+        const val INTENT_DATA_DEEP_LINK = "${INTENT_PREFIX}.notification_deep_link"
+
         private const val TAG = "FCMManager"
         private const val CHANNEL_NAME = "Notifications"
 
@@ -123,11 +127,11 @@ class FCMManager: FirebaseMessagingService() {
         val intent = Intent(this, MainActivity::class.java).apply {
             addFlags(Intent.FLAG_FROM_BACKGROUND or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         }
-        intent.putExtra(DATA_ID, remoteMessage.data[DATA_ID]!!.toInt())
-        intent.putExtra(DATA_DEEP_LINK, remoteMessage.data[DATA_DEEP_LINK])
+        intent.putExtra(INTENT_DATA_ID, remoteMessage.data[DATA_ID]!!.toInt())
+        intent.putExtra(INTENT_DATA_DEEP_LINK, remoteMessage.data[DATA_DEEP_LINK])
 
         val pendingIntent = PendingIntent.getActivity(
-            this, 1, intent, PendingIntent.FLAG_IMMUTABLE
+            this, 1, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
 

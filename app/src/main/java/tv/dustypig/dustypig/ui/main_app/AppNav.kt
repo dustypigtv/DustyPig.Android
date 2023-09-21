@@ -51,9 +51,8 @@ import tv.dustypig.dustypig.ui.theme.SnackbarBackgroundColor
 @Composable
 fun AppNav(vm: AppNavViewModel = hiltViewModel()){
 
-    val uiState by vm.navFlow.collectAsState()
     val navController = rememberNavController()
-
+    val scope = rememberCoroutineScope()
 
     val items = mapOf(
         Pair(stringResource(R.string.home), Pair(HomeNav.route, Icons.Filled.Home)),
@@ -153,8 +152,10 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
             ManageParentalControlsForTitleNav.composable(this, navController)
         }
 
-        if(uiState.navFromNotification) {
-            vm.doNav(navController, uiState.navRoute)
+        scope.launch {
+            vm.navFlow.collectLatest {
+                vm.doNav(navController, it)
+            }
         }
     }
 }
