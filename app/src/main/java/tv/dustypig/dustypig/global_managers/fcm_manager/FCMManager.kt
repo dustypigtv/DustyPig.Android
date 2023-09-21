@@ -12,10 +12,13 @@ import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.runBlocking
 import tv.dustypig.dustypig.MainActivity
 import tv.dustypig.dustypig.R
+import tv.dustypig.dustypig.global_managers.NotificationsManager
+import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.logToCrashlytics
 
 
@@ -28,6 +31,7 @@ class FCMManager: FirebaseMessagingService() {
         const val DATA_TITLE = "title"
         const val DATA_MESSAGE = "message"
         const val DATA_DEEP_LINK = "deeplink"
+        const val DATA_PROFILE_ID = "profileid"
 
         private const val TAG = "FCMManager"
         private const val CHANNEL_NAME = "Notifications"
@@ -35,12 +39,12 @@ class FCMManager: FirebaseMessagingService() {
         private var _activityCount = 0
 
         private var _nextAlertId: Int = 0
-        private val _inAppAlertFlow = MutableStateFlow<FCMAlertData?>(null)
-
-        val inAppAlerts = _inAppAlertFlow.asStateFlow()
+        private val _inAppAlertFlow = MutableSharedFlow<FCMAlertData>(replay = 1)
+        val inAppAlerts = _inAppAlertFlow.asSharedFlow()
 
         var currentToken: String = ""
             private set
+
 
         fun init() {
             if (_activityCount == 0) {
@@ -62,25 +66,40 @@ class FCMManager: FirebaseMessagingService() {
         fun activityPaused() {
             _activityCount--
         }
-
-
     }
 
 
     override fun onNewToken(token: String) {
         Log.d(TAG, "Refreshed token: $token")
         currentToken = token
-
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
 
         Log.d(TAG, "onMessageReceived")
+
         try {
+            val settingsManager = SettingsManager(applicationContext)
+
+            val currentProfileId = runBlocking { settingsManager.getProfileId() }
+            if(currentProfileId == 0)
+                return
+
+            val targetProfileId = remoteMessage.data[DATA_PROFILE_ID]!!.toInt()
+            if(targetProfileId != currentProfileId)
+                return
+
+            val allowed = runBlocking { settingsManager.getAllowNotifications() }
+            if(!allowed) {
+                NotificationsManager.refreshFromServer()
+                return
+            }
+
             if (_activityCount > 0)
                 addAlert(remoteMessage)
             else
                 sendNotification(remoteMessage)
+
         } catch (ex: Exception) {
             ex.logToCrashlytics()
             ex.printStackTrace()

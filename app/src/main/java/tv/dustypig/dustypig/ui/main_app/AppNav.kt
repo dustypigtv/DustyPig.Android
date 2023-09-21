@@ -8,15 +8,20 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarData
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -24,6 +29,8 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.downloads.DownloadsNav
@@ -37,12 +44,16 @@ import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.SettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
 import tv.dustypig.dustypig.ui.main_app.screens.tmdb_details.TMDBDetailsNav
+import tv.dustypig.dustypig.ui.theme.AccentColor
+import tv.dustypig.dustypig.ui.theme.SnackbarBackgroundColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNav(vm: AppNavViewModel = hiltViewModel()){
 
+    val uiState by vm.navFlow.collectAsState()
     val navController = rememberNavController()
+
 
     val items = mapOf(
         Pair(stringResource(R.string.home), Pair(HomeNav.route, Icons.Filled.Home)),
@@ -55,7 +66,18 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
 
     Scaffold(
         snackbarHost = {
-            SnackbarHost(hostState = vm.snackbarHostState)
+            SnackbarHost(
+                hostState = vm.snackbarHostState,
+                snackbar = { snackbarData: SnackbarData ->
+                    Snackbar(
+                        snackbarData = snackbarData,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        containerColor = SnackbarBackgroundColor,
+                        actionColor = AccentColor,
+                        actionContentColor = MaterialTheme.colorScheme.secondaryContainer
+                    )
+                }
+            )
         },
         bottomBar = {
             NavigationBar {
@@ -129,11 +151,10 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
             TMDBDetailsNav.composable(this, navController)
             AddToPlaylistNav.composable(this, navController)
             ManageParentalControlsForTitleNav.composable(this, navController)
-
-
         }
 
-
-
+        if(uiState.navFromNotification) {
+            vm.doNav(navController, uiState.navRoute)
+        }
     }
 }

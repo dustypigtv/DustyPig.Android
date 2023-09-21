@@ -16,6 +16,13 @@ import javax.inject.Singleton
 class NotificationsManager @Inject constructor(
     private val notificationsRepository: NotificationsRepository
 ) {
+    companion object {
+
+        fun refreshFromServer() {
+
+        }
+    }
+
     private val _notificationsFlow = MutableSharedFlow<List<Notification>>(replay = 1)
     val notifications = _notificationsFlow.asSharedFlow()
 

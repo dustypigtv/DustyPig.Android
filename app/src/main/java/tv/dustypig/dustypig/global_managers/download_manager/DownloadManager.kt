@@ -13,7 +13,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -29,7 +28,7 @@ import tv.dustypig.dustypig.api.repositories.MoviesRepository
 import tv.dustypig.dustypig.api.repositories.PlaylistRepository
 import tv.dustypig.dustypig.api.repositories.SeriesRepository
 import tv.dustypig.dustypig.global_managers.AuthManager
-import tv.dustypig.dustypig.global_managers.SettingsManager
+import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.logToCrashlytics
 import java.io.File
 import java.io.IOException
@@ -132,7 +131,7 @@ class DownloadManager @Inject constructor(
     }
     
     private suspend fun rootDir(): File {
-        val ret = if (settingsManager.loadStoreDownloadsExternally().first())
+        var ret = if (settingsManager.getStoreDownloadsExternally())
             context.getExternalFilesDir(null)!!
         else
             context.filesDir!!
@@ -141,10 +140,13 @@ class DownloadManager @Inject constructor(
             File(ret, ".nomedia").createNewFile()
         }
 
+        ret = File(ret, "downloads")
+        ret.mkdirs()
+
         return ret
     }
 
-    private suspend fun currentProfileId() = settingsManager.loadProfileId().first()
+    private suspend fun currentProfileId() = settingsManager.getProfileId()
 
     private fun getLong(cursor: Cursor, column: String): Long {
         val index = cursor.getColumnIndex(column)
@@ -355,7 +357,7 @@ class DownloadManager @Inject constructor(
                 val uri = android.net.Uri.parse(url)
                 val request = android.app.DownloadManager.Request(uri)
                 request.setDestinationUri(android.net.Uri.fromFile(file))
-                request.setAllowedOverMetered(settingsManager.loadDownloadOverCellular().first())
+                request.setAllowedOverMetered(settingsManager.getDownloadOverCellular())
                 request.setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_HIDDEN)
                 nextDownload.androidId = _androidDownloadManager.enqueue(request)
                 _db.update(nextDownload)
@@ -382,7 +384,7 @@ class DownloadManager @Inject constructor(
                 val uri = android.net.Uri.parse(url)
                 val request = android.app.DownloadManager.Request(uri)
                 request.setDestinationUri(android.net.Uri.fromFile(file))
-                request.setAllowedOverMetered(settingsManager.loadDownloadOverCellular().first())
+                request.setAllowedOverMetered(settingsManager.getDownloadOverCellular())
                 request.setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_HIDDEN)
                 nextDownload.androidId = _androidDownloadManager.enqueue(request)
                 _db.update(nextDownload)
