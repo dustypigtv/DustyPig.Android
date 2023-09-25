@@ -22,21 +22,19 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayCircleOutline
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -49,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -58,15 +57,16 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.DetailedEpisode
+import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.Credits
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.MultiDownloadDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
 import tv.dustypig.dustypig.ui.composables.OnOrientation
+import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.composables.TitleInfoData
 import tv.dustypig.dustypig.ui.composables.TitleInfoLayout
 import tv.dustypig.dustypig.ui.composables.YesNoDialog
-import tv.dustypig.dustypig.ui.theme.DimOverlay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -102,21 +102,7 @@ fun SeriesDetailsScreen(vm: SeriesDetailsViewModel) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                        Text(
-                            text = stringResource(R.string.series_info),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { vm.popBackStack() }) {
-                        Icon(Icons.Filled.ArrowBack, null)
-                    }
-                },
-                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
-            )
+            CommonTopAppBar(onClick = vm::popBackStack, text = stringResource(R.string.series_info))
         }
     ) { innerPadding ->
 
@@ -184,12 +170,13 @@ fun SeriesDetailsScreen(vm: SeriesDetailsViewModel) {
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 private fun EpisodeRow(episode: DetailedEpisode, vm: SeriesDetailsViewModel) {
+    
     Row(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.Top,
         modifier = Modifier
             .height(64.dp)
-            .background(color = MaterialTheme.colorScheme.tertiaryContainer)
+            .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp), shape = RoundedCornerShape(4.dp))
     ) {
         Box(
             modifier = Modifier
@@ -201,16 +188,17 @@ private fun EpisodeRow(episode: DetailedEpisode, vm: SeriesDetailsViewModel) {
                 model = episode.artworkUrl,
                 contentDescription = "",
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(shape = RoundedCornerShape(4.dp))
             )
 
-            Icon(
+            TintedIcon(
                 imageVector = Icons.Filled.PlayCircleOutline,
-                contentDescription = null,
                 modifier = Modifier
                     .size(36.dp)
                     .clip(shape = CircleShape)
-                    .background(DimOverlay)
+                    .background(color = Color.Black.copy(alpha = 0.5f))
                     .clickable { vm.playEpisode(episode.id) }
             )
 
@@ -224,7 +212,7 @@ private fun EpisodeRow(episode: DetailedEpisode, vm: SeriesDetailsViewModel) {
                 text = episode.shortDisplayTitle(),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
             )
             Text(
                 text = episode.description ?: stringResource(R.string.no_description),
@@ -243,15 +231,16 @@ private fun EpisodeRow(episode: DetailedEpisode, vm: SeriesDetailsViewModel) {
         ) {
 
             IconButton(onClick = { vm.navToEpisodeInfo(episode.id) }) {
-                Icon(
-                    imageVector = Icons.Outlined.Info,
-                    contentDescription = null
+                TintedIcon(
+                    imageVector = Icons.Outlined.Info
                 )
             }
         }
 
     }
 }
+
+
 
 
 
@@ -279,7 +268,6 @@ private fun PhoneLayout(vm: SeriesDetailsViewModel, innerPadding: PaddingValues,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(hdp)
-                    .background(MaterialTheme.colorScheme.secondaryContainer)
             ) {
                 if (uiState.backdropUrl.isBlank()) {
                     GlideImage(

@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -19,6 +18,7 @@ import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
 import javax.inject.Inject
 
+
 @HiltViewModel
 class AddToPlaylistViewModel  @Inject constructor(
     private val routeNavigator: RouteNavigator,
@@ -27,7 +27,7 @@ class AddToPlaylistViewModel  @Inject constructor(
 ): ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(AddToPlaylistUIState())
-    val uiState: StateFlow<AddToPlaylistUIState> = _uiState.asStateFlow()
+    val uiState = _uiState.asStateFlow()
 
     private var _data: List<BasicPlaylist> = listOf()
 

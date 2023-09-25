@@ -272,6 +272,7 @@ class PlaylistDetailsViewModel @Inject constructor(
 
     fun navToItem(id: Int) {
         val pli = _detailedPlaylist.items?.firstOrNull { it.id == id } ?: return
+        ScreenLoadingInfo.clearInfo()
         if(pli.mediaType == MediaTypes.Movie) {
             navigateToRoute(MovieDetailsNav.getRouteForId(pli.mediaId))
         } else if(pli.mediaType == MediaTypes.Episode) {

@@ -1,63 +1,86 @@
 package tv.dustypig.dustypig.ui.theme
 
 import android.app.Activity
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
+import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 
-private val DarkColorScheme = darkColorScheme(
 
+
+private val MaggiesColorScheme = darkColorScheme(
+    primary = MaggiePink,
+    onPrimary = Color.White,
+    background = Color.Black,
+    onBackground = MaggieYellow,
+    secondaryContainer = MaggieLightPink,
+    tertiaryContainer = MaggieDimPink
+)
+
+
+private val DustyPigColorScheme = darkColorScheme(
     primary = Color.White,
     onPrimary = Color.Black,
-
-    secondary = Color.White,
-    onSecondary = Gray,
-
-    tertiary = Color.Black,
-    onTertiary = Color.White,
-
-    primaryContainer = Color.White,
-    onPrimaryContainer = Color.Black,
-
-    secondaryContainer = DarkGray,
-    onSecondaryContainer = Color.White,
-
-    tertiaryContainer = DialogGray,
-    onTertiaryContainer = Color.White,
-
     background = Color.Black,
     onBackground = Color.White,
-
-    surface = Color.Black,
-    onSurface = Color.White,
-
-    surfaceVariant = Color.Black,
-    onSurfaceVariant = Color.Gray,
-
-    outline = Color.White,
-
-    error = Color.Red,
+    surface = DustyPigDarkGray,
+    secondaryContainer = DustyPigGray,
+    tertiaryContainer = DustyPigGray
 )
+
+
+private fun accentColorScheme(
+    primary: Color
+): ColorScheme {
+
+    //background is black + 5% primary
+    val background = Color(primary.red * 0.05f, primary.green * 0.05f, primary.blue * 0.05f, 1f)
+
+    //foreground is white
+
+    //secondaryContainer primary -> 75% closer to white
+    val r2 = primary.red + ((1f - primary.red) * 0.75f)
+    val g2 = primary.green + ((1f - primary.green) * 0.75f)
+    val b2 = primary.blue + ((1f - primary.blue) * 0.75f)
+    val secondaryContainer = Color(r2, g2, b2, 1f)
+
+    //tertiaryContainer is primary -> 50% closer to black, with 50% alpha
+    val tertiaryContainer = primary.copy(0.5f, primary.red * 0.5f, primary.green * 0.5f, primary.blue * 0.5f)
+
+    return darkColorScheme(
+        primary = primary,
+        onPrimary = Color.White,
+        background = background,
+        onBackground = Color.White,
+        surface = background,
+        secondaryContainer = secondaryContainer,
+        tertiaryContainer = tertiaryContainer
+    )
+}
 
 
 @Composable
 fun DustyPigTheme(
+    currentTheme: Themes,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = DarkColorScheme
+    val colorScheme = when(currentTheme) {
+        Themes.Maggies -> MaggiesColorScheme
+        Themes.DustyPig -> DustyPigColorScheme
+        Themes.LB -> accentColorScheme(LBPrimary)
+        Themes.Red -> accentColorScheme(NetflixRed)
+        Themes.HuluGreen -> accentColorScheme(HuluGreen)
+        Themes.DisneyBlue -> accentColorScheme(DisneyBlue)
+        Themes.BurntOrange -> accentColorScheme(BurntOrange)
+        else -> darkColorScheme()
+    }
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -74,21 +97,3 @@ fun DustyPigTheme(
     )
 }
 
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Preview
-@Composable
-fun ThemePreview() {
-
-    DustyPigTheme {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp, alignment = Alignment.CenterVertically),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize()
-        ) {
-
-
-        }
-    }
-
-}

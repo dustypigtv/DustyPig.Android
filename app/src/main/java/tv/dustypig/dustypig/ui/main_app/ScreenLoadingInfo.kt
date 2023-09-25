@@ -11,5 +11,5 @@ object ScreenLoadingInfo {
         this.backdropUrl = backdropUrl
     }
 
-
+    fun clearInfo() = setInfo("", "", "")
 }

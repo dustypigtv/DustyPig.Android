@@ -30,6 +30,7 @@ import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
 fun BasicMediaView(
     basicMedia: BasicMedia,
     routeNavigator: RouteNavigator,
+    enabled: Boolean = true,
     navigateOnClick: Boolean = true,
     clicked: ((Int) -> Unit)? = null
 ) {
@@ -43,7 +44,11 @@ fun BasicMediaView(
         if(!navigateOnClick)
             return
 
-        ScreenLoadingInfo.setInfo(title = basicMedia.title, posterUrl = basicMedia.artworkUrl, backdropUrl = basicMedia.backdropUrl ?: "")
+        ScreenLoadingInfo.setInfo(
+            title = basicMedia.title,
+            posterUrl = basicMedia.artworkUrl,
+            backdropUrl = basicMedia.backdropUrl ?: ""
+        )
 
         when (basicMedia.mediaType) {
             MediaTypes.Movie -> {
@@ -63,6 +68,8 @@ fun BasicMediaView(
     val wdp = 100.dp
     val hdp = 150.dp
 
+    val clickableModifier = if(enabled) Modifier.clickable { onClicked() } else Modifier
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -72,11 +79,10 @@ fun BasicMediaView(
             model = basicMedia.artworkUrl,
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier
+            modifier = clickableModifier
                 .align(Alignment.Center)
                 .size(wdp, hdp)
                 .clip(RoundedCornerShape(4.dp))
-                .clickable { onClicked() }
         ) {
             it
                 .placeholder(R.drawable.placeholder_tall)

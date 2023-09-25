@@ -12,8 +12,8 @@ import tv.dustypig.dustypig.api.models.HomeScreenList
 import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
-import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
-import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMorePagingSource
+import tv.dustypig.dustypig.ui.main_app.screens.home.show_more.ShowMoreNav
+import tv.dustypig.dustypig.ui.main_app.screens.home.show_more.ShowMorePagingSource
 import java.util.Calendar
 import java.util.Date
 import java.util.Timer

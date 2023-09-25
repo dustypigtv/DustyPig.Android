@@ -29,20 +29,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import tv.dustypig.dustypig.R
-import tv.dustypig.dustypig.ui.theme.DimOverlay
 
 @Composable
 private fun CountRow(count: Int, newDownloadCount: MutableIntState) {
 
     val text = if(count == 0) stringResource(R.string._0_remove_downloads) else count.toString()
-    val backgroundColor = if(newDownloadCount.intValue == count) DimOverlay else Color.Transparent
-    val color = if(newDownloadCount.intValue == count) MaterialTheme.colorScheme.primary else AlertDialogDefaults.textContentColor
+    val backgroundColor = if(newDownloadCount.intValue == count) MaterialTheme.colorScheme.primary else Color.Transparent
+    val textColor = if(newDownloadCount.intValue == count) MaterialTheme.colorScheme.onPrimary else AlertDialogDefaults.textContentColor
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(backgroundColor, shape = RoundedCornerShape(size = 8.dp))
-            .clip(shape = RoundedCornerShape(size = 8.dp))
+            .background(backgroundColor, shape = RoundedCornerShape(size = 4.dp))
+            .clip(shape = RoundedCornerShape(size = 4.dp))
             .clickable { newDownloadCount.intValue = count },
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
@@ -50,7 +49,7 @@ private fun CountRow(count: Int, newDownloadCount: MutableIntState) {
         Text(
             text = text,
             modifier = Modifier.padding(0.dp, 8.dp),
-            color = color
+            color = textColor
         )
     }
 }

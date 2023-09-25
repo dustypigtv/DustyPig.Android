@@ -1,6 +1,5 @@
 package tv.dustypig.dustypig.ui.main_app.screens.playlist_details
 
-//import tv.dustypig.dustypig.download_manager.DownloadManager
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
@@ -34,7 +33,6 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.DownloadDone
@@ -56,8 +54,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -96,13 +93,14 @@ import org.burnoutcrew.reorderable.reorderable
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.PlaylistItem
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
+import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.MultiDownloadDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
 import tv.dustypig.dustypig.ui.composables.OnOrientation
+import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.composables.YesNoDialog
 import tv.dustypig.dustypig.ui.isTablet
-import tv.dustypig.dustypig.ui.theme.DimOverlay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -118,21 +116,7 @@ fun PlaylistDetailsScreen(vm: PlaylistDetailsViewModel) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.playlist_info),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { vm.popBackStack() }) {
-                        Icon(Icons.Filled.ArrowBack, null)
-                    }
-                },
-                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
-            )
+            CommonTopAppBar(onClick = vm::popBackStack, text = stringResource(R.string.playlist_info))
         }
     ) { innerPadding ->
 
@@ -372,7 +356,6 @@ private fun PhoneLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetailsUI
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(hdp)
-                        .background(MaterialTheme.colorScheme.secondaryContainer)
                 ) {
                     GlideImage(
                         model = uiState.posterUrl,
@@ -448,7 +431,7 @@ private fun PlaybackLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetail
 
 
         Row(
-            modifier = Modifier.padding(8.dp),
+            modifier = Modifier.padding(12.dp, 0.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Top
         ) {
@@ -460,13 +443,15 @@ private fun PlaybackLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetail
             )
 
             IconButton(onClick = vm::showRenameDialog) {
-                Icon(imageVector = Icons.Filled.Edit, contentDescription = "")
+                TintedIcon(imageVector = Icons.Filled.Edit)
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(text = stringResource(R.string.up_next, uiState.upNextTitle))
+        Text(modifier = Modifier.padding(12.dp, 0.dp),
+            text = stringResource(R.string.up_next, uiState.upNextTitle)
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -516,7 +501,7 @@ private fun PlaybackLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetail
 fun DismissBackground(dismissState: DismissState) {
 
     val color = when (dismissState.dismissDirection) {
-        DismissDirection.EndToStart -> Color.Red
+        DismissDirection.EndToStart -> MaterialTheme.colorScheme.errorContainer
         else -> Color.Transparent
     }
     val direction = dismissState.dismissDirection
@@ -524,7 +509,7 @@ fun DismissBackground(dismissState: DismissState) {
     Row(
         modifier = Modifier
             .fillMaxSize()
-            .background(color)
+            .background(color, shape = RoundedCornerShape(4.dp))
             .padding(12.dp, 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.End
@@ -572,15 +557,14 @@ private fun PlaylistItemLayout(vm: PlaylistDetailsViewModel, playlistItem: Playl
                     verticalAlignment = Alignment.Top,
                     modifier = Modifier
                         .height(64.dp)
-                        .background(color = MaterialTheme.colorScheme.tertiaryContainer)
                         .shadow(elevation.value)
+                        .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp), shape = RoundedCornerShape(4.dp))
                 ) {
 
                     Box(
                         modifier = Modifier
                             .fillMaxHeight()
                             .width(24.dp)
-                            .background(color = MaterialTheme.colorScheme.onSurfaceVariant)
                             .clickable { }
                             .detectReorder(state)
                     ) {
@@ -601,16 +585,17 @@ private fun PlaylistItemLayout(vm: PlaylistDetailsViewModel, playlistItem: Playl
                             model = playlistItem.artworkUrl,
                             contentDescription = "",
                             contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(shape = RoundedCornerShape(4.dp))
                         )
 
-                        Icon(
+                        TintedIcon(
                             imageVector = Icons.Filled.PlayCircleOutline,
-                            contentDescription = null,
                             modifier = Modifier
                                 .size(36.dp)
                                 .clip(shape = CircleShape)
-                                .background(DimOverlay)
+                                .background(color = Color.Black.copy(alpha = 0.5f))
                                 .clickable { vm.playItem(playlistItem.id) }
                         )
 
@@ -682,14 +667,14 @@ private fun DeleteLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetailsU
                 enabled = !(uiState.loading || uiState.busy),
                 onClick = vm::deletePlaylist,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Red,
-                    contentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
                 ),
                 modifier = modifier
             ) {
                 Text(text = stringResource(R.string.delete))
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
     }
+    Spacer(modifier = Modifier.height(16.dp))
 }

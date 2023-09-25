@@ -1,6 +1,5 @@
 package tv.dustypig.dustypig.ui.main_app.screens.tmdb_details
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,21 +22,14 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -48,13 +40,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
@@ -64,12 +54,12 @@ import tv.dustypig.dustypig.api.models.RequestStatus
 import tv.dustypig.dustypig.api.models.TitleRequestPermissions
 import tv.dustypig.dustypig.ui.composables.Avatar
 import tv.dustypig.dustypig.ui.composables.BasicMediaView
+import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.Credits
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
 import tv.dustypig.dustypig.ui.composables.OnOrientation
 import tv.dustypig.dustypig.ui.isTablet
-import tv.dustypig.dustypig.ui.theme.DimOverlay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,20 +75,9 @@ fun TMDBDetailsScreen(vm: TMDBDetailsViewModel) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = if(uiState.isMovie) stringResource(R.string.movie_info) else stringResource(R.string.series_info) ,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { vm.popBackStack() }) {
-                        Icon(Icons.Filled.ArrowBack, null)
-                    }
-                },
-                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+            CommonTopAppBar(
+                onClick = vm::popBackStack,
+                text = if(uiState.isMovie) stringResource(R.string.movie_info) else stringResource(R.string.series_info)
             )
         }
     ) { innerPadding ->
@@ -153,13 +132,10 @@ fun TMDBDetailsScreen(vm: TMDBDetailsViewModel) {
                     ) {
                         items(uiState.friends) { friend ->
 
-                            val backgroundColor = if(friendId.intValue == friend.id) DimOverlay else Color.Transparent
-
                             Row (
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
-                                    .background(backgroundColor, shape = RoundedCornerShape(size = 48.dp))
                                     .clip(shape = RoundedCornerShape(size = 48.dp))
                                     .fillMaxSize()
                                     .clickable { friendId.intValue = friend.id }
@@ -173,7 +149,6 @@ fun TMDBDetailsScreen(vm: TMDBDetailsViewModel) {
                                 Text(
                                     text = friend.displayName,
                                     maxLines = 2,
-                                    color = if(friendId.intValue == friend.id) MaterialTheme.colorScheme.primary else AlertDialogDefaults.textContentColor
                                 )
                             }
                         }
@@ -275,7 +250,6 @@ private fun PhoneLayout(vm: TMDBDetailsViewModel, uiState: TMDBDetailsUIState, c
             modifier = Modifier
                 .fillMaxWidth()
                 .height(hdp)
-                .background(MaterialTheme.colorScheme.secondaryContainer)
         ) {
             if (uiState.backdropUrl.isBlank()) {
                 GlideImage(
@@ -345,7 +319,7 @@ fun InfoLayout(vm: TMDBDetailsViewModel, uiState: TMDBDetailsUIState, criticalEr
                         text = uiState.rated,
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier
-                            .border(width = 1.dp, color = Color.White, shape = RectangleShape)
+                            .border(width = 1.dp, color = MaterialTheme.colorScheme.outline, shape = RectangleShape)
                             .padding(8.dp, 4.dp)
                     )
                 }

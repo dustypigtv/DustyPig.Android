@@ -1,9 +1,11 @@
 package tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,29 +16,29 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -46,6 +48,7 @@ import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.ui.composables.BasicMediaView
+import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
@@ -55,25 +58,16 @@ fun AddToPlaylistScreen(vm: AddToPlaylistViewModel) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val uiState: AddToPlaylistUIState by vm.uiState.collectAsState()
     val listState = rememberLazyListState()
-    val newName = remember { mutableStateOf("")}
+    var newName by remember { mutableStateOf("")}
+    val enableSaveButton by remember {
+        derivedStateOf {
+            !uiState.loading && newName.isNotBlank()
+        }
+    }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.add_to_playlist),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { vm.popBackStack() }) {
-                        Icon(Icons.Filled.ArrowBack, null)
-                    }
-                },
-                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
-            )
+            CommonTopAppBar(onClick = vm::popBackStack, text = stringResource(R.string.add_to_playlist))
         }
     ) { innerPadding ->
 
@@ -91,8 +85,10 @@ fun AddToPlaylistScreen(vm: AddToPlaylistViewModel) {
         } else {
 
             Box (
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(12.dp, 0.dp),
+                contentAlignment = Alignment.TopCenter
             ) {
 
                 LazyColumn(
@@ -103,16 +99,18 @@ fun AddToPlaylistScreen(vm: AddToPlaylistViewModel) {
                     state = listState
                 ) {
                     item {
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth(),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            Spacer(modifier = Modifier.height(24.dp))
                             OutlinedTextField(
-                                value = newName.value,
-                                onValueChange = { newName.value = it },
+                                value = newName,
+                                onValueChange = { newName = it },
                                 placeholder = { Text(text = stringResource(R.string.new_playlist_name)) },
                                 label = { Text(text = stringResource(R.string.new_playlist_name)) },
                                 singleLine = true,
@@ -123,27 +121,50 @@ fun AddToPlaylistScreen(vm: AddToPlaylistViewModel) {
                             )
 
                             Button(
-                                onClick = { vm.newPlaylist(newName.value) },
-                                enabled = !uiState.busy,
+                                onClick = { vm.newPlaylist(newName) },
+                                enabled = enableSaveButton,
                                 modifier = Modifier.width(300.dp)
                             ) {
                                 Text(text = stringResource(R.string.save))
                             }
 
+
                             if (uiState.playlists.isNotEmpty()) {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(text = stringResource(R.string.or_choose_a_playlist_below))
+                                Row (
+                                  modifier = Modifier.height(IntrinsicSize.Min)
+                                ) {
+                                    Box (
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Divider()
+                                        Text(
+                                            text = buildString {
+                                                append("   ")
+                                                append(stringResource(R.string.or_choose_a_playlist_below))
+                                                append("   ")
+                                            },
+                                            modifier = Modifier.background(MaterialTheme.colorScheme.background)
+                                        )
+                                    }
+                                }
                                 Spacer(modifier = Modifier.height(8.dp))
                             }
                         }
                     }
+
 
                     items(uiState.playlists) {
                         val id = it.id
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(150.dp),
+                                .height(150.dp)
+                                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp), shape = RoundedCornerShape(4.dp))
+                                .clip(RoundedCornerShape(4.dp))
+                                .clickable {
+                                    if (!uiState.busy)
+                                        vm.selectPlaylist(id)
+                                },
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
@@ -165,24 +186,19 @@ fun AddToPlaylistScreen(vm: AddToPlaylistViewModel) {
                                     ),
                                     routeNavigator = vm,
                                     navigateOnClick = false,
-                                ) {
-                                    if(!uiState.busy)
-                                        vm.selectPlaylist(id)
-                                }
+                                    enabled = false,
+                                    clicked = null
+                                )
                             }
 
                             Text(
                                 text = it.name,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        if(!uiState.busy)
-                                            vm.selectPlaylist(id)
-                                    },
+                                modifier = Modifier.fillMaxWidth(),
                                 maxLines = 4,
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
+
                     }
 
                     item {
@@ -191,7 +207,7 @@ fun AddToPlaylistScreen(vm: AddToPlaylistViewModel) {
                 }
 
                 if(uiState.busy)
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
 
             }
         }
@@ -207,11 +223,6 @@ fun AddToPlaylistScreen(vm: AddToPlaylistViewModel) {
     }
 
 }
-
-
-
-
-
 
 
 

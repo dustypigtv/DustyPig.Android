@@ -100,4 +100,13 @@
     <string name="settings">Settings</string>
     <string name="edit">Edit</string>
     <string name="delete_all_downloads">Delete All Downloads</string>
+    <string name="select_theme">Select Theme</string>
+    <string name="maggie_s">Maggie\'s</string>
+    <string name="dusty_pig_classic">Dusty Pig Classic</string>
+    <string name="lb">LB</string>
+    <string name="red_hot">Red Hot</string>
+    <string name="neon_green">Neon Green</string>
+    <string name="cool_blue">Cool Blue</string>
+    <string name="burnt_orange">Burnt Orange</string>
+    <string name="android_dark">Android Dark</string>
 </resources>

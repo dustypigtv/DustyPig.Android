@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -51,31 +52,33 @@ private fun CreditsRow(header: String, maxHeaderWidth: MutableState<Dp>, items: 
 
         Spacer(modifier = Modifier.height(spacerHeight))
         Row (
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .padding(12.dp, 0.dp)
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if(measured) {
                 Text(
                     text = header,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.width(maxHeaderWidth.value)
+                    modifier = Modifier.width(maxHeaderWidth.value),
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
                 )
                 Text(
                     text = items.joinToString(", "),
                     modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
                 )
             } else {
                 Text(
                     text = header,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
                         .onGloballyPositioned {
                             val width = with(density) { it.size.width.toDp() }
                             if (width > maxHeaderWidth.value)
                                 maxHeaderWidth.value = width
                             measured = true
-                        }
+                        },
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
                 )
             }
         }

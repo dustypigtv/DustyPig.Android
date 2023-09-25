@@ -97,6 +97,7 @@ fun HomeScreen(vm: HomeViewModel) {
                     .fillMaxSize()
                     .pullRefresh(ptrState)
             ) {
+
                 items(uiState.sections, key = { section -> section.listId }) { section ->
                     Column (
                         modifier = Modifier
@@ -119,7 +120,7 @@ fun HomeScreen(vm: HomeViewModel) {
                                 imageVector = Icons.Filled.ChevronRight,
                                 contentDescription = null,
                                 modifier = Modifier.size(20.dp),
-                                tint = Color.White
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
                         LazyRow(

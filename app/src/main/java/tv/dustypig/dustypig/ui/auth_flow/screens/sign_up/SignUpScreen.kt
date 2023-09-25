@@ -77,7 +77,7 @@ fun SignUpScreen(vm: SignUpViewModel) {
 
 
         Image(
-            imageVector = ImageVector.vectorResource(id = R.drawable.ic_logo),
+            imageVector = ImageVector.vectorResource(id = R.drawable.ic_logo_transparent),
             modifier = Modifier.size(100.dp),
             contentDescription = ""
         )

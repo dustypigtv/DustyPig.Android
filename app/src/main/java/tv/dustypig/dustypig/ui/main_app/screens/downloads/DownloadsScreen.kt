@@ -41,6 +41,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -66,8 +67,8 @@ import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
 import tv.dustypig.dustypig.global_managers.download_manager.UIJob
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.MultiDownloadDialog
+import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.composables.YesNoDialog
-import tv.dustypig.dustypig.ui.theme.DimOverlay
 
 
 @OptIn(ExperimentalGlideComposeApi::class, ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
@@ -162,8 +163,8 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
                                 Row(
                                     modifier = modifier
                                         .fillMaxWidth()
-                                        .clip(shape = RoundedCornerShape(8.dp))
-                                        .background(color = MaterialTheme.colorScheme.tertiaryContainer, shape = RoundedCornerShape(8.dp))
+                                        .clip(shape = RoundedCornerShape(4.dp))
+                                        .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp))
                                         .animateItemPlacement(),
                                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
@@ -181,7 +182,6 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
                                                 contentScale = ContentScale.Crop,
                                                 modifier = Modifier
                                                     .fillMaxSize()
-                                                    .background(MaterialTheme.colorScheme.onSecondary)
                                                     .blur(50.dp)
                                             )
 
@@ -198,8 +198,6 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
                                                 contentScale = ContentScale.Crop,
                                                 modifier = Modifier
                                                     .fillMaxSize()
-                                                    .background(MaterialTheme.colorScheme.onSecondary)
-
                                             )
                                         }
 
@@ -209,13 +207,12 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
                                                 showPlay = job.downloads.firstOrNull()?.status == DownloadStatus.Finished
                                         }
                                         if(showPlay) {
-                                            Icon(
+                                            TintedIcon(
                                                 imageVector = Icons.Filled.PlayCircleOutline,
-                                                contentDescription = null,
                                                 modifier = Modifier
                                                     .size(36.dp)
                                                     .clip(shape = CircleShape)
-                                                    .background(DimOverlay)
+                                                    .background(color = Color.Black.copy(alpha = 0.5f))
                                                     .clickable { vm.playNext(job.mediaId, job.mediaType) }
                                             )
                                         }
@@ -251,7 +248,7 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
                                                 Text(
                                                     text = job.statusDetails,
                                                     style = MaterialTheme.typography.bodySmall,
-                                                    color = Color.Red
+                                                    color = MaterialTheme.colorScheme.error
                                                 )
                                         }
                                     }
@@ -265,16 +262,14 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
 
                                         when (job.status) {
                                             DownloadStatus.Finished -> {
-                                                Icon(
+                                                TintedIcon(
                                                     imageVector = Icons.Filled.DownloadDone,
-                                                    contentDescription = null,
                                                     modifier = Modifier.size(24.dp)
                                                 )
                                             }
                                             DownloadStatus.Paused -> {
-                                                Icon(
+                                                TintedIcon(
                                                     imageVector = Icons.Filled.Pause,
-                                                    contentDescription = null,
                                                     modifier = Modifier.size(24.dp)
                                                 )
                                             }
@@ -283,21 +278,20 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
                                                     imageVector = Icons.Filled.Error,
                                                     contentDescription = null,
                                                     modifier = Modifier.size(24.dp),
-                                                    tint = Color.Red
+                                                    tint = MaterialTheme.colorScheme.error
                                                 )
                                             }
                                             DownloadStatus.Pending -> {
-                                                Icon(
+                                                TintedIcon(
                                                     imageVector = Icons.Filled.HourglassBottom,
-                                                    contentDescription = null,
                                                     modifier = Modifier.size(24.dp)
                                                 )
                                             }
                                             else -> {
                                                 CircularProgressIndicator(
                                                     modifier = Modifier.size(24.dp),
-                                                    color = MaterialTheme.colorScheme.onSecondary,
-                                                    progress = 1.0f
+                                                    progress = 1.0f,
+                                                    color = MaterialTheme.colorScheme.tertiaryContainer
                                                 )
 
                                                 CircularProgressIndicator(
@@ -325,8 +319,8 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
                                 modifier = Modifier
                                     .padding(start = 36.dp, top = 0.dp, end = 0.dp, bottom = 0.dp)
                                     .fillMaxWidth()
-                                    .clip(shape = RoundedCornerShape(8.dp))
-                                    .background(color = MaterialTheme.colorScheme.tertiaryContainer, shape = RoundedCornerShape(8.dp))
+                                    .clip(shape = RoundedCornerShape(4.dp))
+                                    .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp))
                                     .animateItemPlacement(),
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
@@ -344,7 +338,6 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
                                             contentScale = ContentScale.Crop,
                                             modifier = Modifier
                                                 .fillMaxSize()
-                                                .background(MaterialTheme.colorScheme.onSecondary)
                                                 .blur(50.dp)
                                         )
 
@@ -361,19 +354,16 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
                                             contentScale = ContentScale.Crop,
                                             modifier = Modifier
                                                 .fillMaxSize()
-                                                .background(MaterialTheme.colorScheme.onSecondary)
-
                                         )
                                     }
 
                                     if(dl.status == DownloadStatus.Finished) {
-                                        Icon(
+                                        TintedIcon(
                                             imageVector = Icons.Filled.PlayCircleOutline,
-                                            contentDescription = null,
                                             modifier = Modifier
                                                 .size(36.dp)
                                                 .clip(shape = CircleShape)
-                                                .background(DimOverlay)
+                                                .background(color = Color.Black.copy(alpha = 0.5f))
                                                 .clickable { vm.playItem(job.mediaId, job.mediaType, dl.mediaId) }
                                         )
                                     }
@@ -408,7 +398,7 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
                                             Text(
                                                 text = dl.statusDetails,
                                                 style = MaterialTheme.typography.bodySmall,
-                                                color = Color.Red
+                                                color = MaterialTheme.colorScheme.error
                                             )
                                     }
                                 }
@@ -422,16 +412,14 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
 
                                     when (dl.status) {
                                         DownloadStatus.Finished -> {
-                                            Icon(
+                                            TintedIcon(
                                                 imageVector = Icons.Filled.DownloadDone,
-                                                contentDescription = null,
                                                 modifier = Modifier.size(24.dp)
                                             )
                                         }
                                         DownloadStatus.Paused -> {
-                                            Icon(
+                                            TintedIcon(
                                                 imageVector = Icons.Filled.Pause,
-                                                contentDescription = null,
                                                 modifier = Modifier.size(24.dp)
                                             )
                                         }
@@ -440,21 +428,20 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
                                                 imageVector = Icons.Filled.Error,
                                                 contentDescription = null,
                                                 modifier = Modifier.size(24.dp),
-                                                tint = Color.Red
+                                                tint = MaterialTheme.colorScheme.error
                                             )
                                         }
                                         DownloadStatus.Pending -> {
-                                            Icon(
+                                            TintedIcon(
                                                 imageVector = Icons.Filled.HourglassBottom,
-                                                contentDescription = null,
                                                 modifier = Modifier.size(24.dp)
                                             )
                                         }
                                         else -> {
                                             CircularProgressIndicator(
                                                 modifier = Modifier.size(24.dp),
-                                                color = MaterialTheme.colorScheme.onSecondary,
-                                                progress = 1.0f
+                                                progress = 1.0f,
+                                                color = MaterialTheme.colorScheme.tertiaryContainer
                                             )
 
                                             CircularProgressIndicator(
@@ -501,8 +488,8 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
                             Button(
                                 onClick = vm::deleteAll,
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.Red,
-                                    contentColor = Color.White
+                                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                                    contentColor = MaterialTheme.colorScheme.onErrorContainer
                                 ),
                                 modifier = modifier
                             ) {
@@ -561,12 +548,8 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
 fun DismissBackground(dismissState: DismissState, uiJob: UIJob) {
 
     val color = when (dismissState.dismissDirection) {
-        DismissDirection.EndToStart -> Color.Red
-        DismissDirection.StartToEnd -> when(uiJob.mediaType) {
-            MediaTypes.Series -> MaterialTheme.colorScheme.onSecondary
-            MediaTypes.Playlist -> MaterialTheme.colorScheme.onSecondary
-            else -> Color.Transparent
-        }
+        DismissDirection.EndToStart -> MaterialTheme.colorScheme.errorContainer
+        DismissDirection.StartToEnd -> MaterialTheme.colorScheme.secondaryContainer
         else -> Color.Transparent
     }
     val direction = dismissState.dismissDirection
@@ -587,12 +570,12 @@ fun DismissBackground(dismissState: DismissState, uiJob: UIJob) {
         when(direction) {
             DismissDirection.EndToStart -> Icon(
                 imageVector = Icons.Filled.Delete,
-                contentDescription = stringResource(R.string.delete)
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onErrorContainer
             )
 
-            DismissDirection.StartToEnd -> Icon(
-                imageVector = Icons.Filled.Edit,
-                contentDescription = stringResource(R.string.edit)
+            DismissDirection.StartToEnd -> TintedIcon(
+                imageVector = Icons.Filled.Edit
             )
 
             else -> { }

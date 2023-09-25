@@ -1,6 +1,7 @@
 package tv.dustypig.dustypig.ui.main_app.screens.search
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,20 +21,16 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -45,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -60,6 +58,7 @@ import tv.dustypig.dustypig.api.models.BasicTMDB
 import tv.dustypig.dustypig.api.models.TMDB_MediaTypes
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.composables.BasicMediaView
+import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.main_app.ScreenLoadingInfo
 import tv.dustypig.dustypig.ui.main_app.screens.tmdb_details.TMDBDetailsNav
 
@@ -98,32 +97,21 @@ fun SearchScreen(vm: SearchViewModel) {
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = { keyboardController?.hide() }),
             leadingIcon = {
-                Icon(
-                    imageVector = Icons.Filled.Search,
-                    contentDescription = null
+                TintedIcon(
+                    imageVector = Icons.Filled.Search
                 )
             },
             trailingIcon = {
                 if(query.isNotEmpty()) {
                     IconButton(onClick = { updateQuery("") }) {
-                        Icon(
+                        TintedIcon(
                             imageVector = Icons.Filled.Cancel,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSecondary
                         )
                     }
                 }
             },
             shape = RoundedCornerShape(48.dp),
-            colors = TextFieldDefaults.outlinedTextFieldColors(
-                containerColor = MaterialTheme.colorScheme.secondary,
-                textColor = MaterialTheme.colorScheme.onSecondary,
-                cursorColor = MaterialTheme.colorScheme.onSecondary,
-                selectionColors = TextSelectionColors(
-                    handleColor = MaterialTheme.colorScheme.onSecondary,
-                    backgroundColor = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.4f)
-                )
-            )
+
         )
 
         Box(
@@ -144,6 +132,7 @@ fun SearchScreen(vm: SearchViewModel) {
 
                     if (uiState.allowTMDB) {
 
+
                         TabRow(
                             selectedTabIndex = uiState.tabIndex
                         ) {
@@ -154,8 +143,8 @@ fun SearchScreen(vm: SearchViewModel) {
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Image(
-                                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_logo),
-                                            modifier = Modifier.size(36.dp),
+                                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_logo_transparent),
+                                            modifier = Modifier.size(36.dp).background(Color.Transparent),
                                             contentDescription = null
                                         )
                                         Text(text = stringResource(R.string.available))
@@ -166,8 +155,6 @@ fun SearchScreen(vm: SearchViewModel) {
                                     vm.updateTabIndex(0)
                                     keyboardController?.hide()
                                 },
-                                selectedContentColor = MaterialTheme.colorScheme.primary,
-                                unselectedContentColor = MaterialTheme.colorScheme.primary.copy(0.5f)
                             )
                             Tab(
                                 text = {
@@ -182,8 +169,6 @@ fun SearchScreen(vm: SearchViewModel) {
                                     vm.updateTabIndex(1)
                                     keyboardController?.hide()
                                 },
-                                selectedContentColor = MaterialTheme.colorScheme.primary,
-                                unselectedContentColor = MaterialTheme.colorScheme.primary.copy(0.5f)
                             )
                         }
 

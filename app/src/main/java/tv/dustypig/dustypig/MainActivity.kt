@@ -13,6 +13,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.core.content.ContextCompat
@@ -20,10 +25,13 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import tv.dustypig.dustypig.global_managers.AuthManager
 import tv.dustypig.dustypig.global_managers.NotificationsManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
 import tv.dustypig.dustypig.global_managers.fcm_manager.FCMManager
+import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
+import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.auth_flow.AuthNav
 import tv.dustypig.dustypig.ui.composables.LockScreenOrientation
 import tv.dustypig.dustypig.ui.isTablet
@@ -46,6 +54,9 @@ class MainActivity: ComponentActivity() {
     @Inject
     lateinit var notificationsManager: NotificationsManager
 
+    @Inject
+    lateinit var settingsManager: SettingsManager
+
     private lateinit var analytics: FirebaseAnalytics
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,7 +68,18 @@ class MainActivity: ComponentActivity() {
         downloadManager.start()
 
         setContent {
-            DustyPigTheme {
+
+            var currentTheme by remember {
+                mutableStateOf(Themes.Maggies)
+            }
+
+            LaunchedEffect(true) {
+                settingsManager.themeFlow.collectLatest {
+                    currentTheme = it
+                }
+            }
+
+            DustyPigTheme(currentTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -123,7 +145,6 @@ class MainActivity: ComponentActivity() {
         } else if (authManager.loginState == AuthManager.LOGIN_STATE_LOGGED_OUT) {
             AuthNav()
         }
-
     }
 
 
@@ -151,14 +172,11 @@ class MainActivity: ComponentActivity() {
         }
     }
 
+
+
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { isGranted: Boolean ->
-        if (!isGranted) {
-            Log.d(TAG, "Notification permission not granted")
-        }
+        Log.d(TAG, "Notification permission granted: $isGranted")
     }
-
-
-
 }

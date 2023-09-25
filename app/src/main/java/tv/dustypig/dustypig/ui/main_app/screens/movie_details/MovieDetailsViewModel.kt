@@ -73,8 +73,6 @@ class MovieDetailsViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         loading = false,
-                        posterUrl = _detailedMovie.artworkUrl,
-                        backdropUrl = _detailedMovie.backdropUrl ?: "",
                         creditsData = CreditsData(
                             genres = Genres(_detailedMovie.genres).toList(),
                             cast = _detailedMovie.cast ?: listOf(),
@@ -84,6 +82,16 @@ class MovieDetailsViewModel @Inject constructor(
                             owner = _detailedMovie.owner ?: ""
                         )
                     )
+                }
+
+                // Prevent flicker by only updating if needed
+                if(_detailedMovie.artworkUrl != _uiState.value.posterUrl || _detailedMovie.backdropUrl != _uiState.value.backdropUrl) {
+                    _uiState.update {
+                        it.copy(
+                            posterUrl = _detailedMovie.artworkUrl,
+                            backdropUrl = _detailedMovie.backdropUrl ?: ""
+                        )
+                    }
                 }
 
                 _titleInfoUIState.update { it ->

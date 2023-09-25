@@ -11,13 +11,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarData
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,10 +40,9 @@ import tv.dustypig.dustypig.ui.main_app.screens.playlist_details.PlaylistDetails
 import tv.dustypig.dustypig.ui.main_app.screens.search.SearchNav
 import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.SettingsNav
-import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
+import tv.dustypig.dustypig.ui.main_app.screens.settings.theme_settings.ThemeSettingsNav
+import tv.dustypig.dustypig.ui.main_app.screens.home.show_more.ShowMoreNav
 import tv.dustypig.dustypig.ui.main_app.screens.tmdb_details.TMDBDetailsNav
-import tv.dustypig.dustypig.ui.theme.AccentColor
-import tv.dustypig.dustypig.ui.theme.SnackbarBackgroundColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,16 +63,7 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
     Scaffold(
         snackbarHost = {
             SnackbarHost(
-                hostState = vm.snackbarHostState,
-                snackbar = { snackbarData: SnackbarData ->
-                    Snackbar(
-                        snackbarData = snackbarData,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                        containerColor = SnackbarBackgroundColor,
-                        actionColor = AccentColor,
-                        actionContentColor = MaterialTheme.colorScheme.secondaryContainer
-                    )
-                }
+                hostState = vm.snackbarHostState
             )
         },
         bottomBar = {
@@ -125,9 +113,14 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
                                 launchSingleTop = true
 
                                 // Restore state when reselecting a previously selected item
-                                //restoreState = true
+                                restoreState = true
                             }
-                        }
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                            //SecondaryContainer
+                        )
                     )
                 }
             }
@@ -150,6 +143,9 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
             TMDBDetailsNav.composable(this, navController)
             AddToPlaylistNav.composable(this, navController)
             ManageParentalControlsForTitleNav.composable(this, navController)
+
+            //Settings
+            ThemeSettingsNav.composable(this, navController)
         }
 
         scope.launch {

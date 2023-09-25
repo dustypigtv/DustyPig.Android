@@ -32,7 +32,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
@@ -86,19 +85,20 @@ data class TitleInfoData(
 @Composable
 fun ActionButton(onClick: () -> Unit, caption: String, icon: ImageVector) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.width(70.dp)
     ) {
         IconButton(onClick = onClick) {
-            Icon(
+            TintedIcon(
                 imageVector = icon,
-                contentDescription = null,
                 modifier = Modifier.size(24.dp)
             )
         }
         Text(
             text = caption,
             style = MaterialTheme.typography.labelSmall,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            maxLines = 2
         )
     }
 }
@@ -156,7 +156,7 @@ fun TitleInfoLayout(info: TitleInfoData) {
             Text(
                 text = info.title,
                 fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleLarge
             )
 
             Row(
@@ -175,7 +175,7 @@ fun TitleInfoLayout(info: TitleInfoData) {
                         text = info.rated,
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier
-                            .border(width = 1.dp, color = Color.White, shape = RectangleShape)
+                            .border(width = 1.dp, color = MaterialTheme.colorScheme.outline, shape = RectangleShape)
                             .padding(8.dp, 4.dp)
                     )
                 }
@@ -197,9 +197,8 @@ fun TitleInfoLayout(info: TitleInfoData) {
                     .clickable { }
             ) {
                 IconButton(onClick = info.manageClick) {
-                    Icon(
+                    TintedIcon(
                         imageVector = FontAwesomeIcons.Solid.UserLock,
-                        contentDescription = null,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -238,11 +237,22 @@ fun TitleInfoLayout(info: TitleInfoData) {
 
                 if(info.watchListBusy) {
 
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .padding(12.dp)
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.width(70.dp)
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .padding(12.dp)
+                        )
+                        Text(
+                            text = "Watchlist",
+                            style = MaterialTheme.typography.labelSmall,
+                            textAlign = TextAlign.Center,
+                            maxLines = 2
+                        )
+                    }
 
                 } else {
                     ActionButton(
@@ -321,10 +331,17 @@ fun TitleInfoLayout(info: TitleInfoData) {
 
 
     if(epHeader.length > 1) {
-        Text(text = epHeader, textDecoration = TextDecoration.Underline)
+        Text(
+            text = epHeader,
+            textDecoration = TextDecoration.Underline,
+            modifier = Modifier.padding(12.dp, 0.dp)
+        )
         Spacer(modifier = Modifier.height(8.dp))
     }
 
-    Text(text = info.overview)
+    Text(
+        text = info.overview,
+        modifier = Modifier.padding(12.dp, 0.dp)
+    )
 }
 
