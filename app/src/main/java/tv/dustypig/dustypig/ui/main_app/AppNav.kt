@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig.ui.main_app
 
+import android.accounts.Account
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
@@ -42,6 +43,7 @@ import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.SettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.theme_settings.ThemeSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.home.show_more.ShowMoreNav
+import tv.dustypig.dustypig.ui.main_app.screens.settings.account_settings.AccountSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.tmdb_details.TMDBDetailsNav
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -146,6 +148,8 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
 
             //Settings
             ThemeSettingsNav.composable(this, navController)
+            AccountSettingsNav.composable(this, navController)
+
         }
 
         scope.launch {

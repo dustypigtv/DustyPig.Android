@@ -8,6 +8,5 @@ data class SelectProfileUIState(
     val showError: Boolean = false,
     val errorMessage: String? = null,
     val showPinDialog: Boolean = false,
-    val pin: String = "",
     val profiles: List<BasicProfile> = listOf()
 )

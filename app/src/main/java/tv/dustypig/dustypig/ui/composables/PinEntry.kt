@@ -10,8 +10,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -30,7 +33,7 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun PinEntry(valueChanged: (String) -> Unit, autoFocus: Boolean = false) {
+fun PinEntry(valueChanged: (String) -> Unit, onSubmit: (String) -> Unit) {
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -59,16 +62,27 @@ fun PinEntry(valueChanged: (String) -> Unit, autoFocus: Boolean = false) {
         FocusRequester()
     )
 
+    var currentPin by remember { mutableStateOf("") }
+
+    val imeAction by remember {
+        derivedStateOf {
+            if(currentPin.length == 4)
+                ImeAction.Go
+            else
+                ImeAction.Done
+        }
+    }
+
     fun constructPin() {
 
         var pin = ""
         for(i in pinList.indices) {
             if(pinList[i].value.isEmpty()) {
-                return
+                break
             }
             pin += pinList[i].value
         }
-
+        currentPin = pin
         valueChanged.invoke(pin)
     }
 
@@ -113,10 +127,8 @@ fun PinEntry(valueChanged: (String) -> Unit, autoFocus: Boolean = false) {
         return false
     }
 
-    if(autoFocus){
-        LaunchedEffect(true) {
-            pinFocusRequesters[0].requestFocus()
-        }
+    LaunchedEffect(true) {
+        pinFocusRequesters[0].requestFocus()
     }
 
     Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()){
@@ -130,8 +142,11 @@ fun PinEntry(valueChanged: (String) -> Unit, autoFocus: Boolean = false) {
                 textStyle = TextStyle(textAlign = TextAlign.Center),
                 value = pinList[index].value,
                 onValueChange = { newValue -> pinValueChanged(index, newValue) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword, imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword, imeAction = imeAction),
+                keyboardActions = KeyboardActions(
+                    onDone = { keyboardController?.hide() },
+                    onGo = { onSubmit(currentPin) }
+                ),
                 visualTransformation = PasswordVisualTransformation()
             )
         }

@@ -109,4 +109,17 @@
     <string name="cool_blue">Cool Blue</string>
     <string name="burnt_orange">Burnt Orange</string>
     <string name="android_dark">Android Dark</string>
+    <string name="enter_code">Enter Code:</string>
+    <string name="device_code">Device Code</string>
+    <string name="change_password">Change Password</string>
+    <string name="new_password">New Password:</string>
+    <string name="re_enter_new_password">Re-Enter New Password</string>
+    <string name="logout_of_all_devices">Logout of All Devices</string>
+    <string name="are_you_sure_you_want_to_force_all_devices_to_log_out">Are you sure you want to force all devices to log out?</string>
+    <string name="login_to_another_device">Login to Another Device</string>
+    <string name="logout">Logout</string>
+    <string name="delete_account">Delete Account</string>
+    <string name="warning">WARNING!</string>
+    <string name="delete_account_button">DELETE</string>
+    <string name="your_password_was_successfully_changed">Your password was successfully changed</string>
 </resources>

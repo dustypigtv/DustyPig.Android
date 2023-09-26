@@ -42,6 +42,13 @@ interface ApiService {
     @POST("Account/Create")
     suspend fun createAccount(@Body createAccount: CreateAccount): Response<ResponseWrapperOf<CreateAccountResponse>>
 
+    @POST("Account/ChangePassword")
+    suspend fun changePassword(@Body newPassword: SimpleValue<String>): Response<ResponseWrapper>
+
+    @DELETE("Account/Delete")
+    suspend fun deleteAccount(): Response<ResponseWrapper>
+
+
 
 
     // ***** Auth *****
@@ -53,6 +60,18 @@ interface ApiService {
 
     @POST("Auth/ProfileLogin")
     suspend fun profileLogin(@Body profileCredentials: ProfileCredentials): Response<ResponseWrapperOf<LoginResponse>>
+
+    @POST("Auth/LoginDeviceWithCode")
+    suspend fun loginDeviceWithCode(@Body deviceCode: SimpleValue<String>): Response<ResponseWrapper>
+
+    @GET("Auth/Signout")
+    suspend fun signout(): Response<ResponseWrapper>
+
+    @GET("Auth/SignoutEverywhere")
+    suspend fun signoutEverywhere(): Response<ResponseWrapper>
+
+
+
 
 
 

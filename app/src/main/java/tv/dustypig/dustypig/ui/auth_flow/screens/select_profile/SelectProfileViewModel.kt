@@ -8,13 +8,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.global_managers.fcm_manager.FCMManager
 import tv.dustypig.dustypig.api.models.BasicProfile
 import tv.dustypig.dustypig.api.models.LoginTypes
 import tv.dustypig.dustypig.api.models.ProfileCredentials
 import tv.dustypig.dustypig.api.repositories.AuthRepository
 import tv.dustypig.dustypig.api.repositories.ProfilesRepository
 import tv.dustypig.dustypig.global_managers.AuthManager
+import tv.dustypig.dustypig.global_managers.fcm_manager.FCMManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import javax.inject.Inject
@@ -48,9 +48,6 @@ class SelectProfileViewModel @Inject constructor(
         }
     }
 
-    fun updatePin(pin: String) {
-        _uiState.update { it.copy(pin = pin) }
-    }
 
     fun hideError() {
         _uiState.update { it.copy(showError = false) }
@@ -86,11 +83,10 @@ class SelectProfileViewModel @Inject constructor(
         }
     }
 
-    fun onPinSubmitted() {
+    fun onPinSubmitted(pinString: String) {
         val pin = try {
-            Integer.parseUnsignedInt(uiState.value.pin)
+            Integer.parseUnsignedInt(pinString)
         } catch (ex: Exception) {
-            ex.logToCrashlytics()
             null
         }
 

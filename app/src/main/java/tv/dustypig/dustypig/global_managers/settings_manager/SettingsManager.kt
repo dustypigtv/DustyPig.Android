@@ -64,13 +64,16 @@ class SettingsManager @Inject constructor (
     suspend fun setDownloadOverCellular(value: Boolean) = context.dataStore.edit { it[downloadOverCellularPreferencesKey()] = value }
     val downloadOverCellularFlow = context.dataStore.data.map { it[downloadOverCellularPreferencesKey()] ?: false }
 
+
     private suspend fun skipIntrosPreferencesKey() = booleanPreferencesKey(profileKey(SKIP_INTROS_KEY))
     suspend fun getSkipIntros() = context.dataStore.data.map { it[skipIntrosPreferencesKey()] ?: false }.first()
     suspend fun setSkipIntros(value: Boolean) = context.dataStore.edit { it[skipIntrosPreferencesKey()] = value }
 
+
     private suspend fun skipCreditsPreferencesKey() = booleanPreferencesKey(profileKey(SKIP_CREDITS_KEY))
     suspend fun getSkipCredits() = context.dataStore.data.map { it[skipCreditsPreferencesKey()] ?: false }.first()
     suspend fun setSkipCredits(value: Boolean) = context.dataStore.edit { it[skipCreditsPreferencesKey()] = value }
+
 
     private suspend fun themePreferencesKey() = intPreferencesKey(profileKey(THEME_KEY))
     suspend fun setTheme(theme: Themes) = context.dataStore.edit { it[themePreferencesKey()] = theme.ordinal }

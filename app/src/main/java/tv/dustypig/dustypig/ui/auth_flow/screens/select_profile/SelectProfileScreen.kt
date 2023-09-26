@@ -22,7 +22,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -40,7 +42,7 @@ fun SelectProfileScreen(vm: SelectProfileViewModel) {
 
     val uiState by vm.uiState.collectAsState()
     val listState = rememberLazyGridState()
-
+    var pin by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -96,23 +98,38 @@ fun SelectProfileScreen(vm: SelectProfileViewModel) {
 
     if(uiState.showPinDialog) {
 
-        val confirmEnabled = remember { derivedStateOf { uiState.pin.length == 4 }}
+        val confirmEnabled by remember {
+            derivedStateOf {
+                pin.length == 4 && !uiState.busy
+            }
+        }
 
         AlertDialog(
             shape = RoundedCornerShape(8.dp),
             onDismissRequest = { vm.cancelPinDialog() },
             title = { Text(stringResource(R.string.enter_pin)) },
             text = {
-                PinEntry(valueChanged = { vm.updatePin(it) }, autoFocus = true)
+                PinEntry(
+                    valueChanged = { pin = it },
+                    onSubmit = {
+                        pin = it
+                        vm.onPinSubmitted(pin)
+                    }
+                )
             },
             confirmButton = {
-                TextButton(enabled = confirmEnabled.value,
-                    onClick = { vm.onPinSubmitted() }) {
+                TextButton(
+                    enabled = confirmEnabled,
+                    onClick = { vm.onPinSubmitted(pin) }
+                ) {
                     Text(stringResource(R.string.ok))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { vm.cancelPinDialog() }) {
+                TextButton(
+                    enabled = !uiState.busy,
+                    onClick = { vm.cancelPinDialog() }
+                ) {
                     Text(stringResource(R.string.cancel))
                 }
             }

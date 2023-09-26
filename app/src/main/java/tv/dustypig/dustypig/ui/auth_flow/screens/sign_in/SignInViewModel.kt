@@ -8,11 +8,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.global_managers.fcm_manager.FCMManager
 import tv.dustypig.dustypig.api.models.LoginTypes
 import tv.dustypig.dustypig.api.models.PasswordCredentials
 import tv.dustypig.dustypig.api.repositories.AuthRepository
 import tv.dustypig.dustypig.global_managers.AuthManager
+import tv.dustypig.dustypig.global_managers.fcm_manager.FCMManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.auth_flow.SharedEmailModel
@@ -28,86 +28,131 @@ class SignInViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val _uiState = MutableStateFlow(SignInUIState(email = SharedEmailModel.uiState.value.email))
+    private val _uiState = MutableStateFlow(SignInUIState())
     val uiState: StateFlow<SignInUIState> = _uiState.asStateFlow()
 
-    fun updateEmail(email: String) {
-        SharedEmailModel.updateEmail(email)
-        if(SharedEmailModel.uiState.value.email == AuthManager.TEST_USER){
-            _uiState.update { it.copy(email = AuthManager.TEST_USER, password = AuthManager.TEST_PASSWORD) }
-        } else {
-            _uiState.update { it.copy(email = email.trim().lowercase()) }
+    fun hideError() {
+        _uiState.update {
+            it.copy(showError = false)
         }
     }
 
-    fun updatePassword(password: String) {
-        _uiState.update { it.copy(password = password) }
+    fun showForgotPassword(email: String) {
+        SharedEmailModel.updateEmail(email)
+        _uiState.update {
+            it.copy(showForgotPassword = true)
+        }
     }
 
-    fun hideError() {
-        _uiState.update { it.copy(showError = false) }
-    }
-
-    fun showForgotPassword() {
-        _uiState.update { it.copy(showForgotPassword = true) }
-    }
-
-    fun hideForgotPassword() {
-        _uiState.update { it.copy(showForgotPassword = false) }
+    fun hideForgotPassword(email: String) {
+        SharedEmailModel.updateEmail(email)
+        _uiState.update {
+            it.copy(
+                showForgotPassword = false
+            )
+        }
     }
 
     fun hideForgotPasswordSuccess() {
-        _uiState.update { it.copy(showForgotPasswordSuccess = false) }
+        _uiState.update {
+            it.copy(showForgotPasswordSuccess = false)
+        }
     }
 
     fun hideForgotPasswordError() {
-        _uiState.update { it.copy(showForgotPassword = true, showForgotPasswordError = false) }
+        _uiState.update {
+            it.copy(
+                showForgotPassword = true,
+                showForgotPasswordError = false
+            )
+        }
     }
 
 
-    fun signIn(){
-        _uiState.update { it.copy(busy = true) }
+    fun signIn(email: String, password: String){
+
+        _uiState.update {
+            it.copy(busy = true)
+        }
+
+        val fixedEmail = email.trim().lowercase()
+        SharedEmailModel.updateEmail(fixedEmail)
 
         viewModelScope.launch {
             try {
 
                 val data = authRepository.passwordLogin(
                     PasswordCredentials(
-                        uiState.value.email,
-                        uiState.value.password,
+                        fixedEmail,
+                        password,
                         FCMManager.currentToken
                     )
                 )
                 if (data.loginType == LoginTypes.Account) {
                     authManager.setTempAuthToken(data.token!!)
                     navigateToRoute(SelectProfileNav.route)
-                    _uiState.update { it.copy(busy = false) }
+                    _uiState.update {
+                        it.copy(busy = false)
+                    }
                 } else {
-                    authManager.setAuthState(data.token!!, data.profileId!!, data.loginType == LoginTypes.MainProfile)
+                    authManager.setAuthState(
+                        token = data.token!!,
+                        profileId = data.profileId!!,
+                        isMain = data.loginType == LoginTypes.MainProfile
+                    )
                 }
 
             } catch (ex: Exception) {
                 ex.logToCrashlytics()
-                _uiState.update { it.copy(busy = false, showError = true, errorMessage = ex.localizedMessage) }
+                _uiState.update {
+                    it.copy(
+                        busy = false,
+                        showError = true,
+                        errorMessage = ex.localizedMessage
+                    )
+                }
             }
         }
     }
 
 
-    fun sendForgotPasswordEmail() {
-        _uiState.update { it.copy(forgotPasswordBusy = true) }
+    fun sendForgotPasswordEmail(email: String) {
+
+        _uiState.update {
+            it.copy(
+                forgotPasswordBusy = true
+            )
+        }
+
+        val fixedEmail = email.trim().lowercase()
+        SharedEmailModel.updateEmail(fixedEmail)
+
         viewModelScope.launch {
             try {
-                authRepository.sendPasswordResetEmail(uiState.value.email)
-                _uiState.update { it.copy(forgotPasswordBusy = false, showForgotPassword = false, showForgotPasswordSuccess = true) }
+                authRepository.sendPasswordResetEmail(fixedEmail)
+                _uiState.update {
+                    it.copy(
+                        forgotPasswordBusy = false,
+                        showForgotPassword = false,
+                        showForgotPasswordSuccess = true
+                    )
+                }
             } catch (ex: Exception) {
                 ex.logToCrashlytics()
-                _uiState.update { it.copy(forgotPasswordBusy = false, showForgotPassword = false, showForgotPasswordError = true, errorMessage = ex.localizedMessage) }
+                _uiState.update {
+                    it.copy(
+                        forgotPasswordBusy = false,
+                        showForgotPassword = false,
+                        showForgotPasswordError = true,
+                        errorMessage = ex.localizedMessage
+                    )
+                }
             }
         }
     }
 
-    fun navToSignUp() {
-       navigateToRoute(SignUpNav.route)
+    fun navToSignUp(email: String) {
+        SharedEmailModel.updateEmail(email)
+        navigateToRoute(SignUpNav.route)
     }
 }

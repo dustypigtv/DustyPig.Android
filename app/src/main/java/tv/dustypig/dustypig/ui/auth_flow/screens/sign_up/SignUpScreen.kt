@@ -2,6 +2,7 @@ package tv.dustypig.dustypig.ui.auth_flow.screens.sign_up
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -14,7 +15,6 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -25,6 +25,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -42,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OkDialog
+import tv.dustypig.dustypig.ui.composables.TintedIcon
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
@@ -51,106 +53,136 @@ fun SignUpScreen(vm: SignUpViewModel) {
     val uiState by vm.uiState.collectAsState()
     val localFocusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-    val passwordVisible = remember { mutableStateOf(false) }
-    val signUpEnabled = remember { derivedStateOf { !uiState.busy && uiState.name.isNotBlank() && uiState.email.isNotBlank() && uiState.password.isNotBlank() }}
+    var name by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf(uiState.email) }
+    var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
 
-    val imeAction = remember { derivedStateOf {
-        if(uiState.name.isBlank() || uiState.email.isBlank() || uiState.password.isBlank()) {
-            ImeAction.Done
+    val signUpEnabled by remember {
+        derivedStateOf {
+            !uiState.busy && name.isNotBlank() && email.isNotBlank() && password.isNotBlank()
         }
-        else {
-            ImeAction.Go
+    }
+
+    val iconImage by remember {
+        derivedStateOf {
+            if (passwordVisible)
+                Icons.Filled.VisibilityOff
+            else
+                Icons.Filled.Visibility
         }
-    }}
+    }
+
+
+    val visualTransformation by remember {
+        derivedStateOf {
+            if (passwordVisible)
+                VisualTransformation.None
+            else
+                PasswordVisualTransformation()
+        }
+    }
+
+    val imeAction = remember {
+        derivedStateOf {
+            if (name.isBlank() || email.isBlank() || password.isBlank())
+                ImeAction.Done
+            else
+                ImeAction.Go
+        }
+    }
 
     fun signUp() {
         localFocusManager.clearFocus()
         keyboardController?.hide()
-        vm.signUp()
+        vm.signUp(name, email, password)
     }
 
-    Column(
-        verticalArrangement = Arrangement.spacedBy(12.dp, alignment = Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally,
+    Box(
         modifier = Modifier.fillMaxSize()
     ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp, alignment = Alignment.CenterVertically),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxSize()
+        ) {
 
 
-        Image(
-            imageVector = ImageVector.vectorResource(id = R.drawable.ic_logo_transparent),
-            modifier = Modifier.size(100.dp),
-            contentDescription = ""
-        )
+            Image(
+                imageVector = ImageVector.vectorResource(id = R.drawable.ic_logo_transparent),
+                modifier = Modifier.size(100.dp),
+                contentDescription = ""
+            )
 
-        OutlinedTextField(
-            value = uiState.name,
-            onValueChange = { vm.updateName(it) },
-            placeholder = { Text(text = stringResource(R.string.name)) },
-            label = { Text(text = stringResource(R.string.name)) },
-            singleLine = true,
-            enabled = !uiState.busy,
-            modifier = Modifier.width(300.dp),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Next)
-        )
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                placeholder = { Text(text = stringResource(R.string.name)) },
+                label = { Text(text = stringResource(R.string.name)) },
+                singleLine = true,
+                enabled = !uiState.busy,
+                modifier = Modifier.width(300.dp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Next)
+            )
 
-        OutlinedTextField(
-            value = uiState.email,
-            onValueChange = { vm.updateEmail(it) },
-            placeholder = { Text(text = stringResource(R.string.email)) },
-            label = { Text(text = stringResource(R.string.email)) },
-            singleLine = true,
-            enabled = !uiState.busy,
-            modifier = Modifier.width(300.dp),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next)
-        )
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it.trim().lowercase() },
+                placeholder = { Text(text = stringResource(R.string.email)) },
+                label = { Text(text = stringResource(R.string.email)) },
+                singleLine = true,
+                enabled = !uiState.busy,
+                modifier = Modifier.width(300.dp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next)
+            )
 
-        OutlinedTextField(
-            value = uiState.password,
-            onValueChange = { vm.updatePassword(it) },
-            placeholder = { Text(text = stringResource(R.string.password)) },
-            label = { Text(text = stringResource(R.string.password)) },
-            singleLine = true,
-            enabled = !uiState.busy,
-            modifier = Modifier.width(300.dp),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = imeAction.value),
-            keyboardActions = KeyboardActions(onGo = { signUp() }, onDone = { keyboardController?.hide() }),
-            trailingIcon = {
-                val iconImage = if (passwordVisible.value) {
-                    Icons.Filled.VisibilityOff
-                } else {
-                    Icons.Filled.Visibility
-                }
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                placeholder = { Text(text = stringResource(R.string.password)) },
+                label = { Text(text = stringResource(R.string.password)) },
+                singleLine = true,
+                enabled = !uiState.busy,
+                modifier = Modifier.width(300.dp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = imeAction.value),
+                keyboardActions = KeyboardActions(onGo = { signUp() }, onDone = { keyboardController?.hide() }),
+                trailingIcon = {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        TintedIcon(imageVector = iconImage)
+                    }
+                },
+                visualTransformation = visualTransformation
+            )
 
-                IconButton(onClick = { passwordVisible.value = !passwordVisible.value }) {
-                    Icon(imageVector = iconImage, "")
-                }
-            },
-            visualTransformation = if (passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation()
-        )
-
-        Button(enabled = signUpEnabled.value,
-            modifier = Modifier.size(120.dp, 40.dp),
-            onClick = { signUp() }) {
-            if (uiState.busy) {
-                CircularProgressIndicator(modifier = Modifier.size(20.dp))
-            } else {
+            Button(
+                enabled = signUpEnabled,
+                modifier = Modifier.width(120.dp),
+                onClick = ::signUp
+            ) {
                 Text(text = stringResource(R.string.sign_up))
             }
+
+            TextButton(
+                enabled = !uiState.busy,
+                onClick = { vm.navToSignIn(email) }
+            ) {
+                Text(text = stringResource(R.string.already_have_an_account_sign_in))
+            }
+
         }
 
-        TextButton(onClick = { vm.navToSignIn() }) {
-            Text(text = stringResource(R.string.already_have_an_account_sign_in))
+        if(uiState.busy) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         }
-
     }
 
 
     if (uiState.showError) {
-        ErrorDialog(onDismissRequest = { vm.hideError() }, message = uiState.message)
+        ErrorDialog(onDismissRequest = { vm.hideError() }, message = uiState.errorMessage)
     }
 
     if (uiState.showSuccess) {
-        OkDialog(onDismissRequest = { vm.navToSignIn() }, title = stringResource(R.string.success), message = uiState.message)
+        OkDialog(onDismissRequest = { vm.navToSignIn(email) }, title = stringResource(R.string.success), message = uiState.message)
     }
 }
 
