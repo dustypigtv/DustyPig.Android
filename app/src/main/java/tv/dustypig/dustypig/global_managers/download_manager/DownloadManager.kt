@@ -1118,7 +1118,18 @@ class DownloadManager @Inject constructor(
     }
 
     suspend fun deleteAll() {
-        _db.deleteAllJobs(_profileId)
+
+        /**
+         * No idea why, but this throws a main ui thread exception
+         */
+//        _db.deleteAllJobs(_profileId)
+
+        /**
+         * So do it the dumbass way, it works
+         */
+        val jobs = _db.getJobs(_profileId)
+        for(job in jobs)
+            _db.delete(job)
     }
 
     suspend fun getJobCount(mediaId: Int, mediaType: MediaTypes): Int {

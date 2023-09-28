@@ -77,6 +77,9 @@ interface DownloadDao {
     @Delete
     suspend fun delete(jobFileSetMTM: JobFileSetMTM)
 
-    @Query("DELETE FROM jobs WHERE profileId = :profileId")
-    fun deleteAllJobs(profileId: Int)
+    /**
+     * No idea why, but this throws a main ui thread exception
+     */
+//    @Query("DELETE FROM jobs WHERE profileId = :profileId")
+//    fun deleteAllJobs(profileId: Int)
 }
