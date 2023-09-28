@@ -144,7 +144,8 @@ fun TMDBDetailsScreen(vm: TMDBDetailsViewModel) {
                                     basicProfile = BasicProfile(id = friend.id, name = friend.displayName, avatarUrl = friend.avatarUrl),
                                     modifier = Modifier
                                         .width(48.dp)
-                                        .height(48.dp)
+                                        .height(48.dp),
+                                    clickable = false
                                 )
                                 Text(
                                     text = friend.displayName,
