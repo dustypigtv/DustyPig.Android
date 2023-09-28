@@ -17,6 +17,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,6 +29,7 @@ import tv.dustypig.dustypig.ui.composables.TintedIcon
 @Composable
 fun SettingsScreen(vm: SettingsViewModel) {
 
+    val uiState by vm.uiState.collectAsState()
     val listState = rememberScrollState()
 
     Column(
@@ -37,7 +40,11 @@ fun SettingsScreen(vm: SettingsViewModel) {
             .verticalScroll(listState)
     ) {
 
-        LinkRow(vm = vm, text = "Account Settings", onClick = vm::navToAccountSettings)
+        if(uiState.isMainProfile) {
+            LinkRow(vm = vm, text = "Account Settings", onClick = vm::navToAccountSettings)
+            LinkRow(vm = vm, text = "Friends", onClick = vm::navToFriendsSettings)
+        }
+
         LinkRow(vm = vm, text = "Theme", onClick = vm::navToTheme)
 
 

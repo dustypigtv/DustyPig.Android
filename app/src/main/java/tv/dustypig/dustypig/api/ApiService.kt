@@ -87,6 +87,8 @@ interface ApiService {
     @GET("Friends/List")
     suspend fun listFriends(): Response<ResponseWrapperOf<List<BasicFriend>>>
 
+    @POST("Friends/Invite")
+    suspend fun inviteFriend(@Body email: SimpleValue<String>): Response<ResponseWrapper>
 
 
 

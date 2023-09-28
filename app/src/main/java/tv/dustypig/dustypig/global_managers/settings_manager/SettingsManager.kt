@@ -54,7 +54,7 @@ class SettingsManager @Inject constructor (
 
     suspend fun getIsMainProfile() = context.dataStore.data.map { it[isMainProfilePreferencesKey] ?: false }.first()
     suspend fun setIsMainProfile(value: Boolean) = context.dataStore.edit { it[isMainProfilePreferencesKey] = value }
-
+    val profileIsMainFlow = context.dataStore.data.map { it[isMainProfilePreferencesKey] ?: false }
 
     // ***** Profile Settings *****
 

@@ -13,18 +13,30 @@ import com.bumptech.glide.integration.compose.GlideImage
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import tv.dustypig.dustypig.api.models.BasicProfile
 
+@Composable
+fun Avatar(basicProfile: BasicProfile, onClick: () -> Unit = { }, modifier: Modifier? = Modifier, clickable: Boolean = true) {
+   Avatar(imageUrl = basicProfile.avatarUrl!!, onClick = onClick, modifier = modifier)
+}
+
+
+
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun Avatar(basicProfile: BasicProfile, onClick: () -> Unit = { }, modifier: Modifier? = Modifier) {
+fun Avatar(imageUrl: String, onClick: () -> Unit = { }, modifier: Modifier? = Modifier, clickable: Boolean = true) {
 
-    val internalModifier = (modifier ?: Modifier)
+    var internalModifier = (modifier ?: Modifier)
         .clip(CircleShape)
         .border(2.dp, MaterialTheme.colorScheme.outline, CircleShape)
-        .clickable(onClick = onClick)
+    if(clickable)
+        internalModifier = internalModifier.clickable(onClick = onClick)
 
-    GlideImage(model = basicProfile.avatarUrl,
-        contentDescription = basicProfile.name,
-        modifier = internalModifier){
-        it.diskCacheStrategy(DiskCacheStrategy.NONE)
+    GlideImage(
+        model = imageUrl,
+        contentDescription = null,
+        modifier = internalModifier
+    ){
+        it.diskCacheStrategy(DiskCacheStrategy.NONE
+        )
     }
 }
+
