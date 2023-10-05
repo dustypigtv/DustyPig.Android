@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig.ui.composables
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,13 +12,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.MediaTypes
+import tv.dustypig.dustypig.nav.MyRouteNavigator
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.main_app.ScreenLoadingInfo
 import tv.dustypig.dustypig.ui.main_app.screens.movie_details.MovieDetailsNav
@@ -75,18 +81,38 @@ fun BasicMediaView(
             .fillMaxWidth()
             .height(hdp)
     ) {
-        GlideImage(
-            model = basicMedia.artworkUrl,
+
+        AsyncImage(
+            model = ImageRequest
+                .Builder(LocalContext.current)
+                .data(basicMedia.artworkUrl)
+                .error(R.drawable.error_tall)
+                .crossfade(true)
+                .build(),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = clickableModifier
+                .background(color = Color.DarkGray, shape = RoundedCornerShape(4.dp))
                 .align(Alignment.Center)
                 .size(wdp, hdp)
                 .clip(RoundedCornerShape(4.dp))
-        ) {
-            it
-                .placeholder(R.drawable.placeholder_tall)
-                .error(R.drawable.error_tall)
-        }
+        )
     }
 }
+
+
+
+@Preview
+@Composable
+private fun BasicMediaViewPreview() {
+    BasicMediaView(
+        basicMedia = BasicMedia(
+            id = 1,
+            mediaType = MediaTypes.Movie,
+            artworkUrl = "https://s3.dustypig.tv/demo-media/Movies/Big%20Buck%20Bunny%20%282008%29.jpg",
+            backdropUrl = "https://s3.dustypig.tv/demo-media/Movies/Big%20Buck%20Bunny%20%282008%29.backdrop.jpg",
+            title = "Big Buck Bunny (2008)"
+        ),
+        routeNavigator = MyRouteNavigator())
+}
+

@@ -45,6 +45,7 @@ import tv.dustypig.dustypig.ui.main_app.screens.settings.theme_settings.ThemeSet
 import tv.dustypig.dustypig.ui.main_app.screens.home.show_more.ShowMoreNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.account_settings.AccountSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.friends_settings.FriendsSettingsNav
+import tv.dustypig.dustypig.ui.main_app.screens.settings.friends_settings.friend_details_settings.FriendDetailsSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.tmdb_details.TMDBDetailsNav
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -151,6 +152,7 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
             ThemeSettingsNav.composable(this, navController)
             AccountSettingsNav.composable(this, navController)
             FriendsSettingsNav.composable(this, navController)
+            FriendDetailsSettingsNav.composable(this, navController)
         }
 
         scope.launch {

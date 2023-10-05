@@ -45,27 +45,50 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.job
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.global_managers.AuthManager
+import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.auth_flow.SharedEmailModel
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OkDialog
 import tv.dustypig.dustypig.ui.composables.TintedIcon
+import tv.dustypig.dustypig.ui.theme.DustyPigTheme
+
+@Composable
+fun SignInScreen(vm: SignInViewModel) {
+    val uiState by vm.uiState.collectAsState()
+    SignInScreenInternal(
+        signIn = vm::signIn,
+        navToSignUp = vm::navToSignUp,
+        sendForgotPasswordEmail = vm::sendForgotPasswordEmail,
+        hideError = vm::hideError,
+        hideForgotPasswordSuccess = vm::hideForgotPasswordSuccess,
+        hideForgotPasswordError = vm::hideForgotPasswordError,
+        uiState = uiState
+    )
+}
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
-fun SignInScreen(
-    vm: SignInViewModel
+private fun SignInScreenInternal(
+    signIn: (String, String) -> Unit,
+    navToSignUp: (String) -> Unit,
+    sendForgotPasswordEmail: (String) -> Unit,
+    hideError: () -> Unit,
+    hideForgotPasswordSuccess: () -> Unit,
+    hideForgotPasswordError: () -> Unit,
+    uiState: SignInUIState
 ) {
-    val uiState by vm.uiState.collectAsState()
     val localFocusManager = LocalFocusManager.current
     var passwordVisible by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
     var email by remember { mutableStateOf(SharedEmailModel.uiState.value.email) }
     var password by remember { mutableStateOf("") }
+    var showForgotPassword by remember { mutableStateOf(false) }
 
     val visualTransform by remember {
         derivedStateOf {
@@ -110,13 +133,13 @@ fun SignInScreen(
     fun showForgotPassword() {
         localFocusManager.clearFocus()
         keyboardController?.hide()
-        vm.showForgotPassword(email)
+        showForgotPassword = false
     }
 
     fun signIn() {
         localFocusManager.clearFocus()
         keyboardController?.hide()
-        vm.signIn(email, password)
+        signIn(email, password)
     }
 
     Box (
@@ -184,7 +207,7 @@ fun SignInScreen(
 
             TextButton(
                 enabled = !uiState.busy,
-                onClick = { vm.navToSignUp(email) }
+                onClick = { navToSignUp(email) }
             ) {
                 Text(text = stringResource(R.string.don_t_have_an_account_sign_up))
             }
@@ -196,7 +219,7 @@ fun SignInScreen(
     }
 
 
-    if (uiState.showForgotPassword) {
+    if (showForgotPassword) {
 
         var forgotPasswordEmail by remember{ mutableStateOf(email) }
 
@@ -221,13 +244,13 @@ fun SignInScreen(
         fun forgotPasswordConfirmClick() {
             email = forgotPasswordEmail
             keyboardController?.hide()
-            vm.sendForgotPasswordEmail(email)
+            sendForgotPasswordEmail(email)
         }
 
         fun dismissForgotPasswordDialog() {
             email = forgotPasswordEmail
             keyboardController?.hide()
-            vm.hideForgotPassword(email)
+            showForgotPassword = false
         }
 
         LaunchedEffect(true) {
@@ -287,19 +310,40 @@ fun SignInScreen(
 
 
     if (uiState.showError) {
-        ErrorDialog(onDismissRequest = { vm.hideError() }, message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = hideError, message = uiState.errorMessage)
     }
 
     if (uiState.showForgotPasswordSuccess) {
         OkDialog(
-            onDismissRequest = { vm.hideForgotPasswordSuccess() },
+            onDismissRequest = hideForgotPasswordSuccess,
             title = stringResource(R.string.email_sent),
             message = stringResource(R.string.check_your_email_for_password_reset_instructions)
         )
     }
 
     if(uiState.showForgotPasswordError) {
-        ErrorDialog(onDismissRequest = { vm.hideForgotPasswordError() }, message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = hideForgotPasswordError, message = uiState.errorMessage)
     }
 
+}
+
+@Preview
+@Composable
+private fun SignInScreenPreview() {
+
+    val uiState = SignInUIState(
+        busy = false
+    )
+
+    DustyPigTheme(currentTheme = Themes.Maggies) {
+        SignInScreenInternal(
+            signIn = { _: String, _: String -> },
+            navToSignUp = { },
+            sendForgotPasswordEmail = { },
+            hideError = { },
+            hideForgotPasswordSuccess = { },
+            hideForgotPasswordError = { },
+            uiState = uiState
+        )
+    }
 }

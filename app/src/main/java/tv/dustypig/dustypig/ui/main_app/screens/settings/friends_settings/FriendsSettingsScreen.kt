@@ -25,6 +25,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.surfaceColorAtElevation
@@ -47,26 +48,50 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import kotlinx.coroutines.job
 import tv.dustypig.dustypig.R
+import tv.dustypig.dustypig.api.models.BasicFriend
+import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.composables.Avatar
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OkDialog
 import tv.dustypig.dustypig.ui.composables.TintedIcon
+import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class, ExperimentalGlideComposeApi::class)
 @Composable
 fun FriendsSettingsScreen(vm: FriendsSettingsViewModel) {
-
     val uiState by vm.uiState.collectAsState()
+    FriendsSettingsScreenInternal(
+        popBackStack = vm::popBackStack,
+        navToFriendDetails = vm::navToFriendDetails,
+        hideDialogs = vm::hideDialog,
+        addFriend = vm::addFriend,
+        uiState = uiState
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@Composable
+private fun FriendsSettingsScreenInternal(
+    popBackStack: () -> Unit,
+    navToFriendDetails: (Int) -> Unit,
+    hideDialogs: () -> Unit,
+    addFriend: (String) -> Unit,
+    uiState: FriendsSettingsUIState
+) {
+
+    var showAddFriendDialog by remember {
+        mutableStateOf(false)
+    }
+
     val listState = rememberLazyListState()
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = vm::popBackStack, text = "Friends")
+            CommonTopAppBar(onClick = popBackStack, text = "Friends")
         }
     ) { paddingValues ->
 
@@ -94,7 +119,7 @@ fun FriendsSettingsScreen(vm: FriendsSettingsViewModel) {
                             .padding(12.dp, 0.dp)
                             .clip(shape = RoundedCornerShape(4.dp))
                             .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp))
-                            .clickable { vm.navToFriendDetails(it.id) }
+                            .clickable { navToFriendDetails(it.id) }
                     ) {
                         Avatar(
                             imageUrl = it.avatarUrl,
@@ -119,7 +144,7 @@ fun FriendsSettingsScreen(vm: FriendsSettingsViewModel) {
                 }
 
                 item {
-                    Button(onClick = { vm.showAddFriendDialog() }) {
+                    Button(onClick = { showAddFriendDialog = true }) {
                         Text(text = "Add Friend")
                     }
                 }
@@ -135,7 +160,7 @@ fun FriendsSettingsScreen(vm: FriendsSettingsViewModel) {
 
 
 
-        if (uiState.showAddFriendDialog) {
+        if (showAddFriendDialog) {
 
             val keyboardController = LocalSoftwareKeyboardController.current
             var email by remember{ mutableStateOf("") }
@@ -159,12 +184,13 @@ fun FriendsSettingsScreen(vm: FriendsSettingsViewModel) {
 
             fun submitClicked() {
                 keyboardController?.hide()
-                vm.addFriend(email)
+                showAddFriendDialog = false
+                addFriend(email)
             }
 
             fun dismissClicked() {
                 keyboardController?.hide()
-                vm.hideDialog()
+                showAddFriendDialog = false
             }
 
             LaunchedEffect(true) {
@@ -223,13 +249,73 @@ fun FriendsSettingsScreen(vm: FriendsSettingsViewModel) {
 
 
         if(uiState.showInviteSuccessDialog) {
-            OkDialog(onDismissRequest = vm::hideDialog, title = "Add Friend", message = "Invite Sent")
+            OkDialog(onDismissRequest = hideDialogs, title = "Add Friend", message = "Invite Sent")
         }
 
 
         if(uiState.showError) {
-            ErrorDialog(onDismissRequest = vm::hideDialog, message = uiState.errorMessage)
+            ErrorDialog(onDismissRequest = hideDialogs, message = uiState.errorMessage)
         }
-
     }
 }
+
+
+@Preview
+@Composable
+private fun FriendSettingsScreenPreview() {
+    val uiState = FriendsSettingsUIState (
+        friends = listOf(
+            BasicFriend(
+                id = 0,
+                displayName = "John Doe 1",
+                avatarUrl = ""
+            ),
+            BasicFriend(
+                id = 1,
+                displayName = "John Doe 2",
+                avatarUrl = ""
+            ),
+            BasicFriend(
+                id = 2,
+                displayName = "John Doe 3",
+                avatarUrl = ""
+            )
+        )
+    )
+
+    DustyPigTheme(currentTheme = Themes.Maggies) {
+        Surface (
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            FriendsSettingsScreenInternal(
+                popBackStack = { },
+                navToFriendDetails = { _ -> },
+                hideDialogs = { },
+                addFriend =  { _ -> },
+                uiState = uiState
+            )
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

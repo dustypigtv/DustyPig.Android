@@ -17,7 +17,6 @@ class ShowMorePagingSource (
         var showMoreData: HomeScreenList = HomeScreenList(0, "", listOf())
     }
 
-
     override fun getRefreshKey(state: PagingState<Int, BasicMedia>): Int? {
         return state.anchorPosition?.let { anchorPosition ->
             val anchorPage = state.closestPageToPosition(anchorPosition)

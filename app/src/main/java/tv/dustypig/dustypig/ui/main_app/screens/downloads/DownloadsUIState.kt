@@ -1,13 +1,10 @@
 package tv.dustypig.dustypig.ui.main_app.screens.downloads
 
-import tv.dustypig.dustypig.api.models.MediaTypes
+import tv.dustypig.dustypig.global_managers.download_manager.UIJob
 
 data class DownloadsUIState(
-    val showDownloadDialog: Boolean = false,
-    val downloadDialogCount: Int = 0,
-    val downloadDialogJobMediaId: Int = 0,
-    val downloadDialogJobMediaType: MediaTypes = MediaTypes.Series,
-    val showRemoveDownloadDialog: Boolean = false,
     val showErrorDialog: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val jobs: List<UIJob> = listOf(),
+    val expandedMediaIds: List<Int> = listOf()
 )

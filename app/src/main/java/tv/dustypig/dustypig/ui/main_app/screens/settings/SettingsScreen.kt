@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
@@ -22,14 +23,34 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.composables.TintedIcon
+import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 
 @Composable
 fun SettingsScreen(vm: SettingsViewModel) {
-
     val uiState by vm.uiState.collectAsState()
+
+    SettingsScreenInternal(
+        navToTheme = vm::navToTheme,
+        navToAccountSettings = vm::navToAccountSettings,
+        navToFriendsSettings = vm::navToFriendsSettings,
+        uiState = uiState
+    )
+}
+
+
+@Composable
+private fun SettingsScreenInternal(
+    navToTheme: () -> Unit,
+    navToAccountSettings: () -> Unit,
+    navToFriendsSettings: () -> Unit,
+    uiState: SettingsUIState
+) {
+
     val listState = rememberScrollState()
 
     Column(
@@ -41,18 +62,16 @@ fun SettingsScreen(vm: SettingsViewModel) {
     ) {
 
         if(uiState.isMainProfile) {
-            LinkRow(vm = vm, text = "Account Settings", onClick = vm::navToAccountSettings)
-            LinkRow(vm = vm, text = "Friends", onClick = vm::navToFriendsSettings)
+            LinkRow(text = "Account Settings", onClick = navToAccountSettings)
+            LinkRow(text = "Friends", onClick = navToFriendsSettings)
         }
 
-        LinkRow(vm = vm, text = "Theme", onClick = vm::navToTheme)
-
-
+        LinkRow(text = "Theme", onClick = navToTheme)
     }
 }
 
 @Composable
-private fun LinkRow(vm: SettingsViewModel, text: String, onClick: () -> Unit) {
+private fun LinkRow(text: String, onClick: () -> Unit) {
     Row (
         modifier = Modifier
             .fillMaxWidth()
@@ -73,3 +92,57 @@ private fun LinkRow(vm: SettingsViewModel, text: String, onClick: () -> Unit) {
         )
     }
 }
+
+@Preview
+@Composable
+private fun SettingsScreenPreview() {
+
+    val uiState = SettingsUIState(
+        isMainProfile = true
+    )
+
+    DustyPigTheme(currentTheme = Themes.Maggies) {
+        Surface (
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            SettingsScreenInternal(
+                navToTheme = { },
+                navToAccountSettings = { },
+                navToFriendsSettings = { },
+                uiState = uiState
+            )
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

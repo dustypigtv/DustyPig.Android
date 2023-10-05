@@ -25,6 +25,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -48,29 +49,76 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.job
 import tv.dustypig.dustypig.R
+import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OkDialog
 import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.composables.YesNoDialog
 import tv.dustypig.dustypig.ui.theme.BurntOrange
+import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun AccountSettingsScreen(vm: AccountSettingsViewModel) {
 
     val uiState by vm.uiState.collectAsState()
+    AccountSettingsScreenInternal(
+        popBackStack = vm::popBackStack,
+        hideError = vm::hideError,
+        signOut = vm::signOut,
+        loginToDevice = vm::loginToDevice,
+        changePassword = vm::changePassword,
+        hideChangePasswordSuccess = vm::hideChangePasswordDialogs,
+        signOutEverywhere = vm::signOutEverywhere,
+        deleteAccount = vm::deleteAccount,
+        uiState = uiState
+    )
+
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@Composable
+private fun AccountSettingsScreenInternal(
+    popBackStack: () -> Unit,
+    hideError: () -> Unit,
+    signOut: () -> Unit,
+    loginToDevice: (String) -> Unit,
+    changePassword: (String) -> Unit,
+    hideChangePasswordSuccess: () -> Unit,
+    signOutEverywhere: () -> Unit,
+    deleteAccount: () -> Unit,
+    uiState: AccountSettingsUIState
+) {
+
     val buttonModifier = Modifier.width(320.dp)
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    var showLoginToDeviceDialog by remember {
+        mutableStateOf(false)
+    }
+
+    var showChangePasswordDialog by remember {
+        mutableStateOf(false)
+    }
+
+    var showSignoutEverywhereDialog by remember {
+        mutableStateOf(false)
+    }
+
+    var showDeleteAccountDialog by remember {
+        mutableStateOf(false)
+    }
+
+
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = vm::popBackStack, text = "Account Settings")
+            CommonTopAppBar(onClick = popBackStack, text = "Account Settings")
         }
     ) { paddingValues ->
 
@@ -89,7 +137,7 @@ fun AccountSettingsScreen(vm: AccountSettingsViewModel) {
                 Spacer(Modifier.width(24.dp))
 
                 Button(
-                    onClick = vm::showLoginToDeviceDialog,
+                    onClick = { showLoginToDeviceDialog = true },
                     modifier = buttonModifier,
                     enabled = !uiState.busy
                 ) {
@@ -99,7 +147,7 @@ fun AccountSettingsScreen(vm: AccountSettingsViewModel) {
 
                 if(uiState.isMainProfile) {
                     Button(
-                        onClick = vm::showChangePasswordDialog,
+                        onClick = { showChangePasswordDialog = true },
                         modifier = buttonModifier,
                         enabled = !uiState.busy
                     ) {
@@ -108,7 +156,7 @@ fun AccountSettingsScreen(vm: AccountSettingsViewModel) {
                 }
 
                 Button(
-                    onClick = vm::signout,
+                    onClick = signOut,
                     modifier = buttonModifier,
                     enabled = !uiState.busy
                 ) {
@@ -117,7 +165,7 @@ fun AccountSettingsScreen(vm: AccountSettingsViewModel) {
 
                 if(uiState.isMainProfile) {
                     Button(
-                        onClick = vm::showSignoutEverywhereDialog,
+                        onClick = { showSignoutEverywhereDialog = true },
                         modifier = buttonModifier,
                         enabled = !uiState.busy
                     ) {
@@ -125,7 +173,7 @@ fun AccountSettingsScreen(vm: AccountSettingsViewModel) {
                     }
 
                     Button(
-                        onClick = vm::showDeleteAccountDialog,
+                        onClick = { showDeleteAccountDialog = true },
                         modifier = buttonModifier,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color.Red,
@@ -146,7 +194,7 @@ fun AccountSettingsScreen(vm: AccountSettingsViewModel) {
         }
     }
 
-    if(uiState.showLoginToDeviceDialog) {
+    if(showLoginToDeviceDialog) {
 
         var code by remember {
             mutableStateOf("")
@@ -170,13 +218,13 @@ fun AccountSettingsScreen(vm: AccountSettingsViewModel) {
         fun loginToDevice() {
             keyboardController?.hide()
             if (enableOk) {
-                vm.loginToDevice(code)
+                loginToDevice(code)
             }
         }
 
         fun dismissDialog() {
             keyboardController?.hide()
-            vm.hideLoginToDeviceDialogs()
+            showLoginToDeviceDialog = false
         }
 
 
@@ -227,7 +275,7 @@ fun AccountSettingsScreen(vm: AccountSettingsViewModel) {
 
     }
 
-    if(uiState.showChangePasswordDialog) {
+    if(showChangePasswordDialog) {
         var newPassword by remember { mutableStateOf("") }
         var passwordVisible by remember { mutableStateOf(false) }
 
@@ -268,14 +316,14 @@ fun AccountSettingsScreen(vm: AccountSettingsViewModel) {
         fun dismissDialog() {
             passwordVisible = false
             keyboardController?.hide()
-            vm.hideChangePasswordDialogs()
+            showChangePasswordDialog = false
         }
 
         fun changePassword() {
             passwordVisible = false
             keyboardController?.hide()
             if(enableOk) {
-                vm.changePassword(newPassword)
+                changePassword(newPassword)
             }
         }
 
@@ -331,26 +379,29 @@ fun AccountSettingsScreen(vm: AccountSettingsViewModel) {
 
     if(uiState.showChangePasswordSuccessAlert) {
         OkDialog(
-            onDismissRequest = vm::hideChangePasswordDialogs,
+            onDismissRequest = hideChangePasswordSuccess,
             title = stringResource(R.string.success),
             message = stringResource(R.string.your_password_was_successfully_changed)
         )
     }
 
-    if(uiState.showSignoutEverywhereDialog) {
+    if(showSignoutEverywhereDialog) {
         YesNoDialog(
-            onNo = { vm.hideSignoutEverywhereDialog(false) },
-            onYes = { vm.hideSignoutEverywhereDialog(true) },
+            onNo = { showSignoutEverywhereDialog = false },
+            onYes = {
+                showSignoutEverywhereDialog = false
+                signOutEverywhere()
+            },
             title = stringResource(R.string.logout_of_all_devices),
             message = stringResource(R.string.are_you_sure_you_want_to_force_all_devices_to_log_out)
         )
     }
 
-    if(uiState.showDeleteAccountDialog) {
+    if(showDeleteAccountDialog) {
 
         AlertDialog(
             shape = RoundedCornerShape(8.dp),
-            onDismissRequest = { vm.hideDeleteAccountDialog(false) },
+            onDismissRequest = { showDeleteAccountDialog = false },
             title = {Text(text = stringResource(R.string.delete_account)) },
             text = {
                 Column(
@@ -366,7 +417,10 @@ fun AccountSettingsScreen(vm: AccountSettingsViewModel) {
             },
             confirmButton = {
                 TextButton(
-                    onClick = { vm.hideDeleteAccountDialog(true) },
+                    onClick = {
+                        showDeleteAccountDialog = false
+                        deleteAccount()
+                    },
                     colors = ButtonDefaults.textButtonColors(
                         containerColor = Color.Red,
                         contentColor = Color.White
@@ -376,7 +430,7 @@ fun AccountSettingsScreen(vm: AccountSettingsViewModel) {
                 }
             },
             dismissButton = {
-                TextButton(onClick = { vm.hideDeleteAccountDialog(false) }) {
+                TextButton(onClick = { showDeleteAccountDialog = false  }) {
                     Text(text = stringResource(R.string.cancel))
                 }
             }
@@ -385,7 +439,60 @@ fun AccountSettingsScreen(vm: AccountSettingsViewModel) {
 
 
     if(uiState.showErrorDialog) {
-        ErrorDialog(onDismissRequest = vm::hideErrorDialog, message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = hideError, message = uiState.errorMessage)
     }
 
 }
+
+@Preview
+@Composable
+private fun AccountSettingsScreenPreview() {
+
+    val uiState = AccountSettingsUIState (
+        busy = false,
+        isMainProfile = true
+    )
+
+    DustyPigTheme(currentTheme = Themes.Maggies) {
+        Surface (
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            AccountSettingsScreenInternal(
+                popBackStack = { },
+                hideError = { },
+                signOut = { },
+                loginToDevice = { _ -> },
+                changePassword = { _ -> },
+                hideChangePasswordSuccess = { },
+                signOutEverywhere = { },
+                deleteAccount = { },
+                uiState = uiState
+            )
+        }
+
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

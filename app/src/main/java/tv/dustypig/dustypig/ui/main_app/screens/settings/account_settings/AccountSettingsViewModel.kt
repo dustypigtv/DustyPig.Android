@@ -39,57 +39,24 @@ class AccountSettingsViewModel @Inject constructor(
                 busy = false,
                 showErrorDialog = true,
                 errorMessage = ex.localizedMessage,
-                showLoginToDeviceDialog = false,
-                showLoginToDeviceAlert = false,
                 loginToDeviceSuccess = false,
-                showChangePasswordDialog = false,
-                showChangePasswordSuccessAlert = false,
-                showSignoutEverywhereDialog = false,
-                showDeleteAccountDialog = false
+                showChangePasswordSuccessAlert = false
             )
         }
     }
 
-    fun hideErrorDialog() {
+    fun hideError() {
         _uiState.update {
             it.copy(showErrorDialog = false)
         }
     }
 
-
-
-
-
-    fun showLoginToDeviceDialog() {
-        _uiState.update {
-            it.copy(showLoginToDeviceDialog = true)
-        }
-    }
-
-    fun hideLoginToDeviceDialogs() {
-        _uiState.update {
-            it.copy(
-                showLoginToDeviceDialog = false,
-                showLoginToDeviceAlert = false
-            )
-        }
-    }
-
     fun loginToDevice(code: String) {
-        _uiState.update {
-            it.copy(
-                busy = true,
-                showLoginToDeviceDialog = false
-            )
-        }
-        viewModelScope.launch {
+       viewModelScope.launch {
             try{
                 authRepository.loginDeviceWithCode(code)
                 _uiState.update {
-                    it.copy(
-                        busy = true,
-                        showLoginToDeviceAlert = true
-                    )
+                    it.copy(busy = true)
                 }
             } catch (ex: Exception) {
                 setError(ex)
@@ -98,32 +65,9 @@ class AccountSettingsViewModel @Inject constructor(
     }
 
 
-
-
-
-
-    fun showChangePasswordDialog() {
-        _uiState.update {
-            it.copy(showChangePasswordDialog = true)
-        }
-    }
-
-    fun hideChangePasswordDialogs() {
-        _uiState.update {
-            it.copy(
-                showChangePasswordDialog = false,
-                showChangePasswordSuccessAlert = false
-            )
-        }
-    }
-
-
     fun changePassword(newPassword: String) {
         _uiState.update {
-            it.copy(
-                busy = true,
-                showChangePasswordDialog = false
-            )
+            it.copy(busy = true)
         }
         viewModelScope.launch{
             try {
@@ -140,8 +84,15 @@ class AccountSettingsViewModel @Inject constructor(
         }
     }
 
+    fun hideChangePasswordDialogs() {
+        _uiState.update {
+            it.copy(
+                showChangePasswordSuccessAlert = false
+            )
+        }
+    }
 
-    fun signout() {
+    fun signOut() {
         _uiState.update {
             it.copy(busy = true)
         }
@@ -151,69 +102,32 @@ class AccountSettingsViewModel @Inject constructor(
         }
     }
 
-    fun showSignoutEverywhereDialog() {
+    fun signOutEverywhere() {
         _uiState.update {
-            it.copy(showSignoutEverywhereDialog = true)
+            it.copy(busy = true)
         }
-    }
-
-    fun hideSignoutEverywhereDialog(confirmed: Boolean) {
-        if(confirmed) {
-            _uiState.update {
-                it.copy(
-                    busy = true,
-                    showSignoutEverywhereDialog = false
-                )
-            }
-            viewModelScope.launch {
-                try{
-                    authRepository.signoutEverywhere()
-                    authManager.logout()
-                } catch(ex: Exception) {
-                    setError(ex)
-                }
-            }
-        }
-        else {
-            _uiState.update {
-                it.copy(showSignoutEverywhereDialog = false)
+        viewModelScope.launch {
+            try {
+                authRepository.signoutEverywhere()
+                authManager.logout()
+            } catch (ex: Exception) {
+                setError(ex)
             }
         }
     }
 
 
-    fun showDeleteAccountDialog() {
+    fun deleteAccount() {
         _uiState.update {
-            it.copy(showDeleteAccountDialog = true)
+            it.copy(busy = true)
         }
-    }
-
-
-
-
-    fun hideDeleteAccountDialog(confirmed: Boolean) {
-        if(confirmed) {
-            _uiState.update {
-                it.copy(
-                    busy = true,
-                    showDeleteAccountDialog = false
-                )
-            }
-            viewModelScope.launch {
-                try{
-                    accountRepository.delete()
-                    authManager.logout()
-                } catch (ex: Exception) {
-                    setError(ex)
-                }
-            }
-        } else {
-            _uiState.update {
-                it.copy(showDeleteAccountDialog = false)
+        viewModelScope.launch {
+            try {
+                accountRepository.delete()
+                authManager.logout()
+            } catch (ex: Exception) {
+                setError(ex)
             }
         }
     }
-
-
-
 }

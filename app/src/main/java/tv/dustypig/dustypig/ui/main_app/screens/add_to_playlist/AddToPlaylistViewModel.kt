@@ -35,18 +35,12 @@ class AddToPlaylistViewModel  @Inject constructor(
     private val _isSeries: Boolean = savedStateHandle.getOrThrow<String>(AddToPlaylistNav.KEY_IS_SERIES).toBoolean()
 
     init {
-        _uiState.update {
-            it.copy(
-                loading = true
-            )
-        }
-
         viewModelScope.launch {
             try {
                 _data = playlistRepository.list()
                 _uiState.update {
                     it.copy(
-                        loading = false,
+                        busy = false,
                         playlists = _data
                     )
                 }
@@ -60,7 +54,6 @@ class AddToPlaylistViewModel  @Inject constructor(
         ex.logToCrashlytics()
         _uiState.update {
             it.copy(
-                loading = false,
                 busy = false,
                 showErrorDialog = true,
                 errorMessage = ex.message,

@@ -23,6 +23,5 @@ data class TMDBDetailsUIState (
     val requestPermissions: TitleRequestPermissions = TitleRequestPermissions.Enabled,
     val requestStatus: RequestStatus = RequestStatus.NotRequested,
     val busy: Boolean = false,
-    val showFriendsDialog: Boolean = false,
     val friends: List<BasicFriend> = listOf()
 )

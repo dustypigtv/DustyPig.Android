@@ -25,6 +25,7 @@ import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -33,24 +34,46 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideLazyListPreloader
 import tv.dustypig.dustypig.R
+import tv.dustypig.dustypig.api.models.BasicMedia
+import tv.dustypig.dustypig.api.models.HomeScreenList
+import tv.dustypig.dustypig.api.models.MediaTypes
+import tv.dustypig.dustypig.global_managers.settings_manager.Themes
+import tv.dustypig.dustypig.nav.MyRouteNavigator
+import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.composables.BasicMediaView
+import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 
-@OptIn(ExperimentalGlideComposeApi::class, ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(vm: HomeViewModel) {
-
     val uiState by vm.uiState.collectAsState()
-    val ptrState = rememberPullRefreshState(uiState.isRefreshing, { vm.onRefresh() })
+    HomeScreenInternal(
+        uiState = uiState,
+        onRefresh = vm::onRefresh,
+        onShowMoreClicked = vm::onShowMoreClicked,
+        routeNavigator = vm
+    )
+}
+
+@OptIn(ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
+@Composable
+private fun HomeScreenInternal(
+    uiState: HomeUIState,
+    onRefresh: () -> Unit,
+    onShowMoreClicked: (HomeScreenList) -> Unit,
+    routeNavigator: RouteNavigator
+) {
+
+    val ptrState = rememberPullRefreshState(
+        refreshing = uiState.isRefreshing,
+        onRefresh = onRefresh
+    )
     val showLoading by remember { derivedStateOf { uiState.isRefreshing && uiState.sections.isEmpty() } }
     val showEmpty by remember { derivedStateOf { uiState.sections.isEmpty() && !uiState.isRefreshing }}
     val showLoadingOrEmpty by remember { derivedStateOf { showLoading || showEmpty }}
@@ -73,22 +96,8 @@ fun HomeScreen(vm: HomeViewModel) {
                 }
             }
         } else {
-            val configuration = LocalConfiguration.current
-            val visibleGuess = remember { derivedStateOf { (configuration.screenWidthDp.dp / 100.dp).toInt() }}
-            val preload = remember { derivedStateOf { visibleGuess.value * 2 }}
             val lazyColumnState = rememberLazyListState()
             val lazyRowStates = uiState.sections.associate { it.listId to rememberLazyListState() }
-            for (section in uiState.sections) {
-                GlideLazyListPreloader(
-                    state = lazyRowStates[section.listId]!!,
-                    data = section.items,
-                    size = Size(100F, 150F),
-                    numberOfItemsToPreload = preload.value,
-                    fixedVisibleItemCount = visibleGuess.value
-                ) { item, requestBuilder ->
-                    requestBuilder.load(item.artworkUrl)
-                }
-            }
 
             LazyColumn(
                 state = lazyColumnState,
@@ -105,7 +114,7 @@ fun HomeScreen(vm: HomeViewModel) {
                             .animateItemPlacement()
                     ) {
                         Button(
-                            onClick = { vm.onShowMoreClicked(section) },
+                            onClick = { onShowMoreClicked(section) },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.Transparent,
                                 contentColor = MaterialTheme.colorScheme.primary
@@ -134,7 +143,7 @@ fun HomeScreen(vm: HomeViewModel) {
                             items(section.items, key = { basicMedia -> basicMedia.id }) { basicMedia ->
                                 BasicMediaView(
                                     basicMedia = basicMedia,
-                                    vm
+                                    routeNavigator = routeNavigator
                                 )
                             }
                         }
@@ -150,5 +159,70 @@ fun HomeScreen(vm: HomeViewModel) {
             Modifier.align(Alignment.TopCenter)
         )
 
+    }
+}
+
+
+@Preview
+@Composable
+private fun HomeScreenPreview() {
+
+    val bmLst: List<BasicMedia> = listOf(
+        BasicMedia(
+            id = 0,
+            mediaType = MediaTypes.Movie,
+            artworkUrl = "",
+            backdropUrl = "",
+            title = ""
+        ),
+        BasicMedia(
+            id = 1,
+            mediaType = MediaTypes.Movie,
+            artworkUrl = "",
+            backdropUrl = "",
+            title = ""
+        ),
+        BasicMedia(
+            id = 2,
+            mediaType = MediaTypes.Movie,
+            artworkUrl = "",
+            backdropUrl = "",
+            title = ""
+        )
+    )
+
+    val uiState = HomeUIState(
+        isRefreshing = false,
+        sections = listOf(
+            HomeScreenList(
+                listId = 0,
+                title = "List 0",
+                items = bmLst
+            ),
+            HomeScreenList(
+                listId = 1,
+                title = "List 1",
+                items = bmLst
+            ),
+            HomeScreenList(
+                listId = 2,
+                title = "List 2",
+                items = bmLst
+            )
+        )
+    )
+
+    DustyPigTheme(currentTheme = Themes.Maggies) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+               HomeScreenInternal(
+                   uiState = uiState,
+                   onRefresh = { },
+                   onShowMoreClicked = { _ -> },
+                   routeNavigator = MyRouteNavigator()
+               )
+        }
     }
 }

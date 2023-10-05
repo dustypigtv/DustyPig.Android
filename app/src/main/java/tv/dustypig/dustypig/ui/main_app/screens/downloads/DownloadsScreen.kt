@@ -18,10 +18,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.DismissDirection
-import androidx.compose.material.DismissState
 import androidx.compose.material.DismissValue
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
@@ -40,12 +40,12 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -56,41 +56,80 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
+import tv.dustypig.dustypig.global_managers.download_manager.UIDownload
 import tv.dustypig.dustypig.global_managers.download_manager.UIJob
+import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.MultiDownloadDialog
 import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.composables.YesNoDialog
+import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
-
-@OptIn(ExperimentalGlideComposeApi::class, ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun DownloadsScreen(vm: DownloadsViewModel) {
 
-    val jobs by vm.downloadManager.downloads.collectAsState(initial = listOf())
     val uiState by vm.uiState.collectAsState()
 
-    val expandedMediaIds = remember {
-         mutableStateListOf<Int>()
+    DownloadsScreenInternal(
+        hideError = vm::hideError,
+        playNext = vm::playNext,
+        playItem = vm::playItem,
+        deleteDownload = vm::deleteDownload,
+        deleteAll = vm::deleteAll,
+        toggleExpansion = vm::toggleExpansion,
+        modifyDownload = vm::modifyDownload,
+        uiState = uiState
+    )
+}
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
+@Composable
+private fun DownloadsScreenInternal(
+    hideError: () -> Unit,
+    playNext: (UIJob) -> Unit,
+    playItem: (UIJob, UIDownload) -> Unit,
+    deleteDownload: (UIJob) -> Unit,
+    deleteAll: () -> Unit,
+    toggleExpansion: (Int) -> Unit,
+    modifyDownload: (job: UIJob, newCount: Int) -> Unit,
+    uiState: DownloadsUIState
+) {
+
+
+//Moved to vm so it's remembered when leaving and coming back to this screen
+//    val expandedMediaIds = remember {
+//         mutableStateListOf<Int>()
+//    }
+
+    val listState = rememberLazyListState()
+
+    var showEditDownloadDialog by remember {
+        mutableStateOf(false)
     }
 
     var showRemoveDownloadDialog by remember {
         mutableStateOf(false)
     }
 
-    var jobToRemove by remember {
+    var selectedJob by remember {
         mutableStateOf<UIJob?>(null)
     }
 
-    if(jobs.isEmpty()) {
+    var showDeleteAllDownloads by remember {
+        mutableStateOf(false)
+    }
+
+    if(uiState.jobs.isEmpty()) {
 
         Box (
             modifier = Modifier.fillMaxSize(),
@@ -102,22 +141,19 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
     } else {
 
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            state = listState
         ) {
 
             item {
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            for (job in jobs) {
+            for (job in uiState.jobs) {
 
                 val modifier = when (job.mediaType) {
                     MediaTypes.Series, MediaTypes.Playlist -> Modifier.clickable {
-                        if (expandedMediaIds.contains(job.mediaId)) {
-                            expandedMediaIds.remove(job.mediaId)
-                        } else {
-                            expandedMediaIds.add(job.mediaId)
-                        }
+                        toggleExpansion(job.mediaId)
                     }
 
                     else -> Modifier
@@ -129,11 +165,12 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
                         confirmStateChange = {
                             when(it) {
                                 DismissValue.DismissedToStart -> {
-                                    jobToRemove = job
+                                    selectedJob = job
                                     showRemoveDownloadDialog = true
                                 }
                                 DismissValue.DismissedToEnd -> {
-                                    vm.showDownloadDialog(job.mediaId, job.mediaType)
+                                    selectedJob = job
+                                    showEditDownloadDialog = true
                                 }
                                 else -> { }
                             }
@@ -157,7 +194,40 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
                                 FractionalThreshold(0.5f)
                             },
                             background = {
-                                DismissBackground(dismissState, job)
+                                val color = when (dismissState.dismissDirection) {
+                                    DismissDirection.EndToStart -> MaterialTheme.colorScheme.errorContainer
+                                    DismissDirection.StartToEnd -> MaterialTheme.colorScheme.secondaryContainer
+                                    else -> Color.Transparent
+                                }
+                                val direction = dismissState.dismissDirection
+
+                                Row(
+                                    modifier = Modifier
+                                        .clip(shape = RoundedCornerShape(8.dp))
+                                        .fillMaxSize()
+                                        .background(color, shape = RoundedCornerShape(8.dp))
+                                        .padding(12.dp, 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = when(direction) {
+                                        DismissDirection.EndToStart -> Arrangement.End
+                                        DismissDirection.StartToEnd -> Arrangement.Start
+                                        else -> { Arrangement.Center }
+                                    }
+                                ) {
+                                    when(direction) {
+                                        DismissDirection.EndToStart -> Icon(
+                                            imageVector = Icons.Filled.Delete,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onErrorContainer
+                                        )
+
+                                        DismissDirection.StartToEnd -> TintedIcon(
+                                            imageVector = Icons.Filled.Edit
+                                        )
+
+                                        else -> { }
+                                    }
+                                }
                             },
                             dismissContent = {
                                 Row(
@@ -176,28 +246,40 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
                                         contentAlignment = Alignment.Center
                                     ) {
                                         if (job.artworkPoster) {
-                                            GlideImage(
-                                                model = job.artworkUrl,
-                                                contentDescription = "",
+                                            AsyncImage(
+                                                model = ImageRequest
+                                                    .Builder(LocalContext.current)
+                                                    .data(job.artworkUrl)
+                                                    .error(R.drawable.error_wide)
+                                                    .crossfade(true)
+                                                    .build(),
                                                 contentScale = ContentScale.Crop,
                                                 modifier = Modifier
                                                     .fillMaxSize()
-                                                    .blur(50.dp)
+                                                    .blur(50.dp),
+                                                contentDescription = null
                                             )
 
-                                            GlideImage(
-                                                model = job.artworkUrl,
-                                                contentDescription = "",
+                                            AsyncImage(
+                                                model = ImageRequest
+                                                    .Builder(LocalContext.current)
+                                                    .data(job.artworkUrl)
+                                                    .error(R.drawable.error_wide)
+                                                    .crossfade(true)
+                                                    .build(),
                                                 contentScale = ContentScale.Fit,
-                                                modifier = Modifier.fillMaxSize()
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentDescription = null
                                             )
                                         } else {
-                                            GlideImage(
-                                                model = job.artworkUrl,
-                                                contentDescription = "",
-                                                contentScale = ContentScale.Crop,
-                                                modifier = Modifier
-                                                    .fillMaxSize()
+                                            AsyncImage(
+                                                model = ImageRequest
+                                                    .Builder(LocalContext.current)
+                                                    .data(job.artworkUrl)
+                                                    .error(R.drawable.error_wide)
+                                                    .crossfade(true)
+                                                    .build(),
+                                                contentDescription = ""
                                             )
                                         }
 
@@ -213,7 +295,7 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
                                                     .size(36.dp)
                                                     .clip(shape = CircleShape)
                                                     .background(color = Color.Black.copy(alpha = 0.5f))
-                                                    .clickable { vm.playNext(job.mediaId, job.mediaType) }
+                                                    .clickable { playNext(job) }
                                             )
                                         }
                                     }
@@ -311,7 +393,7 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
                 }
 
 
-                if (expandedMediaIds.contains(job.mediaId)) {
+                if (uiState.expandedMediaIds.contains(job.mediaId)) {
 
                     for (dl in job.downloads.filter { it.mediaId != job.mediaId }) {
                         item(key = dl.mediaId) {
@@ -332,28 +414,40 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
                                     contentAlignment = Alignment.Center
                                 ) {
                                     if (dl.artworkPoster) {
-                                        GlideImage(
-                                            model = dl.artworkUrl,
-                                            contentDescription = "",
+                                        AsyncImage(
+                                            model = ImageRequest
+                                                .Builder(LocalContext.current)
+                                                .data(dl.artworkUrl)
+                                                .error(R.drawable.error_wide)
+                                                .crossfade(true)
+                                                .build(),
                                             contentScale = ContentScale.Crop,
                                             modifier = Modifier
                                                 .fillMaxSize()
-                                                .blur(50.dp)
+                                                .blur(50.dp),
+                                            contentDescription = null
                                         )
 
-                                        GlideImage(
-                                            model = dl.artworkUrl,
-                                            contentDescription = "",
+                                        AsyncImage(
+                                            model = ImageRequest
+                                                .Builder(LocalContext.current)
+                                                .data(dl.artworkUrl)
+                                                .error(R.drawable.error_wide)
+                                                .crossfade(true)
+                                                .build(),
                                             contentScale = ContentScale.Fit,
-                                            modifier = Modifier.fillMaxSize()
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentDescription = null
                                         )
                                     } else {
-                                        GlideImage(
-                                            model = dl.artworkUrl,
-                                            contentDescription = "",
-                                            contentScale = ContentScale.Crop,
-                                            modifier = Modifier
-                                                .fillMaxSize()
+                                        AsyncImage(
+                                            model = ImageRequest
+                                                .Builder(LocalContext.current)
+                                                .data(dl.artworkUrl)
+                                                .error(R.drawable.error_wide)
+                                                .crossfade(true)
+                                                .build(),
+                                            contentDescription = ""
                                         )
                                     }
 
@@ -364,7 +458,7 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
                                                 .size(36.dp)
                                                 .clip(shape = CircleShape)
                                                 .background(color = Color.Black.copy(alpha = 0.5f))
-                                                .clickable { vm.playItem(job.mediaId, job.mediaType, dl.mediaId) }
+                                                .clickable { playItem(job, dl) }
                                         )
                                     }
                                 }
@@ -458,7 +552,7 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
                         }
                     }
 
-                    if (job.downloads.filter { it.mediaId != job.mediaId }.isNotEmpty())
+                    if (job.downloads.any { it.mediaId != job.mediaId })
                         item {
                             Spacer(modifier = Modifier.height(16.dp))
                         }
@@ -469,7 +563,7 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
 
             item {
                 Spacer(modifier = Modifier.height(16.dp))
-                if(jobs.isNotEmpty()) {
+                if(uiState.jobs.isNotEmpty()) {
 
                     val configuration = LocalConfiguration.current
                     val modifier = if(configuration.screenWidthDp >= 352) Modifier.width(320.dp) else Modifier.fillMaxWidth()
@@ -486,7 +580,7 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
                             horizontalArrangement = Arrangement.Center
                         ) {
                             Button(
-                                onClick = vm::deleteAll,
+                                onClick = { showDeleteAllDownloads = true },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.errorContainer,
                                     contentColor = MaterialTheme.colorScheme.onErrorContainer
@@ -503,82 +597,148 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
         }
     }
 
-    if(showRemoveDownloadDialog && jobToRemove != null) {
+    if(showRemoveDownloadDialog && selectedJob != null) {
         YesNoDialog(
             onNo = {
                 showRemoveDownloadDialog = false
             },
             onYes = {
                 showRemoveDownloadDialog = false
-                vm.removeDownload(jobToRemove!!)
+                deleteDownload(selectedJob!!)
             },
             title = stringResource(R.string.confirm),
             message = stringResource(R.string.do_you_want_to_remove_the_download)
         )
     }
 
-    if(uiState.showDownloadDialog) {
+    if(showEditDownloadDialog && selectedJob != null) {
         MultiDownloadDialog(
             onSave = { newCount ->
-                vm.modifyDownload(newCount = newCount)
+                modifyDownload(selectedJob!!, newCount)
             },
-            title = when(uiState.downloadDialogJobMediaType) {
+            title = when(selectedJob!!.mediaType) {
                 MediaTypes.Series -> stringResource(R.string.download_series)
                 MediaTypes.Playlist -> stringResource(R.string.download_playlist)
                 else -> ""
             },
-            text = when(uiState.downloadDialogJobMediaType) {
+            text = when(selectedJob!!.mediaType) {
                 MediaTypes.Series -> stringResource(R.string.how_many_unwatched_episodes_do_you_want_to_keep_downloaded)
                 MediaTypes.Playlist -> stringResource(R.string.how_many_unwatched_items_do_you_want_to_keep_downloaded)
                 else -> ""
             },
-            currentDownloadCount = uiState.downloadDialogCount
+            currentDownloadCount = selectedJob!!.count
+        )
+    }
+
+    if(showDeleteAllDownloads) {
+        YesNoDialog(
+            onNo = { showDeleteAllDownloads = false },
+            onYes = {
+                showDeleteAllDownloads = false
+                deleteAll()
+            },
+            title = stringResource(R.string.please_confirm),
+            message = stringResource(R.string.are_you_sure_you_want_to_delete_all_downloads)
         )
     }
 
     if(uiState.showErrorDialog) {
-        ErrorDialog(onDismissRequest = vm::hideError, message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = hideError, message = uiState.errorMessage)
     }
 
 }
 
 
-@OptIn(ExperimentalMaterialApi::class)
+
+
+
+
+
+
+
+@Preview(
+    showBackground = true,
+    showSystemUi = true
+)
 @Composable
-fun DismissBackground(dismissState: DismissState, uiJob: UIJob) {
+private fun DownloadScreenPreview() {
 
-    val color = when (dismissState.dismissDirection) {
-        DismissDirection.EndToStart -> MaterialTheme.colorScheme.errorContainer
-        DismissDirection.StartToEnd -> MaterialTheme.colorScheme.secondaryContainer
-        else -> Color.Transparent
-    }
-    val direction = dismissState.dismissDirection
-
-    Row(
-        modifier = Modifier
-            .clip(shape = RoundedCornerShape(8.dp))
-            .fillMaxSize()
-            .background(color, shape = RoundedCornerShape(8.dp))
-            .padding(12.dp, 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = when(direction) {
-            DismissDirection.EndToStart -> Arrangement.End
-            DismissDirection.StartToEnd -> Arrangement.Start
-            else -> { Arrangement.Center }
-        }
-    ) {
-        when(direction) {
-            DismissDirection.EndToStart -> Icon(
-                imageVector = Icons.Filled.Delete,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onErrorContainer
+    val uiState = DownloadsUIState(
+        jobs = listOf(
+            UIJob(
+                mediaId = 1,
+                count = 1,
+                mediaType = MediaTypes.Movie,
+                title = "Big Buck Bunny (2008)",
+                artworkUrl = "https://s3.dustypig.tv/demo-media/Movies/Big%20Buck%20Bunny%20%282008%29.backdrop.jpg",
+                artworkPoster = false,
+                percent = 1f,
+                status = DownloadStatus.Finished,
+                statusDetails = "",
+                downloads = listOf()
+            ),
+            UIJob(
+                mediaId = 2,
+                count = 1,
+                mediaType = MediaTypes.Series,
+                title = "Caminandes",
+                artworkUrl = "https://s3.dustypig.tv/demo-media/TV%20Shows/Caminandes/backdrop.jpg",
+                artworkPoster = false,
+                percent = 0.66f,
+                status = DownloadStatus.Running,
+                statusDetails = "",
+                downloads = listOf(
+                    UIDownload(
+                        mediaId = 3,
+                        title = "s01e01 - Llama Drama",
+                        artworkUrl = "https://s3.dustypig.tv/demo-media/TV%20Shows/Caminandes/Season%2001/Caminandes%20-%20s01e01%20-%20Llama%20Drama.jpg",
+                        artworkPoster = false,
+                        percent = 0.66f,
+                        status = DownloadStatus.Running,
+                        statusDetails = ""
+                    )
+                )
             )
+        )
+    )
 
-            DismissDirection.StartToEnd -> TintedIcon(
-                imageVector = Icons.Filled.Edit
+
+    DustyPigTheme(currentTheme = Themes.Maggies) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            DownloadsScreenInternal(
+                hideError = { },
+                playNext = { },
+                playItem = { _: UIJob, _: UIDownload -> },
+                deleteDownload = { },
+                deleteAll = { },
+                toggleExpansion = { },
+                modifyDownload = { _: UIJob, _: Int -> },
+                uiState = uiState
             )
-
-            else -> { }
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

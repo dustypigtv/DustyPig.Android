@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig.ui.main_app.screens.manage_parental_controls_for_title
 
+import android.content.Context
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +18,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,24 +31,47 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.OverrideState
+import tv.dustypig.dustypig.api.models.ProfileTitleOverrideInfo
+import tv.dustypig.dustypig.api.models.TitlePermissionInfo
+import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
+import tv.dustypig.dustypig.ui.theme.DustyPigTheme
+
+@Composable
+fun ManageParentalControlsForTitleScreen(vm: ManageParentalControlsForTitleViewModel) {
+    val uiState by vm.uiState.collectAsState()
+    ManageParentalControlsForTitleScreenInternal(
+        popBackStack = vm::popBackStack,
+        togglePermission = vm::togglePermission,
+        saveChanges = vm::saveChanges,
+        hideError = vm::hideError,
+        uiState = uiState
+    )
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun ManageParentalControlsForTitleScreen(vm: ManageParentalControlsForTitleViewModel) {
+private fun ManageParentalControlsForTitleScreenInternal(
+    popBackStack: () -> Unit,
+    togglePermission: (Int) -> Unit,
+    saveChanges: (Context) -> Unit,
+    hideError: () -> Unit,
+    uiState: ManageParentalControlsForTitleUIState
+) {
 
-    val uiState: ManageParentalControlsForTitleUIState by vm.uiState.collectAsState()
     val listState = rememberLazyListState()
 
     val context = LocalContext.current
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = vm::popBackStack, text = stringResource(R.string.parental_controls))
+            CommonTopAppBar(onClick = popBackStack, text = stringResource(R.string.parental_controls))
         }
     ) { innerPadding ->
 
@@ -87,7 +112,7 @@ fun ManageParentalControlsForTitleScreen(vm: ManageParentalControlsForTitleViewM
                 }
 
                 fun toggle() {
-                    vm.togglePermission(it.profileId)
+                    togglePermission(it.profileId)
                     checked = checked.not()
                 }
 
@@ -123,7 +148,7 @@ fun ManageParentalControlsForTitleScreen(vm: ManageParentalControlsForTitleViewM
                    } else {
                        Button(
                            enabled = uiState.pendingChanges,
-                           onClick = { vm.saveChanges(context) }
+                           onClick = { saveChanges(context) }
                        ) {
                            Text(text = stringResource(R.string.save))
                        }
@@ -140,9 +165,48 @@ fun ManageParentalControlsForTitleScreen(vm: ManageParentalControlsForTitleViewM
 
     if(uiState.showErrorDialog) {
         ErrorDialog(
-            onDismissRequest = { vm.hideError(uiState.criticalError) },
+            onDismissRequest = hideError,
             message = uiState.errorMessage
         )
     }
 
+}
+
+
+@Preview
+@Composable
+private fun ManageParentalControlsForTitleScreenPreview() {
+
+    val uiState = ManageParentalControlsForTitleUIState(
+        permissionInfo = TitlePermissionInfo(
+            titleId = 0,
+            profiles = listOf(
+                ProfileTitleOverrideInfo(
+                    profileId = 0,
+                    state = OverrideState.Allow,
+                    name = "Profile 1"
+                ),
+                ProfileTitleOverrideInfo(
+                    profileId = 1,
+                    state = OverrideState.Block,
+                    name = "Profile 2"
+                )
+            )
+        )
+    )
+
+    DustyPigTheme(currentTheme = Themes.Maggies) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            ManageParentalControlsForTitleScreenInternal(
+                popBackStack = { },
+                togglePermission = { _ -> },
+                saveChanges = { _ -> },
+                hideError = { },
+                uiState = uiState
+            )
+        }
+    }
 }

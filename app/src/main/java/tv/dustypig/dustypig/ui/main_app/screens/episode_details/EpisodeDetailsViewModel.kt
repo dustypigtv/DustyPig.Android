@@ -1,6 +1,5 @@
 package tv.dustypig.dustypig.ui.main_app.screens.episode_details
 
-//import tv.dustypig.dustypig.download_manager.DownloadManager
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,6 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.models.DetailedEpisode
@@ -15,6 +15,7 @@ import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.repositories.EpisodesRepository
 import tv.dustypig.dustypig.api.toTimeString
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
+import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
@@ -32,7 +33,7 @@ class EpisodeDetailsViewModel  @Inject constructor(
     savedStateHandle: SavedStateHandle
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val _uiState = MutableStateFlow(EpisodeDetailsUIState(downloadManager = downloadManager))
+    private val _uiState = MutableStateFlow(EpisodeDetailsUIState())
     val uiState: StateFlow<EpisodeDetailsUIState> = _uiState.asStateFlow()
 
     private val _mediaId: Int = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_ID)
@@ -49,6 +50,24 @@ class EpisodeDetailsViewModel  @Inject constructor(
                 episodeTitle = ScreenLoadingInfo.title
             )
         }
+
+        viewModelScope.launch {
+            downloadManager.downloads.collectLatest {listOfJobs ->
+                val job = listOfJobs.firstOrNull{
+                    it.mediaId == _mediaId && it.mediaType == MediaTypes.Episode
+                }
+                if(job == null) {
+                    _uiState.update {
+                        it.copy(downloadStatus = DownloadStatus.None)
+                    }
+                } else {
+                    _uiState.update {
+                        it.copy(downloadStatus = job.status)
+                    }
+                }
+            }
+        }
+
 
         viewModelScope.launch {
             try {
@@ -97,32 +116,16 @@ class EpisodeDetailsViewModel  @Inject constructor(
         }
     }
 
-    fun toggleDownload() {
+
+    fun addDownload() {
         viewModelScope.launch {
-            if (downloadManager.hasJob(_mediaId, MediaTypes.Episode)) {
-                _uiState.update {
-                    it.copy(showRemoveDownloadDialog = true)
-                }
-            } else {
-                downloadManager.addEpisode(_detailedEpisode)
-            }
+            downloadManager.addEpisode(_detailedEpisode)
         }
     }
 
-    fun hideDownload(confirmed: Boolean) {
-        if(confirmed) {
-            viewModelScope.launch {
-                //DownloadManager.delete(id = _mediaId)
-            }
-            _uiState.update {
-                it.copy(
-                    showRemoveDownloadDialog = false
-                )
-            }
-        } else {
-            _uiState.update {
-                it.copy(showRemoveDownloadDialog = false)
-            }
+    fun removeDownload() {
+        viewModelScope.launch {
+            downloadManager.delete(_mediaId, MediaTypes.Episode)
         }
     }
 

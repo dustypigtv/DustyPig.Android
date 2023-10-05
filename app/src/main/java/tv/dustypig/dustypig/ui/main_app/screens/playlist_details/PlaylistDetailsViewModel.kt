@@ -1,12 +1,12 @@
 package tv.dustypig.dustypig.ui.main_app.screens.playlist_details
 
-//import tv.dustypig.dustypig.download_manager.DownloadManager
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.models.DetailedPlaylist
@@ -15,6 +15,7 @@ import tv.dustypig.dustypig.api.models.PlaylistItem
 import tv.dustypig.dustypig.api.models.UpdatesPlaylist
 import tv.dustypig.dustypig.api.repositories.PlaylistRepository
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
+import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
@@ -33,7 +34,7 @@ class PlaylistDetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val _uiState = MutableStateFlow(PlaylistDetailsUIState(downloadManager = downloadManager))
+    private val _uiState = MutableStateFlow(PlaylistDetailsUIState())
     val uiState = _uiState.asStateFlow()
 
 
@@ -82,6 +83,28 @@ class PlaylistDetailsViewModel @Inject constructor(
                 setError(ex = ex, criticalError = true)
             }
         }
+
+
+        viewModelScope.launch {
+            downloadManager.downloads.collectLatest { jobs ->
+                val job = jobs.firstOrNull { it.mediaId == _playlistId && it.mediaType == MediaTypes.Playlist }
+                if(job == null) {
+                    _uiState.update {
+                        it.copy(
+                            downloadStatus = DownloadStatus.None,
+                            currentDownloadCount = 0
+                        )
+                    }
+                } else {
+                    _uiState.update {
+                        it.copy(
+                            downloadStatus = job.status,
+                            currentDownloadCount = job.count
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private fun setError(ex: Exception, criticalError: Boolean) {
@@ -108,58 +131,33 @@ class PlaylistDetailsViewModel @Inject constructor(
         }
     }
 
-    fun showRenameDialog() {
+    fun renamePlaylist(newName: String = "") {
         _uiState.update {
-            it.copy(showRenameDialog = true)
+            it.copy(
+                busy = true
+            )
         }
-    }
-
-    fun hideRenameDialog(confirmed: Boolean, newName: String = "") {
-        if(confirmed) {
-            _uiState.update {
-                it.copy(
-                    showRenameDialog = false,
-                    busy = true
-                )
-            }
-            viewModelScope.launch {
-                try {
-                    playlistRepository.rename(UpdatesPlaylist(
+        viewModelScope.launch {
+            try {
+                playlistRepository.rename(
+                    UpdatesPlaylist(
                         id = _playlistId,
                         name = newName
-                    ))
-                    _uiState.update {
-                        it.copy(
-                            busy = false,
-                            title = newName
-                        )
-                    }
-                } catch (ex: Exception) {
-                    setError(ex = ex, criticalError = false)
-                }
-            }
-        } else {
-            _uiState.update {
-                it.copy(showRenameDialog = false)
-            }
-        }
-    }
-
-    fun showDownloadDialog() {
-        viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    showDownloadDialog = true,
-                    currentDownloadCount = downloadManager.getJobCount(_playlistId, MediaTypes.Playlist)
+                    )
                 )
+                _uiState.update {
+                    it.copy(
+                        busy = false,
+                        title = newName
+                    )
+                }
+            } catch (ex: Exception) {
+                setError(ex = ex, criticalError = false)
             }
         }
     }
 
-    fun hideDownloadDialog(newCount: Int) {
-        _uiState.update {
-            it.copy(showDownloadDialog = false)
-        }
+    fun updateDownloads(newCount: Int) {
         viewModelScope.launch {
             if (newCount == 0)
                 downloadManager.delete(_playlistId, MediaTypes.Playlist)
@@ -231,35 +229,18 @@ class PlaylistDetailsViewModel @Inject constructor(
     }
 
     fun deletePlaylist() {
-        _uiState.update {
-            it.copy(showDeleteDialog = true)
+        viewModelScope.launch {
+            try {
+                playlistRepository.deletePlaylist(_detailedPlaylist.id)
+                //DownloadManager.delete(_detailedPlaylist.id)
+                HomeViewModel.triggerUpdate()
+                popBackStack()
+            } catch (ex: Exception) {
+                setError(ex = ex, criticalError = false)
+            }
         }
     }
 
-    fun hideDeletePlaylistDialog(confirmed: Boolean) {
-        if(confirmed) {
-            _uiState.update {
-                it.copy(
-                    showDeleteDialog = false,
-                    busy = true
-                )
-            }
-            viewModelScope.launch {
-                try {
-                    playlistRepository.deletePlaylist(_detailedPlaylist.id)
-                    //DownloadManager.delete(_detailedPlaylist.id)
-                    HomeViewModel.triggerUpdate()
-                    popBackStack()
-                } catch (ex: Exception) {
-                    setError(ex = ex, criticalError = false)
-                }
-            }
-        } else {
-            _uiState.update {
-                it.copy(showDeleteDialog = false)
-            }
-        }
-    }
 
     fun playUpNext() {
         val upNext = _detailedPlaylist.items!!.firstOrNull { it.index == _detailedPlaylist.currentIndex } ?: _detailedPlaylist.items!!.first()

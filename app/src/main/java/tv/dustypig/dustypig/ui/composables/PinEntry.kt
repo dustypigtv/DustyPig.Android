@@ -4,10 +4,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -24,12 +28,17 @@ import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import tv.dustypig.dustypig.R
+import tv.dustypig.dustypig.global_managers.settings_manager.Themes
+import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -137,7 +146,7 @@ fun PinEntry(valueChanged: (String) -> Unit, onSubmit: (String) -> Unit) {
                 modifier = Modifier
                     .width(40.dp)
                     .focusRequester(pinFocusRequesters[index])
-                    .onKeyEvent {keyEvent -> keyPressed(keyEvent, index) },
+                    .onKeyEvent { keyEvent -> keyPressed(keyEvent, index) },
                 singleLine = true,
                 textStyle = TextStyle(textAlign = TextAlign.Center),
                 value = pinList[index].value,
@@ -153,3 +162,60 @@ fun PinEntry(valueChanged: (String) -> Unit, onSubmit: (String) -> Unit) {
     }
 
 }
+
+
+
+
+
+@Preview
+@Composable
+private fun PinEntryPreview() {
+    DustyPigTheme(currentTheme = Themes.Maggies) {
+        AlertDialog(
+            shape = RoundedCornerShape(8.dp),
+            onDismissRequest = { },
+            title = { Text(stringResource(R.string.enter_pin)) },
+            text = {
+                PinEntry(
+                    valueChanged = {  },
+                    onSubmit = { }
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {  }) {
+                    Text(stringResource(R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -27,7 +27,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.DismissDirection
-import androidx.compose.material.DismissState
 import androidx.compose.material.DismissValue
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
@@ -52,10 +51,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -77,11 +78,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
+import coil.compose.AsyncImage
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Play
@@ -91,8 +91,10 @@ import org.burnoutcrew.reorderable.detectReorder
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 import tv.dustypig.dustypig.R
+import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.PlaylistItem
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
+import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.MultiDownloadDialog
@@ -101,12 +103,56 @@ import tv.dustypig.dustypig.ui.composables.OnOrientation
 import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.composables.YesNoDialog
 import tv.dustypig.dustypig.ui.isTablet
+import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlaylistDetailsScreen(vm: PlaylistDetailsViewModel) {
 
     val uiState by vm.uiState.collectAsState()
+    PlaylistDetailsScreenInternal(
+        popBackStack = vm::popBackStack,
+        hideError = vm::hideError,
+        listUpdated = vm::listUpdated,
+        updateListOrderOnServer = vm::updateListOrderOnServer,
+        playUpNext = vm::playUpNext,
+        deletePlaylist = vm::deletePlaylist,
+        deleteItem = vm::deleteItem,
+        playItem = vm::playItem,
+        navToItem = vm::navToItem,
+        renamePlaylist = vm::renamePlaylist,
+        updateDownloads = vm::updateDownloads,
+        uiState = uiState
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PlaylistDetailsScreenInternal(
+    popBackStack: () -> Unit,
+    hideError: () -> Unit,
+    listUpdated: () -> Unit,
+    updateListOrderOnServer: (Int, Int) -> Unit,
+    playUpNext: () -> Unit,
+    deletePlaylist: () -> Unit,
+    deleteItem: (Int) -> Unit,
+    playItem: (Int) -> Unit,
+    navToItem: (Int) -> Unit,
+    renamePlaylist: (String) -> Unit,
+    updateDownloads: (Int) -> Unit,
+    uiState: PlaylistDetailsUIState
+) {
+
+    val showRenameDialog = remember {
+        mutableStateOf(false)
+    }
+
+    val showDownloadDialog = remember {
+        mutableStateOf(false)
+    }
+
+    val showDeletePlaylistDialog = remember {
+        mutableStateOf(false)
+    }
 
     val criticalError by remember {
         derivedStateOf {
@@ -116,14 +162,22 @@ fun PlaylistDetailsScreen(vm: PlaylistDetailsViewModel) {
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = vm::popBackStack, text = stringResource(R.string.playlist_info))
+            CommonTopAppBar(onClick = popBackStack, text = stringResource(R.string.playlist_info))
         }
     ) { innerPadding ->
 
         OnDevice(
             onPhone = {
                 PhoneLayout(
-                    vm = vm,
+                    listUpdated = listUpdated,
+                    updateListOrderOnServer = updateListOrderOnServer,
+                    playUpNext = playUpNext,
+                    deleteItem = deleteItem,
+                    playItem = playItem,
+                    navToItem = navToItem,
+                    showRenameDialog = showRenameDialog,
+                    showDownloadDialog = showDownloadDialog,
+                    showDeletePlaylistDialog = showDeletePlaylistDialog,
                     uiState = uiState,
                     criticalError = criticalError,
                     innerPadding = innerPadding
@@ -133,7 +187,15 @@ fun PlaylistDetailsScreen(vm: PlaylistDetailsViewModel) {
                 OnOrientation(
                     onPortrait = {
                         PhoneLayout(
-                            vm = vm,
+                            listUpdated = listUpdated,
+                            updateListOrderOnServer = updateListOrderOnServer,
+                            playUpNext = playUpNext,
+                            deleteItem = deleteItem,
+                            playItem = playItem,
+                            navToItem = navToItem,
+                            showRenameDialog = showRenameDialog,
+                            showDownloadDialog = showDownloadDialog,
+                            showDeletePlaylistDialog = showDeletePlaylistDialog,
                             uiState = uiState,
                             criticalError = criticalError,
                             innerPadding = innerPadding
@@ -141,7 +203,15 @@ fun PlaylistDetailsScreen(vm: PlaylistDetailsViewModel) {
                     },
                     onLandscape = {
                         HorizontalTabletLayout(
-                            vm = vm,
+                            listUpdated = listUpdated,
+                            updateListOrderOnServer = updateListOrderOnServer,
+                            playUpNext = playUpNext,
+                            deleteItem = deleteItem,
+                            playItem = playItem,
+                            navToItem = navToItem,
+                            showRenameDialog = showRenameDialog,
+                            showDownloadDialog = showDownloadDialog,
+                            showDeletePlaylistDialog = showDeletePlaylistDialog,
                             uiState = uiState,
                             criticalError = criticalError,
                             innerPadding = innerPadding
@@ -151,7 +221,7 @@ fun PlaylistDetailsScreen(vm: PlaylistDetailsViewModel) {
         )
     }
 
-    if(uiState.showRenameDialog) {
+    if(showRenameDialog.value) {
         var newName by remember {
             mutableStateOf(uiState.title)
         }
@@ -171,50 +241,76 @@ fun PlaylistDetailsScreen(vm: PlaylistDetailsViewModel) {
                         .fillMaxWidth()
                         .focusRequester(FocusRequester()),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Go),
-                    keyboardActions = KeyboardActions(onGo = { vm.hideRenameDialog(confirmed = true, newName = newName) })
+                    keyboardActions = KeyboardActions(onGo = {
+                        showRenameDialog.value = false
+                        renamePlaylist(newName)
+                    })
                 )
             },
-            onDismissRequest = { vm.hideRenameDialog(confirmed = false) },
+            onDismissRequest = { showRenameDialog.value = false },
             confirmButton = {
-                TextButton(onClick = { vm.hideRenameDialog(confirmed = true, newName = newName) }) {
+                TextButton(onClick = {
+                    showRenameDialog.value = false
+                    renamePlaylist(newName)
+                }) {
                     Text(text = stringResource(R.string.save))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { vm.hideRenameDialog(confirmed = false) }) {
+                TextButton(onClick = { showRenameDialog.value = false }) {
                     Text(stringResource(R.string.cancel))
                 }
             }
         )
     }
 
-    if(uiState.showDownloadDialog) {
+    if(showDownloadDialog.value) {
         MultiDownloadDialog(
-            onSave = vm::hideDownloadDialog,
+            onSave = {
+                showDownloadDialog.value = false
+                updateDownloads(it)
+            },
             title = stringResource(R.string.download_playlist),
             text = stringResource(R.string.how_many_unwatched_items_do_you_want_to_keep_downloaded),
             currentDownloadCount = uiState.currentDownloadCount
         )
     }
 
-    if(uiState.showDeleteDialog) {
+    if(showDeletePlaylistDialog.value) {
         YesNoDialog(
-            onNo = { vm.hideDeletePlaylistDialog(false) },
-            onYes = { vm.hideDeletePlaylistDialog(true) },
+            onNo = {
+                showDeletePlaylistDialog.value = false
+            },
+            onYes = {
+                showDeletePlaylistDialog.value = false
+                deletePlaylist()
+            },
             title = stringResource(R.string.confirm_delete),
             message = stringResource(R.string.are_you_sure_you_want_to_delete_this_playlist)
         )
     }
 
     if(uiState.showErrorDialog) {
-        ErrorDialog(onDismissRequest = vm::hideError, message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = hideError, message = uiState.errorMessage)
     }
 }
 
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-private fun HorizontalTabletLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetailsUIState, criticalError: Boolean, innerPadding: PaddingValues) {
+private fun HorizontalTabletLayout(
+    listUpdated: () -> Unit,
+    updateListOrderOnServer: (Int, Int) -> Unit,
+    playUpNext: () -> Unit,
+    deleteItem: (Int) -> Unit,
+    playItem: (Int) -> Unit,
+    navToItem: (Int) -> Unit,
+    showRenameDialog: MutableState<Boolean>,
+    showDownloadDialog: MutableState<Boolean>,
+    showDeletePlaylistDialog: MutableState<Boolean>,
+    uiState: PlaylistDetailsUIState,
+    criticalError: Boolean,
+    innerPadding: PaddingValues
+) {
 
     //Left aligns content or center aligns busy indicator
     val columnAlignment = if(uiState.loading) Alignment.CenterHorizontally else Alignment.Start
@@ -225,7 +321,7 @@ private fun HorizontalTabletLayout(vm: PlaylistDetailsViewModel, uiState: Playli
 
     if(uiState.updateList) {
         data.value = uiState.items
-        vm.listUpdated()
+        listUpdated()
     }
 
     //There is 1 before the playlist items, so subtract 1 from indices
@@ -238,7 +334,7 @@ private fun HorizontalTabletLayout(vm: PlaylistDetailsViewModel, uiState: Playli
             } catch(_: Throwable) { }
         },
         onDragEnd = { from, to ->
-            vm.updateListOrderOnServer(from - 1, to - 1)
+            updateListOrderOnServer(from - 1, to - 1)
         }
     )
 
@@ -254,16 +350,17 @@ private fun HorizontalTabletLayout(vm: PlaylistDetailsViewModel, uiState: Playli
                 .fillMaxWidth(fraction = 0.33f)
         ) {
 
-            GlideImage(
+            AsyncImage(
                 model = uiState.posterUrl,
                 contentDescription = "",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
+                    .background(color = Color.DarkGray)
                     .blur(50.dp)
             )
 
-            GlideImage(
+            AsyncImage(
                 model = uiState.posterUrl,
                 contentDescription = "",
                 contentScale = ContentScale.Fit,
@@ -283,17 +380,33 @@ private fun HorizontalTabletLayout(vm: PlaylistDetailsViewModel, uiState: Playli
 
             if (!uiState.loading && !criticalError) {
                 item {
-                    PlaybackLayout(vm = vm, uiState = uiState, criticalError = criticalError)
+                    PlaybackLayout(
+                        showRenameDialog = showRenameDialog,
+                        playUpNext = playUpNext,
+                        showDownloadDialog = showDownloadDialog,
+                        uiState = uiState,
+                        criticalError = criticalError
+                    )
                 }
 
                 items(data.value, { it.id }) { playlistItem ->
                     ReorderableItem(state, key = playlistItem.id) { isDragging ->
-                        PlaylistItemLayout(playlistItem = playlistItem, vm = vm, isDragging = isDragging, state = state)
+                        PlaylistItemLayout(
+                            deleteItem = deleteItem,
+                            playItem = playItem,
+                            navToItem = navToItem,
+                            playlistItem = playlistItem,
+                            isDragging = isDragging,
+                            state = state
+                        )
                     }
                 }
 
                 item {
-                    DeleteLayout(vm = vm, uiState = uiState)
+                    DeleteLayout(
+                        showDeletePlaylistDialog = showDeletePlaylistDialog,
+                        uiState = uiState
+                    )
                 }
 
             }
@@ -302,9 +415,21 @@ private fun HorizontalTabletLayout(vm: PlaylistDetailsViewModel, uiState: Playli
 }
 
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-private fun PhoneLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetailsUIState, criticalError: Boolean, innerPadding: PaddingValues) {
+private fun PhoneLayout(
+    listUpdated: () -> Unit,
+    updateListOrderOnServer: (Int, Int) -> Unit,
+    playUpNext: () -> Unit,
+    deleteItem: (Int) -> Unit,
+    playItem: (Int) -> Unit,
+    navToItem: (Int) -> Unit,
+    showRenameDialog: MutableState<Boolean>,
+    showDownloadDialog: MutableState<Boolean>,
+    showDeletePlaylistDialog: MutableState<Boolean>,
+    uiState: PlaylistDetailsUIState,
+    criticalError: Boolean,
+    innerPadding: PaddingValues
+) {
 
     val configuration = LocalConfiguration.current
     val hdp = configuration.screenWidthDp.dp * 0.5625f
@@ -318,7 +443,7 @@ private fun PhoneLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetailsUI
 
     if (uiState.updateList) {
         data.value = uiState.items
-        vm.listUpdated()
+        listUpdated()
     }
 
     //There are 2 items before the playlist items, so subtract 2 from indices
@@ -332,7 +457,7 @@ private fun PhoneLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetailsUI
             }
         },
         onDragEnd = { from, to ->
-            vm.updateListOrderOnServer(from - 2, to - 2)
+            updateListOrderOnServer(from - 2, to - 2)
         }
     )
 
@@ -357,16 +482,17 @@ private fun PhoneLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetailsUI
                         .fillMaxWidth()
                         .height(hdp)
                 ) {
-                    GlideImage(
+                    AsyncImage(
                         model = uiState.posterUrl,
                         contentDescription = "",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .fillMaxSize()
+                            .background(color = Color.DarkGray)
                             .blur(50.dp)
                     )
 
-                    GlideImage(
+                    AsyncImage(
                         model = uiState.posterUrl,
                         contentDescription = "",
                         contentScale = ContentScale.Fit,
@@ -377,17 +503,33 @@ private fun PhoneLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetailsUI
 
             if (!uiState.loading && !criticalError) {
                 item {
-                    PlaybackLayout(vm = vm, uiState = uiState, criticalError = false)
+                    PlaybackLayout(
+                        showRenameDialog = showRenameDialog,
+                        playUpNext = playUpNext,
+                        showDownloadDialog = showDownloadDialog,
+                        uiState = uiState,
+                        criticalError = false
+                    )
                 }
 
                 items(data.value, { it.id }) { playlistItem ->
                     ReorderableItem(state, key = playlistItem.id) { isDragging ->
-                        PlaylistItemLayout(playlistItem = playlistItem, vm = vm, isDragging = isDragging, state = state)
+                        PlaylistItemLayout(
+                            deleteItem = deleteItem,
+                            playItem = playItem,
+                            navToItem = navToItem,
+                            playlistItem = playlistItem,
+                            isDragging = isDragging,
+                            state = state
+                        )
                     }
                 }
 
                 item {
-                    DeleteLayout(vm = vm, uiState = uiState)
+                    DeleteLayout(
+                        showDeletePlaylistDialog = showDeletePlaylistDialog,
+                        uiState = uiState
+                    )
                 }
 
             }
@@ -400,7 +542,13 @@ private fun PhoneLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetailsUI
 }
 
 @Composable
-private fun PlaybackLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetailsUIState, criticalError: Boolean) {
+private fun PlaybackLayout(
+    playUpNext: () -> Unit,
+    showRenameDialog: MutableState<Boolean>,
+    showDownloadDialog: MutableState<Boolean>,
+    uiState: PlaylistDetailsUIState,
+    criticalError: Boolean
+) {
 
     val configuration = LocalConfiguration.current
     val alignment = if(configuration.isTablet()) Alignment.Start else Alignment.CenterHorizontally
@@ -412,20 +560,14 @@ private fun PlaybackLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetail
         CircularProgressIndicator()
     } else  if (!criticalError) {
 
-        val status = uiState.downloadManager
-            .downloads
-            .collectAsStateWithLifecycle(initialValue = listOf())
-            .value
-            .firstOrNull{ it.mediaId == uiState.playlistId }
-            ?.status
-        val downloadIcon = when(status) {
+        val downloadIcon = when(uiState.downloadStatus) {
+            DownloadStatus.None -> Icons.Filled.Download
             DownloadStatus.Finished -> Icons.Filled.DownloadDone
-            null -> Icons.Filled.Download
             else -> Icons.Filled.Downloading
         }
-        val downloadText = when(status) {
+        val downloadText = when(uiState.downloadStatus) {
+            DownloadStatus.None -> stringResource(R.string.download)
             DownloadStatus.Finished -> stringResource(R.string.downloaded)
-            null -> stringResource(R.string.download)
             else -> stringResource(R.string.downloading)
         }
 
@@ -442,7 +584,7 @@ private fun PlaybackLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetail
                 modifier = Modifier.weight(1f)
             )
 
-            IconButton(onClick = vm::showRenameDialog) {
+            IconButton(onClick = { showRenameDialog.value = true }) {
                 TintedIcon(imageVector = Icons.Filled.Edit)
             }
         }
@@ -460,7 +602,7 @@ private fun PlaybackLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetail
             modifier = Modifier.fillMaxWidth()
         ) {
             Button(
-                onClick = vm::playUpNext,
+                onClick = playUpNext,
                 modifier = modifier.padding(buttonPadding)
             ) {
                 Icon(
@@ -477,7 +619,7 @@ private fun PlaybackLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetail
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(
-                onClick = vm::showDownloadDialog,
+                onClick = { showDownloadDialog.value = true },
                 modifier = modifier.padding(buttonPadding)
             ) {
                 Icon(
@@ -496,43 +638,24 @@ private fun PlaybackLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetail
     }
 }
 
+
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun DismissBackground(dismissState: DismissState) {
-
-    val color = when (dismissState.dismissDirection) {
-        DismissDirection.EndToStart -> MaterialTheme.colorScheme.errorContainer
-        else -> Color.Transparent
-    }
-    val direction = dismissState.dismissDirection
-
-    Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color, shape = RoundedCornerShape(4.dp))
-            .padding(12.dp, 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.End
-    ) {
-        if (direction == DismissDirection.EndToStart) {
-            Icon(
-                imageVector = Icons.Filled.Delete,
-                contentDescription = stringResource(R.string.delete)
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalGlideComposeApi::class, ExperimentalMaterialApi::class)
-@Composable
-private fun PlaylistItemLayout(vm: PlaylistDetailsViewModel, playlistItem: PlaylistItem, isDragging: Boolean, state: ReorderableLazyListState) {
+private fun PlaylistItemLayout(
+    deleteItem: (Int) -> Unit,
+    playItem: (Int) -> Unit,
+    navToItem: (Int) -> Unit,
+    playlistItem: PlaylistItem,
+    isDragging: Boolean,
+    state: ReorderableLazyListState
+) {
 
     val elevation = animateDpAsState(if (isDragging) 16.dp else 0.dp, label = "")
 
     val dismissState = rememberDismissState(
         confirmStateChange = {
             if(it == DismissValue.DismissedToStart) {
-                vm.deleteItem(playlistItem.id)
+                deleteItem(playlistItem.id)
                 return@rememberDismissState true
             }
             false
@@ -549,7 +672,27 @@ private fun PlaylistItemLayout(vm: PlaylistDetailsViewModel, playlistItem: Playl
                 FractionalThreshold(0.5f)
             },
             background = {
-                DismissBackground(dismissState)
+                val color = when (dismissState.dismissDirection) {
+                    DismissDirection.EndToStart -> MaterialTheme.colorScheme.errorContainer
+                    else -> Color.Transparent
+                }
+                val direction = dismissState.dismissDirection
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(color, shape = RoundedCornerShape(4.dp))
+                        .padding(12.dp, 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    if (direction == DismissDirection.EndToStart) {
+                        Icon(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = stringResource(R.string.delete)
+                        )
+                    }
+                }
             },
             dismissContent = {
                 Row(
@@ -581,12 +724,13 @@ private fun PlaylistItemLayout(vm: PlaylistDetailsViewModel, playlistItem: Playl
                             .height(64.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        GlideImage(
+                        AsyncImage(
                             model = playlistItem.artworkUrl,
                             contentDescription = "",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .fillMaxSize()
+                                .background(color = Color.DarkGray)
                                 .clip(shape = RoundedCornerShape(4.dp))
                         )
 
@@ -596,7 +740,7 @@ private fun PlaylistItemLayout(vm: PlaylistDetailsViewModel, playlistItem: Playl
                                 .size(36.dp)
                                 .clip(shape = CircleShape)
                                 .background(color = Color.Black.copy(alpha = 0.5f))
-                                .clickable { vm.playItem(playlistItem.id) }
+                                .clickable { playItem(playlistItem.id) }
                         )
 
                     }
@@ -630,7 +774,7 @@ private fun PlaylistItemLayout(vm: PlaylistDetailsViewModel, playlistItem: Playl
                         contentAlignment = Alignment.Center
                     ) {
 
-                        IconButton(onClick = { vm.navToItem(playlistItem.id) }) {
+                        IconButton(onClick = { navToItem(playlistItem.id) }) {
                             Icon(
                                 imageVector = Icons.Outlined.Info,
                                 contentDescription = null
@@ -647,7 +791,10 @@ private fun PlaylistItemLayout(vm: PlaylistDetailsViewModel, playlistItem: Playl
 }
 
 @Composable
-private fun DeleteLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetailsUIState) {
+private fun DeleteLayout(
+    showDeletePlaylistDialog: MutableState<Boolean>,
+    uiState: PlaylistDetailsUIState
+) {
 
     val configuration = LocalConfiguration.current
     val modifier = if(configuration.screenWidthDp >= 352) Modifier.width(320.dp) else Modifier.fillMaxWidth()
@@ -665,7 +812,7 @@ private fun DeleteLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetailsU
         ) {
             Button(
                 enabled = !(uiState.loading || uiState.busy),
-                onClick = vm::deletePlaylist,
+                onClick = { showDeletePlaylistDialog.value = true },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.errorContainer,
                     contentColor = MaterialTheme.colorScheme.onErrorContainer
@@ -678,3 +825,91 @@ private fun DeleteLayout(vm: PlaylistDetailsViewModel, uiState: PlaylistDetailsU
     }
     Spacer(modifier = Modifier.height(16.dp))
 }
+
+
+
+@Preview
+@Composable
+private fun PlaylistDetailsScreenPreview() {
+    val uiState = PlaylistDetailsUIState(
+        loading = false,
+        title = "My Playlist",
+        canPlay = true,
+        items = listOf(
+            PlaylistItem(
+                id = 1,
+                index = 1,
+                mediaId = 0,
+                seriesId = 0,
+                mediaType = MediaTypes.Movie,
+                title = "Item 1",
+                description = "Overview 1",
+                artworkUrl = "",
+                played = null,
+                length = 5000.0,
+                introStartTime = null,
+                introEndTime = null,
+                creditStartTime = null,
+                bifUrl = "",
+                videoUrl = "",
+                externalSubtitles = listOf()
+            ),
+            PlaylistItem(
+                id = 2,
+                index = 2,
+                mediaId = 0,
+                seriesId = 0,
+                mediaType = MediaTypes.Movie,
+                title = "Item 2",
+                description = "Overview 2",
+                artworkUrl = "",
+                played = null,
+                length = 5000.0,
+                introStartTime = null,
+                introEndTime = null,
+                creditStartTime = null,
+                bifUrl = "",
+                videoUrl = "",
+                externalSubtitles = listOf()
+            )
+        )
+    )
+
+    DustyPigTheme(currentTheme = Themes.Maggies) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            PlaylistDetailsScreenInternal(
+                popBackStack = { },
+                hideError = { },
+                listUpdated = { },
+                updateListOrderOnServer = { _, _ -> },
+                playUpNext = { },
+                deletePlaylist = { },
+                deleteItem = { _ -> },
+                playItem = { _ -> },
+                navToItem = { _ -> },
+                renamePlaylist = { _ -> },
+                updateDownloads = { _ -> },
+                uiState = uiState
+            )
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

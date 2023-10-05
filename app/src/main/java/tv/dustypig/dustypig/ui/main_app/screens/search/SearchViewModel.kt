@@ -86,4 +86,5 @@ class SearchViewModel @Inject constructor(
             it.copy(tabIndex = idx)
         }
     }
+
 }

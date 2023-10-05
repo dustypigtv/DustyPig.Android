@@ -15,6 +15,8 @@ import tv.dustypig.dustypig.api.models.CreateAccount
 import tv.dustypig.dustypig.api.models.CreateAccountResponse
 import tv.dustypig.dustypig.api.models.CreatePlaylist
 import tv.dustypig.dustypig.api.models.DetailedEpisode
+import tv.dustypig.dustypig.api.models.DetailedFriend
+import tv.dustypig.dustypig.api.models.DetailedLibrary
 import tv.dustypig.dustypig.api.models.DetailedMovie
 import tv.dustypig.dustypig.api.models.DetailedPlaylist
 import tv.dustypig.dustypig.api.models.DetailedSeries
@@ -34,6 +36,7 @@ import tv.dustypig.dustypig.api.models.SearchResults
 import tv.dustypig.dustypig.api.models.SimpleValue
 import tv.dustypig.dustypig.api.models.TitlePermissionInfo
 import tv.dustypig.dustypig.api.models.TitleRequest
+import tv.dustypig.dustypig.api.models.UpdateFriend
 import tv.dustypig.dustypig.api.models.UpdatesPlaylist
 
 interface ApiService {
@@ -90,6 +93,20 @@ interface ApiService {
     @POST("Friends/Invite")
     suspend fun inviteFriend(@Body email: SimpleValue<String>): Response<ResponseWrapper>
 
+    @GET("Friends/Details/{id}")
+    suspend fun friendDetails(@Path("id") id: Int): Response<ResponseWrapperOf<DetailedFriend>>
+
+    @POST("Friends/Update")
+    suspend fun updateFriend(@Body updateFriend: UpdateFriend): Response<ResponseWrapper>
+
+
+
+
+
+
+    // ***** Libraries *****
+    @GET("Libraries/AdminList")
+    suspend fun adminListLibraries(): Response<ResponseWrapperOf<List<DetailedLibrary>>>
 
 
 

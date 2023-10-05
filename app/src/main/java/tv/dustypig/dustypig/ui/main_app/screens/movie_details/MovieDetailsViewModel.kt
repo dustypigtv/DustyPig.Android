@@ -49,15 +49,24 @@ class MovieDetailsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(MovieDetailsUIState())
     val uiState: StateFlow<MovieDetailsUIState> = _uiState.asStateFlow()
 
-    private val _titleInfoUIState = getTitleInfoUIStateForUpdate()
-
     override val mediaId: Int = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_ID)
     private lateinit var _detailedMovie: DetailedMovie
 
     init {
 
         _titleInfoUIState.update {
-            it.copy(title = ScreenLoadingInfo.title)
+            it.copy(
+                title = ScreenLoadingInfo.title,
+                mediaType = MediaTypes.Movie,
+                playClick = ::play,
+                toggleWatchList = ::toggleWatchList,
+                addDownload = ::addDownload,
+                removeDownload = ::removeDownload,
+                addToPlaylist = ::addToPlaylist,
+                markMovieWatched = ::markWatched,
+                requestAccess = ::requestAccess,
+                manageClick = ::manageParentalControls
+            )
         }
 
         _uiState.update {
@@ -66,6 +75,7 @@ class MovieDetailsViewModel @Inject constructor(
                 backdropUrl = ScreenLoadingInfo.backdropUrl
             )
         }
+
 
         viewModelScope.launch {
             try {
@@ -96,13 +106,6 @@ class MovieDetailsViewModel @Inject constructor(
 
                 _titleInfoUIState.update { it ->
                     it.copy(
-                        playClick = { play() },
-                        toggleWatchList = { toggleWatchList() },
-                        download = { toggleDownload() },
-                        addToPlaylist = { addToPlaylist() },
-                        markWatched = { markWatched() },
-                        requestAccess = { requestAccess() },
-                        manageClick = { manageParentalControls() },
                         inWatchList = _detailedMovie.inWatchlist,
                         title = _detailedMovie.title,
                         year = SimpleDateFormat("yyyy").format(_detailedMovie.date),
@@ -121,6 +124,7 @@ class MovieDetailsViewModel @Inject constructor(
                 setError(ex = ex, criticalError = true)
             }
         }
+
     }
 
     private fun setError(ex: Exception, criticalError: Boolean) {
@@ -153,40 +157,23 @@ class MovieDetailsViewModel @Inject constructor(
         }
     }
 
-    fun hideDownload(confirmed: Boolean) {
-        if(confirmed) {
-            viewModelScope.launch {
-                downloadManager.delete(mediaId = mediaId, mediaType = MediaTypes.Movie)
-            }
-            _uiState.update {
-                it.copy(
-                    showRemoveDownload = false
-                )
-            }
-        } else {
-            _uiState.update {
-                it.copy(showRemoveDownload = false)
-            }
+    private fun addDownload() {
+        viewModelScope.launch {
+            downloadManager.addMovie(_detailedMovie)
         }
     }
+
+    private fun removeDownload() {
+        viewModelScope.launch {
+            downloadManager.delete(mediaId = mediaId, mediaType = MediaTypes.Movie)
+        }
+     }
 
 
     private fun play() {
         navigateToRoute(PlayerNav.getRouteForId(mediaId))
     }
 
-    private fun toggleDownload() {
-
-        viewModelScope.launch {
-            if (downloadManager.hasJob(mediaId, MediaTypes.Movie)) {
-                _uiState.update {
-                    it.copy(showRemoveDownload = true)
-                }
-            } else {
-                downloadManager.addMovie(_detailedMovie)
-            }
-        }
-    }
 
     private fun requestAccess() {
         _titleInfoUIState.update {

@@ -39,18 +39,37 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import tv.dustypig.dustypig.R
+import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OkDialog
 import tv.dustypig.dustypig.ui.composables.TintedIcon
+import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun SignUpScreen(vm: SignUpViewModel) {
 
     val uiState by vm.uiState.collectAsState()
+
+    SignUpScreenInternal(
+        signUp = vm::signUp,
+        hideError = vm::hideError,
+        navToSignIn = vm::navToSignIn,
+        uiState = uiState
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@Composable
+private fun SignUpScreenInternal(
+    signUp: (String, String, String) -> Unit,
+    hideError: () -> Unit,
+    navToSignIn: (String) -> Unit,
+    uiState: SignUpUIState
+) {
+
     val localFocusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     var name by remember { mutableStateOf("") }
@@ -95,7 +114,7 @@ fun SignUpScreen(vm: SignUpViewModel) {
     fun signUp() {
         localFocusManager.clearFocus()
         keyboardController?.hide()
-        vm.signUp(name, email, password)
+        signUp(name, email, password)
     }
 
     Box(
@@ -164,7 +183,7 @@ fun SignUpScreen(vm: SignUpViewModel) {
 
             TextButton(
                 enabled = !uiState.busy,
-                onClick = { vm.navToSignIn(email) }
+                onClick = { navToSignIn(email) }
             ) {
                 Text(text = stringResource(R.string.already_have_an_account_sign_in))
             }
@@ -178,11 +197,46 @@ fun SignUpScreen(vm: SignUpViewModel) {
 
 
     if (uiState.showError) {
-        ErrorDialog(onDismissRequest = { vm.hideError() }, message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = hideError, message = uiState.errorMessage)
     }
 
     if (uiState.showSuccess) {
-        OkDialog(onDismissRequest = { vm.navToSignIn(email) }, title = stringResource(R.string.success), message = uiState.message)
+        OkDialog(onDismissRequest = { navToSignIn(email) }, title = stringResource(R.string.success), message = uiState.message)
     }
 }
+
+
+@Preview
+@Composable
+private fun SignUpScreenPreview() {
+
+    val uiState = SignUpUIState(
+        busy = false
+    )
+
+    DustyPigTheme(currentTheme = Themes.Maggies) {
+        SignUpScreenInternal(
+            signUp = { _:String, _:String, _:String -> },
+            hideError = { },
+            navToSignIn = { },
+            uiState = uiState
+        )
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

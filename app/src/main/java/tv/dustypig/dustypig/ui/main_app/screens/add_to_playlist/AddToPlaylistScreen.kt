@@ -43,173 +43,185 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.BasicMedia
+import tv.dustypig.dustypig.api.models.BasicPlaylist
 import tv.dustypig.dustypig.api.models.MediaTypes
+import tv.dustypig.dustypig.global_managers.settings_manager.Themes
+import tv.dustypig.dustypig.nav.MyRouteNavigator
+import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.composables.BasicMediaView
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
+import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun AddToPlaylistScreen(vm: AddToPlaylistViewModel) {
 
-    val keyboardController = LocalSoftwareKeyboardController.current
     val uiState: AddToPlaylistUIState by vm.uiState.collectAsState()
+    AddToPlaylistScreenInternal(
+        popBackStack = { },
+        hideError = { },
+        newPlaylist = { },
+        selectPlaylist = { } ,
+        routeNavigator = vm,
+        uiState = uiState
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@Composable
+private fun AddToPlaylistScreenInternal(
+    popBackStack: () -> Unit,
+    hideError: () -> Unit,
+    newPlaylist: (String) -> Unit,
+    selectPlaylist: (Int) -> Unit,
+    routeNavigator: RouteNavigator,
+    uiState: AddToPlaylistUIState
+) {
+
+    val keyboardController = LocalSoftwareKeyboardController.current
     val listState = rememberLazyListState()
     var newName by remember { mutableStateOf("")}
     val enableSaveButton by remember {
         derivedStateOf {
-            !uiState.loading && newName.isNotBlank()
+            !uiState.busy && newName.isNotBlank()
         }
     }
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = vm::popBackStack, text = stringResource(R.string.add_to_playlist))
+            CommonTopAppBar(onClick = popBackStack, text = stringResource(R.string.add_to_playlist))
         }
     ) { innerPadding ->
 
-        if(uiState.loading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentAlignment = Alignment.TopCenter
+        ) {
 
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Spacer(modifier = Modifier.height(24.dp))
-                CircularProgressIndicator()
-            }
-
-
-        } else {
-
-            Box (
+            LazyColumn(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(12.dp, 0.dp),
-                contentAlignment = Alignment.TopCenter
+                    .padding(12.dp)
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                state = listState
             ) {
+                item {
 
-                LazyColumn(
-                    modifier = Modifier
-                        .padding(innerPadding)
-                        .fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    state = listState
-                ) {
-                    item {
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = newName,
+                            onValueChange = { newName = it },
+                            placeholder = { Text(text = stringResource(R.string.new_playlist_name)) },
+                            label = { Text(text = stringResource(R.string.new_playlist_name)) },
+                            singleLine = true,
+                            enabled = !uiState.busy,
+                            modifier = Modifier.width(300.dp),
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
+                        )
 
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        Button(
+                            onClick = { newPlaylist(newName) },
+                            enabled = enableSaveButton,
+                            modifier = Modifier.width(300.dp)
                         ) {
-                            OutlinedTextField(
-                                value = newName,
-                                onValueChange = { newName = it },
-                                placeholder = { Text(text = stringResource(R.string.new_playlist_name)) },
-                                label = { Text(text = stringResource(R.string.new_playlist_name)) },
-                                singleLine = true,
-                                enabled = !uiState.busy,
-                                modifier = Modifier.width(300.dp),
-                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                                keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
-                            )
+                            Text(text = stringResource(R.string.save))
+                        }
 
-                            Button(
-                                onClick = { vm.newPlaylist(newName) },
-                                enabled = enableSaveButton,
-                                modifier = Modifier.width(300.dp)
+
+                        if (uiState.playlists.isNotEmpty()) {
+                            Row(
+                                modifier = Modifier.height(IntrinsicSize.Min)
                             ) {
-                                Text(text = stringResource(R.string.save))
-                            }
-
-
-                            if (uiState.playlists.isNotEmpty()) {
-                                Row (
-                                  modifier = Modifier.height(IntrinsicSize.Min)
+                                Box(
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    Box (
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Divider()
-                                        Text(
-                                            text = buildString {
-                                                append("   ")
-                                                append(stringResource(R.string.or_choose_a_playlist_below))
-                                                append("   ")
-                                            },
-                                            modifier = Modifier.background(MaterialTheme.colorScheme.background)
-                                        )
-                                    }
+                                    Divider()
+                                    Text(
+                                        text = buildString {
+                                            append("   ")
+                                            append(stringResource(R.string.or_choose_a_playlist_below))
+                                            append("   ")
+                                        },
+                                        modifier = Modifier.background(MaterialTheme.colorScheme.background)
+                                    )
                                 }
-                                Spacer(modifier = Modifier.height(8.dp))
                             }
+                            Spacer(modifier = Modifier.height(8.dp))
                         }
-                    }
-
-
-                    items(uiState.playlists) {
-                        val id = it.id
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(150.dp)
-                                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp), shape = RoundedCornerShape(4.dp))
-                                .clip(RoundedCornerShape(4.dp))
-                                .clickable {
-                                    if (!uiState.busy)
-                                        vm.selectPlaylist(id)
-                                },
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-
-                            Box(
-                                modifier = Modifier
-                                    .height(150.dp)
-                                    .width(100.dp),
-                                contentAlignment = Alignment.TopStart
-                            )
-                            {
-                                BasicMediaView(
-                                    basicMedia = BasicMedia(
-                                        id = it.id,
-                                        mediaType = MediaTypes.Playlist,
-                                        artworkUrl = it.artworkUrl,
-                                        backdropUrl = "",
-                                        title = it.name
-                                    ),
-                                    routeNavigator = vm,
-                                    navigateOnClick = false,
-                                    enabled = false,
-                                    clicked = null
-                                )
-                            }
-
-                            Text(
-                                text = it.name,
-                                modifier = Modifier.fillMaxWidth(),
-                                maxLines = 4,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-
-                    }
-
-                    item {
-                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
 
-                if(uiState.busy)
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
 
+                items(uiState.playlists) {
+                    val id = it.id
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(150.dp)
+                            .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp), shape = RoundedCornerShape(4.dp))
+                            .clip(RoundedCornerShape(4.dp))
+                            .clickable {
+                                if (!uiState.busy)
+                                    selectPlaylist(id)
+                            },
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+
+                        Box(
+                            modifier = Modifier
+                                .height(150.dp)
+                                .width(100.dp),
+                            contentAlignment = Alignment.TopStart
+                        )
+                        {
+                            BasicMediaView(
+                                basicMedia = BasicMedia(
+                                    id = it.id,
+                                    mediaType = MediaTypes.Playlist,
+                                    artworkUrl = it.artworkUrl,
+                                    backdropUrl = "",
+                                    title = it.name
+                                ),
+                                routeNavigator = routeNavigator,
+                                navigateOnClick = false,
+                                enabled = false,
+                                clicked = null
+                            )
+                        }
+
+                        Text(
+                            text = it.name,
+                            modifier = Modifier.fillMaxWidth(),
+                            maxLines = 4,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
             }
+
+            if (uiState.busy)
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+
         }
     }
 
@@ -217,12 +229,79 @@ fun AddToPlaylistScreen(vm: AddToPlaylistViewModel) {
 
     if(uiState.showErrorDialog) {
         ErrorDialog(
-            onDismissRequest = vm::hideError,
+            onDismissRequest = hideError,
             message = uiState.errorMessage
         )
     }
 
 }
+
+
+
+
+@Preview(showSystemUi = true)
+@Composable
+private fun AddToPlaylistScreenPreview() {
+
+    val uiState = AddToPlaylistUIState(
+        playlists = listOf(
+            BasicPlaylist(
+                id = 1,
+                name = "Playlist 1",
+                artworkUrl = "https://s3.dustypig.tv/user-art-defaults/playlist/default.png"
+            ),
+            BasicPlaylist(
+                id = 2,
+                name = "Playlist 2",
+                artworkUrl = "https://s3.dustypig.tv/user-art-defaults/playlist/default.png"
+            ),
+            BasicPlaylist(
+                id = 3,
+                name = "Playlist 3",
+                artworkUrl = "https://s3.dustypig.tv/user-art-defaults/playlist/default.png"
+            ),
+            BasicPlaylist(
+                id = 4,
+                name = "Playlist 4",
+                artworkUrl = "https://s3.dustypig.tv/user-art-defaults/playlist/default.png"
+            )
+        )
+    )
+
+    DustyPigTheme(currentTheme = Themes.Maggies) {
+        AddToPlaylistScreenInternal(
+            popBackStack = { },
+            hideError = { },
+            newPlaylist = { },
+            selectPlaylist = { },
+            routeNavigator = MyRouteNavigator(),
+            uiState = uiState
+        )
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

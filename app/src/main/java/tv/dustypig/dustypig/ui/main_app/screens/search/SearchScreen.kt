@@ -27,7 +27,9 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -46,27 +48,52 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
 import tv.dustypig.dustypig.R
+import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.BasicTMDB
+import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.TMDB_MediaTypes
+import tv.dustypig.dustypig.global_managers.settings_manager.Themes
+import tv.dustypig.dustypig.nav.MyRouteNavigator
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.composables.BasicMediaView
 import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.main_app.ScreenLoadingInfo
 import tv.dustypig.dustypig.ui.main_app.screens.tmdb_details.TMDBDetailsNav
+import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+
 @Composable
 fun SearchScreen(vm: SearchViewModel) {
 
     val uiState by vm.uiState.collectAsState()
+    SearchScreenInternal(
+        search = vm::search,
+        updateTabIndex = vm::updateTabIndex,
+        uiState = uiState,
+        routeNavigator = vm
+    )
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@Composable
+private fun SearchScreenInternal(
+    search: (String) -> Unit,
+    updateTabIndex: (Int) -> Unit,
+    uiState: SearchUIState,
+    routeNavigator: RouteNavigator
+) {
+
     var query by remember { mutableStateOf("")}
     var ltquery by remember { mutableStateOf("")}
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -76,7 +103,7 @@ fun SearchScreen(vm: SearchViewModel) {
     fun updateQuery(q: String) {
         query = q
         ltquery = q.lowercase().trim()
-        vm.search(ltquery)
+        search(ltquery)
     }
 
     LaunchedEffect(ltquery) {
@@ -144,7 +171,9 @@ fun SearchScreen(vm: SearchViewModel) {
                                     ) {
                                         Image(
                                             imageVector = ImageVector.vectorResource(id = R.drawable.ic_logo_transparent),
-                                            modifier = Modifier.size(36.dp).background(Color.Transparent),
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .background(Color.Transparent),
                                             contentDescription = null
                                         )
                                         Text(text = stringResource(R.string.available))
@@ -152,7 +181,7 @@ fun SearchScreen(vm: SearchViewModel) {
                                 },
                                 selected = uiState.tabIndex == 0,
                                 onClick = {
-                                    vm.updateTabIndex(0)
+                                    updateTabIndex(0)
                                     keyboardController?.hide()
                                 },
                             )
@@ -166,19 +195,19 @@ fun SearchScreen(vm: SearchViewModel) {
                                 },
                                 selected = uiState.tabIndex == 1,
                                 onClick = {
-                                    vm.updateTabIndex(1)
+                                    updateTabIndex(1)
                                     keyboardController?.hide()
                                 },
                             )
                         }
 
                         when (uiState.tabIndex) {
-                            0 -> AvailableLayout(vm = vm, uiState = uiState, availableState)
-                            1 -> TMDBLayout(vm = vm, uiState = uiState, tmdbState)
+                            0 -> AvailableLayout(uiState = uiState, listState = availableState, routeNavigator = routeNavigator)
+                            1 -> TMDBLayout(uiState = uiState, listState = tmdbState, routeNavigator = routeNavigator)
                         }
 
                     } else {
-                        AvailableLayout(vm = vm, uiState = uiState, availableState)
+                        AvailableLayout(uiState = uiState, listState = availableState, routeNavigator = routeNavigator)
                     }
                 }
 
@@ -199,7 +228,7 @@ fun SearchScreen(vm: SearchViewModel) {
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun AvailableLayout(vm: SearchViewModel, uiState: SearchUIState, listState: LazyGridState) {
+private fun AvailableLayout(uiState: SearchUIState, listState: LazyGridState, routeNavigator: RouteNavigator) {
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -217,7 +246,7 @@ private fun AvailableLayout(vm: SearchViewModel, uiState: SearchUIState, listSta
         ) { index ->
             BasicMediaView(
                 basicMedia = uiState.availableItems[index],
-                routeNavigator = vm,
+                routeNavigator = routeNavigator,
                 clicked = { keyboardController?.hide() }
             )
         }
@@ -227,7 +256,7 @@ private fun AvailableLayout(vm: SearchViewModel, uiState: SearchUIState, listSta
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun TMDBLayout(vm: SearchViewModel, uiState: SearchUIState, listState: LazyGridState) {
+private fun TMDBLayout(uiState: SearchUIState, listState: LazyGridState, routeNavigator: RouteNavigator) {
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -245,7 +274,7 @@ private fun TMDBLayout(vm: SearchViewModel, uiState: SearchUIState, listState: L
         ) { index ->
             TMDBMediaView(
                 basicTMDB = uiState.tmdbItems[index],
-                routeNavigator = vm,
+                routeNavigator = routeNavigator,
                 clicked = { keyboardController?.hide() }
             )
         }
@@ -288,19 +317,126 @@ fun TMDBMediaView(
             .fillMaxWidth()
             .height(hdp)
     ) {
-        GlideImage(
+        AsyncImage(
             model = basicTMDB.artworkUrl,
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
+                .background(color = Color.DarkGray)
                 .align(Alignment.Center)
                 .size(wdp, hdp)
                 .clip(RoundedCornerShape(4.dp))
-                .clickable { onClicked() }
+                .clickable { onClicked() },
+            error = painterResource(id = R.drawable.error_tall)
+        )
+    }
+}
+
+
+
+@Preview
+@Composable
+private fun SearchScreenPreview() {
+
+    val uiState = SearchUIState(
+        loading = false,
+        emptyQuery = false,
+        hasResults = true,
+        allowTMDB = true,
+        tabIndex = 1,
+        availableItems = listOf(
+            BasicMedia (
+                id = 0,
+                mediaType = MediaTypes.Movie,
+                artworkUrl = "",
+                backdropUrl = "",
+                title = ""
+            ),
+            BasicMedia (
+                id = 0,
+                mediaType = MediaTypes.Movie,
+                artworkUrl = "",
+                backdropUrl = "",
+                title = ""
+            ),
+            BasicMedia (
+                id = 0,
+                mediaType = MediaTypes.Movie,
+                artworkUrl = "",
+                backdropUrl = "",
+                title = ""
+            ),
+            BasicMedia (
+                id = 0,
+                mediaType = MediaTypes.Movie,
+                artworkUrl = "",
+                backdropUrl = "",
+                title = ""
+            )
+        ),
+        tmdbItems = listOf(
+            BasicTMDB (
+                tmdbId = 0,
+                mediaType = TMDB_MediaTypes.Movie,
+                artworkUrl = "",
+                backdropUrl = "",
+                title = ""
+            ),
+            BasicTMDB (
+                tmdbId = 0,
+                mediaType = TMDB_MediaTypes.Movie,
+                artworkUrl = "",
+                backdropUrl = "",
+                title = ""
+            ),
+            BasicTMDB (
+                tmdbId = 0,
+                mediaType = TMDB_MediaTypes.Movie,
+                artworkUrl = "",
+                backdropUrl = "",
+                title = ""
+            ),
+            BasicTMDB (
+                tmdbId = 0,
+                mediaType = TMDB_MediaTypes.Movie,
+                artworkUrl = "",
+                backdropUrl = "",
+                title = ""
+            )
+        )
+    )
+
+    DustyPigTheme(currentTheme = Themes.Maggies) {
+        Surface (
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
         ) {
-            it
-                .placeholder(R.drawable.placeholder_tall)
-                .error(R.drawable.error_tall)
+            SearchScreenInternal(
+                search = { },
+                updateTabIndex = { _ -> },
+                uiState = uiState,
+                routeNavigator = MyRouteNavigator()
+            )
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

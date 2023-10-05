@@ -7,7 +7,6 @@ data class MovieDetailsUIState(
     val showErrorDialog: Boolean = false,
     val errorMessage: String? = null,
     val criticalError: Boolean = false,
-    val showRemoveDownload: Boolean = false,
     val posterUrl: String = "",
     val backdropUrl: String = "",
     val creditsData: CreditsData = CreditsData()

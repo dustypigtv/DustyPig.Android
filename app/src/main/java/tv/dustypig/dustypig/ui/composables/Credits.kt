@@ -1,13 +1,16 @@
 package tv.dustypig.dustypig.ui.composables
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -19,9 +22,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import tv.dustypig.dustypig.R
+import tv.dustypig.dustypig.global_managers.settings_manager.Themes
+import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 
 private val spacerHeight = 12.dp
@@ -108,3 +114,56 @@ fun Credits(creditsData: CreditsData) {
 
     Spacer(modifier = Modifier.height(spacerHeight))
 }
+
+
+// The preview doesn't work all the time
+@Preview
+@Composable
+private fun CreditsPreview() {
+    val creditsData = CreditsData(
+        genres = listOf("Genre 1", "Genre 2"),
+        cast = listOf("Actress 1", "Actor 2", "Actress 3", "Actor 4", "Actress 5", "Actor 6"),
+        directors = listOf("Director 1", "Director 2"),
+        producers = listOf("Producer"),
+        writers = listOf("Writer 1", "Writer 2")
+    )
+
+    DustyPigTheme(currentTheme = Themes.Maggies) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Credits(creditsData)
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

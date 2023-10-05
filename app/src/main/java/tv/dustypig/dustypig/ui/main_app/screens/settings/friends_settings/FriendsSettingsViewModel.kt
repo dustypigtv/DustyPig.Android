@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.repositories.FriendsRepository
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
+import tv.dustypig.dustypig.ui.main_app.screens.settings.friends_settings.friend_details_settings.FriendDetailsSettingsNav
 import javax.inject.Inject
 
 @HiltViewModel
@@ -47,23 +48,13 @@ class FriendsSettingsViewModel @Inject constructor(
     fun hideDialog() = _uiState.update {
         it.copy(
             showError = false,
-            showAddFriendDialog = false,
             showInviteSuccessDialog = false
         )
     }
 
-    fun showAddFriendDialog() {
-        _uiState.update {
-            it.copy(showAddFriendDialog = true)
-        }
-    }
-
     fun addFriend(email: String) {
         _uiState.update {
-            it.copy(
-                busy = false,
-                showAddFriendDialog = false
-            )
+            it.copy(busy = false)
         }
         viewModelScope.launch {
             try{
@@ -88,7 +79,7 @@ class FriendsSettingsViewModel @Inject constructor(
     }
 
     fun navToFriendDetails(id: Int) {
-
+        navigateToRoute(FriendDetailsSettingsNav.getRouteForId(id))
     }
 
 

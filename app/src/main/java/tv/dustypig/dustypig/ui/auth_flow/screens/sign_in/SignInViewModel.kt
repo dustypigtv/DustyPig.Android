@@ -37,21 +37,6 @@ class SignInViewModel @Inject constructor(
         }
     }
 
-    fun showForgotPassword(email: String) {
-        SharedEmailModel.updateEmail(email)
-        _uiState.update {
-            it.copy(showForgotPassword = true)
-        }
-    }
-
-    fun hideForgotPassword(email: String) {
-        SharedEmailModel.updateEmail(email)
-        _uiState.update {
-            it.copy(
-                showForgotPassword = false
-            )
-        }
-    }
 
     fun hideForgotPasswordSuccess() {
         _uiState.update {
@@ -62,7 +47,6 @@ class SignInViewModel @Inject constructor(
     fun hideForgotPasswordError() {
         _uiState.update {
             it.copy(
-                showForgotPassword = true,
                 showForgotPasswordError = false
             )
         }
@@ -133,7 +117,7 @@ class SignInViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         forgotPasswordBusy = false,
-                        showForgotPassword = false,
+                        //showForgotPassword = false,
                         showForgotPasswordSuccess = true
                     )
                 }
@@ -142,7 +126,7 @@ class SignInViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         forgotPasswordBusy = false,
-                        showForgotPassword = false,
+                        //showForgotPassword = false,
                         showForgotPasswordError = true,
                         errorMessage = ex.localizedMessage
                     )

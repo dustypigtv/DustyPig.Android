@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig.ui.main_app.screens.tmdb_details
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,30 +29,39 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
+import coil.compose.AsyncImage
 import tv.dustypig.dustypig.R
+import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.BasicProfile
+import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.RequestStatus
 import tv.dustypig.dustypig.api.models.TitleRequestPermissions
+import tv.dustypig.dustypig.global_managers.settings_manager.Themes
+import tv.dustypig.dustypig.nav.MyRouteNavigator
+import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.composables.Avatar
 import tv.dustypig.dustypig.ui.composables.BasicMediaView
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
@@ -60,12 +70,37 @@ import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
 import tv.dustypig.dustypig.ui.composables.OnOrientation
 import tv.dustypig.dustypig.ui.isTablet
+import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TMDBDetailsScreen(vm: TMDBDetailsViewModel) {
 
     val uiState by vm.uiState.collectAsState()
+    TMDBDetailsScreenInternal(
+        popBackStack = vm::popBackStack,
+        hideError =vm::hideErrorDialog,
+        requestTitle = vm::requestTitle,
+        cancelRequest = vm::cancelRequest,
+        uiState = uiState,
+        routeNavigator = vm
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TMDBDetailsScreenInternal(
+    popBackStack: () -> Unit,
+    hideError: () -> Unit,
+    requestTitle: (Int) -> Unit,
+    cancelRequest: () -> Unit,
+    uiState: TMDBDetailsUIState,
+    routeNavigator: RouteNavigator
+) {
+
+
+    val showFriendsDialog = remember {
+        mutableStateOf(false)
+    }
 
     val criticalError by remember {
         derivedStateOf {
@@ -76,7 +111,7 @@ fun TMDBDetailsScreen(vm: TMDBDetailsViewModel) {
     Scaffold(
         topBar = {
             CommonTopAppBar(
-                onClick = vm::popBackStack,
+                onClick = popBackStack,
                 text = if(uiState.isMovie) stringResource(R.string.movie_info) else stringResource(R.string.series_info)
             )
         }
@@ -85,9 +120,11 @@ fun TMDBDetailsScreen(vm: TMDBDetailsViewModel) {
         OnDevice(
             onPhone = {
                 PhoneLayout(
-                    vm = vm,
+                    cancelRequest = cancelRequest,
                     uiState = uiState,
                     criticalError = criticalError,
+                    routeNavigator = routeNavigator,
+                    showFriendsDialog = showFriendsDialog,
                     innerPadding = innerPadding
                 )
             },
@@ -95,17 +132,21 @@ fun TMDBDetailsScreen(vm: TMDBDetailsViewModel) {
                 OnOrientation(
                     onPortrait = {
                         PhoneLayout(
-                            vm = vm,
+                            cancelRequest = cancelRequest,
                             uiState = uiState,
                             criticalError = criticalError,
+                            routeNavigator = routeNavigator,
+                            showFriendsDialog = showFriendsDialog,
                             innerPadding = innerPadding
                         )
                     },
                     onLandscape = {
                         HorizontalTabletLayout(
-                            vm = vm,
+                            cancelRequest = cancelRequest,
                             uiState = uiState,
                             criticalError = criticalError,
+                            routeNavigator = routeNavigator,
+                            showFriendsDialog = showFriendsDialog,
                             innerPadding = innerPadding
                         )
                     })
@@ -113,14 +154,14 @@ fun TMDBDetailsScreen(vm: TMDBDetailsViewModel) {
         )
     }
 
-    if(uiState.showFriendsDialog) {
+    if(showFriendsDialog.value) {
         val friendId = remember { mutableIntStateOf(-1) }
         val titleType = if(uiState.isMovie) "movie" else "series"
         val listState = rememberLazyListState()
 
         AlertDialog(
             shape = RoundedCornerShape(8.dp),
-            onDismissRequest = { vm.hideFriendsDialog(friendId = -1) },
+            onDismissRequest = { showFriendsDialog.value = false },
             title = { Text(text = stringResource(R.string.request)) },
             text = {
                 Column {
@@ -159,13 +200,16 @@ fun TMDBDetailsScreen(vm: TMDBDetailsViewModel) {
             confirmButton = {
                 TextButton(
                     enabled = friendId.intValue >= 0,
-                    onClick = { vm.hideFriendsDialog(friendId = friendId.intValue) }
+                    onClick = {
+                        showFriendsDialog.value = false
+                        requestTitle(friendId.intValue)
+                    }
                 ) {
                     Text(stringResource(R.string.save))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { vm.hideFriendsDialog(friendId = -1) }) {
+                TextButton(onClick = { showFriendsDialog.value = false }) {
                     Text(stringResource(R.string.cancel))
                 }
             }
@@ -173,15 +217,21 @@ fun TMDBDetailsScreen(vm: TMDBDetailsViewModel) {
     }
 
     if(uiState.showErrorDialog) {
-        ErrorDialog(onDismissRequest = { vm.hideErrorDialog() }, message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = hideError, message = uiState.errorMessage)
     }
 }
 
 
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-private fun HorizontalTabletLayout(vm: TMDBDetailsViewModel, uiState: TMDBDetailsUIState, criticalError: Boolean, innerPadding: PaddingValues) {
+private fun HorizontalTabletLayout(
+    cancelRequest: () -> Unit,
+    uiState: TMDBDetailsUIState,
+    criticalError: Boolean,
+    routeNavigator: RouteNavigator,
+    showFriendsDialog: MutableState<Boolean>,
+    innerPadding: PaddingValues
+) {
 
     //Left aligns content or center aligns busy indicator
     val columnAlignment = if(uiState.loading) Alignment.CenterHorizontally else Alignment.Start
@@ -198,16 +248,17 @@ private fun HorizontalTabletLayout(vm: TMDBDetailsViewModel, uiState: TMDBDetail
                 .fillMaxWidth(fraction = 0.33f)
         ) {
 
-            GlideImage(
+            AsyncImage(
                 model = uiState.posterUrl,
                 contentDescription = "",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
+                    .background(color = Color.DarkGray)
                     .blur(50.dp)
             )
 
-            GlideImage(
+            AsyncImage(
                 model = uiState.posterUrl,
                 contentDescription = "",
                 contentScale = ContentScale.Fit,
@@ -221,14 +272,26 @@ private fun HorizontalTabletLayout(vm: TMDBDetailsViewModel, uiState: TMDBDetail
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = columnAlignment
         ) {
-            InfoLayout(vm = vm, uiState = uiState, criticalError = criticalError)
+            InfoLayout(
+                cancelRequest = cancelRequest,
+                uiState = uiState,
+                criticalError = criticalError,
+                showFriendsDialog = showFriendsDialog,
+                routeNavigator = routeNavigator
+            )
         }
     }
 }
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-private fun PhoneLayout(vm: TMDBDetailsViewModel, uiState: TMDBDetailsUIState, criticalError: Boolean, innerPadding: PaddingValues) {
+private fun PhoneLayout(
+    cancelRequest: () -> Unit,
+    uiState: TMDBDetailsUIState,
+    criticalError: Boolean,
+    routeNavigator: RouteNavigator,
+    showFriendsDialog: MutableState<Boolean>,
+    innerPadding: PaddingValues
+) {
 
     val configuration = LocalConfiguration.current
     val hdp = configuration.screenWidthDp.dp * 0.5625f
@@ -253,38 +316,55 @@ private fun PhoneLayout(vm: TMDBDetailsViewModel, uiState: TMDBDetailsUIState, c
                 .height(hdp)
         ) {
             if (uiState.backdropUrl.isBlank()) {
-                GlideImage(
+                AsyncImage(
                     model = uiState.posterUrl,
                     contentDescription = "",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxSize()
+                        .background(color = Color.DarkGray)
                         .blur(50.dp)
                 )
 
-                GlideImage(
+                AsyncImage(
                     model = uiState.posterUrl,
                     contentDescription = "",
                     contentScale = ContentScale.Fit,
                     modifier = Modifier.fillMaxSize()
                 )
             } else {
-                GlideImage(
+                AsyncImage(
                     model = uiState.backdropUrl,
                     contentDescription = "",
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(color = Color.DarkGray)
                 )
             }
         }
 
-        InfoLayout(vm = vm, uiState = uiState, criticalError = criticalError)
+        InfoLayout(
+            cancelRequest = cancelRequest,
+            uiState = uiState,
+            criticalError = criticalError,
+            showFriendsDialog = showFriendsDialog,
+            routeNavigator = routeNavigator
+        )
 
     }
 }
 
+
+
 @Composable
-fun InfoLayout(vm: TMDBDetailsViewModel, uiState: TMDBDetailsUIState, criticalError: Boolean) {
+fun InfoLayout(
+    cancelRequest: () -> Unit,
+    uiState: TMDBDetailsUIState,
+    criticalError: Boolean,
+    showFriendsDialog: MutableState<Boolean>,
+    routeNavigator: RouteNavigator
+) {
 
     if (uiState.loading) {
         Spacer(modifier = Modifier.height(48.dp))
@@ -336,12 +416,11 @@ fun InfoLayout(vm: TMDBDetailsViewModel, uiState: TMDBDetailsUIState, criticalEr
                     val buttonModifier = remember {
                         if(configuration.isTablet()) Modifier.width(320.dp) else Modifier.fillMaxWidth()
                     }
-                    val titleType = if(uiState.isMovie) "movie" else "series"
 
                     when(uiState.requestStatus) {
                         RequestStatus.NotRequested -> {
                             Button(
-                                onClick = vm::requestTitle,
+                                onClick = { showFriendsDialog.value = true },
                                 modifier = buttonModifier,
                                 enabled = !uiState.busy
                             ) {
@@ -354,7 +433,7 @@ fun InfoLayout(vm: TMDBDetailsViewModel, uiState: TMDBDetailsUIState, criticalEr
 
                         RequestStatus.RequestSentToMain, RequestStatus.RequestSentToAccount -> {
                             Button(
-                                onClick = vm::cancelRequest,
+                                onClick = cancelRequest,
                                 modifier = buttonModifier,
                                 enabled = !uiState.busy
                             ) {
@@ -395,7 +474,7 @@ fun InfoLayout(vm: TMDBDetailsViewModel, uiState: TMDBDetailsUIState, criticalEr
                     items(uiState.available) { basicMedia ->
                         BasicMediaView(
                             basicMedia = basicMedia,
-                            vm
+                            routeNavigator = routeNavigator
                         )
                     }
                 }
@@ -409,3 +488,68 @@ fun InfoLayout(vm: TMDBDetailsViewModel, uiState: TMDBDetailsUIState, criticalEr
         }
     }
 }
+
+
+
+@Preview
+@Composable
+private  fun TMDBDetailsScreenPreview() {
+
+    val uiState = TMDBDetailsUIState (
+        loading = false,
+        isMovie = true,
+        title = "The Avengers",
+        year = "(2012)",
+        rated = "PG-13",
+        overview = "When an unexpected enemy emerges and threatens global safety and security, " +
+                "Nick Fury, directory of the international peacekeeping agency known as S.H.I.E.L.D., " +
+                "finds himself in need of a team to pull the world back from the brink of disaster. " +
+                "Spanning the globe, a daring recruitment effort begins!",
+        available = listOf(
+            BasicMedia(
+                id = 0,
+                mediaType = MediaTypes.Movie,
+                artworkUrl = "",
+                backdropUrl = null,
+                title = ""
+            )
+        )
+    )
+
+    DustyPigTheme(currentTheme = Themes.Maggies) {
+        Surface (
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            TMDBDetailsScreenInternal(
+                popBackStack = { },
+                hideError = { },
+                requestTitle = { _ ->  },
+                cancelRequest = { },
+                uiState = uiState,
+                routeNavigator = MyRouteNavigator()
+            )
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

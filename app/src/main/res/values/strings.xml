@@ -122,4 +122,7 @@
     <string name="warning">WARNING!</string>
     <string name="delete_account_button">DELETE</string>
     <string name="your_password_was_successfully_changed">Your password was successfully changed</string>
+    <string name="display_name">Display Name</string>
+    <string name="please_confirm">Please Confirm</string>
+    <string name="are_you_sure_you_want_to_delete_all_downloads">Are you sure you want to delete all downloads?</string>
 </resources>

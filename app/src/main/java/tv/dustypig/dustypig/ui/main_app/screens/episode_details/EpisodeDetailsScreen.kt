@@ -1,6 +1,6 @@
 package tv.dustypig.dustypig.ui.main_app.screens.episode_details
 
-//import tv.dustypig.dustypig.download_manager.DownloadManager
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,21 +26,27 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import compose.icons.FontAwesomeIcons
@@ -48,6 +54,7 @@ import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Play
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
+import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.composables.ActionButton
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
@@ -55,12 +62,39 @@ import tv.dustypig.dustypig.ui.composables.OnDevice
 import tv.dustypig.dustypig.ui.composables.OnOrientation
 import tv.dustypig.dustypig.ui.composables.YesNoDialog
 import tv.dustypig.dustypig.ui.isTablet
+import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EpisodeDetailsScreen (vm: EpisodeDetailsViewModel) {
 
     val uiState: EpisodeDetailsUIState by vm.uiState.collectAsState()
+
+    EpisodeDetailsScreenInternal(
+        popBackStack = vm::popBackStack,
+        hideError = vm::hideError,
+        addDownload = vm::addDownload,
+        removeDownload = vm::removeDownload,
+        play = vm::play,
+        addToPlaylist = vm::addToPlaylist,
+        goToSeries = vm::goToSeries,
+        uiState = uiState
+    )
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EpisodeDetailsScreenInternal (
+    popBackStack: () -> Unit,
+    hideError: () -> Unit,
+    addDownload: () -> Unit,
+    removeDownload: () -> Unit,
+    play: () -> Unit,
+    addToPlaylist: () -> Unit,
+    goToSeries: () -> Unit,
+    uiState: EpisodeDetailsUIState
+) {
+
 
     val criticalError by remember {
         derivedStateOf {
@@ -68,18 +102,34 @@ fun EpisodeDetailsScreen (vm: EpisodeDetailsViewModel) {
         }
     }
 
+    val showRemoveDownloadDialog = remember {
+        mutableStateOf(false)
+    }
+
+    fun toggleDownload() {
+        if(uiState.downloadStatus == DownloadStatus.None) {
+            addDownload()
+        } else {
+            showRemoveDownloadDialog.value = true
+        }
+    }
+
+
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = vm::popBackStack, text = stringResource(R.string.episode_info))
+            CommonTopAppBar(onClick = popBackStack, text = stringResource(R.string.episode_info))
         }
     ) { innerPadding ->
 
         OnDevice(
             onPhone = {
                 PhoneLayout(
-                    vm = vm,
+                    play = play,
+                    addToPlaylist = addToPlaylist,
+                    goToSeries = goToSeries,
                     uiState = uiState,
                     criticalError = criticalError,
+                    toggleDownload = { toggleDownload() },
                     innerPadding = innerPadding
                 )
             },
@@ -87,17 +137,23 @@ fun EpisodeDetailsScreen (vm: EpisodeDetailsViewModel) {
                 OnOrientation(
                     onPortrait = {
                         PhoneLayout(
-                            vm = vm,
+                            play = play,
+                            addToPlaylist = addToPlaylist,
+                            goToSeries = goToSeries,
                             uiState = uiState,
                             criticalError = criticalError,
+                            toggleDownload = { toggleDownload() },
                             innerPadding = innerPadding
                         )
                     },
                     onLandscape = {
                         HorizontalTabletLayout(
-                            vm = vm,
+                            play = play,
+                            addToPlaylist = addToPlaylist,
+                            goToSeries = goToSeries,
                             uiState = uiState,
                             criticalError = criticalError,
+                            toggleDownload = { toggleDownload() },
                             innerPadding = innerPadding
                         )
                     })
@@ -105,17 +161,20 @@ fun EpisodeDetailsScreen (vm: EpisodeDetailsViewModel) {
         )
     }
 
-    if(uiState.showRemoveDownloadDialog) {
+    if(showRemoveDownloadDialog.value) {
         YesNoDialog(
-            onNo = { vm.hideDownload(confirmed = false) },
-            onYes = { vm.hideDownload(confirmed = true) },
+            onNo = { showRemoveDownloadDialog.value = false },
+            onYes = {
+                showRemoveDownloadDialog.value = false
+                removeDownload()
+            },
             title = stringResource(R.string.confirm),
             message = stringResource(R.string.do_you_want_to_remove_the_download)
         )
     }
 
     if(uiState.showErrorDialog) {
-        ErrorDialog(onDismissRequest = { vm.hideError() }, message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = hideError, message = uiState.errorMessage)
     }
 
 }
@@ -125,7 +184,15 @@ fun EpisodeDetailsScreen (vm: EpisodeDetailsViewModel) {
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-private fun HorizontalTabletLayout(vm: EpisodeDetailsViewModel, uiState: EpisodeDetailsUIState, criticalError: Boolean, innerPadding: PaddingValues){
+private fun HorizontalTabletLayout(
+    play: () -> Unit,
+    addToPlaylist: () -> Unit,
+    toggleDownload: () -> Unit,
+    goToSeries: () -> Unit,
+    uiState: EpisodeDetailsUIState,
+    criticalError: Boolean,
+    innerPadding: PaddingValues
+){
 
     //Left aligns content or center aligns busy indicator
     val columnAlignment = if(uiState.loading) Alignment.CenterHorizontally else Alignment.Start
@@ -157,7 +224,13 @@ private fun HorizontalTabletLayout(vm: EpisodeDetailsViewModel, uiState: Episode
                 Spacer(modifier = Modifier.height(48.dp))
                 CircularProgressIndicator()
             } else if(!criticalError) {
-                InfoLayout(vm, uiState)
+                InfoLayout(
+                    play = play,
+                    addToPlaylist = addToPlaylist,
+                    toggleDownload = toggleDownload,
+                    goToSeries = goToSeries,
+                    uiState = uiState
+                )
             }
         }
     }
@@ -167,7 +240,15 @@ private fun HorizontalTabletLayout(vm: EpisodeDetailsViewModel, uiState: Episode
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-private fun PhoneLayout(vm: EpisodeDetailsViewModel, uiState: EpisodeDetailsUIState, criticalError: Boolean, innerPadding: PaddingValues){
+private fun PhoneLayout(
+    play: () -> Unit,
+    addToPlaylist: () -> Unit,
+    toggleDownload: () -> Unit,
+    goToSeries: () -> Unit,
+    uiState: EpisodeDetailsUIState,
+    criticalError: Boolean,
+    innerPadding: PaddingValues
+){
 
     val configuration = LocalConfiguration.current
     val hdp = configuration.screenWidthDp.dp * 0.5625f
@@ -191,13 +272,21 @@ private fun PhoneLayout(vm: EpisodeDetailsViewModel, uiState: EpisodeDetailsUISt
                 .height(hdp)
         ) {
 
-            GlideImage(
-                model = uiState.artworkUrl,
-                contentDescription = "",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+            AsyncImage(
+                model = ImageRequest
+                    .Builder(LocalContext.current)
+                    .data(uiState.artworkUrl)
+                    .error(R.drawable.error_wide)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = null,
+                modifier = Modifier
+                    .background(color = Color.DarkGray)
+                    .fillMaxSize(),
+                contentScale = ContentScale.Crop
             )
         }
+
 
         if (uiState.loading) {
             Spacer(modifier = Modifier.height(48.dp))
@@ -207,7 +296,13 @@ private fun PhoneLayout(vm: EpisodeDetailsViewModel, uiState: EpisodeDetailsUISt
                 modifier = Modifier.padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                InfoLayout(vm, uiState)
+                InfoLayout(
+                    play = play,
+                    addToPlaylist = addToPlaylist,
+                    toggleDownload = toggleDownload,
+                    goToSeries = goToSeries,
+                    uiState = uiState
+                )
             }
         }
     }
@@ -215,7 +310,13 @@ private fun PhoneLayout(vm: EpisodeDetailsViewModel, uiState: EpisodeDetailsUISt
 
 
 @Composable
-private fun InfoLayout(vm: EpisodeDetailsViewModel, uiState: EpisodeDetailsUIState) {
+private fun InfoLayout(
+    play: () -> Unit,
+    addToPlaylist: () -> Unit,
+    toggleDownload: () -> Unit,
+    goToSeries: () -> Unit,
+    uiState: EpisodeDetailsUIState,
+) {
 
     Text(
         text = uiState.episodeTitle,
@@ -236,29 +337,22 @@ private fun InfoLayout(vm: EpisodeDetailsViewModel, uiState: EpisodeDetailsUISta
         val configuration = LocalConfiguration.current
         val buttonPadding = if(configuration.isTablet()) PaddingValues(0.dp, 0.dp) else PaddingValues(16.dp, 0.dp)
 
-        val status = uiState.downloadManager
-            .downloads
-            .collectAsStateWithLifecycle(initialValue = listOf())
-            .value
-            .firstOrNull{ it.mediaId == uiState.mediaId }
-            ?.status
-
-        val downloadIcon = when(status) {
+        val downloadIcon = when(uiState.downloadStatus) {
+            DownloadStatus.None -> Icons.Filled.Download
             DownloadStatus.Finished -> Icons.Filled.DownloadDone
-            null -> Icons.Filled.Download
             else -> Icons.Filled.Downloading
         }
 
-        val downloadText = when(status) {
+        val downloadText = when(uiState.downloadStatus) {
+            DownloadStatus.None -> stringResource(R.string.download)
             DownloadStatus.Finished -> stringResource(R.string.downloaded)
-            null -> stringResource(R.string.download)
             else -> stringResource(R.string.downloading)
         }
 
 
 
         Button(
-                onClick = { vm.play() },
+                onClick = play,
                 modifier = (if(configuration.isTablet()) Modifier.width(320.dp) else Modifier.fillMaxWidth())
                     .padding(buttonPadding)
             ) {
@@ -279,7 +373,7 @@ private fun InfoLayout(vm: EpisodeDetailsViewModel, uiState: EpisodeDetailsUISta
         ) {
 
             ActionButton(
-                onClick = { vm.toggleDownload() },
+                onClick = toggleDownload,
                 caption = downloadText,
                 icon = downloadIcon
             )
@@ -287,7 +381,7 @@ private fun InfoLayout(vm: EpisodeDetailsViewModel, uiState: EpisodeDetailsUISta
             Spacer(modifier = Modifier.width(24.dp))
 
             ActionButton(
-                onClick = { vm.addToPlaylist() },
+                onClick = { addToPlaylist() },
                 caption = stringResource(R.string.add_to_playlist),
                 icon = Icons.Filled.PlaylistAdd
             )
@@ -300,11 +394,47 @@ private fun InfoLayout(vm: EpisodeDetailsViewModel, uiState: EpisodeDetailsUISta
     
     if(uiState.showGoToSeries) {
         Spacer(modifier = Modifier.height(12.dp))
-        TextButton(onClick = { vm.goToSeries() }) {
+        TextButton(onClick = goToSeries) {
             Text(text = uiState.seriesTitle)
         }
     }
 }
 
 
+
+@Preview
+@Composable
+private fun EpisodeDetailsScreenPreview() {
+
+    val uiState = EpisodeDetailsUIState(
+        loading = false,
+        episodeTitle = "s01e01 - Ep Title",
+        overview = "This is the overview. Stuff happens in this episode. People are affected. The story is driven forward.",
+        artworkUrl = "",
+        canPlay = true,
+        seriesTitle = "The Awesome Series",
+        showGoToSeries = true,
+        length = "42 m",
+        downloadStatus = DownloadStatus.Running
+    )
+
+
+    DustyPigTheme(currentTheme = Themes.Maggies) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            EpisodeDetailsScreenInternal(
+                popBackStack = { },
+                hideError = { },
+                addDownload = { },
+                removeDownload = { },
+                play = { },
+                addToPlaylist = { },
+                goToSeries = { },
+                uiState = uiState
+            )
+        }
+    }
+}
 

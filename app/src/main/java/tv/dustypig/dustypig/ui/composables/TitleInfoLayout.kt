@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -27,8 +28,13 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,30 +45,34 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Play
 import compose.icons.fontawesomeicons.solid.UserLock
 import tv.dustypig.dustypig.R
+import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.OverrideRequestStatus
-import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
+import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.isTablet
-
-
+import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 
 data class TitleInfoData(
     val mediaId: Int = 0,
     val playClick: () -> Unit = { },
     val toggleWatchList: () -> Unit = { },
-    val download: () -> Unit = { },
+    val addDownload: () -> Unit = { },
+    val removeDownload: () -> Unit = { },
+    val updateDownload: (Int) -> Unit = { },
     val addToPlaylist: () -> Unit = { },
-    val markWatched: () -> Unit = { },
+    val markMovieWatched: () -> Unit = { },
+    val markSeriesWatched: (Boolean) -> Unit = { _ -> },
     val requestAccess:() -> Unit = { },
     val manageClick: () -> Unit = { },
+    val mediaType: MediaTypes = MediaTypes.Movie,
     val title: String = "",
     val year: String = "",
     val rated: String = "",
@@ -78,7 +88,8 @@ data class TitleInfoData(
     val episodeTitle: String = "",
     val accessRequestStatus: OverrideRequestStatus = OverrideRequestStatus.NotRequested,
     val accessRequestBusy: Boolean = false,
-    val downloadManager: DownloadManager
+    val downloadStatus: DownloadStatus = DownloadStatus.None,
+    val currentDownloadCount: Int = 0
 )
 
 
@@ -124,24 +135,48 @@ fun TitleInfoLayout(info: TitleInfoData) {
     val epHeader = "${info.seasonEpisode}: ${info.episodeTitle}".trim()
 
 
-
-    val status = info.downloadManager
-        .downloads
-        .collectAsStateWithLifecycle(initialValue = listOf())
-        .value
-        .firstOrNull{ it.mediaId == info.mediaId }
-        ?.status
-    val downloadIcon = when(status) {
+    val downloadIcon = when(info.downloadStatus) {
+        DownloadStatus.None -> Icons.Filled.Download
         DownloadStatus.Finished -> Icons.Filled.DownloadDone
-        null -> Icons.Filled.Download
         else -> Icons.Filled.Downloading
     }
-    val downloadText = when(status) {
+    val downloadText = when(info.downloadStatus) {
+        DownloadStatus.None -> stringResource(R.string.download)
         DownloadStatus.Finished -> stringResource(R.string.downloaded)
-        null -> stringResource(R.string.download)
         else -> stringResource(R.string.downloading)
     }
 
+    var showChangeDownloadCount by remember {
+        mutableStateOf(false)
+    }
+
+    var showRemoveDownload by remember {
+        mutableStateOf(false)
+    }
+
+    fun downloadClicked() {
+        if (info.mediaType == MediaTypes.Movie || info.mediaType == MediaTypes.Episode) {
+            if(info.downloadStatus == DownloadStatus.None) {
+                info.addDownload()
+            } else {
+                showRemoveDownload = true
+            }
+        } else {
+            showChangeDownloadCount = true
+        }
+    }
+
+    var showMarkWatchedDialog by remember {
+        mutableStateOf(false)
+    }
+
+    fun markWatchedClicked() {
+        if (info.mediaType == MediaTypes.Movie || info.mediaType == MediaTypes.Episode) {
+            info.markMovieWatched()
+        } else {
+            showMarkWatchedDialog = true
+        }
+    }
 
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -256,14 +291,14 @@ fun TitleInfoLayout(info: TitleInfoData) {
 
                 } else {
                     ActionButton(
-                        onClick = info.toggleWatchList,
+                        onClick = { markWatchedClicked() },
                         caption = stringResource(R.string.watchlist),
                         icon = if (info.inWatchList) Icons.Filled.Check else Icons.Filled.Add
                     )
                 }
 
                 ActionButton(
-                    onClick = info.download,
+                    onClick = ::downloadClicked,
                     caption = downloadText,
                     icon = downloadIcon
                 )
@@ -293,7 +328,7 @@ fun TitleInfoLayout(info: TitleInfoData) {
                         }
                     } else {
                         ActionButton(
-                            onClick = info.markWatched,
+                            onClick = info.markMovieWatched,
                             caption = stringResource(R.string.mark_watched),
                             icon = Icons.Filled.RemoveRedEye
                         )
@@ -343,5 +378,91 @@ fun TitleInfoLayout(info: TitleInfoData) {
         text = info.overview,
         modifier = Modifier.padding(12.dp, 0.dp)
     )
+
+
+    if(showRemoveDownload) {
+        YesNoDialog(
+            onNo = { showRemoveDownload = false },
+            onYes = info.removeDownload,
+            title = stringResource(R.string.confirm),
+            message = stringResource(R.string.do_you_want_to_remove_the_download)
+        )
+    }
+
+
+    if(showChangeDownloadCount) {
+        MultiDownloadDialog(
+            onSave = info.updateDownload,
+            title = stringResource(R.string.download_series),
+            text = stringResource(R.string.how_many_unwatched_episodes_do_you_want_to_keep_downloaded),
+            currentDownloadCount = info.currentDownloadCount
+        )
+
+    }
+
+    if(showMarkWatchedDialog) {
+        YesNoDialog(
+            onNo = {
+                showMarkWatchedDialog = false
+                info.markSeriesWatched(false)
+            },
+            onYes = {
+                showMarkWatchedDialog = false
+                info.markSeriesWatched(true)
+            },
+            title = stringResource(R.string.mark_watched),
+            message = stringResource(R.string.do_you_want_to_also_block_this_series_from_appearing_in_continue_watching)
+        )
+    }
 }
+
+
+@Preview
+@Composable
+private fun TitleInfoLayoutPreview() {
+
+    val info = TitleInfoData(
+        title = "The Avengers",
+        year = "(2012)",
+        rated = "PG-13",
+        length = "2h 23m",
+        overview = "When an unexpected enemy emerges and threatens global safety and security, " +
+                "Nick Fury, directory of the international peacekeeping agency known as S.H.I.E.L.D., " +
+                "finds himself in need of a team to pull the world back from the brink of disaster. " +
+                "Spanning the globe, a daring recruitment effort begins!",
+        canManage = true,
+        canPlay = true,
+        partiallyPlayed = true,
+        inWatchList = true,
+
+    )
+
+    DustyPigTheme(currentTheme = Themes.Maggies) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column(
+            ) {
+                TitleInfoLayout(info = info)
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

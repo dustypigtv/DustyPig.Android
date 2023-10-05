@@ -104,50 +104,11 @@ class TMDBDetailsViewModel @Inject constructor(
         }
     }
 
-    fun requestTitle() {
 
-        _uiState.update {
-            it.copy(busy = true)
-        }
-
-        if(_detailedTMDB.requestPermissions == TitleRequestPermissions.RequiresAuthorization) {
-
-            viewModelScope.launch {
-                try {
-                    tmdbRepository.requestTitle(titleRequest = TitleRequest(tmdbId = _tmdbId, mediaType = _detailedTMDB.mediaType))
-                    _uiState.update {
-                        it.copy(
-                            busy = false,
-                            requestStatus = RequestStatus.RequestSentToMain
-                        )
-                    }
-                } catch (ex: Exception) {
-                    setError(ex = ex, criticalError = false)
-                }
-            }
-
-        } else {
-            viewModelScope.launch {
-                try {
-                    val friends = friendsRepository.list()
-                    _uiState.update {
-                        it.copy(
-                            showFriendsDialog = true,
-                            friends = friends
-                        )
-                    }
-                } catch (ex: Exception) {
-                    setError(ex = ex, criticalError = false)
-                }
-            }
-        }
-    }
-
-    fun hideFriendsDialog(friendId: Int) {
+    fun requestTitle(friendId: Int) {
         _uiState.update {
             it.copy(
-                busy = friendId >= 0,
-                showFriendsDialog = false
+                busy = friendId >= 0
             )
         }
         if(friendId < 0)

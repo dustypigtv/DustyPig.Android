@@ -7,7 +7,6 @@ data class FriendsSettingsUIState(
     val showError: Boolean = false,
     val errorMessage: String? = null,
     val friends: List<BasicFriend> = listOf(),
-    val showAddFriendDialog: Boolean = false,
-    val showInviteSuccessDialog: Boolean = false,
-    val inviteBusy: Boolean = false
+    val inviteBusy: Boolean = false,
+    val showInviteSuccessDialog: Boolean = false
 )

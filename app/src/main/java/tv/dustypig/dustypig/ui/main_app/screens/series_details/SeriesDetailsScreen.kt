@@ -33,10 +33,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -52,28 +54,49 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
+import coil.compose.AsyncImage
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.DetailedEpisode
+import tv.dustypig.dustypig.api.models.MediaTypes
+import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.Credits
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
-import tv.dustypig.dustypig.ui.composables.MultiDownloadDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
 import tv.dustypig.dustypig.ui.composables.OnOrientation
 import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.composables.TitleInfoData
 import tv.dustypig.dustypig.ui.composables.TitleInfoLayout
-import tv.dustypig.dustypig.ui.composables.YesNoDialog
+import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SeriesDetailsScreen(vm: SeriesDetailsViewModel) {
 
     val uiState: SeriesDetailsUIState by vm.uiState.collectAsState()
     val titleInfoState: TitleInfoData by vm.titleInfoUIState.collectAsState()
+
+    SeriesDetailsScreenInternal(
+        popBackStack = vm::popBackStack,
+        hideError = vm::hideError,
+        playEpisode = vm::playEpisode,
+        navToEpisodeInfo = vm::navToEpisodeInfo,
+        uiState = uiState,
+        titleInfoState = titleInfoState
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SeriesDetailsScreenInternal(
+    popBackStack: () -> Unit,
+    hideError: () -> Unit,
+    playEpisode: (Int) -> Unit,
+    navToEpisodeInfo: (Int) -> Unit,
+    uiState: SeriesDetailsUIState,
+    titleInfoState: TitleInfoData
+) {
 
     val criticalError by remember {
         derivedStateOf {
@@ -81,6 +104,17 @@ fun SeriesDetailsScreen(vm: SeriesDetailsViewModel) {
         }
     }
 
+    val selectedSeason = remember{
+        mutableStateOf(uiState.upNextSeason)
+    }
+
+    val selectedEpisodes by remember {
+        derivedStateOf {
+            uiState.episodes.filter {
+                it.seasonNumber == selectedSeason.value
+            }
+        }
+    }
 
     var initialScrolled by remember {
         mutableStateOf(false)
@@ -90,7 +124,7 @@ fun SeriesDetailsScreen(vm: SeriesDetailsViewModel) {
     if(!(initialScrolled || uiState.loading)) {
         initialScrolled = false
         for (season in uiState.seasons) {
-            if (season == uiState.selectedSeason)
+            if (season == uiState.upNextSeason)
                 break
             selSeasonIdx++
         }
@@ -102,17 +136,20 @@ fun SeriesDetailsScreen(vm: SeriesDetailsViewModel) {
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = vm::popBackStack, text = stringResource(R.string.series_info))
+            CommonTopAppBar(onClick = popBackStack, text = stringResource(R.string.series_info))
         }
     ) { innerPadding ->
 
         OnDevice(
             onPhone = {
                 PhoneLayout(
-                    vm = vm,
+                    playEpisode = playEpisode,
+                    navToEpisodeInfo = navToEpisodeInfo,
                     innerPadding = innerPadding,
                     uiState = uiState,
                     titleInfoState = titleInfoState,
+                    selectedSeason = selectedSeason,
+                    selectedEpisodes = selectedEpisodes,
                     criticalError = criticalError,
                     seasonsListState = seasonsListState
                 )
@@ -121,20 +158,26 @@ fun SeriesDetailsScreen(vm: SeriesDetailsViewModel) {
                 OnOrientation(
                     onPortrait = {
                         PhoneLayout(
-                            vm = vm,
+                            playEpisode = playEpisode,
+                            navToEpisodeInfo = navToEpisodeInfo,
                             innerPadding = innerPadding,
                             uiState = uiState,
                             titleInfoState = titleInfoState,
+                            selectedSeason = selectedSeason,
+                            selectedEpisodes = selectedEpisodes,
                             criticalError = criticalError,
                             seasonsListState = seasonsListState
                         )
                     },
                     onLandscape = {
                         HorizontalTabletLayout(
-                            vm = vm,
+                            playEpisode = playEpisode,
+                            navToEpisodeInfo = navToEpisodeInfo,
                             innerPadding = innerPadding,
                             uiState = uiState,
                             titleInfoState = titleInfoState,
+                            selectedSeason = selectedSeason,
+                            selectedEpisodes = selectedEpisodes,
                             criticalError = criticalError,
                             seasonsListState = seasonsListState
                         )
@@ -143,33 +186,18 @@ fun SeriesDetailsScreen(vm: SeriesDetailsViewModel) {
         )
     }
 
-    if(uiState.showMarkWatchedDialog) {
-        YesNoDialog(
-            onNo = { vm.hideMarkWatched(false) },
-            onYes = { vm.hideMarkWatched(true) },
-            title = stringResource(R.string.mark_watched),
-            message = stringResource(R.string.do_you_want_to_also_block_this_series_from_appearing_in_continue_watching)
-        )
-    }
-
-    if(uiState.showDownloadDialog) {
-        MultiDownloadDialog(
-            onSave = vm::hideDownloadDialog,
-            title = stringResource(R.string.download_series),
-            text = stringResource(R.string.how_many_unwatched_episodes_do_you_want_to_keep_downloaded),
-            currentDownloadCount = uiState.currentDownloadCount
-        )
-    }
-
     if(uiState.showErrorDialog) {
-        ErrorDialog(onDismissRequest = vm::hideError, message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = hideError, message = uiState.errorMessage)
     }
 }
 
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-private fun EpisodeRow(episode: DetailedEpisode, vm: SeriesDetailsViewModel) {
+private fun EpisodeRow(
+    playEpisode: (Int) -> Unit,
+    navToEpisodeInfo: (Int) -> Unit,
+    episode: DetailedEpisode
+) {
     
     Row(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -184,12 +212,13 @@ private fun EpisodeRow(episode: DetailedEpisode, vm: SeriesDetailsViewModel) {
                 .height(64.dp),
             contentAlignment = Alignment.Center
         ) {
-            GlideImage(
+            AsyncImage(
                 model = episode.artworkUrl,
                 contentDescription = "",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
+                    .background(color = Color.DarkGray)
                     .clip(shape = RoundedCornerShape(4.dp))
             )
 
@@ -199,7 +228,7 @@ private fun EpisodeRow(episode: DetailedEpisode, vm: SeriesDetailsViewModel) {
                     .size(36.dp)
                     .clip(shape = CircleShape)
                     .background(color = Color.Black.copy(alpha = 0.5f))
-                    .clickable { vm.playEpisode(episode.id) }
+                    .clickable { playEpisode(episode.id) }
             )
 
         }
@@ -230,7 +259,7 @@ private fun EpisodeRow(episode: DetailedEpisode, vm: SeriesDetailsViewModel) {
             contentAlignment = Alignment.Center
         ) {
 
-            IconButton(onClick = { vm.navToEpisodeInfo(episode.id) }) {
+            IconButton(onClick = { navToEpisodeInfo(episode.id) }) {
                 TintedIcon(
                     imageVector = Icons.Outlined.Info
                 )
@@ -240,13 +269,18 @@ private fun EpisodeRow(episode: DetailedEpisode, vm: SeriesDetailsViewModel) {
     }
 }
 
-
-
-
-
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-private fun PhoneLayout(vm: SeriesDetailsViewModel, innerPadding: PaddingValues, uiState: SeriesDetailsUIState, titleInfoState: TitleInfoData, criticalError: Boolean, seasonsListState: LazyListState) {
+private fun PhoneLayout(
+    playEpisode: (Int) -> Unit,
+    navToEpisodeInfo: (Int) -> Unit,
+    innerPadding: PaddingValues,
+    uiState: SeriesDetailsUIState,
+    titleInfoState: TitleInfoData,
+    selectedSeason: MutableState<UShort>,
+    selectedEpisodes: List<DetailedEpisode>,
+    criticalError: Boolean,
+    seasonsListState: LazyListState
+) {
 
     val configuration = LocalConfiguration.current
     val hdp = configuration.screenWidthDp.dp * 0.5625f
@@ -270,27 +304,30 @@ private fun PhoneLayout(vm: SeriesDetailsViewModel, innerPadding: PaddingValues,
                     .height(hdp)
             ) {
                 if (uiState.backdropUrl.isBlank()) {
-                    GlideImage(
+                    AsyncImage(
                         model = uiState.posterUrl,
                         contentDescription = "",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .fillMaxSize()
+                            .background(color = Color.DarkGray)
                             .blur(50.dp)
                     )
 
-                    GlideImage(
+                    AsyncImage(
                         model = uiState.posterUrl,
                         contentDescription = "",
                         contentScale = ContentScale.Fit,
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
-                    GlideImage(
+                    AsyncImage(
                         model = uiState.backdropUrl,
                         contentDescription = "",
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(color = Color.DarkGray)
                     )
                 }
             }
@@ -312,12 +349,12 @@ private fun PhoneLayout(vm: SeriesDetailsViewModel, innerPadding: PaddingValues,
                 ) {
                     items(uiState.seasons) { season ->
                         val seasonName = if (season == 0.toUShort()) stringResource(R.string.specials) else stringResource(R.string.season, season)
-                        if (season == uiState.selectedSeason) {
+                        if (season == uiState.upNextSeason) {
                             Button(onClick = { /*Do nothing*/ }) {
                                 Text(text = seasonName)
                             }
                         } else {
-                            OutlinedButton(onClick = { vm.setSeason(season) }) {
+                            OutlinedButton(onClick = { selectedSeason.value = season }) {
                                 Text(text = seasonName)
                             }
                         }
@@ -328,8 +365,12 @@ private fun PhoneLayout(vm: SeriesDetailsViewModel, innerPadding: PaddingValues,
         }
 
         if (!uiState.loading && !criticalError) {
-            items(uiState.episodes) { episode ->
-                EpisodeRow(episode = episode, vm = vm)
+            items(selectedEpisodes) { episode ->
+                EpisodeRow(
+                    playEpisode = playEpisode,
+                    navToEpisodeInfo = navToEpisodeInfo,
+                    episode = episode,
+                )
             }
         }
 
@@ -341,11 +382,18 @@ private fun PhoneLayout(vm: SeriesDetailsViewModel, innerPadding: PaddingValues,
     }
 }
 
-
-
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-private fun HorizontalTabletLayout(vm: SeriesDetailsViewModel, innerPadding: PaddingValues, uiState: SeriesDetailsUIState, titleInfoState: TitleInfoData, criticalError: Boolean, seasonsListState: LazyListState) {
+private fun HorizontalTabletLayout(
+    playEpisode: (Int) -> Unit,
+    navToEpisodeInfo: (Int) -> Unit,
+    innerPadding: PaddingValues,
+    uiState: SeriesDetailsUIState,
+    titleInfoState: TitleInfoData,
+    selectedSeason: MutableState<UShort>,
+    selectedEpisodes: List<DetailedEpisode>,
+    criticalError: Boolean,
+    seasonsListState: LazyListState
+) {
 
     val columnAlignment = if(uiState.loading) Alignment.CenterHorizontally else Alignment.Start
 
@@ -363,16 +411,17 @@ private fun HorizontalTabletLayout(vm: SeriesDetailsViewModel, innerPadding: Pad
                 .fillMaxWidth(fraction = 0.33f)
         ) {
 
-            GlideImage(
+            AsyncImage(
                 model = uiState.posterUrl,
                 contentDescription = "",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
+                    .background(color = Color.DarkGray)
                     .blur(50.dp)
             )
 
-            GlideImage(
+            AsyncImage(
                 model = uiState.posterUrl,
                 contentDescription = "",
                 contentScale = ContentScale.Fit,
@@ -407,12 +456,12 @@ private fun HorizontalTabletLayout(vm: SeriesDetailsViewModel, innerPadding: Pad
                     ) {
                         items(uiState.seasons) { season ->
                             val seasonName = if (season == 0.toUShort()) stringResource(R.string.specials) else stringResource(R.string.season, season)
-                            if (season == uiState.selectedSeason) {
+                            if (season == uiState.upNextSeason) {
                                 Button(onClick = { /*Do nothing*/ }) {
                                     Text(text = seasonName)
                                 }
                             } else {
-                                OutlinedButton(onClick = { vm.setSeason(season) }) {
+                                OutlinedButton(onClick = { selectedSeason.value = season }) {
                                     Text(text = seasonName)
                                 }
                             }
@@ -422,8 +471,12 @@ private fun HorizontalTabletLayout(vm: SeriesDetailsViewModel, innerPadding: Pad
             }
 
             if (!uiState.loading && !criticalError) {
-                items(uiState.episodes) { episode ->
-                    EpisodeRow(episode = episode, vm = vm)
+                items(selectedEpisodes) { episode ->
+                    EpisodeRow(
+                        playEpisode = playEpisode,
+                        navToEpisodeInfo = navToEpisodeInfo,
+                        episode = episode,
+                    )
                 }
             }
 
@@ -440,3 +493,153 @@ private fun HorizontalTabletLayout(vm: SeriesDetailsViewModel, innerPadding: Pad
     }
 
 }
+
+
+@Preview
+@Composable
+private fun SeriesDetailsScreenPreview() {
+
+    val uiState = SeriesDetailsUIState(
+        loading = false,
+        seasons = listOf(
+            1U,
+            2U
+        ),
+        upNextSeason = 2U,
+        episodes = listOf(
+            DetailedEpisode(
+                id = 1,
+                bifUrl = null,
+                videoUrl = "",
+                externalSubtitles = null,
+                played = 0.0,
+                upNext = true,
+                title = "Episode 1",
+                description = "Description 1",
+                artworkUrl = "",
+                length = 1000.0,
+                introStartTime = null,
+                introEndTime = null,
+                creditStartTime = null,
+                seasonNumber = 1U,
+                episodeNumber = 1U,
+                seriesId = 1,
+                seriesTitle = "My Series"
+            ),
+            DetailedEpisode(
+                id = 2,
+                bifUrl = null,
+                videoUrl = "",
+                externalSubtitles = null,
+                played = 0.0,
+                upNext = true,
+                title = "Episode 2",
+                description = "Description 2",
+                artworkUrl = "",
+                length = 1000.0,
+                introStartTime = null,
+                introEndTime = null,
+                creditStartTime = null,
+                seasonNumber = 1U,
+                episodeNumber = 2U,
+                seriesId = 1,
+                seriesTitle = "My Series"
+            ),
+            DetailedEpisode(
+                id = 3,
+                bifUrl = null,
+                videoUrl = "",
+                externalSubtitles = null,
+                played = 0.0,
+                upNext = true,
+                title = "Episode 1",
+                description = "Description 3",
+                artworkUrl = "",
+                length = 1000.0,
+                introStartTime = null,
+                introEndTime = null,
+                creditStartTime = null,
+                seasonNumber = 2U,
+                episodeNumber = 1U,
+                seriesId = 1,
+                seriesTitle = "My Series"
+            ),
+            DetailedEpisode(
+                id = 4,
+                bifUrl = null,
+                videoUrl = "",
+                externalSubtitles = null,
+                played = 0.0,
+                upNext = true,
+                title = "Episode 2",
+                description = "Description 4",
+                artworkUrl = "",
+                length = 1000.0,
+                introStartTime = null,
+                introEndTime = null,
+                creditStartTime = null,
+                seasonNumber = 2U,
+                episodeNumber = 2U,
+                seriesId = 1,
+                seriesTitle = "My Series"
+            ),
+        )
+    )
+
+    val titleInfoState = TitleInfoData(
+        mediaType = MediaTypes.Series,
+        title = "My Series",
+        rated = "TV-Y7",
+        length = "22m",
+        overview = "Events Happen. People are affected. The story moves forward.",
+        canManage = true,
+        canPlay = true,
+        partiallyPlayed = true,
+        inWatchList = true
+    )
+
+    DustyPigTheme(currentTheme = Themes.Maggies) {
+        Surface (
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            SeriesDetailsScreenInternal(
+                popBackStack = { },
+                hideError = { },
+                playEpisode = { _ -> },
+                navToEpisodeInfo =  { _ -> },
+                uiState = uiState,
+                titleInfoState = titleInfoState
+            )
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

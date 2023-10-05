@@ -1,6 +1,7 @@
 package tv.dustypig.dustypig.ui.auth_flow.screens.select_profile
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,44 +29,61 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import tv.dustypig.dustypig.R
+import tv.dustypig.dustypig.api.models.BasicProfile
+import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.composables.Avatar
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.PinEntry
+import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectProfileScreen(vm: SelectProfileViewModel) {
 
     val uiState by vm.uiState.collectAsState()
+    SelectProfileScreenInternal(
+        uiState = uiState,
+        popBackStack = vm::popBackStack,
+        hideError = vm::hideError,
+        onProfileSelected = vm::onProfileSelected,
+        cancelPinDialog = vm::cancelPinDialog,
+        onPinSubmitted = vm::onPinSubmitted
+    )
+}
+
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SelectProfileScreenInternal(
+    uiState: SelectProfileUIState,
+    popBackStack: () -> Unit,
+    hideError: () -> Unit,
+    onProfileSelected: (BasicProfile) -> Unit,
+    cancelPinDialog: () -> Unit,
+    onPinSubmitted: (String) -> Unit,
+) {
+
     val listState = rememberLazyGridState()
     var pin by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = vm::popBackStack, text = stringResource(R.string.select_profile))
+            CommonTopAppBar(onClick = popBackStack, text = stringResource(R.string.select_profile))
         }
     ) { contentPadding ->
 
-        if (uiState.busy) {
-            Column(
-                modifier = Modifier
-                    .padding(contentPadding)
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                CircularProgressIndicator()
-            }
-        } else {
-
+        Box(
+            modifier = Modifier
+                .padding(contentPadding)
+                .fillMaxSize()
+        ) {
             LazyVerticalGrid(
-                modifier = Modifier
-                    .padding(contentPadding)
-                    .fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 columns = GridCells.Adaptive(minSize = 72.dp),
                 verticalArrangement = Arrangement.spacedBy(36.dp),
                 horizontalArrangement = Arrangement.spacedBy(24.dp),
@@ -80,7 +98,11 @@ fun SelectProfileScreen(vm: SelectProfileViewModel) {
                     ) {
                         Avatar(
                             basicProfile = it,
-                            onClick = { vm.onProfileSelected(it) },
+                            onClick = {
+                                if(!uiState.busy) {
+                                    onProfileSelected(it)
+                                }
+                            },
                             modifier = Modifier
                                 .width(48.dp)
                                 .height(48.dp)
@@ -89,11 +111,15 @@ fun SelectProfileScreen(vm: SelectProfileViewModel) {
                     }
                 }
             }
+
+            if (uiState.busy) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
         }
     }
 
     if(uiState.showError) {
-        ErrorDialog(onDismissRequest = { vm.hideError() }, message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = hideError, message = uiState.errorMessage)
     }
 
     if(uiState.showPinDialog) {
@@ -106,21 +132,21 @@ fun SelectProfileScreen(vm: SelectProfileViewModel) {
 
         AlertDialog(
             shape = RoundedCornerShape(8.dp),
-            onDismissRequest = { vm.cancelPinDialog() },
+            onDismissRequest = { cancelPinDialog() },
             title = { Text(stringResource(R.string.enter_pin)) },
             text = {
                 PinEntry(
                     valueChanged = { pin = it },
                     onSubmit = {
                         pin = it
-                        vm.onPinSubmitted(pin)
+                        onPinSubmitted(pin)
                     }
                 )
             },
             confirmButton = {
                 TextButton(
                     enabled = confirmEnabled,
-                    onClick = { vm.onPinSubmitted(pin) }
+                    onClick = { onPinSubmitted(pin) }
                 ) {
                     Text(stringResource(R.string.ok))
                 }
@@ -128,7 +154,7 @@ fun SelectProfileScreen(vm: SelectProfileViewModel) {
             dismissButton = {
                 TextButton(
                     enabled = !uiState.busy,
-                    onClick = { vm.cancelPinDialog() }
+                    onClick = { cancelPinDialog() }
                 ) {
                     Text(stringResource(R.string.cancel))
                 }
@@ -136,4 +162,58 @@ fun SelectProfileScreen(vm: SelectProfileViewModel) {
         )
     }
 }
+
+
+@Preview
+@Composable
+private fun SelectProfileScreenPreview() {
+    DustyPigTheme(currentTheme = Themes.Maggies) {
+
+        val uiState = SelectProfileUIState(
+            busy = false,
+            profiles = listOf(
+                BasicProfile(
+                    id = 1,
+                    name = "Test 1",
+                    avatarUrl = "https://s3.dustypig.tv/user-art-defaults/profile/blue.png",
+                    isMain = true,
+                    hasPin = true
+                ),
+                BasicProfile(
+                    id = 2,
+                    name = "Test 2",
+                    avatarUrl = "https://s3.dustypig.tv/user-art-defaults/profile/gold.png",
+                    isMain = false,
+                    hasPin = false
+                )
+            )
+        )
+        SelectProfileScreenInternal(
+            uiState = uiState,
+            popBackStack = { },
+            hideError = { },
+            onProfileSelected = { },
+            cancelPinDialog = { },
+            onPinSubmitted = { }
+        )
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
