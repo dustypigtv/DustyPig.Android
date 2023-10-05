@@ -29,9 +29,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -74,9 +72,10 @@ private fun HomeScreenInternal(
         refreshing = uiState.isRefreshing,
         onRefresh = onRefresh
     )
-    val showLoading by remember { derivedStateOf { uiState.isRefreshing && uiState.sections.isEmpty() } }
-    val showEmpty by remember { derivedStateOf { uiState.sections.isEmpty() && !uiState.isRefreshing }}
-    val showLoadingOrEmpty by remember { derivedStateOf { showLoading || showEmpty }}
+
+    val showLoading = uiState.isRefreshing && uiState.sections.isEmpty()
+    val showEmpty = uiState.sections.isEmpty() && !uiState.isRefreshing
+    val showLoadingOrEmpty = showLoading || showEmpty
 
     Box(modifier = Modifier.fillMaxSize()) {
 
