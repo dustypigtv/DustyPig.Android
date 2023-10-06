@@ -50,12 +50,11 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.job
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.global_managers.AuthManager
-import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.auth_flow.SharedEmailModel
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OkDialog
+import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
-import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 @Composable
 fun SignInScreen(vm: SignInViewModel) {
@@ -335,7 +334,7 @@ private fun SignInScreenPreview() {
         busy = false
     )
 
-    DustyPigTheme(currentTheme = Themes.Maggies) {
+    PreviewBase {
         SignInScreenInternal(
             signIn = { _: String, _: String -> },
             navToSignUp = { },

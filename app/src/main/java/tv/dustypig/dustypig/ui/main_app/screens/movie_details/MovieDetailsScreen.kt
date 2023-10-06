@@ -16,9 +16,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -30,21 +28,23 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import tv.dustypig.dustypig.R
-import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.Credits
 import tv.dustypig.dustypig.ui.composables.CreditsData
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
 import tv.dustypig.dustypig.ui.composables.OnOrientation
+import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TitleInfoData
 import tv.dustypig.dustypig.ui.composables.TitleInfoLayout
-import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 
 @Composable
@@ -142,7 +142,11 @@ private fun HorizontalTabletLayout(uiState: MovieDetailsUIState, titleInfoState:
         ) {
 
             AsyncImage(
-                model = uiState.posterUrl,
+                model = ImageRequest
+                    .Builder(LocalContext.current)
+                    .data(uiState.posterUrl)
+                    .crossfade(true)
+                    .build(),
                 contentDescription = "",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -152,10 +156,15 @@ private fun HorizontalTabletLayout(uiState: MovieDetailsUIState, titleInfoState:
             )
 
             AsyncImage(
-                model = uiState.posterUrl,
+                model = ImageRequest
+                    .Builder(LocalContext.current)
+                    .data(uiState.posterUrl)
+                    .crossfade(true)
+                    .build(),
                 contentDescription = "",
                 contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                error = painterResource(id = R.drawable.error_tall)
             )
         }
 
@@ -204,7 +213,11 @@ private fun PhoneLayout(uiState: MovieDetailsUIState, titleInfoState: TitleInfoD
         ) {
             if (uiState.backdropUrl.isBlank()) {
                 AsyncImage(
-                    model = uiState.posterUrl,
+                    model = ImageRequest
+                        .Builder(LocalContext.current)
+                        .data(uiState.posterUrl)
+                        .crossfade(true)
+                        .build(),
                     contentDescription = "",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -214,19 +227,29 @@ private fun PhoneLayout(uiState: MovieDetailsUIState, titleInfoState: TitleInfoD
                 )
 
                 AsyncImage(
-                    model = uiState.posterUrl,
+                    model = ImageRequest
+                        .Builder(LocalContext.current)
+                        .data(uiState.posterUrl)
+                        .crossfade(true)
+                        .build(),
                     contentDescription = "",
                     contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    error = painterResource(id = R.drawable.error_tall)
                 )
             } else {
                 AsyncImage(
-                    model = uiState.backdropUrl,
+                    model = ImageRequest
+                        .Builder(LocalContext.current)
+                        .data(uiState.backdropUrl)
+                        .crossfade(true)
+                        .build(),
                     contentDescription = "",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(color = Color.DarkGray)
+                        .background(color = Color.DarkGray),
+                    error = painterResource(id = R.drawable.error_wide)
                 )
             }
         }
@@ -249,10 +272,12 @@ private fun MovieDetailsScreenPreview() {
         loading = false,
         creditsData = CreditsData(
             genres = listOf("Action", "Adventure", "Science Fiction"),
-            cast = listOf("Robert Downey Jr.", "Chris Evans", "Mark Ruffalo",
+            cast = listOf(
+                "Robert Downey Jr.", "Chris Evans", "Mark Ruffalo",
                 "Chris Hemsworth", "Scarlett Johansson", "Jeremy Renner", "Tom Hiddleston",
                 "Samuel L. Jackson", "Cobie Smulders", "Clark Gregg", "Stellan Skarsgard",
-                "Gwyneth Paltrow", "Paul Bettany"),
+                "Gwyneth Paltrow", "Paul Bettany"
+            ),
             directors = listOf("Joss Wheadon"),
             producers = listOf("Kevin Feige"),
             writers = listOf("Joss Wheadon")
@@ -272,21 +297,16 @@ private fun MovieDetailsScreenPreview() {
         partiallyPlayed = true,
         inWatchList = true
     )
-    DustyPigTheme(currentTheme = Themes.Maggies) {
-        Surface (
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            MovieDetailsScreenInternal(
-                popBackStack = { },
-                hideError = { },
-                uiState = uiState,
-                titleInfoState = titleInfoState
-            )
-        }
+
+    PreviewBase {
+        MovieDetailsScreenInternal(
+            popBackStack = { },
+            hideError = { },
+            uiState = uiState,
+            titleInfoState = titleInfoState
+        )
     }
 }
-
 
 
 

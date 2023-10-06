@@ -13,5 +13,7 @@ data class SearchUIState (
     val allowTMDB: Boolean = false,
     val availableItems: List<BasicMedia> = listOf(),
     val tmdbItems: List<BasicTMDB> = listOf(),
-    val tabIndex: Int = 0
+    val tabIndex: Int = 0,
+    val query: String = "",
+    val history: List<String> = listOf()
 )

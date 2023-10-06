@@ -33,12 +33,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.BasicProfile
-import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.composables.Avatar
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.PinEntry
-import tv.dustypig.dustypig.ui.theme.DustyPigTheme
+import tv.dustypig.dustypig.ui.composables.PreviewBase
 
 
 @Composable
@@ -167,27 +166,28 @@ private fun SelectProfileScreenInternal(
 @Preview
 @Composable
 private fun SelectProfileScreenPreview() {
-    DustyPigTheme(currentTheme = Themes.Maggies) {
 
-        val uiState = SelectProfileUIState(
-            busy = false,
-            profiles = listOf(
-                BasicProfile(
-                    id = 1,
-                    name = "Test 1",
-                    avatarUrl = "https://s3.dustypig.tv/user-art-defaults/profile/blue.png",
-                    isMain = true,
-                    hasPin = true
-                ),
-                BasicProfile(
-                    id = 2,
-                    name = "Test 2",
-                    avatarUrl = "https://s3.dustypig.tv/user-art-defaults/profile/gold.png",
-                    isMain = false,
-                    hasPin = false
-                )
+    val uiState = SelectProfileUIState(
+        busy = false,
+        profiles = listOf(
+            BasicProfile(
+                id = 1,
+                name = "Test 1",
+                avatarUrl = "https://s3.dustypig.tv/user-art-defaults/profile/blue.png",
+                isMain = true,
+                hasPin = true
+            ),
+            BasicProfile(
+                id = 2,
+                name = "Test 2",
+                avatarUrl = "https://s3.dustypig.tv/user-art-defaults/profile/gold.png",
+                isMain = false,
+                hasPin = false
             )
         )
+    )
+
+    PreviewBase {
         SelectProfileScreenInternal(
             uiState = uiState,
             popBackStack = { },

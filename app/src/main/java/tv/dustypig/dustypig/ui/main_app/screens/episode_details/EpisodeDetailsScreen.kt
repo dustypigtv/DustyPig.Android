@@ -22,11 +22,9 @@ import androidx.compose.material.icons.filled.Downloading
 import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -41,28 +39,26 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Play
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
-import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.composables.ActionButton
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
 import tv.dustypig.dustypig.ui.composables.OnOrientation
+import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.YesNoDialog
 import tv.dustypig.dustypig.ui.isTablet
-import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 @Composable
 fun EpisodeDetailsScreen (vm: EpisodeDetailsViewModel) {
@@ -82,7 +78,6 @@ fun EpisodeDetailsScreen (vm: EpisodeDetailsViewModel) {
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EpisodeDetailsScreenInternal (
     popBackStack: () -> Unit,
@@ -182,7 +177,6 @@ private fun EpisodeDetailsScreenInternal (
 
 
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 private fun HorizontalTabletLayout(
     play: () -> Unit,
@@ -203,12 +197,19 @@ private fun HorizontalTabletLayout(
             .fillMaxSize(),
         horizontalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        GlideImage(
-            model = uiState.artworkUrl,
+        AsyncImage(
+            model = ImageRequest
+                .Builder(LocalContext.current)
+                .data(uiState.artworkUrl)
+                .crossfade(true)
+                .build(),
             contentDescription = "",
             contentScale = ContentScale.Fit,
             alignment = Alignment.TopCenter,
-            modifier = Modifier.fillMaxWidth(fraction = 0.33f)
+            modifier = Modifier
+                .fillMaxWidth(fraction = 0.33f)
+                .background(color = Color.DarkGray),
+            error = painterResource(id = R.drawable.error_wide)
         )
 
         Column(
@@ -238,7 +239,6 @@ private fun HorizontalTabletLayout(
 }
 
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 private fun PhoneLayout(
     play: () -> Unit,
@@ -276,14 +276,14 @@ private fun PhoneLayout(
                 model = ImageRequest
                     .Builder(LocalContext.current)
                     .data(uiState.artworkUrl)
-                    .error(R.drawable.error_wide)
                     .crossfade(true)
                     .build(),
                 contentDescription = null,
                 modifier = Modifier
                     .background(color = Color.DarkGray)
                     .fillMaxSize(),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                error = painterResource(id = R.drawable.error_wide)
             )
         }
 
@@ -419,22 +419,16 @@ private fun EpisodeDetailsScreenPreview() {
     )
 
 
-    DustyPigTheme(currentTheme = Themes.Maggies) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            EpisodeDetailsScreenInternal(
-                popBackStack = { },
-                hideError = { },
-                addDownload = { },
-                removeDownload = { },
-                play = { },
-                addToPlaylist = { },
-                goToSeries = { },
-                uiState = uiState
-            )
-        }
+    PreviewBase {
+        EpisodeDetailsScreenInternal(
+            popBackStack = { },
+            hideError = { },
+            addDownload = { },
+            removeDownload = { },
+            play = { },
+            addToPlaylist = { },
+            goToSeries = { },
+            uiState = uiState
+        )
     }
 }
-

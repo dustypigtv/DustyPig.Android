@@ -4,8 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import tv.dustypig.dustypig.R
-import tv.dustypig.dustypig.global_managers.settings_manager.Themes
-import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 @Composable
 fun ErrorDialog(onDismissRequest: () -> Unit, message:String?) = OkDialog(
@@ -17,7 +15,7 @@ fun ErrorDialog(onDismissRequest: () -> Unit, message:String?) = OkDialog(
 @Preview
 @Composable
 private fun ErrorDialogPreview() {
-    DustyPigTheme(currentTheme = Themes.Maggies) {
+    PreviewBase {
         ErrorDialog(onDismissRequest = { }, message = "This is the error message")
     }
 }

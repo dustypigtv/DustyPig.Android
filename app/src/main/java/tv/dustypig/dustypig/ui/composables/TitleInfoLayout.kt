@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -28,7 +27,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -55,9 +53,7 @@ import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.OverrideRequestStatus
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
-import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.isTablet
-import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 
 data class TitleInfoData(
@@ -291,14 +287,14 @@ fun TitleInfoLayout(info: TitleInfoData) {
 
                 } else {
                     ActionButton(
-                        onClick = { markWatchedClicked() },
+                        onClick = info.toggleWatchList,
                         caption = stringResource(R.string.watchlist),
                         icon = if (info.inWatchList) Icons.Filled.Check else Icons.Filled.Add
                     )
                 }
 
                 ActionButton(
-                    onClick = ::downloadClicked,
+                    onClick =  { downloadClicked() },
                     caption = downloadText,
                     icon = downloadIcon
                 )
@@ -328,7 +324,7 @@ fun TitleInfoLayout(info: TitleInfoData) {
                         }
                     } else {
                         ActionButton(
-                            onClick = info.markMovieWatched,
+                            onClick = { markWatchedClicked() },
                             caption = stringResource(R.string.mark_watched),
                             icon = Icons.Filled.RemoveRedEye
                         )
@@ -383,7 +379,10 @@ fun TitleInfoLayout(info: TitleInfoData) {
     if(showRemoveDownload) {
         YesNoDialog(
             onNo = { showRemoveDownload = false },
-            onYes = info.removeDownload,
+            onYes = {
+                showRemoveDownload = false
+                info.removeDownload()
+            },
             title = stringResource(R.string.confirm),
             message = stringResource(R.string.do_you_want_to_remove_the_download)
         )
@@ -392,12 +391,14 @@ fun TitleInfoLayout(info: TitleInfoData) {
 
     if(showChangeDownloadCount) {
         MultiDownloadDialog(
-            onSave = info.updateDownload,
+            onSave = {
+                showChangeDownloadCount = false
+                info.updateDownload(it)
+            },
             title = stringResource(R.string.download_series),
             text = stringResource(R.string.how_many_unwatched_episodes_do_you_want_to_keep_downloaded),
             currentDownloadCount = info.currentDownloadCount
         )
-
     }
 
     if(showMarkWatchedDialog) {
@@ -435,17 +436,12 @@ private fun TitleInfoLayoutPreview() {
         partiallyPlayed = true,
         inWatchList = true,
 
-    )
+        )
 
-    DustyPigTheme(currentTheme = Themes.Maggies) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
+    PreviewBase {
+        Column(
         ) {
-            Column(
-            ) {
-                TitleInfoLayout(info = info)
-            }
+            TitleInfoLayout(info = info)
         }
     }
 }

@@ -25,7 +25,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.surfaceColorAtElevation
@@ -53,13 +52,12 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.job
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.BasicFriend
-import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.composables.Avatar
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OkDialog
+import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
-import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 @Composable
 fun FriendsSettingsScreen(vm: FriendsSettingsViewModel) {
@@ -263,7 +261,7 @@ private fun FriendsSettingsScreenInternal(
 @Preview
 @Composable
 private fun FriendSettingsScreenPreview() {
-    val uiState = FriendsSettingsUIState (
+    val uiState = FriendsSettingsUIState(
         friends = listOf(
             BasicFriend(
                 id = 0,
@@ -283,22 +281,16 @@ private fun FriendSettingsScreenPreview() {
         )
     )
 
-    DustyPigTheme(currentTheme = Themes.Maggies) {
-        Surface (
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            FriendsSettingsScreenInternal(
-                popBackStack = { },
-                navToFriendDetails = { _ -> },
-                hideDialogs = { },
-                addFriend =  { _ -> },
-                uiState = uiState
-            )
-        }
+    PreviewBase {
+        FriendsSettingsScreenInternal(
+            popBackStack = { },
+            navToFriendDetails = { _ -> },
+            hideDialogs = { },
+            addFriend = { _ -> },
+            uiState = uiState
+        )
     }
 }
-
 
 
 

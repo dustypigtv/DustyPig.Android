@@ -18,11 +18,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.BasicProfile
-import tv.dustypig.dustypig.global_managers.settings_manager.Themes
-import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 @Composable
 fun Avatar(basicProfile: BasicProfile, onClick: () -> Unit = { }, modifier: Modifier? = Modifier, clickable: Boolean = true) {
@@ -31,7 +28,6 @@ fun Avatar(basicProfile: BasicProfile, onClick: () -> Unit = { }, modifier: Modi
 
 
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun Avatar(imageUrl: String, onClick: () -> Unit = { }, modifier: Modifier? = Modifier, clickable: Boolean = true) {
 
@@ -47,12 +43,12 @@ fun Avatar(imageUrl: String, onClick: () -> Unit = { }, modifier: Modifier? = Mo
         model = ImageRequest
             .Builder(LocalContext.current)
             .data(imageUrl)
-            .error(R.drawable.error_tall)
             .crossfade(true)
             .build(),
         contentDescription = null,
         modifier = internalModifier,
         placeholder = debugPlaceholder(R.drawable.ic_logo_transparent),
+        error = painterResource(id = R.drawable.error_tall)
     )
 }
 
@@ -60,7 +56,7 @@ fun Avatar(imageUrl: String, onClick: () -> Unit = { }, modifier: Modifier? = Mo
 @Preview
 @Composable
 private fun AvatarPreview() {
-    DustyPigTheme(currentTheme = Themes.Maggies) {
+    PreviewBase {
         Avatar(
             imageUrl = "https://s3.dustypig.tv/user-art-defaults/profile/blue.png",
             clickable = false,

@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -25,7 +27,6 @@ import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -41,11 +42,10 @@ import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.HomeScreenList
 import tv.dustypig.dustypig.api.models.MediaTypes
-import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.nav.MyRouteNavigator
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.composables.BasicMediaView
-import tv.dustypig.dustypig.ui.theme.DustyPigTheme
+import tv.dustypig.dustypig.ui.composables.PreviewBase
 
 
 @Composable
@@ -133,21 +133,28 @@ private fun HomeScreenInternal(
                         }
                         LazyRow(
                             state = lazyRowStates[section.listId]!!,
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(150.dp)
                                 .animateItemPlacement()
                         ) {
                             items(section.items, key = { basicMedia -> basicMedia.id }) { basicMedia ->
-                                BasicMediaView(
-                                    basicMedia = basicMedia,
-                                    routeNavigator = routeNavigator
-                                )
+
+                                Box(modifier = Modifier.width(116.dp)) {
+                                    BasicMediaView(
+                                        basicMedia = basicMedia,
+                                        routeNavigator = routeNavigator
+                                    )
+                                }
                             }
+
                         }
 
                     }
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(1.dp))
                 }
             }
         }
@@ -166,62 +173,42 @@ private fun HomeScreenInternal(
 @Composable
 private fun HomeScreenPreview() {
 
-    val bmLst: List<BasicMedia> = listOf(
-        BasicMedia(
-            id = 0,
-            mediaType = MediaTypes.Movie,
-            artworkUrl = "",
-            backdropUrl = "",
-            title = ""
-        ),
-        BasicMedia(
-            id = 1,
-            mediaType = MediaTypes.Movie,
-            artworkUrl = "",
-            backdropUrl = "",
-            title = ""
-        ),
-        BasicMedia(
-            id = 2,
-            mediaType = MediaTypes.Movie,
-            artworkUrl = "",
-            backdropUrl = "",
-            title = ""
+    val items = arrayListOf<BasicMedia>()
+    for(i in 1..25) {
+        items.add(
+            BasicMedia(
+                id = i,
+                mediaType = MediaTypes.Movie,
+                artworkUrl = "",
+                backdropUrl = null,
+                title = ""
+            )
         )
-    )
+    }
+
+    val sections = arrayListOf<HomeScreenList>()
+    for(i in 1..40) {
+        sections.add(
+            HomeScreenList(
+                listId = i.toLong(),
+                title = "List $i",
+                items = items
+            )
+        )
+    }
+
 
     val uiState = HomeUIState(
         isRefreshing = false,
-        sections = listOf(
-            HomeScreenList(
-                listId = 0,
-                title = "List 0",
-                items = bmLst
-            ),
-            HomeScreenList(
-                listId = 1,
-                title = "List 1",
-                items = bmLst
-            ),
-            HomeScreenList(
-                listId = 2,
-                title = "List 2",
-                items = bmLst
-            )
-        )
+        sections = sections
     )
 
-    DustyPigTheme(currentTheme = Themes.Maggies) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-               HomeScreenInternal(
-                   uiState = uiState,
-                   onRefresh = { },
-                   onShowMoreClicked = { _ -> },
-                   routeNavigator = MyRouteNavigator()
-               )
-        }
+    PreviewBase {
+        HomeScreenInternal(
+            uiState = uiState,
+            onRefresh = { },
+            onShowMoreClicked = { _ -> },
+            routeNavigator = MyRouteNavigator()
+        )
     }
 }

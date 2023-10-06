@@ -9,8 +9,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import tv.dustypig.dustypig.R
-import tv.dustypig.dustypig.global_managers.settings_manager.Themes
-import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 @Composable
 fun OkDialog (onDismissRequest: () -> Unit, title:String, message:String) {
@@ -31,7 +29,7 @@ fun OkDialog (onDismissRequest: () -> Unit, title:String, message:String) {
 @Preview
 @Composable
 private fun OkDialogPreview() {
-    DustyPigTheme(currentTheme = Themes.Maggies) {
+    PreviewBase {
         OkDialog(onDismissRequest = { }, title = "Title", message = "Message")
     }
 }

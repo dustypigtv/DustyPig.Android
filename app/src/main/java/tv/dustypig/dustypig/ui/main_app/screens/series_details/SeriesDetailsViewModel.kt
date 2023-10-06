@@ -41,7 +41,7 @@ class SeriesDetailsViewModel  @Inject constructor(
     routeNavigator: RouteNavigator,
     downloadManager: DownloadManager,
     savedStateHandle: SavedStateHandle
-): DetailsScreenBaseViewModel(routeNavigator, downloadManager) {
+): DetailsScreenBaseViewModel(routeNavigator, downloadManager, MediaTypes.Series) {
 
     private val _uiState = MutableStateFlow(SeriesDetailsUIState())
     val uiState: StateFlow<SeriesDetailsUIState> = _uiState.asStateFlow()

@@ -44,7 +44,7 @@ class MovieDetailsViewModel @Inject constructor(
     private val mediaRepository: MediaRepository,
     private val moviesRepository: MoviesRepository,
     downloadManager: DownloadManager
-): DetailsScreenBaseViewModel(routeNavigator, downloadManager) {
+): DetailsScreenBaseViewModel(routeNavigator, downloadManager, MediaTypes.Movie) {
 
     private val _uiState = MutableStateFlow(MovieDetailsUIState())
     val uiState: StateFlow<MovieDetailsUIState> = _uiState.asStateFlow()
@@ -159,13 +159,21 @@ class MovieDetailsViewModel @Inject constructor(
 
     private fun addDownload() {
         viewModelScope.launch {
-            downloadManager.addMovie(_detailedMovie)
+            try{
+                downloadManager.addMovie(_detailedMovie)
+            } catch (ex: Exception) {
+                setError(ex = ex, criticalError = false)
+            }
         }
     }
 
     private fun removeDownload() {
         viewModelScope.launch {
-            downloadManager.delete(mediaId = mediaId, mediaType = MediaTypes.Movie)
+            try {
+                downloadManager.delete(mediaId = mediaId, mediaType = MediaTypes.Movie)
+            } catch (ex: Exception) {
+                setError(ex = ex, criticalError = false)
+            }
         }
      }
 

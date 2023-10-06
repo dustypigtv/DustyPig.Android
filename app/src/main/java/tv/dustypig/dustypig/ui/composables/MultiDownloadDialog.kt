@@ -30,8 +30,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import tv.dustypig.dustypig.R
-import tv.dustypig.dustypig.global_managers.settings_manager.Themes
-import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 @Composable
 private fun CountRow(count: Int, newDownloadCount: MutableIntState) {
@@ -119,7 +117,7 @@ fun MultiDownloadDialog(onSave: (Int) -> Unit, title:String, text: String, curre
 @Preview
 @Composable
 private fun MultiDownloadDialogPreview() {
-    DustyPigTheme(currentTheme = Themes.Maggies) {
+    PreviewBase {
         MultiDownloadDialog(
             onSave = { },
             title = "Download",

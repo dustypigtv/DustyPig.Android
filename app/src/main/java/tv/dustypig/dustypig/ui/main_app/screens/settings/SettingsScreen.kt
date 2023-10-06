@@ -14,7 +14,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
@@ -25,9 +24,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import tv.dustypig.dustypig.global_managers.settings_manager.Themes
+import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
-import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 
 @Composable
@@ -101,21 +99,15 @@ private fun SettingsScreenPreview() {
         isMainProfile = true
     )
 
-    DustyPigTheme(currentTheme = Themes.Maggies) {
-        Surface (
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            SettingsScreenInternal(
-                navToTheme = { },
-                navToAccountSettings = { },
-                navToFriendsSettings = { },
-                uiState = uiState
-            )
-        }
+    PreviewBase {
+        SettingsScreenInternal(
+            navToTheme = { },
+            navToAccountSettings = { },
+            navToFriendsSettings = { },
+            uiState = uiState
+        )
     }
 }
-
 
 
 

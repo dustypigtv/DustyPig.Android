@@ -1,15 +1,18 @@
 package tv.dustypig.dustypig.ui.main_app.screens.search
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.models.SearchRequest
 import tv.dustypig.dustypig.api.repositories.MediaRepository
+import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import javax.inject.Inject
@@ -17,36 +20,62 @@ import javax.inject.Inject
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val routeNavigator: RouteNavigator,
-    private val mediaRepository: MediaRepository
+    private val mediaRepository: MediaRepository,
+    private val settingsManager: SettingsManager
 ): ViewModel(), RouteNavigator by routeNavigator {
+
+    private val TAG = "SearchViewModel"
 
     private val _uiState = MutableStateFlow(SearchUIState())
     val uiState: StateFlow<SearchUIState> = _uiState.asStateFlow()
     private var _lastQuery: String = ""
 
-    fun search(query: String) {
+    init {
+        viewModelScope.launch {
+            settingsManager.searchHistoryFlow.collectLatest { history ->
+                _uiState.update {
+                    it.copy(history = history)
+                }
+            }
+        }
+    }
 
-        val ltquery = query.trim().lowercase()
+    fun search() {
+
+        val query = _uiState.value.query.trim().lowercase()
 
         _uiState.update {
             it.copy(
-                emptyQuery = ltquery.isBlank(),
-                loading = !(ltquery.isBlank() || ltquery == _lastQuery) ,
-                progressOnly = _lastQuery.isBlank() && ltquery.isNotBlank() && !it.hasResults,
-                hasResults = if(ltquery.isNotBlank()) it.hasResults else false,
-                availableItems = if(ltquery.isBlank()) listOf() else it.availableItems,
-                tmdbItems = if(ltquery.isBlank()) listOf() else it.tmdbItems
+                emptyQuery = query.isBlank(),
+                loading = !(query.isBlank() || query == _lastQuery) ,
+                progressOnly = _lastQuery.isBlank() && query.isNotBlank() && !it.hasResults,
+                hasResults = if(query.isNotBlank()) it.hasResults else false,
+                availableItems = if(query.isBlank()) listOf() else it.availableItems,
+                tmdbItems = if(query.isBlank()) listOf() else it.tmdbItems
             )
         }
 
-        if(ltquery.isBlank() || ltquery == _lastQuery)
+        if(query.isBlank() || query == _lastQuery)
             return
 
-        _lastQuery = ltquery
+        _lastQuery = query
 
         viewModelScope.launch {
-            try{
-                val response = mediaRepository.search(SearchRequest(query = ltquery, searchTMDB = true))
+            try {
+                val hist = ArrayList<String>()
+                hist.add(query)
+                for(q in _uiState.value.history) {
+                    if(q != query)
+                        if(hist.count() < 25)
+                            hist.add(q)
+                }
+                settingsManager.setSearchHistory(hist)
+            } catch (ex: Exception) {
+                Log.d(TAG, ex.message ?: "Unknown Error")
+            }
+
+            try {
+                val response = mediaRepository.search(SearchRequest(query = query, searchTMDB = true))
 
                 _uiState.update {
                     it.copy(
@@ -78,13 +107,18 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Put this here to survive recomp
-     */
-    fun updateTabIndex(idx: Int) {
+    fun updateQuery(query: String) {
         _uiState.update {
-            it.copy(tabIndex = idx)
+            it.copy(query = query)
         }
     }
 
+    /**
+     * Set here to survive recomp
+     */
+    fun updateTabIndex(index: Int) {
+        _uiState.update {
+            it.copy(tabIndex = index)
+        }
+    }
 }

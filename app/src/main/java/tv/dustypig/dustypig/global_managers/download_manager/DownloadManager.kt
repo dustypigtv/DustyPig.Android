@@ -107,7 +107,7 @@ class DownloadManager @Inject constructor(
         }
 
         _statusTimer.schedule(
-            delay = 10000,
+            delay = 1000,
             period = 100
         ) {
             statusTimerTick()

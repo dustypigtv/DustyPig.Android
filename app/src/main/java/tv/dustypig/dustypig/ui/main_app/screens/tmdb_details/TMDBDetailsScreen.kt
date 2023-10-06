@@ -29,7 +29,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -48,18 +47,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.BasicProfile
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.RequestStatus
 import tv.dustypig.dustypig.api.models.TitleRequestPermissions
-import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.nav.MyRouteNavigator
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.composables.Avatar
@@ -69,8 +70,8 @@ import tv.dustypig.dustypig.ui.composables.Credits
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
 import tv.dustypig.dustypig.ui.composables.OnOrientation
+import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.isTablet
-import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 @Composable
 fun TMDBDetailsScreen(vm: TMDBDetailsViewModel) {
@@ -249,7 +250,11 @@ private fun HorizontalTabletLayout(
         ) {
 
             AsyncImage(
-                model = uiState.posterUrl,
+                model = ImageRequest
+                    .Builder(LocalContext.current)
+                    .data(uiState.posterUrl)
+                    .crossfade(true)
+                    .build(),
                 contentDescription = "",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -259,10 +264,15 @@ private fun HorizontalTabletLayout(
             )
 
             AsyncImage(
-                model = uiState.posterUrl,
+                model = ImageRequest
+                    .Builder(LocalContext.current)
+                    .data(uiState.posterUrl)
+                    .crossfade(true)
+                    .build(),
                 contentDescription = "",
                 contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                error = painterResource(id = R.drawable.error_tall)
             )
         }
 
@@ -317,7 +327,11 @@ private fun PhoneLayout(
         ) {
             if (uiState.backdropUrl.isBlank()) {
                 AsyncImage(
-                    model = uiState.posterUrl,
+                    model = ImageRequest
+                        .Builder(LocalContext.current)
+                        .data(uiState.posterUrl)
+                        .crossfade(true)
+                        .build(),
                     contentDescription = "",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -327,19 +341,29 @@ private fun PhoneLayout(
                 )
 
                 AsyncImage(
-                    model = uiState.posterUrl,
+                    model = ImageRequest
+                        .Builder(LocalContext.current)
+                        .data(uiState.posterUrl)
+                        .crossfade(true)
+                        .build(),
                     contentDescription = "",
                     contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    error = painterResource(id = R.drawable.error_tall)
                 )
             } else {
                 AsyncImage(
-                    model = uiState.backdropUrl,
+                    model = ImageRequest
+                        .Builder(LocalContext.current)
+                        .data(uiState.backdropUrl)
+                        .crossfade(true)
+                        .build(),
                     contentDescription = "",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(color = Color.DarkGray)
+                        .background(color = Color.DarkGray),
+                    error = painterResource(id = R.drawable.error_wide)
                 )
             }
         }
@@ -495,7 +519,7 @@ fun InfoLayout(
 @Composable
 private  fun TMDBDetailsScreenPreview() {
 
-    val uiState = TMDBDetailsUIState (
+    val uiState = TMDBDetailsUIState(
         loading = false,
         isMovie = true,
         title = "The Avengers",
@@ -516,23 +540,17 @@ private  fun TMDBDetailsScreenPreview() {
         )
     )
 
-    DustyPigTheme(currentTheme = Themes.Maggies) {
-        Surface (
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            TMDBDetailsScreenInternal(
-                popBackStack = { },
-                hideError = { },
-                requestTitle = { _ ->  },
-                cancelRequest = { },
-                uiState = uiState,
-                routeNavigator = MyRouteNavigator()
-            )
-        }
+    PreviewBase {
+        TMDBDetailsScreenInternal(
+            popBackStack = { },
+            hideError = { },
+            requestTitle = { _ -> },
+            cancelRequest = { },
+            uiState = uiState,
+            routeNavigator = MyRouteNavigator()
+        )
     }
 }
-
 
 
 

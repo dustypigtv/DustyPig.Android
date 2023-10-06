@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,7 +41,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
@@ -57,6 +57,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -68,12 +69,13 @@ import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
 import tv.dustypig.dustypig.global_managers.download_manager.UIDownload
 import tv.dustypig.dustypig.global_managers.download_manager.UIJob
-import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.MultiDownloadDialog
+import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.composables.YesNoDialog
-import tv.dustypig.dustypig.ui.theme.DustyPigTheme
+
+fun LazyListState.isScrolledToTheEnd() = layoutInfo.visibleItemsInfo.lastOrNull()?.index == layoutInfo.totalItemsCount - 1
 
 @Composable
 fun DownloadsScreen(vm: DownloadsViewModel) {
@@ -105,19 +107,12 @@ private fun DownloadsScreenInternal(
     uiState: DownloadsUIState
 ) {
 
+    val TAG = "DownloadsScreen"
 
-//Moved to vm so it's remembered when leaving and coming back to this screen
-//    val expandedMediaIds = remember {
-//         mutableStateListOf<Int>()
-//    }
 
     val listState = rememberLazyListState()
 
     var showEditDownloadDialog by remember {
-        mutableStateOf(false)
-    }
-
-    var showRemoveDownloadDialog by remember {
         mutableStateOf(false)
     }
 
@@ -128,6 +123,9 @@ private fun DownloadsScreenInternal(
     var showDeleteAllDownloads by remember {
         mutableStateOf(false)
     }
+
+
+
 
     if(uiState.jobs.isEmpty()) {
 
@@ -141,97 +139,274 @@ private fun DownloadsScreenInternal(
     } else {
 
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            state = listState
-        ) {
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                state = listState
+            ) {
 
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            for (job in uiState.jobs) {
-
-                val modifier = when (job.mediaType) {
-                    MediaTypes.Series, MediaTypes.Playlist -> Modifier.clickable {
-                        toggleExpansion(job.mediaId)
-                    }
-
-                    else -> Modifier
+                item {
+                    Spacer(modifier = Modifier.height(6.dp))
                 }
 
-                item(key = job.mediaId) {
+                for (job in uiState.jobs) {
 
-                    val dismissState = rememberDismissState(
-                        confirmStateChange = {
-                            when(it) {
-                                DismissValue.DismissedToStart -> {
-                                    selectedJob = job
-                                    showRemoveDownloadDialog = true
-                                }
-                                DismissValue.DismissedToEnd -> {
-                                    selectedJob = job
-                                    showEditDownloadDialog = true
-                                }
-                                else -> { }
+                    item(key = job.mediaId) {
+
+                        val modifier = when (job.mediaType) {
+                            MediaTypes.Series, MediaTypes.Playlist -> Modifier.clickable {
+                                toggleExpansion(job.mediaId)
                             }
-                            false
-                        }
-                    )
 
-                    val directions = when(job.mediaType) {
-                        MediaTypes.Series, MediaTypes.Playlist -> setOf(DismissDirection.EndToStart, DismissDirection.StartToEnd)
-                        else -> setOf(DismissDirection.EndToStart)
+                            else -> Modifier
+                        }
+
+
+                        val dismissState = rememberDismissState(
+                            confirmStateChange = {
+                                when (it) {
+                                    DismissValue.DismissedToStart -> {
+                                        selectedJob = job
+                                        deleteDownload(job)
+                                    }
+
+                                    DismissValue.DismissedToEnd -> {
+                                        selectedJob = job
+                                        showEditDownloadDialog = true
+                                    }
+
+                                    else -> {}
+                                }
+                                false
+                            }
+                        )
+
+                        val directions = when (job.mediaType) {
+                            MediaTypes.Series, MediaTypes.Playlist -> setOf(DismissDirection.EndToStart, DismissDirection.StartToEnd)
+                            else -> setOf(DismissDirection.EndToStart)
+                        }
+
+                        AnimatedVisibility(
+                            true, exit = fadeOut(spring())
+                        ) {
+
+                            SwipeToDismiss(
+                                state = dismissState,
+                                directions = directions,
+                                dismissThresholds = {
+                                    FractionalThreshold(0.5f)
+                                },
+                                background = {
+                                    val color = when (dismissState.dismissDirection) {
+                                        DismissDirection.EndToStart -> MaterialTheme.colorScheme.errorContainer
+                                        DismissDirection.StartToEnd -> MaterialTheme.colorScheme.secondaryContainer
+                                        else -> Color.Transparent
+                                    }
+                                    val direction = dismissState.dismissDirection
+
+                                    Row(
+                                        modifier = Modifier
+                                            .clip(shape = RoundedCornerShape(8.dp))
+                                            .fillMaxSize()
+                                            .background(color, shape = RoundedCornerShape(8.dp))
+                                            .padding(12.dp, 8.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = when (direction) {
+                                            DismissDirection.EndToStart -> Arrangement.End
+                                            DismissDirection.StartToEnd -> Arrangement.Start
+                                            else -> {
+                                                Arrangement.Center
+                                            }
+                                        }
+                                    ) {
+                                        when (direction) {
+                                            DismissDirection.EndToStart -> Icon(
+                                                imageVector = Icons.Filled.Delete,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onErrorContainer
+                                            )
+
+                                            DismissDirection.StartToEnd -> TintedIcon(
+                                                imageVector = Icons.Filled.Edit
+                                            )
+
+                                            else -> {}
+                                        }
+                                    }
+                                },
+                                dismissContent = {
+                                    Row(
+                                        modifier = modifier
+                                            .fillMaxWidth()
+                                            .clip(shape = RoundedCornerShape(4.dp))
+                                            .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp))
+                                            .animateItemPlacement(),
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+
+                                        Box(
+                                            modifier = Modifier
+                                                .width(124.dp)
+                                                .height(70.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            if (job.artworkPoster) {
+                                                AsyncImage(
+                                                    model = ImageRequest
+                                                        .Builder(LocalContext.current)
+                                                        .data(job.artworkUrl)
+                                                        .crossfade(true)
+                                                        .build(),
+                                                    contentScale = ContentScale.Crop,
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .blur(50.dp),
+                                                    contentDescription = null,
+                                                    error = painterResource(id = R.drawable.error_wide)
+                                                )
+
+                                                AsyncImage(
+                                                    model = ImageRequest
+                                                        .Builder(LocalContext.current)
+                                                        .data(job.artworkUrl)
+                                                        .crossfade(true)
+                                                        .build(),
+                                                    contentScale = ContentScale.Fit,
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    contentDescription = null,
+                                                    error = painterResource(id = R.drawable.error_wide)
+                                                )
+                                            } else {
+                                                AsyncImage(
+                                                    model = ImageRequest
+                                                        .Builder(LocalContext.current)
+                                                        .data(job.artworkUrl)
+                                                        .crossfade(true)
+                                                        .build(),
+                                                    contentDescription = "",
+                                                    error = painterResource(id = R.drawable.error_wide)
+                                                )
+                                            }
+
+                                            var showPlay = job.status == DownloadStatus.Finished
+                                            if (!showPlay) {
+                                                if (job.mediaType == MediaTypes.Series || job.mediaType == MediaTypes.Playlist)
+                                                    showPlay = job.downloads.firstOrNull()?.status == DownloadStatus.Finished
+                                            }
+                                            if (showPlay) {
+                                                TintedIcon(
+                                                    imageVector = Icons.Filled.PlayCircleOutline,
+                                                    modifier = Modifier
+                                                        .size(36.dp)
+                                                        .clip(shape = CircleShape)
+                                                        .background(color = Color.Black.copy(alpha = 0.5f))
+                                                        .clickable { playNext(job) }
+                                                )
+                                            }
+                                        }
+
+                                        Box(
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .height(70.dp)
+                                        ) {
+                                            Column(
+                                                modifier = Modifier.height(70.dp),
+                                                verticalArrangement = Arrangement.SpaceBetween
+                                            ) {
+
+                                                Text(
+                                                    text = job.title,
+                                                    maxLines = when (job.status) {
+                                                        DownloadStatus.Paused, DownloadStatus.Error -> 2
+                                                        else -> 3
+                                                    },
+                                                    overflow = TextOverflow.Ellipsis,
+                                                    style = MaterialTheme.typography.titleMedium
+                                                )
+
+                                                if (job.status == DownloadStatus.Paused)
+                                                    Text(
+                                                        text = job.statusDetails,
+                                                        style = MaterialTheme.typography.bodySmall
+                                                    )
+
+                                                if (job.status == DownloadStatus.Error)
+                                                    Text(
+                                                        text = job.statusDetails,
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = MaterialTheme.colorScheme.error
+                                                    )
+                                            }
+                                        }
+
+                                        Box(
+                                            modifier = Modifier
+                                                .padding(start = 0.dp, top = 0.dp, end = 8.dp, bottom = 0.dp)
+                                                .height(70.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+
+                                            when (job.status) {
+                                                DownloadStatus.Finished -> {
+                                                    TintedIcon(
+                                                        imageVector = Icons.Filled.DownloadDone,
+                                                        modifier = Modifier.size(24.dp)
+                                                    )
+                                                }
+
+                                                DownloadStatus.Paused -> {
+                                                    TintedIcon(
+                                                        imageVector = Icons.Filled.Pause,
+                                                        modifier = Modifier.size(24.dp)
+                                                    )
+                                                }
+
+                                                DownloadStatus.Error -> {
+                                                    Icon(
+                                                        imageVector = Icons.Filled.Error,
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(24.dp),
+                                                        tint = MaterialTheme.colorScheme.error
+                                                    )
+                                                }
+
+                                                DownloadStatus.Pending -> {
+                                                    TintedIcon(
+                                                        imageVector = Icons.Filled.HourglassBottom,
+                                                        modifier = Modifier.size(24.dp)
+                                                    )
+                                                }
+
+                                                else -> {
+                                                    CircularProgressIndicator(
+                                                        modifier = Modifier.size(24.dp),
+                                                        progress = 1.0f,
+                                                        color = MaterialTheme.colorScheme.tertiaryContainer
+                                                    )
+
+                                                    CircularProgressIndicator(
+                                                        modifier = Modifier.size(24.dp),
+                                                        progress = job.percent
+                                                    )
+                                                }
+                                            }
+
+                                        }
+
+                                    }
+
+                                }
+                            )
+                        }
                     }
 
-                    AnimatedVisibility(
-                        true, exit = fadeOut(spring())
-                    ) {
 
-                        SwipeToDismiss(
-                            state = dismissState,
-                            directions = directions,
-                            dismissThresholds = {
-                                FractionalThreshold(0.5f)
-                            },
-                            background = {
-                                val color = when (dismissState.dismissDirection) {
-                                    DismissDirection.EndToStart -> MaterialTheme.colorScheme.errorContainer
-                                    DismissDirection.StartToEnd -> MaterialTheme.colorScheme.secondaryContainer
-                                    else -> Color.Transparent
-                                }
-                                val direction = dismissState.dismissDirection
+                    if (uiState.expandedMediaIds.contains(job.mediaId)) {
 
+                        for (dl in job.downloads.filter { it.mediaId != job.mediaId }) {
+                            item(key = dl.mediaId) {
                                 Row(
                                     modifier = Modifier
-                                        .clip(shape = RoundedCornerShape(8.dp))
-                                        .fillMaxSize()
-                                        .background(color, shape = RoundedCornerShape(8.dp))
-                                        .padding(12.dp, 8.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = when(direction) {
-                                        DismissDirection.EndToStart -> Arrangement.End
-                                        DismissDirection.StartToEnd -> Arrangement.Start
-                                        else -> { Arrangement.Center }
-                                    }
-                                ) {
-                                    when(direction) {
-                                        DismissDirection.EndToStart -> Icon(
-                                            imageVector = Icons.Filled.Delete,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.onErrorContainer
-                                        )
-
-                                        DismissDirection.StartToEnd -> TintedIcon(
-                                            imageVector = Icons.Filled.Edit
-                                        )
-
-                                        else -> { }
-                                    }
-                                }
-                            },
-                            dismissContent = {
-                                Row(
-                                    modifier = modifier
+                                        .padding(start = 36.dp, top = 0.dp, end = 0.dp, bottom = 0.dp)
                                         .fillMaxWidth()
                                         .clip(shape = RoundedCornerShape(4.dp))
                                         .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp))
@@ -245,57 +420,52 @@ private fun DownloadsScreenInternal(
                                             .height(70.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        if (job.artworkPoster) {
+                                        if (dl.artworkPoster) {
                                             AsyncImage(
                                                 model = ImageRequest
                                                     .Builder(LocalContext.current)
-                                                    .data(job.artworkUrl)
-                                                    .error(R.drawable.error_wide)
+                                                    .data(dl.artworkUrl)
                                                     .crossfade(true)
                                                     .build(),
                                                 contentScale = ContentScale.Crop,
                                                 modifier = Modifier
                                                     .fillMaxSize()
                                                     .blur(50.dp),
-                                                contentDescription = null
+                                                contentDescription = null,
+                                                error = painterResource(id = R.drawable.error_wide)
                                             )
 
                                             AsyncImage(
                                                 model = ImageRequest
                                                     .Builder(LocalContext.current)
-                                                    .data(job.artworkUrl)
-                                                    .error(R.drawable.error_wide)
+                                                    .data(dl.artworkUrl)
                                                     .crossfade(true)
                                                     .build(),
                                                 contentScale = ContentScale.Fit,
                                                 modifier = Modifier.fillMaxSize(),
-                                                contentDescription = null
+                                                contentDescription = null,
+                                                error = painterResource(id = R.drawable.error_wide)
                                             )
                                         } else {
                                             AsyncImage(
                                                 model = ImageRequest
                                                     .Builder(LocalContext.current)
-                                                    .data(job.artworkUrl)
-                                                    .error(R.drawable.error_wide)
+                                                    .data(dl.artworkUrl)
                                                     .crossfade(true)
                                                     .build(),
-                                                contentDescription = ""
+                                                contentDescription = "",
+                                                error = painterResource(id = R.drawable.error_wide)
                                             )
                                         }
 
-                                        var showPlay = job.status == DownloadStatus.Finished
-                                        if(!showPlay) {
-                                            if(job.mediaType == MediaTypes.Series || job.mediaType == MediaTypes.Playlist)
-                                                showPlay = job.downloads.firstOrNull()?.status == DownloadStatus.Finished
-                                        }
-                                        if(showPlay) {
+                                        if (dl.status == DownloadStatus.Finished) {
                                             TintedIcon(
                                                 imageVector = Icons.Filled.PlayCircleOutline,
                                                 modifier = Modifier
                                                     .size(36.dp)
                                                     .clip(shape = CircleShape)
                                                     .background(color = Color.Black.copy(alpha = 0.5f))
-                                                    .clickable { playNext(job) }
+                                                    .clickable { playItem(job, dl) }
                                             )
                                         }
                                     }
@@ -309,10 +479,9 @@ private fun DownloadsScreenInternal(
                                             modifier = Modifier.height(70.dp),
                                             verticalArrangement = Arrangement.SpaceBetween
                                         ) {
-
                                             Text(
-                                                text = job.title,
-                                                maxLines = when(job.status) {
+                                                text = dl.title,
+                                                maxLines = when (dl.status) {
                                                     DownloadStatus.Paused, DownloadStatus.Error -> 2
                                                     else -> 3
                                                 },
@@ -320,15 +489,15 @@ private fun DownloadsScreenInternal(
                                                 style = MaterialTheme.typography.titleMedium
                                             )
 
-                                            if (job.status == DownloadStatus.Paused)
+                                            if (dl.status == DownloadStatus.Paused)
                                                 Text(
-                                                    text = job.statusDetails,
+                                                    text = dl.statusDetails,
                                                     style = MaterialTheme.typography.bodySmall
                                                 )
 
-                                            if (job.status == DownloadStatus.Error)
+                                            if (dl.status == DownloadStatus.Error)
                                                 Text(
-                                                    text = job.statusDetails,
+                                                    text = dl.statusDetails,
                                                     style = MaterialTheme.typography.bodySmall,
                                                     color = MaterialTheme.colorScheme.error
                                                 )
@@ -342,19 +511,21 @@ private fun DownloadsScreenInternal(
                                         contentAlignment = Alignment.Center
                                     ) {
 
-                                        when (job.status) {
+                                        when (dl.status) {
                                             DownloadStatus.Finished -> {
                                                 TintedIcon(
                                                     imageVector = Icons.Filled.DownloadDone,
                                                     modifier = Modifier.size(24.dp)
                                                 )
                                             }
+
                                             DownloadStatus.Paused -> {
                                                 TintedIcon(
                                                     imageVector = Icons.Filled.Pause,
                                                     modifier = Modifier.size(24.dp)
                                                 )
                                             }
+
                                             DownloadStatus.Error -> {
                                                 Icon(
                                                     imageVector = Icons.Filled.Error,
@@ -363,12 +534,14 @@ private fun DownloadsScreenInternal(
                                                     tint = MaterialTheme.colorScheme.error
                                                 )
                                             }
+
                                             DownloadStatus.Pending -> {
                                                 TintedIcon(
                                                     imageVector = Icons.Filled.HourglassBottom,
                                                     modifier = Modifier.size(24.dp)
                                                 )
                                             }
+
                                             else -> {
                                                 CircularProgressIndicator(
                                                     modifier = Modifier.size(24.dp),
@@ -378,7 +551,7 @@ private fun DownloadsScreenInternal(
 
                                                 CircularProgressIndicator(
                                                     modifier = Modifier.size(24.dp),
-                                                    progress = job.percent
+                                                    progress = dl.percent
                                                 )
                                             }
                                         }
@@ -388,232 +561,61 @@ private fun DownloadsScreenInternal(
                                 }
 
                             }
-                        )
+                        }
+
+                        if (job.downloads.any { it.mediaId != job.mediaId })
+                            item {
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
                     }
+
+
                 }
 
+                item {
 
-                if (uiState.expandedMediaIds.contains(job.mediaId)) {
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                    for (dl in job.downloads.filter { it.mediaId != job.mediaId }) {
-                        item(key = dl.mediaId) {
+                    if (uiState.jobs.isNotEmpty()) {
+
+                        val configuration = LocalConfiguration.current
+                        val modifier = if (configuration.screenWidthDp >= 352) Modifier.width(320.dp) else Modifier.fillMaxWidth()
+
+                        Box(
+                            //modifier = Modifier.fillParentMaxHeight(),
+                            contentAlignment = Alignment.BottomCenter
+                        ) {
+                            Spacer(modifier = Modifier.height(16.dp))
+
                             Row(
-                                modifier = Modifier
-                                    .padding(start = 36.dp, top = 0.dp, end = 0.dp, bottom = 0.dp)
-                                    .fillMaxWidth()
-                                    .clip(shape = RoundedCornerShape(4.dp))
-                                    .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp))
-                                    .animateItemPlacement(),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center
                             ) {
-
-                                Box(
-                                    modifier = Modifier
-                                        .width(124.dp)
-                                        .height(70.dp),
-                                    contentAlignment = Alignment.Center
+                                Button(
+                                    onClick = { showDeleteAllDownloads = true },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                                    ),
+                                    modifier = modifier
                                 ) {
-                                    if (dl.artworkPoster) {
-                                        AsyncImage(
-                                            model = ImageRequest
-                                                .Builder(LocalContext.current)
-                                                .data(dl.artworkUrl)
-                                                .error(R.drawable.error_wide)
-                                                .crossfade(true)
-                                                .build(),
-                                            contentScale = ContentScale.Crop,
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .blur(50.dp),
-                                            contentDescription = null
-                                        )
-
-                                        AsyncImage(
-                                            model = ImageRequest
-                                                .Builder(LocalContext.current)
-                                                .data(dl.artworkUrl)
-                                                .error(R.drawable.error_wide)
-                                                .crossfade(true)
-                                                .build(),
-                                            contentScale = ContentScale.Fit,
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentDescription = null
-                                        )
-                                    } else {
-                                        AsyncImage(
-                                            model = ImageRequest
-                                                .Builder(LocalContext.current)
-                                                .data(dl.artworkUrl)
-                                                .error(R.drawable.error_wide)
-                                                .crossfade(true)
-                                                .build(),
-                                            contentDescription = ""
-                                        )
-                                    }
-
-                                    if(dl.status == DownloadStatus.Finished) {
-                                        TintedIcon(
-                                            imageVector = Icons.Filled.PlayCircleOutline,
-                                            modifier = Modifier
-                                                .size(36.dp)
-                                                .clip(shape = CircleShape)
-                                                .background(color = Color.Black.copy(alpha = 0.5f))
-                                                .clickable { playItem(job, dl) }
-                                        )
-                                    }
+                                    Text(text = stringResource(R.string.delete_all_downloads))
                                 }
-
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .height(70.dp)
-                                ) {
-                                    Column(
-                                        modifier = Modifier.height(70.dp),
-                                        verticalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text(
-                                            text = dl.title,
-                                            maxLines = when(dl.status) {
-                                                DownloadStatus.Paused, DownloadStatus.Error -> 2
-                                                else -> 3
-                                            },
-                                            overflow = TextOverflow.Ellipsis,
-                                            style = MaterialTheme.typography.titleMedium
-                                        )
-
-                                        if (dl.status == DownloadStatus.Paused)
-                                            Text(
-                                                text = dl.statusDetails,
-                                                style = MaterialTheme.typography.bodySmall
-                                            )
-
-                                        if (dl.status == DownloadStatus.Error)
-                                            Text(
-                                                text = dl.statusDetails,
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.error
-                                            )
-                                    }
-                                }
-
-                                Box(
-                                    modifier = Modifier
-                                        .padding(start = 0.dp, top = 0.dp, end = 8.dp, bottom = 0.dp)
-                                        .height(70.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-
-                                    when (dl.status) {
-                                        DownloadStatus.Finished -> {
-                                            TintedIcon(
-                                                imageVector = Icons.Filled.DownloadDone,
-                                                modifier = Modifier.size(24.dp)
-                                            )
-                                        }
-                                        DownloadStatus.Paused -> {
-                                            TintedIcon(
-                                                imageVector = Icons.Filled.Pause,
-                                                modifier = Modifier.size(24.dp)
-                                            )
-                                        }
-                                        DownloadStatus.Error -> {
-                                            Icon(
-                                                imageVector = Icons.Filled.Error,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(24.dp),
-                                                tint = MaterialTheme.colorScheme.error
-                                            )
-                                        }
-                                        DownloadStatus.Pending -> {
-                                            TintedIcon(
-                                                imageVector = Icons.Filled.HourglassBottom,
-                                                modifier = Modifier.size(24.dp)
-                                            )
-                                        }
-                                        else -> {
-                                            CircularProgressIndicator(
-                                                modifier = Modifier.size(24.dp),
-                                                progress = 1.0f,
-                                                color = MaterialTheme.colorScheme.tertiaryContainer
-                                            )
-
-                                            CircularProgressIndicator(
-                                                modifier = Modifier.size(24.dp),
-                                                progress = dl.percent
-                                            )
-                                        }
-                                    }
-
-                                }
-
                             }
-
-                        }
-                    }
-
-                    if (job.downloads.any { it.mediaId != job.mediaId })
-                        item {
                             Spacer(modifier = Modifier.height(16.dp))
                         }
-                }
-
-
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                if(uiState.jobs.isNotEmpty()) {
-
-                    val configuration = LocalConfiguration.current
-                    val modifier = if(configuration.screenWidthDp >= 352) Modifier.width(320.dp) else Modifier.fillMaxWidth()
-
-                    Box (
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        contentAlignment = Alignment.BottomCenter
-                    ) {
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Button(
-                                onClick = { showDeleteAllDownloads = true },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                                    contentColor = MaterialTheme.colorScheme.onErrorContainer
-                                ),
-                                modifier = modifier
-                            ) {
-                                Text(text = stringResource(R.string.delete_all_downloads))
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
             }
-        }
+
+
     }
 
-    if(showRemoveDownloadDialog && selectedJob != null) {
-        YesNoDialog(
-            onNo = {
-                showRemoveDownloadDialog = false
-            },
-            onYes = {
-                showRemoveDownloadDialog = false
-                deleteDownload(selectedJob!!)
-            },
-            title = stringResource(R.string.confirm),
-            message = stringResource(R.string.do_you_want_to_remove_the_download)
-        )
-    }
 
     if(showEditDownloadDialog && selectedJob != null) {
         MultiDownloadDialog(
             onSave = { newCount ->
+                showEditDownloadDialog = false
                 modifyDownload(selectedJob!!, newCount)
             },
             title = when(selectedJob!!.mediaType) {
@@ -703,22 +705,17 @@ private fun DownloadScreenPreview() {
     )
 
 
-    DustyPigTheme(currentTheme = Themes.Maggies) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            DownloadsScreenInternal(
-                hideError = { },
-                playNext = { },
-                playItem = { _: UIJob, _: UIDownload -> },
-                deleteDownload = { },
-                deleteAll = { },
-                toggleExpansion = { },
-                modifyDownload = { _: UIJob, _: Int -> },
-                uiState = uiState
-            )
-        }
+    PreviewBase {
+        DownloadsScreenInternal(
+            hideError = { },
+            playNext = { },
+            playItem = { _: UIJob, _: UIDownload -> },
+            deleteDownload = { },
+            deleteAll = { },
+            toggleExpansion = { },
+            modifyDownload = { _: UIJob, _: Int -> },
+            uiState = uiState
+        )
     }
 }
 

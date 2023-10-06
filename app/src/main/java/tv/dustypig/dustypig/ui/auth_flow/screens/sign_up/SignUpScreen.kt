@@ -42,11 +42,10 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import tv.dustypig.dustypig.R
-import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OkDialog
+import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
-import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 @Composable
 fun SignUpScreen(vm: SignUpViewModel) {
@@ -214,7 +213,7 @@ private fun SignUpScreenPreview() {
         busy = false
     )
 
-    DustyPigTheme(currentTheme = Themes.Maggies) {
+    PreviewBase {
         SignUpScreenInternal(
             signUp = { _:String, _:String, _:String -> },
             hideError = { },

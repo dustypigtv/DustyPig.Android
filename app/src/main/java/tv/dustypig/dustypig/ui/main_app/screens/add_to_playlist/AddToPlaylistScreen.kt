@@ -30,7 +30,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,23 +48,22 @@ import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.BasicPlaylist
 import tv.dustypig.dustypig.api.models.MediaTypes
-import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.nav.MyRouteNavigator
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.composables.BasicMediaView
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
-import tv.dustypig.dustypig.ui.theme.DustyPigTheme
+import tv.dustypig.dustypig.ui.composables.PreviewBase
 
 @Composable
 fun AddToPlaylistScreen(vm: AddToPlaylistViewModel) {
 
     val uiState: AddToPlaylistUIState by vm.uiState.collectAsState()
     AddToPlaylistScreenInternal(
-        popBackStack = { },
-        hideError = { },
-        newPlaylist = { },
-        selectPlaylist = { } ,
+        popBackStack = vm::popBackStack,
+        hideError = vm::hideError,
+        newPlaylist = vm::newPlaylist,
+        selectPlaylist = vm::selectPlaylist,
         routeNavigator = vm,
         uiState = uiState
     )
@@ -85,11 +83,7 @@ private fun AddToPlaylistScreenInternal(
     val keyboardController = LocalSoftwareKeyboardController.current
     val listState = rememberLazyListState()
     var newName by remember { mutableStateOf("")}
-    val enableSaveButton by remember {
-        derivedStateOf {
-            !uiState.busy && newName.isNotBlank()
-        }
-    }
+    val enableSaveButton = !uiState.busy && newName.isNotBlank()
 
     Scaffold(
         topBar = {
@@ -268,7 +262,7 @@ private fun AddToPlaylistScreenPreview() {
         )
     )
 
-    DustyPigTheme(currentTheme = Themes.Maggies) {
+    PreviewBase {
         AddToPlaylistScreenInternal(
             popBackStack = { },
             hideError = { },

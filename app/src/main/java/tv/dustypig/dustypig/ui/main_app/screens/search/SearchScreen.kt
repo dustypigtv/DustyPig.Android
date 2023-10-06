@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -19,22 +20,18 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
+import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,29 +44,27 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import coil.request.ImageRequest
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.BasicTMDB
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.TMDB_MediaTypes
-import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.nav.MyRouteNavigator
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.composables.BasicMediaView
+import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.main_app.ScreenLoadingInfo
 import tv.dustypig.dustypig.ui.main_app.screens.tmdb_details.TMDBDetailsNav
-import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 
 @Composable
@@ -78,6 +73,7 @@ fun SearchScreen(vm: SearchViewModel) {
     val uiState by vm.uiState.collectAsState()
     SearchScreenInternal(
         search = vm::search,
+        updateQuery = vm::updateQuery,
         updateTabIndex = vm::updateTabIndex,
         uiState = uiState,
         routeNavigator = vm
@@ -88,58 +84,69 @@ fun SearchScreen(vm: SearchViewModel) {
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 private fun SearchScreenInternal(
-    search: (String) -> Unit,
+    search: () -> Unit,
+    updateQuery: (String) -> Unit,
     updateTabIndex: (Int) -> Unit,
     uiState: SearchUIState,
     routeNavigator: RouteNavigator
 ) {
 
-    var query by remember { mutableStateOf("")}
-    var ltquery by remember { mutableStateOf("")}
     val keyboardController = LocalSoftwareKeyboardController.current
     val availableState = rememberLazyGridState()
     val tmdbState = rememberLazyGridState()
+    var active by remember { mutableStateOf(false) }
 
-    fun updateQuery(q: String) {
-        query = q
-        ltquery = q.lowercase().trim()
-        search(ltquery)
-    }
-
-    LaunchedEffect(ltquery) {
-        availableState.scrollToItem(0)
-        tmdbState.scrollToItem(0)
-    }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
 
-        OutlinedTextField(
-            value = query,
-            onValueChange = ::updateQuery,
-            placeholder = { Text(text = stringResource(R.string.search)) },
-            singleLine = true,
+        SearchBar(
+            query = uiState.query,
+            onQueryChange = updateQuery,
+            onSearch = {
+                active = false
+                search()
+            },
+            active = active,
+            onActiveChange = { active = it },
             modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Search),
-            keyboardActions = KeyboardActions(onSearch = { keyboardController?.hide() }),
             leadingIcon = {
-                TintedIcon(
-                    imageVector = Icons.Filled.Search
-                )
+                TintedIcon(imageVector = Icons.Filled.Search)
             },
             trailingIcon = {
-                if(query.isNotEmpty()) {
-                    IconButton(onClick = { updateQuery("") }) {
-                        TintedIcon(
-                            imageVector = Icons.Filled.Cancel,
-                        )
+                IconButton(
+                    onClick = {
+                        if(uiState.query.isEmpty()) {
+                            active = false
+                        } else {
+                            updateQuery("")
+                            search()
+                        }
                     }
+                ) {
+                    TintedIcon(imageVector = Icons.Filled.Cancel)
                 }
-            },
-            shape = RoundedCornerShape(48.dp),
+            }
+        ) {
+            uiState.history.forEach { history ->
+                Row(
+                    modifier = Modifier
+                        .clickable {
+                            updateQuery(history)
+                            active = false
+                            search()
+                        }
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    TintedIcon(imageVector = Icons.Filled.History)
+                    Text(text = history)
+                }
+            }
+        }
 
-        )
 
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -284,7 +291,6 @@ private fun TMDBLayout(uiState: SearchUIState, listState: LazyGridState, routeNa
 
 
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun TMDBMediaView(
     basicTMDB: BasicTMDB,
@@ -318,7 +324,11 @@ fun TMDBMediaView(
             .height(hdp)
     ) {
         AsyncImage(
-            model = basicTMDB.artworkUrl,
+            model = ImageRequest
+                .Builder(LocalContext.current)
+                .data(basicTMDB.artworkUrl)
+                .crossfade(true)
+                .build(),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -338,89 +348,54 @@ fun TMDBMediaView(
 @Composable
 private fun SearchScreenPreview() {
 
-    val uiState = SearchUIState(
-        loading = false,
-        emptyQuery = false,
-        hasResults = true,
-        allowTMDB = true,
-        tabIndex = 1,
-        availableItems = listOf(
-            BasicMedia (
-                id = 0,
-                mediaType = MediaTypes.Movie,
-                artworkUrl = "",
-                backdropUrl = "",
-                title = ""
-            ),
-            BasicMedia (
-                id = 0,
-                mediaType = MediaTypes.Movie,
-                artworkUrl = "",
-                backdropUrl = "",
-                title = ""
-            ),
-            BasicMedia (
-                id = 0,
-                mediaType = MediaTypes.Movie,
-                artworkUrl = "",
-                backdropUrl = "",
-                title = ""
-            ),
-            BasicMedia (
-                id = 0,
+    val basicMediaList = arrayListOf<BasicMedia>()
+    for(i in 1..10) {
+        basicMediaList.add(
+            BasicMedia(
+                id = i,
                 mediaType = MediaTypes.Movie,
                 artworkUrl = "",
                 backdropUrl = "",
                 title = ""
             )
-        ),
-        tmdbItems = listOf(
-            BasicTMDB (
-                tmdbId = 0,
-                mediaType = TMDB_MediaTypes.Movie,
-                artworkUrl = "",
-                backdropUrl = "",
-                title = ""
-            ),
-            BasicTMDB (
-                tmdbId = 0,
-                mediaType = TMDB_MediaTypes.Movie,
-                artworkUrl = "",
-                backdropUrl = "",
-                title = ""
-            ),
-            BasicTMDB (
-                tmdbId = 0,
-                mediaType = TMDB_MediaTypes.Movie,
-                artworkUrl = "",
-                backdropUrl = "",
-                title = ""
-            ),
-            BasicTMDB (
-                tmdbId = 0,
+        )
+    }
+
+    val basicTMDBList = arrayListOf<BasicTMDB>()
+    for(i in 1..10) {
+        basicTMDBList.add(
+            BasicTMDB(
+                tmdbId = i,
                 mediaType = TMDB_MediaTypes.Movie,
                 artworkUrl = "",
                 backdropUrl = "",
                 title = ""
             )
         )
+    }
+
+
+
+
+    val uiState = SearchUIState(
+        loading = false,
+        emptyQuery = false,
+        hasResults = true,
+        allowTMDB = true,
+        availableItems = basicMediaList,
+        tmdbItems = basicTMDBList
     )
 
-    DustyPigTheme(currentTheme = Themes.Maggies) {
-        Surface (
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            SearchScreenInternal(
-                search = { },
-                updateTabIndex = { _ -> },
-                uiState = uiState,
-                routeNavigator = MyRouteNavigator()
-            )
-        }
+    PreviewBase {
+        SearchScreenInternal(
+            search = { },
+            updateQuery = { },
+            updateTabIndex = { },
+            uiState = uiState,
+            routeNavigator = MyRouteNavigator()
+        )
     }
 }
-
 
 
 

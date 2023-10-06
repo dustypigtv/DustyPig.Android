@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -18,7 +17,6 @@ import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
@@ -33,8 +31,8 @@ import androidx.compose.ui.unit.dp
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
+import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
-import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 
 @Composable
@@ -129,49 +127,11 @@ private fun SettingsThemeScreenPreview () {
         currentTheme = Themes.Maggies
     )
 
-    DustyPigTheme(currentTheme = uiState.currentTheme) {
-        Surface (
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ){
-            SettingsThemeScreenInternal(
-                popBackStack = { },
-                setTheme = { _ -> },
-                uiState = uiState
-            )
-        }
-
+    PreviewBase {
+        SettingsThemeScreenInternal(
+            popBackStack = { },
+            setTheme = { _ -> },
+            uiState = uiState
+        )
     }
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -10,8 +10,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import tv.dustypig.dustypig.R
-import tv.dustypig.dustypig.global_managers.settings_manager.Themes
-import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 
 @Composable
@@ -53,7 +51,7 @@ fun YesNoDialog (
 )
 @Composable
 private fun YesNoDialogPreview() {
-    DustyPigTheme(currentTheme = Themes.Maggies) {
+    PreviewBase {
         YesNoDialog(onNo = { }, onYes = { }, title = "Confirm Stuff", message = "Are you sure you want to confirm stuff?")
     }
 }

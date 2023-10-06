@@ -11,6 +11,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import org.json.JSONArray
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -33,12 +34,12 @@ class SettingsManager @Inject constructor (
         private const val SKIP_CREDITS_KEY = "skip_credits"
         private const val THEME_KEY = "theme"
         private const val ALLOW_NOTIFICATIONS_KEY = "allow_notifications"
+        private const val SEARCH_HISTORY_KEY = "search_history"
 
         // For global settings
         private val authTokenPreferencesKey = stringPreferencesKey(AUTH_TOKEN_KEY)
         private val profileIdPreferencesKey = intPreferencesKey(PROFILE_ID_KEY)
         private val isMainProfilePreferencesKey = booleanPreferencesKey(IS_MAIN_PROFILE_KEY)
-
     }
 
 
@@ -80,6 +81,24 @@ class SettingsManager @Inject constructor (
     val themeFlow = context.dataStore.data.map { Themes.fromOrdinal(it[themePreferencesKey()] ?: 0) }
 
 
+    private suspend fun searchHistoryPreferencesKey() = stringPreferencesKey(profileKey(SEARCH_HISTORY_KEY))
+    suspend fun setSearchHistory(value: List<String>) = context.dataStore.edit { it[searchHistoryPreferencesKey()] = JSONArray(value).toString() }
+    val searchHistoryFlow = context.dataStore.data.map {
+        val lst = arrayListOf<String>()
+        try {
+            val value = it[searchHistoryPreferencesKey()] ?: "[]"
+            val json = JSONArray(value)
+            for (i in 0 until json.length()) {
+                lst.add(json[i].toString())
+            }
+        } catch (_: Exception) {
+        }
+
+        lst
+    }
+
+
+
     private suspend fun allowNotificationsKey() = booleanPreferencesKey(profileKey(ALLOW_NOTIFICATIONS_KEY))
     suspend fun setAllowNotifications(value: Boolean) = context.dataStore.edit { it[allowNotificationsKey()] = value }
 
@@ -93,5 +112,7 @@ class SettingsManager @Inject constructor (
             false
         }
     }
+
+
 
 }

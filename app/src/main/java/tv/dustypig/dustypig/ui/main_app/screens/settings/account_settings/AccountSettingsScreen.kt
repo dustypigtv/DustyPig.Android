@@ -25,7 +25,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -53,14 +52,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.job
 import tv.dustypig.dustypig.R
-import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OkDialog
+import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.composables.YesNoDialog
 import tv.dustypig.dustypig.ui.theme.BurntOrange
-import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 @Composable
 fun AccountSettingsScreen(vm: AccountSettingsViewModel) {
@@ -448,51 +446,22 @@ private fun AccountSettingsScreenInternal(
 @Composable
 private fun AccountSettingsScreenPreview() {
 
-    val uiState = AccountSettingsUIState (
+    val uiState = AccountSettingsUIState(
         busy = false,
         isMainProfile = true
     )
 
-    DustyPigTheme(currentTheme = Themes.Maggies) {
-        Surface (
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            AccountSettingsScreenInternal(
-                popBackStack = { },
-                hideError = { },
-                signOut = { },
-                loginToDevice = { _ -> },
-                changePassword = { _ -> },
-                hideChangePasswordSuccess = { },
-                signOutEverywhere = { },
-                deleteAccount = { },
-                uiState = uiState
-            )
-        }
-
+    PreviewBase {
+        AccountSettingsScreenInternal(
+            popBackStack = { },
+            hideError = { },
+            signOut = { },
+            loginToDevice = { _ -> },
+            changePassword = { _ -> },
+            hideChangePasswordSuccess = { },
+            signOutEverywhere = { },
+            deleteAccount = { },
+            uiState = uiState
+        )
     }
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

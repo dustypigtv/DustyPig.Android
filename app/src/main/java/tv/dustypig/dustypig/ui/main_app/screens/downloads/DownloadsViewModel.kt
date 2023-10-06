@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig.ui.main_app.screens.downloads
 
+import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,6 +28,11 @@ class DownloadsViewModel @Inject constructor(
     private val _expanedMediaIds: ArrayList<Int> = arrayListOf()
 
     init {
+        _uiState.update {
+            it.copy(
+                expandedMediaIds = _expanedMediaIds.toMutableStateList()
+            )
+        }
         viewModelScope.launch {
             downloadManager.downloads.collectLatest { jobLst ->
                 _uiState.update {
@@ -60,7 +66,7 @@ class DownloadsViewModel @Inject constructor(
             _expanedMediaIds.add(id)
         _uiState.update {
             it.copy(
-                expandedMediaIds = _expanedMediaIds
+                expandedMediaIds = _expanedMediaIds.toMutableStateList()
             )
         }
     }

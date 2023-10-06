@@ -37,8 +37,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import tv.dustypig.dustypig.R
-import tv.dustypig.dustypig.global_managers.settings_manager.Themes
-import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -170,7 +168,7 @@ fun PinEntry(valueChanged: (String) -> Unit, onSubmit: (String) -> Unit) {
 @Preview
 @Composable
 private fun PinEntryPreview() {
-    DustyPigTheme(currentTheme = Themes.Maggies) {
+    PreviewBase {
         AlertDialog(
             shape = RoundedCornerShape(8.dp),
             onDismissRequest = { },

@@ -58,8 +58,8 @@ fun ShowMoreScreen(vm: ShowMoreViewModel) {
                     mediaItems.itemCount
                 ) { index ->
                     BasicMediaView(
-                        mediaItems[index]!!,
-                        vm
+                        basicMedia = mediaItems[index]!!,
+                        routeNavigator = vm
                     )
                 }
 

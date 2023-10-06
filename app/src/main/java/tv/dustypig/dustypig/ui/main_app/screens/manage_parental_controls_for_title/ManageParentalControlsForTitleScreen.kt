@@ -18,7 +18,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,10 +36,9 @@ import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.OverrideState
 import tv.dustypig.dustypig.api.models.ProfileTitleOverrideInfo
 import tv.dustypig.dustypig.api.models.TitlePermissionInfo
-import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
-import tv.dustypig.dustypig.ui.theme.DustyPigTheme
+import tv.dustypig.dustypig.ui.composables.PreviewBase
 
 @Composable
 fun ManageParentalControlsForTitleScreen(vm: ManageParentalControlsForTitleViewModel) {
@@ -195,18 +193,13 @@ private fun ManageParentalControlsForTitleScreenPreview() {
         )
     )
 
-    DustyPigTheme(currentTheme = Themes.Maggies) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            ManageParentalControlsForTitleScreenInternal(
-                popBackStack = { },
-                togglePermission = { _ -> },
-                saveChanges = { _ -> },
-                hideError = { },
-                uiState = uiState
-            )
-        }
+    PreviewBase {
+        ManageParentalControlsForTitleScreenInternal(
+            popBackStack = { },
+            togglePermission = { _ -> },
+            saveChanges = { _ -> },
+            hideError = { },
+            uiState = uiState
+        )
     }
 }

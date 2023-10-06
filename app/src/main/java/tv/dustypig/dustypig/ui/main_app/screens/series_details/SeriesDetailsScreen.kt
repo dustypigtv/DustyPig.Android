@@ -33,7 +33,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
@@ -52,24 +51,26 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.api.models.MediaTypes
-import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.Credits
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
 import tv.dustypig.dustypig.ui.composables.OnOrientation
+import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.composables.TitleInfoData
 import tv.dustypig.dustypig.ui.composables.TitleInfoLayout
-import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 @Composable
 fun SeriesDetailsScreen(vm: SeriesDetailsViewModel) {
@@ -108,14 +109,6 @@ private fun SeriesDetailsScreenInternal(
         mutableStateOf(uiState.upNextSeason)
     }
 
-    val selectedEpisodes by remember {
-        derivedStateOf {
-            uiState.episodes.filter {
-                it.seasonNumber == selectedSeason.value
-            }
-        }
-    }
-
     var initialScrolled by remember {
         mutableStateOf(false)
     }
@@ -149,7 +142,6 @@ private fun SeriesDetailsScreenInternal(
                     uiState = uiState,
                     titleInfoState = titleInfoState,
                     selectedSeason = selectedSeason,
-                    selectedEpisodes = selectedEpisodes,
                     criticalError = criticalError,
                     seasonsListState = seasonsListState
                 )
@@ -164,7 +156,6 @@ private fun SeriesDetailsScreenInternal(
                             uiState = uiState,
                             titleInfoState = titleInfoState,
                             selectedSeason = selectedSeason,
-                            selectedEpisodes = selectedEpisodes,
                             criticalError = criticalError,
                             seasonsListState = seasonsListState
                         )
@@ -177,7 +168,6 @@ private fun SeriesDetailsScreenInternal(
                             uiState = uiState,
                             titleInfoState = titleInfoState,
                             selectedSeason = selectedSeason,
-                            selectedEpisodes = selectedEpisodes,
                             criticalError = criticalError,
                             seasonsListState = seasonsListState
                         )
@@ -213,13 +203,18 @@ private fun EpisodeRow(
             contentAlignment = Alignment.Center
         ) {
             AsyncImage(
-                model = episode.artworkUrl,
+                model = ImageRequest
+                    .Builder(LocalContext.current)
+                    .data(episode.artworkUrl)
+                    .crossfade(true)
+                    .build(),
                 contentDescription = "",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
                     .background(color = Color.DarkGray)
-                    .clip(shape = RoundedCornerShape(4.dp))
+                    .clip(shape = RoundedCornerShape(4.dp)),
+                error = painterResource(id = R.drawable.error_wide)
             )
 
             TintedIcon(
@@ -277,7 +272,6 @@ private fun PhoneLayout(
     uiState: SeriesDetailsUIState,
     titleInfoState: TitleInfoData,
     selectedSeason: MutableState<UShort>,
-    selectedEpisodes: List<DetailedEpisode>,
     criticalError: Boolean,
     seasonsListState: LazyListState
 ) {
@@ -305,7 +299,11 @@ private fun PhoneLayout(
             ) {
                 if (uiState.backdropUrl.isBlank()) {
                     AsyncImage(
-                        model = uiState.posterUrl,
+                        model = ImageRequest
+                            .Builder(LocalContext.current)
+                            .data(uiState.posterUrl)
+                            .crossfade(true)
+                            .build(),
                         contentDescription = "",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -315,19 +313,29 @@ private fun PhoneLayout(
                     )
 
                     AsyncImage(
-                        model = uiState.posterUrl,
+                        model = ImageRequest
+                            .Builder(LocalContext.current)
+                            .data(uiState.posterUrl)
+                            .crossfade(true)
+                            .build(),
                         contentDescription = "",
                         contentScale = ContentScale.Fit,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        error = painterResource(id = R.drawable.error_tall)
                     )
                 } else {
                     AsyncImage(
-                        model = uiState.backdropUrl,
+                        model = ImageRequest
+                            .Builder(LocalContext.current)
+                            .data(uiState.backdropUrl)
+                            .crossfade(true)
+                            .build(),
                         contentDescription = "",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(color = Color.DarkGray)
+                            .background(color = Color.DarkGray),
+                        error = painterResource(id = R.drawable.error_wide)
                     )
                 }
             }
@@ -349,7 +357,7 @@ private fun PhoneLayout(
                 ) {
                     items(uiState.seasons) { season ->
                         val seasonName = if (season == 0.toUShort()) stringResource(R.string.specials) else stringResource(R.string.season, season)
-                        if (season == uiState.upNextSeason) {
+                        if (season == selectedSeason.value) {
                             Button(onClick = { /*Do nothing*/ }) {
                                 Text(text = seasonName)
                             }
@@ -365,7 +373,7 @@ private fun PhoneLayout(
         }
 
         if (!uiState.loading && !criticalError) {
-            items(selectedEpisodes) { episode ->
+            items(uiState.episodes.filter { it.seasonNumber == selectedSeason.value }) { episode ->
                 EpisodeRow(
                     playEpisode = playEpisode,
                     navToEpisodeInfo = navToEpisodeInfo,
@@ -390,7 +398,6 @@ private fun HorizontalTabletLayout(
     uiState: SeriesDetailsUIState,
     titleInfoState: TitleInfoData,
     selectedSeason: MutableState<UShort>,
-    selectedEpisodes: List<DetailedEpisode>,
     criticalError: Boolean,
     seasonsListState: LazyListState
 ) {
@@ -412,7 +419,11 @@ private fun HorizontalTabletLayout(
         ) {
 
             AsyncImage(
-                model = uiState.posterUrl,
+                model = ImageRequest
+                    .Builder(LocalContext.current)
+                    .data(uiState.posterUrl)
+                    .crossfade(true)
+                    .build(),
                 contentDescription = "",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -422,10 +433,15 @@ private fun HorizontalTabletLayout(
             )
 
             AsyncImage(
-                model = uiState.posterUrl,
+                model = ImageRequest
+                    .Builder(LocalContext.current)
+                    .data(uiState.posterUrl)
+                    .crossfade(true)
+                    .build(),
                 contentDescription = "",
                 contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                error = painterResource(id = R.drawable.error_tall)
             )
         }
 
@@ -471,7 +487,7 @@ private fun HorizontalTabletLayout(
             }
 
             if (!uiState.loading && !criticalError) {
-                items(selectedEpisodes) { episode ->
+                items(uiState.episodes.filter { it.seasonNumber == selectedSeason.value }) { episode ->
                     EpisodeRow(
                         playEpisode = playEpisode,
                         navToEpisodeInfo = navToEpisodeInfo,
@@ -499,91 +515,41 @@ private fun HorizontalTabletLayout(
 @Composable
 private fun SeriesDetailsScreenPreview() {
 
+    val seasons = arrayListOf<UShort>()
+    val episodes = arrayListOf<DetailedEpisode>()
+    var idx = 0
+    for(season in 1..7) {
+        seasons.add(season.toUShort())
+        for(episode in 1..23) {
+            episodes.add(
+                DetailedEpisode(
+                    id = idx++,
+                    bifUrl = null,
+                    videoUrl = "",
+                    externalSubtitles = null,
+                    played = 0.0,
+                    upNext = season == 2 && episode == 2,
+                    title = "Episode $episode",
+                    description = "Description $idx",
+                    artworkUrl = "",
+                    length = 1000.0,
+                    introStartTime = null,
+                    introEndTime = null,
+                    creditStartTime = null,
+                    seasonNumber = season.toUShort(),
+                    episodeNumber = episode.toUShort(),
+                    seriesId = 1,
+                    seriesTitle = "My Series"
+                )
+            )
+        }
+    }
+
     val uiState = SeriesDetailsUIState(
         loading = false,
-        seasons = listOf(
-            1U,
-            2U
-        ),
+        seasons = seasons,
         upNextSeason = 2U,
-        episodes = listOf(
-            DetailedEpisode(
-                id = 1,
-                bifUrl = null,
-                videoUrl = "",
-                externalSubtitles = null,
-                played = 0.0,
-                upNext = true,
-                title = "Episode 1",
-                description = "Description 1",
-                artworkUrl = "",
-                length = 1000.0,
-                introStartTime = null,
-                introEndTime = null,
-                creditStartTime = null,
-                seasonNumber = 1U,
-                episodeNumber = 1U,
-                seriesId = 1,
-                seriesTitle = "My Series"
-            ),
-            DetailedEpisode(
-                id = 2,
-                bifUrl = null,
-                videoUrl = "",
-                externalSubtitles = null,
-                played = 0.0,
-                upNext = true,
-                title = "Episode 2",
-                description = "Description 2",
-                artworkUrl = "",
-                length = 1000.0,
-                introStartTime = null,
-                introEndTime = null,
-                creditStartTime = null,
-                seasonNumber = 1U,
-                episodeNumber = 2U,
-                seriesId = 1,
-                seriesTitle = "My Series"
-            ),
-            DetailedEpisode(
-                id = 3,
-                bifUrl = null,
-                videoUrl = "",
-                externalSubtitles = null,
-                played = 0.0,
-                upNext = true,
-                title = "Episode 1",
-                description = "Description 3",
-                artworkUrl = "",
-                length = 1000.0,
-                introStartTime = null,
-                introEndTime = null,
-                creditStartTime = null,
-                seasonNumber = 2U,
-                episodeNumber = 1U,
-                seriesId = 1,
-                seriesTitle = "My Series"
-            ),
-            DetailedEpisode(
-                id = 4,
-                bifUrl = null,
-                videoUrl = "",
-                externalSubtitles = null,
-                played = 0.0,
-                upNext = true,
-                title = "Episode 2",
-                description = "Description 4",
-                artworkUrl = "",
-                length = 1000.0,
-                introStartTime = null,
-                introEndTime = null,
-                creditStartTime = null,
-                seasonNumber = 2U,
-                episodeNumber = 2U,
-                seriesId = 1,
-                seriesTitle = "My Series"
-            ),
-        )
+        episodes = episodes
     )
 
     val titleInfoState = TitleInfoData(
@@ -598,23 +564,17 @@ private fun SeriesDetailsScreenPreview() {
         inWatchList = true
     )
 
-    DustyPigTheme(currentTheme = Themes.Maggies) {
-        Surface (
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            SeriesDetailsScreenInternal(
-                popBackStack = { },
-                hideError = { },
-                playEpisode = { _ -> },
-                navToEpisodeInfo =  { _ -> },
-                uiState = uiState,
-                titleInfoState = titleInfoState
-            )
-        }
+    PreviewBase {
+        SeriesDetailsScreenInternal(
+            popBackStack = { },
+            hideError = { },
+            playEpisode = { _ -> },
+            navToEpisodeInfo = { _ -> },
+            uiState = uiState,
+            titleInfoState = titleInfoState
+        )
     }
 }
-
 
 
 

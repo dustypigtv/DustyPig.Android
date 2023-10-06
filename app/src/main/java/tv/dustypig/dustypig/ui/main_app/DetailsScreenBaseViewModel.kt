@@ -16,7 +16,8 @@ import tv.dustypig.dustypig.ui.composables.TitleInfoData
 
 abstract class DetailsScreenBaseViewModel constructor(
     private val routeNavigator: RouteNavigator,
-    internal val downloadManager: DownloadManager
+    internal val downloadManager: DownloadManager,
+    private val mediaType: MediaTypes
 ): ViewModel(), RouteNavigator by routeNavigator {
 
     protected val _titleInfoUIState = MutableStateFlow(TitleInfoData())
@@ -29,7 +30,7 @@ abstract class DetailsScreenBaseViewModel constructor(
         viewModelScope.launch {
             downloadManager.downloads.collectLatest { jobLst ->
                 val job = jobLst.firstOrNull {
-                    it.mediaId == mediaId && it.mediaType == MediaTypes.Movie
+                    it.mediaId == mediaId && it.mediaType == mediaType
                 }
                 if(job == null) {
                     _titleInfoUIState.update {

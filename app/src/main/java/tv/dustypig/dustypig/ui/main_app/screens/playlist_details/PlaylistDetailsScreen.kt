@@ -51,7 +51,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.surfaceColorAtElevation
@@ -73,6 +72,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -82,6 +83,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Play
@@ -94,16 +96,15 @@ import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.PlaylistItem
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
-import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.MultiDownloadDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
 import tv.dustypig.dustypig.ui.composables.OnOrientation
+import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.composables.YesNoDialog
 import tv.dustypig.dustypig.ui.isTablet
-import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 @Composable
 fun PlaylistDetailsScreen(vm: PlaylistDetailsViewModel) {
@@ -351,7 +352,11 @@ private fun HorizontalTabletLayout(
         ) {
 
             AsyncImage(
-                model = uiState.posterUrl,
+                model = ImageRequest
+                    .Builder(LocalContext.current)
+                    .data(uiState.posterUrl)
+                    .crossfade(true)
+                    .build(),
                 contentDescription = "",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -361,10 +366,15 @@ private fun HorizontalTabletLayout(
             )
 
             AsyncImage(
-                model = uiState.posterUrl,
+                model = ImageRequest
+                    .Builder(LocalContext.current)
+                    .data(uiState.posterUrl)
+                    .crossfade(true)
+                    .build(),
                 contentDescription = "",
                 contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                error = painterResource(id = R.drawable.error_tall)
             )
         }
 
@@ -462,15 +472,15 @@ private fun PhoneLayout(
     )
 
     Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
     ) {
+
         LazyColumn(
             state = state.listState,
             modifier = Modifier
-                .padding(innerPadding)
-                .align(Alignment.TopCenter)
-                .fillMaxWidth()
+                .fillMaxSize()
                 .reorderable(state),
             horizontalAlignment = columnAlignment,
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -483,7 +493,11 @@ private fun PhoneLayout(
                         .height(hdp)
                 ) {
                     AsyncImage(
-                        model = uiState.posterUrl,
+                        model = ImageRequest
+                            .Builder(LocalContext.current)
+                            .data(uiState.posterUrl)
+                            .crossfade(true)
+                            .build(),
                         contentDescription = "",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -493,10 +507,15 @@ private fun PhoneLayout(
                     )
 
                     AsyncImage(
-                        model = uiState.posterUrl,
+                        model = ImageRequest
+                            .Builder(LocalContext.current)
+                            .data(uiState.posterUrl)
+                            .crossfade(true)
+                            .build(),
                         contentDescription = "",
                         contentScale = ContentScale.Fit,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        error = painterResource(id = R.drawable.error_tall)
                     )
                 }
             }
@@ -524,19 +543,18 @@ private fun PhoneLayout(
                         )
                     }
                 }
+            }
 
-                item {
-                    DeleteLayout(
-                        showDeletePlaylistDialog = showDeletePlaylistDialog,
-                        uiState = uiState
-                    )
-                }
-
+            item {
+                DeleteLayout(
+                    showDeletePlaylistDialog = showDeletePlaylistDialog,
+                    uiState = uiState
+                )
             }
         }
 
-        if(uiState.loading || uiState.busy) {
-            CircularProgressIndicator()
+        if (uiState.loading || uiState.busy) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         }
     }
 }
@@ -725,13 +743,18 @@ private fun PlaylistItemLayout(
                         contentAlignment = Alignment.Center
                     ) {
                         AsyncImage(
-                            model = playlistItem.artworkUrl,
+                            model = ImageRequest
+                                .Builder(LocalContext.current)
+                                .data(playlistItem.artworkUrl)
+                                .crossfade(true)
+                                .build(),
                             contentDescription = "",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .fillMaxSize()
                                 .background(color = Color.DarkGray)
-                                .clip(shape = RoundedCornerShape(4.dp))
+                                .clip(shape = RoundedCornerShape(4.dp)),
+                            error = painterResource(id = R.drawable.error_wide)
                         )
 
                         TintedIcon(
@@ -797,71 +820,46 @@ private fun DeleteLayout(
 ) {
 
     val configuration = LocalConfiguration.current
-    val modifier = if(configuration.screenWidthDp >= 352) Modifier.width(320.dp) else Modifier.fillMaxWidth()
+    val modifier = if (configuration.screenWidthDp >= 352) Modifier.width(320.dp) else Modifier.fillMaxWidth()
 
-    Box (
-        modifier = Modifier
-            .fillMaxSize(),
-        contentAlignment = Alignment.BottomCenter
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
+        Button(
+            enabled = !(uiState.loading || uiState.busy),
+            onClick = { showDeletePlaylistDialog.value = true },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer
+            ),
+            modifier = modifier
         ) {
-            Button(
-                enabled = !(uiState.loading || uiState.busy),
-                onClick = { showDeletePlaylistDialog.value = true },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.onErrorContainer
-                ),
-                modifier = modifier
-            ) {
-                Text(text = stringResource(R.string.delete))
-            }
+            Text(text = stringResource(R.string.delete))
         }
-    }
-    Spacer(modifier = Modifier.height(16.dp))
-}
 
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
 
 
 @Preview
 @Composable
 private fun PlaylistDetailsScreenPreview() {
-    val uiState = PlaylistDetailsUIState(
-        loading = false,
-        title = "My Playlist",
-        canPlay = true,
-        items = listOf(
+
+    val listItems: ArrayList<PlaylistItem> = arrayListOf()
+    for(i in 1..10) {
+        listItems.add(
             PlaylistItem(
-                id = 1,
-                index = 1,
+                id = i,
+                index = i,
                 mediaId = 0,
                 seriesId = 0,
                 mediaType = MediaTypes.Movie,
-                title = "Item 1",
-                description = "Overview 1",
-                artworkUrl = "",
-                played = null,
-                length = 5000.0,
-                introStartTime = null,
-                introEndTime = null,
-                creditStartTime = null,
-                bifUrl = "",
-                videoUrl = "",
-                externalSubtitles = listOf()
-            ),
-            PlaylistItem(
-                id = 2,
-                index = 2,
-                mediaId = 0,
-                seriesId = 0,
-                mediaType = MediaTypes.Movie,
-                title = "Item 2",
-                description = "Overview 2",
+                title = "Item $i",
+                description = "Overview $i",
                 artworkUrl = "",
                 played = null,
                 length = 5000.0,
@@ -873,31 +871,32 @@ private fun PlaylistDetailsScreenPreview() {
                 externalSubtitles = listOf()
             )
         )
+    }
+
+    val uiState = PlaylistDetailsUIState(
+        loading = false,
+        title = "My Playlist",
+        canPlay = true,
+        items = listItems
     )
 
-    DustyPigTheme(currentTheme = Themes.Maggies) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            PlaylistDetailsScreenInternal(
-                popBackStack = { },
-                hideError = { },
-                listUpdated = { },
-                updateListOrderOnServer = { _, _ -> },
-                playUpNext = { },
-                deletePlaylist = { },
-                deleteItem = { _ -> },
-                playItem = { _ -> },
-                navToItem = { _ -> },
-                renamePlaylist = { _ -> },
-                updateDownloads = { _ -> },
-                uiState = uiState
-            )
-        }
+    PreviewBase {
+        PlaylistDetailsScreenInternal(
+            popBackStack = { },
+            hideError = { },
+            listUpdated = { },
+            updateListOrderOnServer = { _, _ -> },
+            playUpNext = { },
+            deletePlaylist = { },
+            deleteItem = { _ -> },
+            playItem = { _ -> },
+            navToItem = { _ -> },
+            renamePlaylist = { _ -> },
+            updateDownloads = { _ -> },
+            uiState = uiState
+        )
     }
 }
-
 
 
 

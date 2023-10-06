@@ -17,8 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import tv.dustypig.dustypig.global_managers.settings_manager.Themes
-import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,7 +46,7 @@ fun CommonTopAppBar(onClick: () -> Unit, text: String) {
 @Preview
 @Composable
 private fun CommonTopAppBarPreview() {
-    DustyPigTheme(currentTheme = Themes.Maggies) {
+    PreviewBase {
 
         Scaffold(
             topBar = {
