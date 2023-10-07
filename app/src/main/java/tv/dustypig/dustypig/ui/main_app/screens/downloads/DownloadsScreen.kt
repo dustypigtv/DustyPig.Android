@@ -56,14 +56,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
@@ -250,11 +248,7 @@ private fun DownloadsScreenInternal(
                                         ) {
                                             if (job.artworkPoster) {
                                                 AsyncImage(
-                                                    model = ImageRequest
-                                                        .Builder(LocalContext.current)
-                                                        .data(job.artworkUrl)
-                                                        .crossfade(true)
-                                                        .build(),
+                                                    model = job.artworkUrl,
                                                     contentScale = ContentScale.Crop,
                                                     modifier = Modifier
                                                         .fillMaxSize()
@@ -264,11 +258,7 @@ private fun DownloadsScreenInternal(
                                                 )
 
                                                 AsyncImage(
-                                                    model = ImageRequest
-                                                        .Builder(LocalContext.current)
-                                                        .data(job.artworkUrl)
-                                                        .crossfade(true)
-                                                        .build(),
+                                                    model = job.artworkUrl,
                                                     contentScale = ContentScale.Fit,
                                                     modifier = Modifier.fillMaxSize(),
                                                     contentDescription = null,
@@ -276,11 +266,7 @@ private fun DownloadsScreenInternal(
                                                 )
                                             } else {
                                                 AsyncImage(
-                                                    model = ImageRequest
-                                                        .Builder(LocalContext.current)
-                                                        .data(job.artworkUrl)
-                                                        .crossfade(true)
-                                                        .build(),
+                                                    model = job.artworkUrl,
                                                     contentDescription = "",
                                                     error = painterResource(id = R.drawable.error_wide)
                                                 )
@@ -422,11 +408,7 @@ private fun DownloadsScreenInternal(
                                     ) {
                                         if (dl.artworkPoster) {
                                             AsyncImage(
-                                                model = ImageRequest
-                                                    .Builder(LocalContext.current)
-                                                    .data(dl.artworkUrl)
-                                                    .crossfade(true)
-                                                    .build(),
+                                                model = dl.artworkUrl,
                                                 contentScale = ContentScale.Crop,
                                                 modifier = Modifier
                                                     .fillMaxSize()
@@ -436,11 +418,7 @@ private fun DownloadsScreenInternal(
                                             )
 
                                             AsyncImage(
-                                                model = ImageRequest
-                                                    .Builder(LocalContext.current)
-                                                    .data(dl.artworkUrl)
-                                                    .crossfade(true)
-                                                    .build(),
+                                                model = dl.artworkUrl,
                                                 contentScale = ContentScale.Fit,
                                                 modifier = Modifier.fillMaxSize(),
                                                 contentDescription = null,
@@ -448,11 +426,7 @@ private fun DownloadsScreenInternal(
                                             )
                                         } else {
                                             AsyncImage(
-                                                model = ImageRequest
-                                                    .Builder(LocalContext.current)
-                                                    .data(dl.artworkUrl)
-                                                    .crossfade(true)
-                                                    .build(),
+                                                model = dl.artworkUrl,
                                                 contentDescription = "",
                                                 error = painterResource(id = R.drawable.error_wide)
                                             )

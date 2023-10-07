@@ -22,6 +22,7 @@ import tv.dustypig.dustypig.api.models.DetailedPlaylist
 import tv.dustypig.dustypig.api.models.DetailedSeries
 import tv.dustypig.dustypig.api.models.DetailedTMDB
 import tv.dustypig.dustypig.api.models.HomeScreen
+import tv.dustypig.dustypig.api.models.LibraryFriendLink
 import tv.dustypig.dustypig.api.models.LoadMoreHomeScreenItemsRequest
 import tv.dustypig.dustypig.api.models.LoginResponse
 import tv.dustypig.dustypig.api.models.MovePlaylistItem
@@ -98,6 +99,13 @@ interface ApiService {
 
     @POST("Friends/Update")
     suspend fun updateFriend(@Body updateFriend: UpdateFriend): Response<ResponseWrapper>
+
+    @POST("Friends/ShareLibrary")
+    suspend fun shareLibrary(@Body libraryFriendLink: LibraryFriendLink): Response<ResponseWrapper>
+
+    @POST("Friends/UnShareLibrary")
+    suspend fun unShareLibrary(@Body libraryFriendLink: LibraryFriendLink): Response<ResponseWrapper>
+
 
 
 

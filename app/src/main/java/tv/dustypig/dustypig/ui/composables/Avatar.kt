@@ -11,13 +11,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.BasicProfile
 
@@ -40,11 +38,7 @@ fun Avatar(imageUrl: String, onClick: () -> Unit = { }, modifier: Modifier? = Mo
 
 
     AsyncImage(
-        model = ImageRequest
-            .Builder(LocalContext.current)
-            .data(imageUrl)
-            .crossfade(true)
-            .build(),
+        model = imageUrl,
         contentDescription = null,
         modifier = internalModifier,
         placeholder = debugPlaceholder(R.drawable.ic_logo_transparent),

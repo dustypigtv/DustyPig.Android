@@ -10,8 +10,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.api.models.BasicLibrary
 import tv.dustypig.dustypig.api.models.DetailedFriend
+import tv.dustypig.dustypig.api.models.DetailedLibrary
+import tv.dustypig.dustypig.api.models.LibraryFriendLink
 import tv.dustypig.dustypig.api.models.UpdateFriend
 import tv.dustypig.dustypig.api.repositories.FriendsRepository
 import tv.dustypig.dustypig.api.repositories.LibrariesRepository
@@ -33,7 +34,7 @@ class FriendDetailsSettingsViewModel @Inject constructor(
 
     private val _friendshipId: Int = savedStateHandle.getOrThrow(FriendDetailsSettingsNav.KEY_ID)
     private lateinit var _detailedFriend: DetailedFriend
-    private lateinit var _myLibs: List<BasicLibrary>
+    private lateinit var _myLibs: List<DetailedLibrary>
 
     init {
         viewModelScope.launch {
@@ -43,7 +44,7 @@ class FriendDetailsSettingsViewModel @Inject constructor(
                 val lst = awaitAll(deferredMyLibs, deferredDetailedFriend)
 
                 @Suppress("UNCHECKED_CAST")
-                _myLibs = lst[0] as List<BasicLibrary>
+                _myLibs = lst[0] as List<DetailedLibrary>
                 _detailedFriend = lst[1] as DetailedFriend
 
                 val transformedList: ArrayList<ShareableLibrary> = arrayListOf()
@@ -120,4 +121,54 @@ class FriendDetailsSettingsViewModel @Inject constructor(
             setError(ex = ex, critical = false)
         }
     }
+
+    fun toggleLibraryShare(libraryId: Int) {
+        _uiState.update {
+            it.copy(
+                busy = true
+            )
+        }
+
+        viewModelScope.launch {
+            try {
+                val libraryFriendLink = LibraryFriendLink (
+                    friendId = _friendshipId,
+                    libraryId = libraryId
+                )
+
+                if(_uiState.value.myLibs.first{ it.id == libraryId}.shared) {
+                    friendsRepository.unShareLibrary(libraryFriendLink)
+                } else {
+                    friendsRepository.shareLibrary(libraryFriendLink)
+                }
+
+                val libs = mutableListOf<ShareableLibrary>()
+                for(oldLib in _uiState.value.myLibs) {
+                    if(oldLib.id == libraryId) {
+                        libs.add(
+                            ShareableLibrary(
+                                id = oldLib.id,
+                                name = oldLib.name,
+                                isTV = oldLib.isTV,
+                                shared = !oldLib.shared
+                            )
+                        )
+                    } else {
+                        libs.add(oldLib)
+                    }
+                }
+
+                _uiState.update {
+                    it.copy(
+                        busy = false,
+                        myLibs = libs
+                    )
+                }
+            } catch (ex: Exception) {
+                setError(ex = ex, critical = false)
+            }
+        }
+    }
+
+
 }

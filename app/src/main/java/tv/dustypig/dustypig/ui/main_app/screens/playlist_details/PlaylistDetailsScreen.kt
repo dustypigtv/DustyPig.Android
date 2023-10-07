@@ -72,7 +72,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -83,7 +82,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Play
@@ -352,11 +350,7 @@ private fun HorizontalTabletLayout(
         ) {
 
             AsyncImage(
-                model = ImageRequest
-                    .Builder(LocalContext.current)
-                    .data(uiState.posterUrl)
-                    .crossfade(true)
-                    .build(),
+                model = uiState.posterUrl,
                 contentDescription = "",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -366,11 +360,7 @@ private fun HorizontalTabletLayout(
             )
 
             AsyncImage(
-                model = ImageRequest
-                    .Builder(LocalContext.current)
-                    .data(uiState.posterUrl)
-                    .crossfade(true)
-                    .build(),
+                model = uiState.posterUrl,
                 contentDescription = "",
                 contentScale = ContentScale.Fit,
                 modifier = Modifier.fillMaxSize(),
@@ -493,11 +483,7 @@ private fun PhoneLayout(
                         .height(hdp)
                 ) {
                     AsyncImage(
-                        model = ImageRequest
-                            .Builder(LocalContext.current)
-                            .data(uiState.posterUrl)
-                            .crossfade(true)
-                            .build(),
+                        model = uiState.posterUrl,
                         contentDescription = "",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -507,11 +493,7 @@ private fun PhoneLayout(
                     )
 
                     AsyncImage(
-                        model = ImageRequest
-                            .Builder(LocalContext.current)
-                            .data(uiState.posterUrl)
-                            .crossfade(true)
-                            .build(),
+                        model = uiState.posterUrl,
                         contentDescription = "",
                         contentScale = ContentScale.Fit,
                         modifier = Modifier.fillMaxSize(),
@@ -743,11 +725,7 @@ private fun PlaylistItemLayout(
                         contentAlignment = Alignment.Center
                     ) {
                         AsyncImage(
-                            model = ImageRequest
-                                .Builder(LocalContext.current)
-                                .data(playlistItem.artworkUrl)
-                                .crossfade(true)
-                                .build(),
+                            model = playlistItem.artworkUrl,
                             contentDescription = "",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier

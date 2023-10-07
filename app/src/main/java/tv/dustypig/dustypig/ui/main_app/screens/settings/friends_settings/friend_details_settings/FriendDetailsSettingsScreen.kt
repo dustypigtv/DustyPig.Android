@@ -5,11 +5,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -18,11 +21,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Divider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.surfaceColorAtElevation
@@ -45,19 +49,40 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.job
 import tv.dustypig.dustypig.R
+import tv.dustypig.dustypig.api.models.BasicLibrary
 import tv.dustypig.dustypig.ui.composables.Avatar
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
+import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun FriendDetailsSettingsScreen(vm: FriendDetailsSettingsViewModel) {
-
     val uiState by vm.uiState.collectAsState()
+    FriendDetailsSettingsScreenInternall(
+        popBackStack = vm::popBackStack,
+        hideError = vm::hideError,
+        changeDisplayName = vm::changeDisplayName,
+        toggleLibraryShare = vm::toggleLibraryShare,
+        uiState = uiState
+    )
+}
+
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+private fun FriendDetailsSettingsScreenInternall(
+    popBackStack: () -> Unit,
+    hideError: () -> Unit,
+    changeDisplayName: (String) -> Unit,
+    toggleLibraryShare: (Int) -> Unit,
+    uiState: FriendDetailsSettingsUIState
+) {
+
     val listState = rememberLazyListState()
     var showChangeDisplayName by remember {
         mutableStateOf(false)
@@ -65,7 +90,7 @@ fun FriendDetailsSettingsScreen(vm: FriendDetailsSettingsViewModel) {
 
     Scaffold (
         topBar = {
-            CommonTopAppBar(onClick = vm::popBackStack, text = "Friend Info")
+            CommonTopAppBar(onClick = popBackStack, text = "Friend Info")
         }
     ) { paddingValues ->
 
@@ -77,16 +102,15 @@ fun FriendDetailsSettingsScreen(vm: FriendDetailsSettingsViewModel) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState,
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-
-                item {
-                    //Spacer between top and content
-                }
 
                 /**
                  * Display Name
                  */
+                item {
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
                 item {
                     Row (
                         modifier = Modifier
@@ -113,7 +137,7 @@ fun FriendDetailsSettingsScreen(vm: FriendDetailsSettingsViewModel) {
                             overflow = TextOverflow.Ellipsis
                         )
                         IconButton(
-                            enabled = !showChangeDisplayName,
+                            enabled = !showChangeDisplayName && !uiState.busy,
                             onClick = { showChangeDisplayName = true },
                             modifier = Modifier.padding(12.dp)
                         ) {
@@ -122,15 +146,111 @@ fun FriendDetailsSettingsScreen(vm: FriendDetailsSettingsViewModel) {
                     }
                 }
 
+
                 /**
                  * Libs shared with friend
                  */
+                if(uiState.myLibs.isNotEmpty()) {
+                    item {
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
+                    item {
+                        Box(
+                            modifier = Modifier.padding(12.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Divider(
+                                modifier = Modifier.height(1.dp)
+                            )
+                            Text(
+                                modifier = Modifier.background(color = MaterialTheme.colorScheme.background),
+                                text = "   Shared Libraries   ",
+                            )
+                        }
+                    }
+                    item {
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp)
+                                .clip(shape = RoundedCornerShape(4.dp))
+                                .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp)),
+
+                            ) {
+                            Text(
+                                modifier = Modifier.padding(12.dp),
+                                text = "Library",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Text(
+                                modifier = Modifier.padding(12.dp),
+                                text = "Shared",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
+                    }
+                    items(uiState.myLibs) { lib ->
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp, 0.dp)
+                        ) {
+                            Text(
+                                modifier = Modifier.padding(12.dp, 0.dp),
+                                text = lib.name,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+
+                            Switch(
+                                modifier = Modifier.padding(12.dp, 0.dp),
+                                checked = lib.shared,
+                                enabled = !uiState.busy,
+                                onCheckedChange = { toggleLibraryShare(lib.id) }
+                            )
+                        }
+                    }
+                }
+
+
 
 
                 /**
                  * Libs shared with me
                  */
-
+                if(uiState.libsSharedWithMe.isNotEmpty()) {
+                    item {
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
+                    item {
+                        Box(
+                            modifier = Modifier.padding(12.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Divider(
+                                modifier = Modifier.height(1.dp)
+                            )
+                            Text(
+                                modifier = Modifier.background(color = MaterialTheme.colorScheme.background),
+                                text = "   Libraries Shared With Me   ",
+                            )
+                        }
+                    }
+                    items(uiState.libsSharedWithMe) { lib ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                modifier = Modifier.padding(12.dp, 0.dp),
+                                text = lib.name,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
+                    }
+                }
             }
 
             if(uiState.busy) {
@@ -163,7 +283,7 @@ fun FriendDetailsSettingsScreen(vm: FriendDetailsSettingsViewModel) {
         fun submitClicked() {
             keyboardController?.hide()
             showChangeDisplayName = false
-            vm.changeDisplayName(newName = displayName)
+            changeDisplayName(displayName)
         }
 
         fun dismissClicked() {
@@ -215,6 +335,82 @@ fun FriendDetailsSettingsScreen(vm: FriendDetailsSettingsViewModel) {
     }
 
     if(uiState.showError) {
-        ErrorDialog(onDismissRequest = vm::hideError, message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = hideError, message = uiState.errorMessage)
     }
 }
+
+
+@Preview
+@Composable
+private fun FriendDetailsSettingsScreenPreview() {
+    val uiState = FriendDetailsSettingsUIState(
+        busy = false,
+        displayName = "Display Name",
+        libsSharedWithMe = listOf(
+            BasicLibrary(
+                id = 0,
+                name = "Shared Movies Lib",
+                isTV = false
+            ),
+            BasicLibrary(
+                id = 1,
+                name = "Shared TV Lib",
+                isTV = true
+            )
+        ),
+        myLibs = listOf(
+            ShareableLibrary(
+                id = 2,
+                name = "My Movies Lib",
+                isTV = false,
+                shared = false,
+            ),
+            ShareableLibrary(
+                id = 3,
+                name = "My TV Lib",
+                isTV = true,
+                shared = true
+            )
+        )
+    )
+
+    PreviewBase {
+        FriendDetailsSettingsScreenInternall(
+            popBackStack = { },
+            hideError = { },
+            changeDisplayName = { _ -> },
+            toggleLibraryShare = { _ -> },
+            uiState = uiState
+        )
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

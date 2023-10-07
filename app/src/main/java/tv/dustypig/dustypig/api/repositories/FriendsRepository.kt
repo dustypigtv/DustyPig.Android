@@ -1,6 +1,7 @@
 package tv.dustypig.dustypig.api.repositories
 
 import tv.dustypig.dustypig.api.ApiService
+import tv.dustypig.dustypig.api.models.LibraryFriendLink
 import tv.dustypig.dustypig.api.models.SimpleValue
 import tv.dustypig.dustypig.api.models.UpdateFriend
 import tv.dustypig.dustypig.di.AuthenticatedAPIService
@@ -21,4 +22,8 @@ class FriendsRepository @Inject constructor(
     suspend fun details(id: Int) = wrapAPICallWithReturnData { apiService.friendDetails(id) }
 
     suspend fun update(updateFriend: UpdateFriend) = wrapAPICall { apiService.updateFriend(updateFriend) }
+
+    suspend fun shareLibrary(libraryFriendLink: LibraryFriendLink) = wrapAPICall { apiService.shareLibrary(libraryFriendLink) }
+
+    suspend fun unShareLibrary(libraryFriendLink: LibraryFriendLink) = wrapAPICall { apiService.unShareLibrary(libraryFriendLink) }
 }

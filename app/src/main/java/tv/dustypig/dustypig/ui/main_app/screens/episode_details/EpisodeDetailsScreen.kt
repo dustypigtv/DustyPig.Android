@@ -38,14 +38,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Play
@@ -198,11 +196,7 @@ private fun HorizontalTabletLayout(
         horizontalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         AsyncImage(
-            model = ImageRequest
-                .Builder(LocalContext.current)
-                .data(uiState.artworkUrl)
-                .crossfade(true)
-                .build(),
+            model = uiState.artworkUrl,
             contentDescription = "",
             contentScale = ContentScale.Fit,
             alignment = Alignment.TopCenter,
@@ -273,11 +267,7 @@ private fun PhoneLayout(
         ) {
 
             AsyncImage(
-                model = ImageRequest
-                    .Builder(LocalContext.current)
-                    .data(uiState.artworkUrl)
-                    .crossfade(true)
-                    .build(),
+                model = uiState.artworkUrl,
                 contentDescription = null,
                 modifier = Modifier
                     .background(color = Color.DarkGray)
