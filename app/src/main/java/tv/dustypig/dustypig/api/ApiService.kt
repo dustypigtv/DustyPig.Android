@@ -34,6 +34,7 @@ import tv.dustypig.dustypig.api.models.ResponseWrapper
 import tv.dustypig.dustypig.api.models.ResponseWrapperOf
 import tv.dustypig.dustypig.api.models.SearchRequest
 import tv.dustypig.dustypig.api.models.SearchResults
+import tv.dustypig.dustypig.api.models.SetTitlePermissionInfo
 import tv.dustypig.dustypig.api.models.SimpleValue
 import tv.dustypig.dustypig.api.models.TitlePermissionInfo
 import tv.dustypig.dustypig.api.models.TitleRequest
@@ -101,10 +102,10 @@ interface ApiService {
     suspend fun updateFriend(@Body updateFriend: UpdateFriend): Response<ResponseWrapper>
 
     @POST("Friends/ShareLibrary")
-    suspend fun shareLibrary(@Body libraryFriendLink: LibraryFriendLink): Response<ResponseWrapper>
+    suspend fun shareLibraryWithFriend(@Body libraryFriendLink: LibraryFriendLink): Response<ResponseWrapper>
 
     @POST("Friends/UnShareLibrary")
-    suspend fun unShareLibrary(@Body libraryFriendLink: LibraryFriendLink): Response<ResponseWrapper>
+    suspend fun unShareLibraryWithFriend(@Body libraryFriendLink: LibraryFriendLink): Response<ResponseWrapper>
 
 
 
@@ -141,7 +142,7 @@ interface ApiService {
     suspend fun search(@Body searchRequest: SearchRequest): Response<ResponseWrapperOf<SearchResults>>
 
     @POST("Media/SetTitlePermissions")
-    suspend fun setTitlePermissions(@Body titlePermissionInfo: TitlePermissionInfo) : Response<ResponseWrapper>
+    suspend fun setTitlePermissions(@Body setTitlePermissionInfo: SetTitlePermissionInfo) : Response<ResponseWrapper>
 
     @POST("Media/UpdatePlaybackProgress")
     suspend fun updatePlaybackProgress(@Body playbackProgress: PlaybackProgress): Response<ResponseWrapper>

@@ -4,8 +4,7 @@ import com.google.gson.annotations.SerializedName
 
 class ProfileTitleOverrideInfo (
     @SerializedName("profile_id") val profileId: Int,
-    var state: OverrideState,
-
-    val name: String = "",
-    @SerializedName("avatar_url") val avatarUrl: String = ""
+    @SerializedName("override_state") var overrideState: OverrideState,
+    @SerializedName("avatar_url") val avatarUrl: String = "",
+    val name: String = ""
 )

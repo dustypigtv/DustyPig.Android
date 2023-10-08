@@ -23,7 +23,7 @@ class FriendsRepository @Inject constructor(
 
     suspend fun update(updateFriend: UpdateFriend) = wrapAPICall { apiService.updateFriend(updateFriend) }
 
-    suspend fun shareLibrary(libraryFriendLink: LibraryFriendLink) = wrapAPICall { apiService.shareLibrary(libraryFriendLink) }
+    suspend fun shareLibrary(libraryFriendLink: LibraryFriendLink) = wrapAPICall { apiService.shareLibraryWithFriend(libraryFriendLink) }
 
-    suspend fun unShareLibrary(libraryFriendLink: LibraryFriendLink) = wrapAPICall { apiService.unShareLibrary(libraryFriendLink) }
+    suspend fun unShareLibrary(libraryFriendLink: LibraryFriendLink) = wrapAPICall { apiService.unShareLibraryWithFriend(libraryFriendLink) }
 }

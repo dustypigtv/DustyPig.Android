@@ -116,11 +116,7 @@ private fun SignInScreenInternal(
         }
     }
 
-    val signInEnabled by remember {
-        derivedStateOf {
-            !uiState.busy && email.isNotBlank() && password.isNotBlank()
-        }
-    }
+    val signInEnabled = !uiState.busy && email.isNotBlank() && password.isNotBlank()
 
 
     fun updateEmail(newValue: String) {
@@ -129,11 +125,6 @@ private fun SignInScreenInternal(
             password = AuthManager.TEST_PASSWORD
     }
 
-    fun showForgotPassword() {
-        localFocusManager.clearFocus()
-        keyboardController?.hide()
-        showForgotPassword = false
-    }
 
     fun signIn() {
         localFocusManager.clearFocus()
@@ -190,7 +181,7 @@ private fun SignInScreenInternal(
             ) {
                 TextButton(
                     enabled = !uiState.busy,
-                    onClick = ::showForgotPassword
+                    onClick = { showForgotPassword = true }
                 ) {
                     Text(text = stringResource(R.string.forgot_password_question))
                 }

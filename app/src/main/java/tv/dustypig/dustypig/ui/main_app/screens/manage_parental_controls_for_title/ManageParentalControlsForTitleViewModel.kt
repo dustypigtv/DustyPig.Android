@@ -1,7 +1,5 @@
 package tv.dustypig.dustypig.ui.main_app.screens.manage_parental_controls_for_title
 
-import android.content.Context
-import android.widget.Toast
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,7 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.models.OverrideState
-import tv.dustypig.dustypig.api.models.ProfileTitleOverrideInfo
+import tv.dustypig.dustypig.api.models.SetTitlePermissionInfo
 import tv.dustypig.dustypig.api.models.TitlePermissionInfo
 import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.logToCrashlytics
@@ -40,20 +38,24 @@ class ManageParentalControlsForTitleViewModel  @Inject constructor(
 
     init {
         _uiState.update {
-            it.copy(loading = true)
+            it.copy(busy = true)
         }
 
         viewModelScope.launch {
             try{
                 _data = mediaRepository.getTitlePermissions(_mediaId)
 
-                for(profile in _data.profiles) {
-                    _origValues[profile.profileId] = profile.state == OverrideState.Allow
+                for(profile in _data.subProfiles) {
+                    _origValues[profile.profileId] = profile.overrideState == OverrideState.Allow
+                }
+                for(profile in _data.friendProfiles) {
+                    _origValues[profile.profileId] = profile.overrideState == OverrideState.Allow
                 }
                 _uiState.update {
                     it.copy(
-                        loading = false,
-                        permissionInfo = _data
+                        busy = false,
+                        subProfiles = _data.subProfiles,
+                        friendProfiles = _data.friendProfiles
                     )
                 }
             } catch (ex: Exception) {
@@ -66,7 +68,6 @@ class ManageParentalControlsForTitleViewModel  @Inject constructor(
         ex.logToCrashlytics()
         _uiState.update {
             it.copy(
-                loading = false,
                 busy = false,
                 showErrorDialog = true,
                 criticalError = criticalError,
@@ -86,12 +87,40 @@ class ManageParentalControlsForTitleViewModel  @Inject constructor(
     }
 
     fun togglePermission(profileId: Int) {
-        val profile = _data.profiles.first { it.profileId == profileId }
-        profile.state = if(profile.state == OverrideState.Allow) OverrideState.Block else OverrideState.Allow
+
+        _uiState.update {
+            it.copy(busy = true)
+        }
+
+        viewModelScope.launch {
+            try{
+                var profile = _data.subProfiles.firstOrNull { it.profileId == profileId }
+                if(profile == null)
+                    profile = _data.friendProfiles.first { it.profileId == profileId }
+
+                profile.overrideState = if(profile.overrideState == OverrideState.Allow) OverrideState.Block else OverrideState.Allow
+
+                mediaRepository.setTitlePermissions(
+                    setTitlePermissionInfo = SetTitlePermissionInfo(
+                        mediaId = _mediaId,
+                        profileId = profileId,
+                        overrideState = profile.overrideState
+                    )
+                )
+
+                _uiState.update {
+                    it.copy(busy = false)
+                }
+
+            } catch (ex: Exception) {
+                setError(ex = ex, criticalError = false)
+            }
+        }
+
 
         var pendingChanges = false
-        for(p in _data.profiles) {
-            if(_origValues[p.profileId] != (p.state == OverrideState.Allow)) {
+        for(p in _data.subProfiles) {
+            if(_origValues[p.profileId] != (p.overrideState == OverrideState.Allow)) {
                 pendingChanges = true
                 break
             }
@@ -100,64 +129,4 @@ class ManageParentalControlsForTitleViewModel  @Inject constructor(
             it.copy(pendingChanges = pendingChanges)
         }
     }
-
-    fun saveChanges(context: Context) {
-        _uiState.update {
-            it.copy(busy = true)
-        }
-
-        viewModelScope.launch {
-            try{
-                val profiles = ArrayList<ProfileTitleOverrideInfo>()
-                for(p in _data.profiles) {
-                    if(_origValues[p.profileId] != (p.state == OverrideState.Allow)) {
-                        profiles.add(p)
-                    }
-                }
-                if(profiles.isNotEmpty()) {
-                    val tpi = TitlePermissionInfo(
-                        titleId = _mediaId,
-                        profiles = profiles
-                    )
-                    mediaRepository.setTitlePermissions(tpi)
-
-                    for(p in _data.profiles) {
-                        _origValues[p.profileId] = (p.state == OverrideState.Allow)
-                    }
-
-                    _uiState.update {
-                        it.copy(
-                            busy = false,
-                            pendingChanges = false
-                        )
-                    }
-
-                    Toast.makeText(context, "Changes Saved", Toast.LENGTH_SHORT).show()
-                }
-            } catch (ex: Exception){
-                setError(ex = ex, criticalError = false)
-            }
-        }
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
