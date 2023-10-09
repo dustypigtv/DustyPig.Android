@@ -8,7 +8,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -38,9 +37,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import tv.dustypig.dustypig.R
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun PinEntry(valueChanged: (String) -> Unit, onSubmit: (String) -> Unit) {
+fun PinEntry(allowEmpty: Boolean = false, valueChanged: (String) -> Unit, onSubmit: (String) -> Unit) {
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -75,6 +74,8 @@ fun PinEntry(valueChanged: (String) -> Unit, onSubmit: (String) -> Unit) {
         derivedStateOf {
             if(currentPin.length == 4)
                 ImeAction.Go
+            else if(allowEmpty && currentPin.isEmpty())
+                ImeAction.Go
             else
                 ImeAction.Done
         }
@@ -90,7 +91,7 @@ fun PinEntry(valueChanged: (String) -> Unit, onSubmit: (String) -> Unit) {
             pin += pinList[i].value
         }
         currentPin = pin
-        valueChanged.invoke(pin)
+        valueChanged(pin)
     }
 
     fun pinValueChanged(index: Int, newValue: String) {

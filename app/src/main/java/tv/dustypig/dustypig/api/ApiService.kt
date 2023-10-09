@@ -19,6 +19,7 @@ import tv.dustypig.dustypig.api.models.DetailedFriend
 import tv.dustypig.dustypig.api.models.DetailedLibrary
 import tv.dustypig.dustypig.api.models.DetailedMovie
 import tv.dustypig.dustypig.api.models.DetailedPlaylist
+import tv.dustypig.dustypig.api.models.DetailedProfile
 import tv.dustypig.dustypig.api.models.DetailedSeries
 import tv.dustypig.dustypig.api.models.DetailedTMDB
 import tv.dustypig.dustypig.api.models.HomeScreen
@@ -39,6 +40,7 @@ import tv.dustypig.dustypig.api.models.SimpleValue
 import tv.dustypig.dustypig.api.models.TitlePermissionInfo
 import tv.dustypig.dustypig.api.models.TitleRequest
 import tv.dustypig.dustypig.api.models.UpdateFriend
+import tv.dustypig.dustypig.api.models.UpdateProfile
 import tv.dustypig.dustypig.api.models.UpdatesPlaylist
 
 interface ApiService {
@@ -201,6 +203,13 @@ interface ApiService {
     // ***** Profiles *****
     @GET("Profiles/List")
     suspend fun listProfiles(): Response<ResponseWrapperOf<List<BasicProfile>>>
+
+    @GET("Profiles/Details/{id}")
+    suspend fun profileDetails(@Path("id") id: Int): Response<ResponseWrapperOf<DetailedProfile>>
+
+    @POST("Profiles/Update")
+    suspend fun updateProfile(@Body updateProfile: UpdateProfile): Response<ResponseWrapper>
+
 
 
     // ***** Series *****

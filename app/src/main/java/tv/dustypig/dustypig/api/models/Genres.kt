@@ -1,4 +1,4 @@
-package tv.dustypig.dustypig.api
+package tv.dustypig.dustypig.api.models
 
 /*
 0x00000000 = Unknown

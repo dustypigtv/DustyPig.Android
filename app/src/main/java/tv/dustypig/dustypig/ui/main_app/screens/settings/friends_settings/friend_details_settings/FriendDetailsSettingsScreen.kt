@@ -300,7 +300,7 @@ private fun FriendDetailsSettingsScreenInternall(
         AlertDialog(
             shape = RoundedCornerShape(8.dp),
             onDismissRequest = ::dismissClicked,
-            title = { Text(stringResource(R.string.forgot_password)) },
+            title = { Text(text = "Change Display Name") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(20.dp, alignment = Alignment.CenterVertically)) {
                     OutlinedTextField(

@@ -35,7 +35,9 @@ fun SettingsScreen(vm: SettingsViewModel) {
     SettingsScreenInternal(
         navToTheme = vm::navToTheme,
         navToAccountSettings = vm::navToAccountSettings,
+        navToMyProfile = vm::navToMyProfile,
         navToFriendsSettings = vm::navToFriendsSettings,
+        navToAllProfilesSettings = vm::navToAllProfilesSettings,
         uiState = uiState
     )
 }
@@ -45,7 +47,9 @@ fun SettingsScreen(vm: SettingsViewModel) {
 private fun SettingsScreenInternal(
     navToTheme: () -> Unit,
     navToAccountSettings: () -> Unit,
+    navToMyProfile: () -> Unit,
     navToFriendsSettings: () -> Unit,
+    navToAllProfilesSettings: () -> Unit,
     uiState: SettingsUIState
 ) {
 
@@ -59,9 +63,12 @@ private fun SettingsScreenInternal(
             .verticalScroll(listState)
     ) {
 
+        LinkRow(text = "Account Settings", onClick = navToAccountSettings)
+        LinkRow(text = "My Profile", onClick = navToMyProfile)
+
         if(uiState.isMainProfile) {
-            LinkRow(text = "Account Settings", onClick = navToAccountSettings)
             LinkRow(text = "Friends", onClick = navToFriendsSettings)
+            LinkRow(text = "Profiles", onClick = navToAllProfilesSettings)
         }
 
         LinkRow(text = "Theme", onClick = navToTheme)
@@ -103,7 +110,9 @@ private fun SettingsScreenPreview() {
         SettingsScreenInternal(
             navToTheme = { },
             navToAccountSettings = { },
+            navToMyProfile = { },
             navToFriendsSettings = { },
+            navToAllProfilesSettings = { },
             uiState = uiState
         )
     }
