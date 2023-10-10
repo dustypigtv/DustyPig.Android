@@ -1,5 +1,8 @@
 package tv.dustypig.dustypig.ui.main_app.screens.settings.my_profile_settings
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -48,6 +52,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.canhub.cropper.CropImageContract
+import com.canhub.cropper.CropImageContractOptions
+import com.canhub.cropper.CropImageOptions
+import com.canhub.cropper.CropImageView
 import kotlinx.coroutines.job
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.ui.composables.Avatar
@@ -66,6 +74,7 @@ fun MyProfileSettingsScreen(vm: MyProfileSettingsViewModel) {
         hideError = vm::hideError,
         renameProfile = vm::renameProfile,
         setPinNumber = vm::setPinNumber,
+        setAvatar = vm::setAvatar,
         uiState = uiState
     )
 
@@ -78,6 +87,7 @@ private fun MyProfileSettingsScreenInternal(
     hideError: () -> Unit,
     renameProfile: (String) -> Unit,
     setPinNumber: (String) -> Unit,
+    setAvatar: (String) -> Unit,
     uiState: MyProfileSettingsUIState
 ) {
 
@@ -88,6 +98,37 @@ private fun MyProfileSettingsScreenInternal(
     var showChangePinDialog by remember {
         mutableStateOf(false)
     }
+
+    val context = LocalContext.current
+
+
+    val imageCropLauncher = rememberLauncherForActivityResult(CropImageContract()) { result ->
+        if (result.isSuccessful) {
+            // use the cropped image
+            val filePath = result.getUriFilePath(context)
+            if(filePath != null)
+                setAvatar(filePath)
+        } else {
+            // an error occurred cropping
+            val exception = result.error
+        }
+    }
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
+        val cropOptions = CropImageContractOptions(
+            uri = uri,
+            cropImageOptions = CropImageOptions(
+                outputCompressQuality = 100,
+                cropShape = CropImageView.CropShape.OVAL,
+                aspectRatioX = 1,
+                aspectRatioY = 1,
+                fixAspectRatio = true
+            )
+        )
+        imageCropLauncher.launch(cropOptions)
+    }
+
+
 
     Scaffold(
         topBar = {
@@ -152,7 +193,7 @@ private fun MyProfileSettingsScreenInternal(
                 )
 
                 Button(
-                    onClick = { },
+                    onClick = { imagePickerLauncher.launch("image/*") },
                     enabled = !uiState.busy,
                     modifier = Modifier.width(200.dp)
                 ) {
@@ -324,6 +365,7 @@ private fun MyProfileSettingsScreenPreview() {
             hideError = { },
             renameProfile = { _ -> },
             setPinNumber = { _ -> },
+            setAvatar = { _ -> },
             uiState = uiState
         )
     }

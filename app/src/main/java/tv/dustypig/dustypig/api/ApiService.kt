@@ -1,10 +1,14 @@
 package tv.dustypig.dustypig.api
 
+import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Part
 import retrofit2.http.Path
 import tv.dustypig.dustypig.api.models.AddPlaylistItem
 import tv.dustypig.dustypig.api.models.BasicFriend
@@ -209,6 +213,10 @@ interface ApiService {
 
     @POST("Profiles/Update")
     suspend fun updateProfile(@Body updateProfile: UpdateProfile): Response<ResponseWrapper>
+
+    @Multipart
+    @PUT("Profiles/SetProfileAvatarMultipart/{id}")
+    suspend fun setProfileAvatar(@Path("id") id: Int, @Part image: MultipartBody.Part): Response<ResponseWrapperOf<SimpleValue<String>>>
 
 
 

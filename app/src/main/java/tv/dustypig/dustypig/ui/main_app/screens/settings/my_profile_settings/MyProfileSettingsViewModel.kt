@@ -1,5 +1,7 @@
 package tv.dustypig.dustypig.ui.main_app.screens.settings.my_profile_settings
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,12 +10,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import okhttp3.RequestBody.Companion.toRequestBody
 import tv.dustypig.dustypig.api.models.DetailedProfile
 import tv.dustypig.dustypig.api.models.UpdateProfile
 import tv.dustypig.dustypig.api.repositories.ProfilesRepository
 import tv.dustypig.dustypig.global_managers.AuthManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
+import java.io.ByteArrayOutputStream
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -80,7 +85,7 @@ class MyProfileSettingsViewModel @Inject constructor(
                     name = newName.trim(),
                     pin = _detailedProfile.pin,
                     locked = _detailedProfile.locked,
-                    avatarImage = null, // server ignores this field if null
+                    avatarUrl = _detailedProfile.avatarUrl,
                     allowedRatings = _detailedProfile.allowedRatings,
                     titleRequestPermissions = _detailedProfile.titleRequestPermissions
                 )
@@ -122,7 +127,7 @@ class MyProfileSettingsViewModel @Inject constructor(
                     name = _detailedProfile.name,
                     pin = pin,
                     locked = _detailedProfile.locked,
-                    avatarImage = null, // server ignores this field if null
+                    avatarUrl = _detailedProfile.avatarUrl,
                     allowedRatings = _detailedProfile.allowedRatings,
                     titleRequestPermissions = _detailedProfile.titleRequestPermissions
                 )
@@ -145,5 +150,66 @@ class MyProfileSettingsViewModel @Inject constructor(
         }
     }
 
+    fun setAvatar(filePath: String) {
+        _uiState.update {
+            it.copy(busy = true)
+        }
+
+        viewModelScope.launch {
+            try {
+
+                val maxSize = 1024 * 1024
+                var data = File(filePath).readBytes()
+                var smallEnough = data.size <= maxSize && data[0] == 0xFF.toByte() && data[1] == 0xD8.toByte()
+                if(!smallEnough) {
+                    val bitmap = BitmapFactory.decodeFile(filePath)
+                    var quality = 100
+                    while (!smallEnough) {
+                        val stream = ByteArrayOutputStream()
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream)
+                        if (stream.size() <= maxSize) {
+                            data = stream.toByteArray()
+                            smallEnough = true
+                        } else {
+                            quality -= 5
+                            if (quality <= 0)
+                                throw Exception("Could not shrink image to less than 1 MB. Please choose a different image.")
+                        }
+                    }
+                }
+
+                val newUrl = profilesRepository.setAvatar(_detailedProfile.id, data.toRequestBody())
+                _detailedProfile = _detailedProfile.copy(
+                    avatarUrl = newUrl
+                )
+
+                _uiState.update {
+                    it.copy(
+                        busy = false,
+                        name = _detailedProfile.name,
+                        avatarUrl = _detailedProfile.avatarUrl
+                    )
+                }
+
+            } catch (ex: Exception) {
+                setError(ex = ex, criticalError = false)
+            }
+        }
+    }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

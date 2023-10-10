@@ -94,7 +94,7 @@ dependencies {
     implementation("org.burnoutcrew.composereorderable:reorderable:0.9.6")
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation("io.coil-kt:coil-compose:2.4.0")
-
+    implementation("com.vanniktech:android-image-cropper:4.5.0")
 
     
     testImplementation("junit:junit:4.13.2")

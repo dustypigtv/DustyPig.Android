@@ -42,7 +42,7 @@ fun Avatar(imageUrl: String, onClick: () -> Unit = { }, modifier: Modifier? = Mo
         contentDescription = null,
         modifier = internalModifier,
         placeholder = debugPlaceholder(R.drawable.ic_logo_transparent),
-        error = painterResource(id = R.drawable.error_tall)
+        error = painterResource(id = R.drawable.grey_profile)
     )
 }
 
