@@ -1,6 +1,5 @@
 package tv.dustypig.dustypig.ui.main_app
 
-import android.accounts.Account
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
@@ -26,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -50,6 +48,7 @@ import tv.dustypig.dustypig.ui.main_app.screens.settings.account_settings.Accoun
 import tv.dustypig.dustypig.ui.main_app.screens.settings.friends_settings.FriendsSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.friends_settings.friend_details_settings.FriendDetailsSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.my_profile_settings.MyProfileSettingsNav
+import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.ProfilesSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.tmdb_details.TMDBDetailsNav
 
 
@@ -175,6 +174,7 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
             FriendsSettingsNav.composable(this, navController)
             FriendDetailsSettingsNav.composable(this, navController)
             MyProfileSettingsNav.composable(this, navController)
+            ProfilesSettingsNav.composable(this, navController)
         }
 
         scope.launch {

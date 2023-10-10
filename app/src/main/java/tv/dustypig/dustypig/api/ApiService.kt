@@ -220,6 +220,10 @@ interface ApiService {
 
 
 
+
+
+
+
     // ***** Series *****
     @GET("Series/Details/{id}")
     suspend fun seriesDetails(@Path("id") id: Int): Response<ResponseWrapperOf<DetailedSeries>>

@@ -13,6 +13,7 @@ import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.main_app.screens.settings.account_settings.AccountSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.friends_settings.FriendsSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.my_profile_settings.MyProfileSettingsNav
+import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.ProfilesSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.theme_settings.ThemeSettingsNav
 import javax.inject.Inject
 
@@ -46,8 +47,6 @@ class SettingsViewModel @Inject constructor(
 
     fun navToFriendsSettings() = navigateToRoute(FriendsSettingsNav.route)
 
-    fun navToAllProfilesSettings() {
-
-    }
+    fun navToAllProfilesSettings() = navigateToRoute(ProfilesSettingsNav.route)
 
 }
