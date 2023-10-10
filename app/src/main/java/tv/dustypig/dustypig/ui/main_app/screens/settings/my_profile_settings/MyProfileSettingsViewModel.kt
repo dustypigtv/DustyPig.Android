@@ -83,7 +83,6 @@ class MyProfileSettingsViewModel @Inject constructor(
                 val updateProfile = UpdateProfile(
                     id = _detailedProfile.id,
                     name = newName.trim(),
-                    pin = _detailedProfile.pin,
                     locked = _detailedProfile.locked,
                     avatarUrl = _detailedProfile.avatarUrl,
                     allowedRatings = _detailedProfile.allowedRatings,
@@ -126,6 +125,7 @@ class MyProfileSettingsViewModel @Inject constructor(
                     id = _detailedProfile.id,
                     name = _detailedProfile.name,
                     pin = pin,
+                    clearPin = pin == null,
                     locked = _detailedProfile.locked,
                     avatarUrl = _detailedProfile.avatarUrl,
                     allowedRatings = _detailedProfile.allowedRatings,
@@ -135,7 +135,7 @@ class MyProfileSettingsViewModel @Inject constructor(
                 profilesRepository.update(updateProfile)
 
                 _detailedProfile = _detailedProfile.copy(
-                    pin = pin
+                    hasPin = pin != null
                 )
 
                 _uiState.update {
