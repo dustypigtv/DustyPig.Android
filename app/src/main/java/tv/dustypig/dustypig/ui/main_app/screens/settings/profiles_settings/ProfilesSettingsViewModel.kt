@@ -13,6 +13,7 @@ import tv.dustypig.dustypig.api.repositories.ProfilesRepository
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.edit_profile.EditProfileNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.edit_profile.EditProfileViewModel
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,10 +25,10 @@ class ProfilesSettingsViewModel @Inject constructor(
     companion object {
         const val TAG = "ProfileSettingsVM"
 
-        private val _needsUpdate = MutableStateFlow(false)
+        private val _needsUpdate = MutableStateFlow(UUID.randomUUID())
 
         fun triggerUpdate() {
-            _needsUpdate.tryEmit(true)
+            _needsUpdate.tryEmit(UUID.randomUUID())
         }
     }
 
@@ -36,24 +37,15 @@ class ProfilesSettingsViewModel @Inject constructor(
 
     init {
 
-        //This automatically updates data on init, so set this to false to prevent 2 calls
-        _needsUpdate.update { false }
-
-        //Do the update
+        //This will update on first launch and any time something changes.
         viewModelScope.launch {
-            updateData(true)
-        }
-
-        //Now start watching for updates from other screens
-        viewModelScope.launch {
-            _needsUpdate.collectLatest { needsUpdate ->
-                if(needsUpdate)
-                    updateData(false)
+            _needsUpdate.collectLatest {
+                 updateData()
             }
         }
     }
 
-    private suspend fun updateData(setCriticalError: Boolean) {
+    private suspend fun updateData() {
         try {
             _uiState.update {
                 it.copy(busy = true)
@@ -68,30 +60,23 @@ class ProfilesSettingsViewModel @Inject constructor(
                 )
             }
         } catch (ex: Exception) {
-            setError(ex = ex, criticalError = setCriticalError)
+            setError(ex = ex)
         }
     }
 
-    private fun setError(ex: Exception, criticalError: Boolean) {
+    private fun setError(ex: Exception) {
         ex.printStackTrace()
         Log.d(TAG, ex.localizedMessage, ex)
         _uiState.update {
             it.copy(
                 busy = false,
-                showErrorDialog = true,
-                criticalError = criticalError
+                showErrorDialog = true
             )
         }
     }
 
     fun hideError() {
-        if(_uiState.value.criticalError) {
-            popBackStack()
-        } else {
-            _uiState.update {
-                it.copy(showErrorDialog = false)
-            }
-        }
+        popBackStack()
     }
 
     fun navToAddProfile() {

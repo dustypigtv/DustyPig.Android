@@ -19,6 +19,7 @@ import tv.dustypig.dustypig.api.repositories.LibrariesRepository
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
+import tv.dustypig.dustypig.ui.main_app.screens.settings.friends_settings.FriendsSettingsViewModel
 import javax.inject.Inject
 
 @HiltViewModel
@@ -79,6 +80,7 @@ class FriendDetailsSettingsViewModel @Inject constructor(
 
     private fun setError(ex: Exception, critical: Boolean) {
         ex.logToCrashlytics()
+        ex.printStackTrace()
         _uiState.update {
             it.copy(
                 busy = false,
@@ -104,21 +106,26 @@ class FriendDetailsSettingsViewModel @Inject constructor(
             it.copy(busy = true)
         }
 
-        try {
-            val trimmedNewName = newName.trim()
-            val updateFriend = UpdateFriend(
-                id = _detailedFriend.id,
-                displayName = trimmedNewName,
-                accepted = _detailedFriend.accepted
-            )
-            _uiState.update {
-                it.copy(
-                    busy = false,
-                    displayName = trimmedNewName
+        viewModelScope.launch {
+            try {
+                val trimmedNewName = newName.trim()
+                val updateFriend = UpdateFriend(
+                    id = _detailedFriend.id,
+                    displayName = trimmedNewName,
+                    accepted = _detailedFriend.accepted
                 )
+                friendsRepository.update(updateFriend)
+
+                _uiState.update {
+                    it.copy(
+                        busy = false,
+                        displayName = trimmedNewName
+                    )
+                }
+                FriendsSettingsViewModel.triggerUpdate()
+            } catch (ex: Exception) {
+                setError(ex = ex, critical = false)
             }
-        } catch (ex: Exception) {
-            setError(ex = ex, critical = false)
         }
     }
 
@@ -164,6 +171,21 @@ class FriendDetailsSettingsViewModel @Inject constructor(
                         myLibs = libs
                     )
                 }
+            } catch (ex: Exception) {
+                setError(ex = ex, critical = false)
+            }
+        }
+    }
+
+    fun unfriend() {
+        _uiState.update {
+            it.copy(busy = true)
+        }
+        viewModelScope.launch {
+            try {
+                friendsRepository.unfriend(_friendshipId)
+                FriendsSettingsViewModel.triggerUpdate()
+                popBackStack()
             } catch (ex: Exception) {
                 setError(ex = ex, critical = false)
             }

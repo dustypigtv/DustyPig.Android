@@ -110,6 +110,9 @@ interface ApiService {
     @POST("Friends/Update")
     suspend fun updateFriend(@Body updateFriend: UpdateFriend): Response<ResponseWrapper>
 
+    @DELETE("Friends/Unfriend/{id}")
+    suspend fun unfriend(@Path("id") id: Int): Response<ResponseWrapper>
+
     @POST("Friends/ShareLibrary")
     suspend fun shareLibraryWithFriend(@Body libraryFriendLink: LibraryFriendLink): Response<ResponseWrapper>
 

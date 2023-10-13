@@ -141,7 +141,10 @@ private fun FriendsSettingsScreenInternal(
                 }
 
                 item {
-                    Button(onClick = { showAddFriendDialog = true }) {
+                    Button(
+                        onClick = { showAddFriendDialog = true },
+                        modifier = Modifier.padding(24.dp)
+                    ) {
                         Text(text = "Add Friend")
                     }
                 }
@@ -199,7 +202,7 @@ private fun FriendsSettingsScreenInternal(
             AlertDialog(
                 shape = RoundedCornerShape(8.dp),
                 onDismissRequest = ::dismissClicked,
-                title = { Text(stringResource(R.string.forgot_password)) },
+                title = { Text(text = stringResource(R.string.invite_friend)) },
                 text = {
                     Box(
                         modifier = Modifier.fillMaxWidth()

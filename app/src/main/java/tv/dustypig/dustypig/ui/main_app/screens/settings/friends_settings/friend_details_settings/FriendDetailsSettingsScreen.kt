@@ -20,6 +20,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.IconButton
@@ -68,6 +70,7 @@ fun FriendDetailsSettingsScreen(vm: FriendDetailsSettingsViewModel) {
         hideError = vm::hideError,
         changeDisplayName = vm::changeDisplayName,
         toggleLibraryShare = vm::toggleLibraryShare,
+        unfriend = vm::unfriend,
         uiState = uiState
     )
 }
@@ -80,6 +83,7 @@ private fun FriendDetailsSettingsScreenInternal(
     hideError: () -> Unit,
     changeDisplayName: (String) -> Unit,
     toggleLibraryShare: (Int) -> Unit,
+    unfriend: () -> Unit,
     uiState: FriendDetailsSettingsUIState
 ) {
 
@@ -102,7 +106,8 @@ private fun FriendDetailsSettingsScreenInternal(
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState,
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
                 /**
@@ -251,6 +256,21 @@ private fun FriendDetailsSettingsScreenInternal(
                         }
                     }
                 }
+
+
+                item {
+                    Button(
+                        onClick = unfriend,
+                        enabled = !uiState.busy,
+                        modifier = Modifier.padding(48.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                    ) {
+                        Text(text = "Unfriend")
+                    }
+                }
             }
 
             if(uiState.busy) {
@@ -380,6 +400,7 @@ private fun FriendDetailsSettingsScreenPreview() {
             hideError = { },
             changeDisplayName = { _ -> },
             toggleLibraryShare = { _ -> },
+            unfriend = { },
             uiState = uiState
         )
     }
