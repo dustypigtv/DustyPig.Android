@@ -108,7 +108,7 @@ private fun FriendsSettingsScreenInternal(
                     //Just some blank space between top and actual list
                 }
 
-                items(uiState.friends) {
+                items(uiState.friends, key = { it.clientUUID }) {
                     Row (
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
