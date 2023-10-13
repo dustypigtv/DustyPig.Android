@@ -222,7 +222,7 @@ private fun SearchScreenInternal(
                     Text(text = stringResource(R.string.no_results))
             }
 
-            if(uiState.loading)
+            if(uiState.busy)
                 CircularProgressIndicator(modifier = Modifier.offset(x = 0.dp, y = (-48).dp))
         }
 
@@ -372,7 +372,7 @@ private fun SearchScreenPreview() {
 
 
     val uiState = SearchUIState(
-        loading = false,
+        busy = false,
         emptyQuery = false,
         hasResults = true,
         allowTMDB = true,

@@ -30,7 +30,6 @@ class SearchViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(SearchUIState())
     val uiState: StateFlow<SearchUIState> = _uiState.asStateFlow()
-    private var _lastQuery: String = ""
 
     init {
         viewModelScope.launch {
@@ -49,18 +48,16 @@ class SearchViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 emptyQuery = query.isBlank(),
-                loading = !(query.isBlank() || query == _lastQuery) ,
-                progressOnly = _lastQuery.isBlank() && query.isNotBlank() && !it.hasResults,
+                busy = query.isNotBlank(),
+                progressOnly = query.isNotBlank() && !it.hasResults,
                 hasResults = if(query.isNotBlank()) it.hasResults else false,
                 availableItems = if(query.isBlank()) listOf() else it.availableItems,
                 tmdbItems = if(query.isBlank()) listOf() else it.tmdbItems
             )
         }
 
-        if(query.isBlank() || query == _lastQuery)
+        if(query.isBlank())
             return
-
-        _lastQuery = query
 
         viewModelScope.launch {
             try {
@@ -81,7 +78,7 @@ class SearchViewModel @Inject constructor(
 
                 _uiState.update {
                     it.copy(
-                        loading = false,
+                        busy = false,
                         allowTMDB = response.otherTitlesAllowed,
                         hasResults = !(response.available.isNullOrEmpty() || response.otherTitles.isNullOrEmpty()),
                         progressOnly = false,
@@ -94,7 +91,7 @@ class SearchViewModel @Inject constructor(
                 ex.logToCrashlytics()
                 _uiState.update {
                     it.copy(
-                        loading = false,
+                        busy = false,
                         showErrorDialog = true,
                         errorMessage = ex.localizedMessage
                     )

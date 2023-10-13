@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun <T> EnumSelectorDropdown(
     label: String,
-    enabled: Boolean = true,
     values: Array<T>,
     exclude: Array<T>,
     currentValue: T,
@@ -31,14 +30,11 @@ fun <T> EnumSelectorDropdown(
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = {
-            if(enabled) {
-                expanded = it
-            }
+            expanded = it
         }
     ) {
 
         OutlinedTextField(
-            enabled = enabled,
             value = currentValue.toString(),
             onValueChange = { },
             label = {

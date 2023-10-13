@@ -4,7 +4,7 @@ import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.BasicTMDB
 
 data class SearchUIState (
-    val loading: Boolean = false,
+    val busy: Boolean = false,
     val showErrorDialog: Boolean = false,
     val errorMessage: String? = null,
     val hasResults: Boolean = false,

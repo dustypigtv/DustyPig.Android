@@ -20,6 +20,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -71,6 +73,7 @@ fun EditProfileScreen(vm: EditProfileViewModel) {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EditProfileScreenInternal(
     popBackStack: () -> Unit,
@@ -245,54 +248,114 @@ private fun EditProfileScreenInternal(
                  * Max Movie Rating
                  */
                 item {
-                    EnumSelectorDropdown(
-                        enabled = !uiState.busy && !uiState.selfMode,
-                        label = "Max Movie Rating",
-                        values = MovieRatings.values(),
-                        exclude = arrayOf(MovieRatings.None),
-                        currentValue = maxMovieRating,
-                        onChanged = { maxMovieRating = it }
-                    )
+                    if(uiState.busy || uiState.selfMode) {
+                        OutlinedTextField(
+                            value = maxMovieRating.toString(),
+                            onValueChange = { },
+                            label = {
+                                Text(text = "Max Movie Rating")
+                            },
+                            singleLine = true,
+                            enabled = false,
+                            readOnly = true,
+                            modifier = Modifier
+                                .width(300.dp),
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = false) }
+                        )
+                    } else {
+                        EnumSelectorDropdown(
+                            label = "Max Movie Rating",
+                            values = MovieRatings.values(),
+                            exclude = arrayOf(MovieRatings.None),
+                            currentValue = maxMovieRating,
+                            onChanged = { maxMovieRating = it }
+                        )
+                    }
                 }
 
                 /**
                  * Max TV Rating
                  */
                 item {
-                    EnumSelectorDropdown(
-                        enabled = !uiState.busy && !uiState.selfMode,
-                        label = "Max TV Rating",
-                        values = TVRatings.values(),
-                        exclude = arrayOf(TVRatings.None),
-                        currentValue = maxTVRating,
-                        onChanged = { maxTVRating = it }
-                    )
+                    if(uiState.busy || uiState.selfMode) {
+                        OutlinedTextField(
+                            value = maxTVRating.toString(),
+                            onValueChange = { },
+                            label = {
+                                Text(text = "Max TV Rating")
+                            },
+                            singleLine = true,
+                            enabled = false,
+                            readOnly = true,
+                            modifier = Modifier
+                                .width(300.dp),
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = false) }
+                        )
+                    } else {
+                        EnumSelectorDropdown(
+                            label = "Max TV Rating",
+                            values = TVRatings.values(),
+                            exclude = arrayOf(TVRatings.None),
+                            currentValue = maxTVRating,
+                            onChanged = { maxTVRating = it }
+                        )
+                    }
                 }
 
                 /**
                  * Title Request Permissions
                  */
                 item {
-                    EnumSelectorDropdown(
-                        enabled = !uiState.busy && !uiState.selfMode,
-                        label = "Request Title Permission",
-                        values = TitleRequestPermissions.values(),
-                        exclude = arrayOf(),
-                        currentValue = titleRequestPermission,
-                        onChanged = { titleRequestPermission = it }
-                    )
+                    if(uiState.busy || uiState.selfMode) {
+                        OutlinedTextField(
+                            value = titleRequestPermission.toString(),
+                            onValueChange = { },
+                            label = {
+                                Text(text = "Request Title Permission")
+                            },
+                            singleLine = true,
+                            enabled = false,
+                            readOnly = true,
+                            modifier = Modifier
+                                .width(300.dp),
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = false) }
+                        )
+                    } else {
+                        EnumSelectorDropdown(
+                            label = "Request Title Permission",
+                            values = TitleRequestPermissions.values(),
+                            exclude = arrayOf(),
+                            currentValue = titleRequestPermission,
+                            onChanged = { titleRequestPermission = it }
+                        )
+                    }
                 }
 
                 if(!uiState.addMode && !uiState.selfMode) {
                     item{
-                        EnumSelectorDropdown(
-                            enabled = !uiState.busy,
-                            label = "Profile Status",
-                            values = LockedState.values(),
-                            exclude = arrayOf(),
-                            currentValue = profileLocked,
-                            onChanged = { profileLocked = it }
-                        )
+                        if(uiState.busy) {
+                            OutlinedTextField(
+                                value = profileLocked.toString(),
+                                onValueChange = { },
+                                label = {
+                                    Text(text = "Profile Status")
+                                },
+                                singleLine = true,
+                                enabled = false,
+                                readOnly = true,
+                                modifier = Modifier
+                                    .width(300.dp),
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = false) }
+                            )
+                        } else {
+                            EnumSelectorDropdown(
+                                label = "Profile Status",
+                                values = LockedState.values(),
+                                exclude = arrayOf(),
+                                currentValue = profileLocked,
+                                onChanged = { profileLocked = it }
+                            )
+                        }
                     }
                 }
 
