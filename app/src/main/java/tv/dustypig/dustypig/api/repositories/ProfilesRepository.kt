@@ -16,7 +16,7 @@ import javax.inject.Singleton
 class ProfilesRepository @Inject constructor(
     @AuthenticatedAPIService private val apiService: ApiService,
     authManager: AuthManager
-): _RepositoryBase(authManager) {
+): RepositoryBase(authManager) {
 
     suspend fun list() = wrapAPICallWithReturnData { apiService.listProfiles() }
 

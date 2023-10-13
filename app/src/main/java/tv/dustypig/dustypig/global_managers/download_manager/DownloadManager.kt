@@ -331,7 +331,7 @@ class DownloadManager @Inject constructor(
 
 
         val displayMetrics = Resources.getSystem().displayMetrics
-        val urlParms = "displayWidth=${displayMetrics.widthPixels}&displayHeight=${displayMetrics.heightPixels}"
+        val urlParameters = "displayWidth=${displayMetrics.widthPixels}&displayHeight=${displayMetrics.heightPixels}"
 
         //Add any downloads that are not started (max of 3)
         val runningSupportFiles = downloads.filter {
@@ -349,7 +349,7 @@ class DownloadManager @Inject constructor(
 
                 var url = nextDownload.url
                 if(listOf(DISPOSITION_POSTER, DISPOSITION_BACKDROP, DISPOSITION_SCREENSHOT).contains(nextDownload.disposition)) {
-                    url += if (url.contains("?")) "&$urlParms" else "?$urlParms"
+                    url += if (url.contains("?")) "&$urlParameters" else "?$urlParameters"
                 }
 
                 val uri = android.net.Uri.parse(url)
@@ -377,7 +377,7 @@ class DownloadManager @Inject constructor(
                     file.delete()
 
                 var url = nextDownload.url
-                url += if(url.contains("?")) "&$urlParms" else "?$urlParms"
+                url += if(url.contains("?")) "&$urlParameters" else "?$urlParameters"
 
                 val uri = android.net.Uri.parse(url)
                 val request = android.app.DownloadManager.Request(uri)
@@ -563,7 +563,7 @@ class DownloadManager @Inject constructor(
 
     }
 
-    private suspend fun saveFile(fileName: String, data: Any) {
+    private fun saveFile(fileName: String, data: Any) {
         val file = File(_rootDir, fileName)
         if(file.exists())
             file.delete()
@@ -1125,19 +1125,10 @@ class DownloadManager @Inject constructor(
 //        _db.deleteAllJobs(_profileId)
 
         /**
-         * So do it the dumbass way, it works
+         * So do it the dumb-ass way, it works
          */
         val jobs = _db.getJobs(_profileId)
         for(job in jobs)
             _db.delete(job)
     }
-
-    suspend fun getJobCount(mediaId: Int, mediaType: MediaTypes): Int {
-        return _db.getJob(mediaId, mediaType, _profileId)?.count ?: 0
-    }
-
-    suspend fun hasJob(mediaId: Int, mediaType: MediaTypes): Boolean {
-        return _db.getJob(mediaId, mediaType, _profileId) != null
-    }
-
 }

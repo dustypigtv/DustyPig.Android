@@ -76,14 +76,6 @@ class Genres constructor() {
         value = fromVal
     }
 
-    constructor(fromVal: Genre) : this() {
-        value = fromVal.value
-    }
-
-    constructor(fromVal: Genres) : this() {
-        value = fromVal.value
-    }
-
     var value = Genre.Unknown.value
         private set
 
@@ -95,12 +87,8 @@ class Genres constructor() {
         value = value.and(genre.value)
     }
 
-    fun has(genre: Genre) =
+    private fun has(genre: Genre) =
         value.and(genre.value) == genre.value
-
-    fun del(genre: Genre) {
-        value = value.and(genre.value.inv())
-    }
 
 
     fun toList(): List<String> {

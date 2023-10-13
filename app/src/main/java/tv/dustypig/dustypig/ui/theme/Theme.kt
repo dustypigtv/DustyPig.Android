@@ -14,7 +14,7 @@ import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 
 
 
-private val MaggiesColorScheme = darkColorScheme(
+private val maggiesColorScheme = darkColorScheme(
     primary = MaggiePink,
     onPrimary = Color.White,
     background = Color.Black,
@@ -24,7 +24,7 @@ private val MaggiesColorScheme = darkColorScheme(
 )
 
 
-private val DustyPigColorScheme = darkColorScheme(
+private val dustyPigColorScheme = darkColorScheme(
     primary = Color.White,
     onPrimary = Color.Black,
     background = Color.Black,
@@ -71,8 +71,8 @@ fun DustyPigTheme(
     content: @Composable () -> Unit
 ) {
     val colorScheme = when(currentTheme) {
-        Themes.Maggies -> MaggiesColorScheme
-        Themes.DustyPig -> DustyPigColorScheme
+        Themes.Maggies -> maggiesColorScheme
+        Themes.DustyPig -> dustyPigColorScheme
         Themes.LB -> accentColorScheme(LBPrimary)
         Themes.Red -> accentColorScheme(NetflixRed)
         Themes.HuluGreen -> accentColorScheme(HuluGreen)

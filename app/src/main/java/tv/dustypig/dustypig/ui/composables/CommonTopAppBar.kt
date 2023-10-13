@@ -35,14 +35,13 @@ fun CommonTopAppBar(onClick: () -> Unit, text: String) {
                 TintedIcon(Icons.Filled.ArrowBack)
             }
         },
-        colors = TopAppBarDefaults.smallTopAppBarColors(
+        colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
             titleContentColor = MaterialTheme.colorScheme.primary
         )
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
 private fun CommonTopAppBarPreview() {

@@ -15,7 +15,7 @@ import javax.inject.Singleton
 class MediaRepository @Inject constructor(
     @AuthenticatedAPIService private val apiService: ApiService,
     authManager: AuthManager
-): _RepositoryBase(authManager) {
+): RepositoryBase(authManager) {
 
     suspend fun addToWatchlist(id: Int) = wrapAPICall { apiService.addToWatchlist(id) }
 

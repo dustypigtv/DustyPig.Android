@@ -25,12 +25,12 @@ class DownloadsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(DownloadsUIState())
     val uiState = _uiState.asStateFlow()
 
-    private val _expanedMediaIds: ArrayList<Int> = arrayListOf()
+    private val _expandedMediaIds: ArrayList<Int> = arrayListOf()
 
     init {
         _uiState.update {
             it.copy(
-                expandedMediaIds = _expanedMediaIds.toMutableStateList()
+                expandedMediaIds = _expandedMediaIds.toMutableStateList()
             )
         }
         viewModelScope.launch {
@@ -60,13 +60,13 @@ class DownloadsViewModel @Inject constructor(
     }
 
     fun toggleExpansion(id: Int) {
-        if(_expanedMediaIds.contains(id))
-            _expanedMediaIds.remove(id)
+        if(_expandedMediaIds.contains(id))
+            _expandedMediaIds.remove(id)
         else
-            _expanedMediaIds.add(id)
+            _expandedMediaIds.add(id)
         _uiState.update {
             it.copy(
-                expandedMediaIds = _expanedMediaIds.toMutableStateList()
+                expandedMediaIds = _expandedMediaIds.toMutableStateList()
             )
         }
     }

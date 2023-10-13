@@ -7,12 +7,11 @@ import java.util.UUID
  */
 sealed class NavigationState {
 
+    object Idle : NavigationState()
+
     /**
      * @param id is used so that multiple instances of the same route will trigger multiple navigation calls.
      */
-
-    object Idle : NavigationState()
-
     data class NavigateToRoute(val route: String, val id: String = UUID.randomUUID().toString()) :
         NavigationState()
 

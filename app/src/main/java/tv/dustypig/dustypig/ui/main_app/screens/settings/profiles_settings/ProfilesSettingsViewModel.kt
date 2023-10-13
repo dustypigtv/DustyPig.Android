@@ -95,7 +95,7 @@ class ProfilesSettingsViewModel @Inject constructor(
     }
 
     fun navToAddProfile() {
-        val color = listOf<String>("blue", "gold", "green", "grey", "red").random()
+        val color = listOf("blue", "gold", "green", "grey", "red").random()
         EditProfileViewModel.preloadAvatar = "https://s3.dustypig.tv/user-art/profile/${color}.png"
         EditProfileViewModel.selectedProfileId = 0
         navigateToRoute(EditProfileNav.route)

@@ -20,9 +20,9 @@ abstract class DetailsScreenBaseViewModel constructor(
     private val mediaType: MediaTypes
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    protected val _titleInfoUIState = MutableStateFlow(TitleInfoData())
+    protected val baseTitleInfoUIState = MutableStateFlow(TitleInfoData())
 
-    val titleInfoUIState: StateFlow<TitleInfoData> = _titleInfoUIState.asStateFlow()
+    val titleInfoUIState: StateFlow<TitleInfoData> = baseTitleInfoUIState.asStateFlow()
 
     abstract val mediaId: Int
 
@@ -33,14 +33,14 @@ abstract class DetailsScreenBaseViewModel constructor(
                     it.mediaId == mediaId && it.mediaType == mediaType
                 }
                 if(job == null) {
-                    _titleInfoUIState.update {
+                    baseTitleInfoUIState.update {
                         it.copy(
                             downloadStatus = DownloadStatus.None,
                             currentDownloadCount = 0
                         )
                     }
                 } else {
-                    _titleInfoUIState.update {
+                    baseTitleInfoUIState.update {
                         it.copy(
                             downloadStatus = job.status,
                             currentDownloadCount = job.count

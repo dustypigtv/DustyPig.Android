@@ -1,12 +1,12 @@
 package tv.dustypig.dustypig.api.repositories
 
-import tv.dustypig.dustypig.global_managers.AuthManager
 import tv.dustypig.dustypig.api.ApiService
 import tv.dustypig.dustypig.api.models.AddPlaylistItem
 import tv.dustypig.dustypig.api.models.CreatePlaylist
 import tv.dustypig.dustypig.api.models.MovePlaylistItem
 import tv.dustypig.dustypig.api.models.UpdatesPlaylist
 import tv.dustypig.dustypig.di.AuthenticatedAPIService
+import tv.dustypig.dustypig.global_managers.AuthManager
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -14,7 +14,7 @@ import javax.inject.Singleton
 class PlaylistRepository @Inject constructor(
     @AuthenticatedAPIService private val apiService: ApiService,
     authManager: AuthManager
-): _RepositoryBase(authManager) {
+): RepositoryBase(authManager) {
 
     suspend fun addItem(addPlaylistItem: AddPlaylistItem) = wrapAPICallWithReturnSimpleValue { apiService.addItemToPlaylist(addPlaylistItem) }
 

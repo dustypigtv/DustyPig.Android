@@ -8,10 +8,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.api.models.Genres
 import tv.dustypig.dustypig.api.models.DetailedTMDB
+import tv.dustypig.dustypig.api.models.Genres
 import tv.dustypig.dustypig.api.models.RequestStatus
-import tv.dustypig.dustypig.api.models.TMDB_MediaTypes
+import tv.dustypig.dustypig.api.models.TMDBMediaTypes
 import tv.dustypig.dustypig.api.models.TitleRequest
 import tv.dustypig.dustypig.api.models.TitleRequestPermissions
 import tv.dustypig.dustypig.api.repositories.FriendsRepository
@@ -58,7 +58,7 @@ class TMDBDetailsViewModel @Inject constructor(
                  _uiState.update {
                     it.copy(
                         loading = false,
-                        isMovie = _detailedTMDB.mediaType == TMDB_MediaTypes.Movie,
+                        isMovie = _detailedTMDB.mediaType == TMDBMediaTypes.Movie,
                         title = _detailedTMDB.title,
                         overview = _detailedTMDB.description ?: "",
                         creditsData = CreditsData(

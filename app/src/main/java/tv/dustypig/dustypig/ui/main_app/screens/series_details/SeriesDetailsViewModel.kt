@@ -46,7 +46,7 @@ class SeriesDetailsViewModel  @Inject constructor(
 
     init {
 
-        _titleInfoUIState.update {
+        baseTitleInfoUIState.update {
             it.copy(
                 title = ScreenLoadingInfo.title,
                 mediaType = MediaTypes.Series,
@@ -107,7 +107,7 @@ class SeriesDetailsViewModel  @Inject constructor(
                     )
                 }
 
-                _titleInfoUIState.update {
+                baseTitleInfoUIState.update {
                     it.copy(
                         inWatchList = _detailedSeries.inWatchlist,
                         title = _detailedSeries.title,
@@ -141,7 +141,7 @@ class SeriesDetailsViewModel  @Inject constructor(
                 criticalError = criticalError
             )
         }
-        _titleInfoUIState.update {
+        baseTitleInfoUIState.update {
             it.copy(
                 accessRequestBusy = false,
                 watchListBusy = false,
@@ -183,14 +183,14 @@ class SeriesDetailsViewModel  @Inject constructor(
 
 
     private fun requestAccess() {
-        _titleInfoUIState.update {
+        baseTitleInfoUIState.update {
             it.copy(accessRequestBusy = true)
         }
 
         viewModelScope.launch {
             try{
                 mediaRepository.requestAccessOverride(mediaId)
-                _titleInfoUIState.update {
+                baseTitleInfoUIState.update {
                     it.copy(
                         accessRequestBusy = false,
                         accessRequestStatus = OverrideRequestStatus.Requested
@@ -203,7 +203,7 @@ class SeriesDetailsViewModel  @Inject constructor(
     }
 
     private fun toggleWatchList() {
-        _titleInfoUIState.update {
+        baseTitleInfoUIState.update {
             it.copy(watchListBusy = true)
         }
 
@@ -211,16 +211,16 @@ class SeriesDetailsViewModel  @Inject constructor(
 
             try {
 
-                if(_titleInfoUIState.value.inWatchList) {
+                if(baseTitleInfoUIState.value.inWatchList) {
                     mediaRepository.deleteFromWatchlist(mediaId)
                 } else {
                     mediaRepository.addToWatchlist(mediaId)
                 }
 
-                _titleInfoUIState.update {
+                baseTitleInfoUIState.update {
                     it.copy(
                         watchListBusy = false,
-                        inWatchList = _titleInfoUIState.value.inWatchList.not()
+                        inWatchList = baseTitleInfoUIState.value.inWatchList.not()
                     )
                 }
 
@@ -232,7 +232,7 @@ class SeriesDetailsViewModel  @Inject constructor(
     }
 
     private fun markWatched(removeFromContinueWatching: Boolean) {
-        _titleInfoUIState.update {
+        baseTitleInfoUIState.update {
             it.copy(markWatchedBusy = true)
         }
         viewModelScope.launch {
@@ -242,7 +242,7 @@ class SeriesDetailsViewModel  @Inject constructor(
                 } else {
                     seriesRepository.markWatched(mediaId)
                 }
-                _titleInfoUIState.update {
+                baseTitleInfoUIState.update {
                     it.copy(
                         markWatchedBusy = false,
                         partiallyPlayed = false

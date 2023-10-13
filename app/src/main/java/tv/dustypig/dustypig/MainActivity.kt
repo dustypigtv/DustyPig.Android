@@ -43,7 +43,9 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity: ComponentActivity() {
 
-    private val TAG = "MainActivity"
+    companion object {
+        private const val TAG = "MainActivity"
+    }
 
     @Inject
     lateinit var authManager: AuthManager

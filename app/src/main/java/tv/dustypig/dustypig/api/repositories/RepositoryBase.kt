@@ -8,7 +8,7 @@ import tv.dustypig.dustypig.global_managers.AuthManager
 import tv.dustypig.dustypig.logToCrashlytics
 import java.io.IOException
 
-abstract class _RepositoryBase constructor(
+abstract class RepositoryBase constructor(
     private val authManager: AuthManager
 ) {
 

@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -73,8 +72,6 @@ import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.composables.YesNoDialog
 
-fun LazyListState.isScrolledToTheEnd() = layoutInfo.visibleItemsInfo.lastOrNull()?.index == layoutInfo.totalItemsCount - 1
-
 @Composable
 fun DownloadsScreen(vm: DownloadsViewModel) {
 
@@ -104,9 +101,6 @@ private fun DownloadsScreenInternal(
     modifyDownload: (job: UIJob, newCount: Int) -> Unit,
     uiState: DownloadsUIState
 ) {
-
-    val TAG = "DownloadsScreen"
-
 
     val listState = rememberLazyListState()
 

@@ -63,7 +63,7 @@ import tv.dustypig.dustypig.ui.composables.TintedIcon
 @Composable
 fun FriendDetailsSettingsScreen(vm: FriendDetailsSettingsViewModel) {
     val uiState by vm.uiState.collectAsState()
-    FriendDetailsSettingsScreenInternall(
+    FriendDetailsSettingsScreenInternal(
         popBackStack = vm::popBackStack,
         hideError = vm::hideError,
         changeDisplayName = vm::changeDisplayName,
@@ -75,7 +75,7 @@ fun FriendDetailsSettingsScreen(vm: FriendDetailsSettingsViewModel) {
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun FriendDetailsSettingsScreenInternall(
+private fun FriendDetailsSettingsScreenInternal(
     popBackStack: () -> Unit,
     hideError: () -> Unit,
     changeDisplayName: (String) -> Unit,
@@ -375,7 +375,7 @@ private fun FriendDetailsSettingsScreenPreview() {
     )
 
     PreviewBase {
-        FriendDetailsSettingsScreenInternall(
+        FriendDetailsSettingsScreenInternal(
             popBackStack = { },
             hideError = { },
             changeDisplayName = { _ -> },

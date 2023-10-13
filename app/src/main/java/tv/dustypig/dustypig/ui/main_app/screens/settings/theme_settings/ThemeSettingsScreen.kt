@@ -14,7 +14,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.RadioButtonChecked
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -48,7 +47,6 @@ fun SettingsThemeScreen(vm: ThemeSettingsViewModel) {
 
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SettingsThemeScreenInternal(
     popBackStack: () -> Unit,

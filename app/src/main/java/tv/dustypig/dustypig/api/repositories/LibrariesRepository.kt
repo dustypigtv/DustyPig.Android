@@ -10,7 +10,7 @@ import javax.inject.Singleton
 class LibrariesRepository @Inject constructor(
     @AuthenticatedAPIService private val apiService: ApiService,
     authManager: AuthManager
-): _RepositoryBase(authManager)  {
+): RepositoryBase(authManager)  {
 
     suspend fun adminList() = wrapAPICallWithReturnData { apiService.adminListLibraries() }
 

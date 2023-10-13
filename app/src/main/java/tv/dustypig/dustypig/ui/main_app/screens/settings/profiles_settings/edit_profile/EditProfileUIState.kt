@@ -19,7 +19,7 @@ data class EditProfileUIState(
     val avatarUrl: String = "",
     val libraries: List<BasicLibrary> = listOf(),
     val selectedLibraryIds: List<Int> = listOf(),
-    val maxMovieRating: MovieRatings = MovieRatings.Movies_G,
-    val maxTVRating: TVRatings = TVRatings.TV_Y,
+    val maxMovieRating: MovieRatings = MovieRatings.G,
+    val maxTVRating: TVRatings = TVRatings.Y,
     val titleRequestPermissions: TitleRequestPermissions = TitleRequestPermissions.RequiresAuthorization
 )

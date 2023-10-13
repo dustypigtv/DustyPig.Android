@@ -10,12 +10,12 @@ fun Configuration.isTablet(): Boolean {
         this.screenWidthDp > 600
     }
 }
-
-fun Configuration.isTabletLandscape(): Boolean {
-    return this.isTablet() && this.orientation == Configuration.ORIENTATION_LANDSCAPE
-}
-
-fun Configuration.isTabletPortrait(): Boolean {
-    return this.isTablet() && this.orientation != Configuration.ORIENTATION_LANDSCAPE
-}
-
+//
+//fun Configuration.isTabletLandscape(): Boolean {
+//    return this.isTablet() && this.orientation == Configuration.ORIENTATION_LANDSCAPE
+//}
+//
+//fun Configuration.isTabletPortrait(): Boolean {
+//    return this.isTablet() && this.orientation != Configuration.ORIENTATION_LANDSCAPE
+//}
+//

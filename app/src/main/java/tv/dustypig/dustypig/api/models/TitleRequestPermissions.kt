@@ -2,7 +2,7 @@ package tv.dustypig.dustypig.api.models
 
 import com.google.gson.annotations.SerializedName
 
-enum class TitleRequestPermissions() {
+enum class TitleRequestPermissions {
     @SerializedName("0")
     Enabled,
 

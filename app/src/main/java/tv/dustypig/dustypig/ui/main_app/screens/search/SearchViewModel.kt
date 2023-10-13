@@ -24,7 +24,9 @@ class SearchViewModel @Inject constructor(
     private val settingsManager: SettingsManager
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val TAG = "SearchViewModel"
+    companion object {
+        private const val TAG = "SearchViewModel"
+    }
 
     private val _uiState = MutableStateFlow(SearchUIState())
     val uiState: StateFlow<SearchUIState> = _uiState.asStateFlow()
@@ -114,7 +116,7 @@ class SearchViewModel @Inject constructor(
     }
 
     /**
-     * Set here to survive recomp
+     * Set here to survive recomposition
      */
     fun updateTabIndex(index: Int) {
         _uiState.update {

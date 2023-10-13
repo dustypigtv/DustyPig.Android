@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 
-// This will be shred between 3 composables, so it's singleton
+// This will be shred between 3 composable objects, so it's singleton
 object SharedEmailModel  {
     private val _uiState = MutableStateFlow(EmailUIState())
     val uiState: StateFlow<EmailUIState> = _uiState.asStateFlow()

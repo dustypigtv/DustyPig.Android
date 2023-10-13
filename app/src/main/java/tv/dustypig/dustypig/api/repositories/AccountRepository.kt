@@ -14,7 +14,7 @@ class AccountRepository @Inject constructor(
     @UnAuthenticatedAPIService private val unAuthenticatedApiService: ApiService,
     @AuthenticatedAPIService private val apiService: ApiService,
     authManager: AuthManager
-): _RepositoryBase(authManager) {
+): RepositoryBase(authManager) {
 
     suspend fun create(createAccount: CreateAccount) = wrapAPICallWithReturnData { unAuthenticatedApiService.createAccount(createAccount) }
 

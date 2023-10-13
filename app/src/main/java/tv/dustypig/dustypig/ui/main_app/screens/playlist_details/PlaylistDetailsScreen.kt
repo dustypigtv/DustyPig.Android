@@ -45,7 +45,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -124,7 +123,6 @@ fun PlaylistDetailsScreen(vm: PlaylistDetailsViewModel) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PlaylistDetailsScreenInternal(
     popBackStack: () -> Unit,
@@ -384,8 +382,7 @@ private fun HorizontalTabletLayout(
                         showRenameDialog = showRenameDialog,
                         playUpNext = playUpNext,
                         showDownloadDialog = showDownloadDialog,
-                        uiState = uiState,
-                        criticalError = criticalError
+                        uiState = uiState
                     )
                 }
 
@@ -508,8 +505,7 @@ private fun PhoneLayout(
                         showRenameDialog = showRenameDialog,
                         playUpNext = playUpNext,
                         showDownloadDialog = showDownloadDialog,
-                        uiState = uiState,
-                        criticalError = false
+                        uiState = uiState
                     )
                 }
 
@@ -546,8 +542,7 @@ private fun PlaybackLayout(
     playUpNext: () -> Unit,
     showRenameDialog: MutableState<Boolean>,
     showDownloadDialog: MutableState<Boolean>,
-    uiState: PlaylistDetailsUIState,
-    criticalError: Boolean
+    uiState: PlaylistDetailsUIState
 ) {
 
     val configuration = LocalConfiguration.current
@@ -558,7 +553,7 @@ private fun PlaybackLayout(
     if (uiState.loading) {
         Spacer(modifier = Modifier.height(48.dp))
         CircularProgressIndicator()
-    } else  if (!criticalError) {
+    } else {
 
         val downloadIcon = when(uiState.downloadStatus) {
             DownloadStatus.None -> Icons.Filled.Download

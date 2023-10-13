@@ -13,7 +13,7 @@ import javax.inject.Singleton
 class AuthRepository @Inject constructor(
     @AuthenticatedAPIService private val apiService: ApiService,
     authManager: AuthManager
-): _RepositoryBase(authManager) {
+): RepositoryBase(authManager) {
 
     suspend fun loginDeviceWithCode(code: String) = wrapAPICall { apiService.loginDeviceWithCode(SimpleValue(code)) }
 

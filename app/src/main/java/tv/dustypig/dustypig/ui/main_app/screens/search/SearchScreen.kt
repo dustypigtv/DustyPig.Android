@@ -55,7 +55,7 @@ import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.BasicTMDB
 import tv.dustypig.dustypig.api.models.MediaTypes
-import tv.dustypig.dustypig.api.models.TMDB_MediaTypes
+import tv.dustypig.dustypig.api.models.TMDBMediaTypes
 import tv.dustypig.dustypig.nav.MyRouteNavigator
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.composables.BasicMediaView
@@ -304,10 +304,10 @@ fun TMDBMediaView(
         ScreenLoadingInfo.setInfo(title = basicTMDB.title, posterUrl = basicTMDB.artworkUrl ?: "", backdropUrl = basicTMDB.backdropUrl ?: "")
 
         when (basicTMDB.mediaType) {
-            TMDB_MediaTypes.Movie -> {
+            TMDBMediaTypes.Movie -> {
                 routeNavigator.navigateToRoute(route = TMDBDetailsNav.getRouteForId(basicTMDB.tmdbId, true))
             }
-            TMDB_MediaTypes.Series -> {
+            TMDBMediaTypes.Series -> {
                 routeNavigator.navigateToRoute(route = TMDBDetailsNav.getRouteForId(basicTMDB.tmdbId, false))
             }
         }
@@ -360,7 +360,7 @@ private fun SearchScreenPreview() {
         basicTMDBList.add(
             BasicTMDB(
                 tmdbId = i,
-                mediaType = TMDB_MediaTypes.Movie,
+                mediaType = TMDBMediaTypes.Movie,
                 artworkUrl = "",
                 backdropUrl = "",
                 title = ""

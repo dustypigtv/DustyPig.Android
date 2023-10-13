@@ -13,7 +13,7 @@ import javax.inject.Singleton
 class FriendsRepository @Inject constructor(
     @AuthenticatedAPIService private val apiService: ApiService,
     authManager: AuthManager
-): _RepositoryBase(authManager) {
+): RepositoryBase(authManager) {
 
     suspend fun list() = wrapAPICallWithReturnData { apiService.listFriends() }
 

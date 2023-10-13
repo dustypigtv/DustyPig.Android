@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -22,7 +21,6 @@ import tv.dustypig.dustypig.ui.composables.BasicMediaView
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShowMoreScreen(vm: ShowMoreViewModel) {
 

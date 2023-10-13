@@ -11,7 +11,7 @@ import javax.inject.Singleton
 class NotificationsRepository @Inject constructor(
     @AuthenticatedAPIService private val apiService: ApiService,
     authManager: AuthManager
-): _RepositoryBase(authManager)  {
+): RepositoryBase(authManager)  {
 
     suspend fun list(): List<Notification> = wrapAPICallWithReturnData { apiService.listNotifications() }
 
