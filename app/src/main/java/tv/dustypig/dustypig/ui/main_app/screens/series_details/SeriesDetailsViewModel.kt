@@ -1,20 +1,16 @@
 package tv.dustypig.dustypig.ui.main_app.screens.series_details
 
-import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.R
-import tv.dustypig.dustypig.api.models.Genres
-import tv.dustypig.dustypig.api.asString
 import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.api.models.DetailedSeries
+import tv.dustypig.dustypig.api.models.Genres
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.OverrideRequestStatus
 import tv.dustypig.dustypig.api.repositories.MediaRepository
@@ -37,7 +33,6 @@ import javax.inject.Inject
 class SeriesDetailsViewModel  @Inject constructor(
     private val mediaRepository: MediaRepository,
     private val seriesRepository: SeriesRepository,
-    @ApplicationContext private val context: Context,
     routeNavigator: RouteNavigator,
     downloadManager: DownloadManager,
     savedStateHandle: SavedStateHandle
@@ -88,9 +83,7 @@ class SeriesDetailsViewModel  @Inject constructor(
                 }
 
                 val upNext: DetailedEpisode = episodes.firstOrNull { it.upNext } ?: episodes.first()
-                val selEps = episodes.filter {
-                    it.seasonNumber == upNext.seasonNumber
-                }
+
 
                 val unPlayed = upNext.id == episodes.first().id && (upNext.played == null || upNext.played < 1)
                 val fullyPlayed = upNext.id == episodes.last().id && (upNext.played ?: 0.0) >= (upNext.creditStartTime ?: (upNext.length - 30.0))
@@ -120,10 +113,10 @@ class SeriesDetailsViewModel  @Inject constructor(
                         title = _detailedSeries.title,
                         canManage = _detailedSeries.canManage,
                         canPlay = _detailedSeries.canPlay,
-                        rated = _detailedSeries.rated.asString(),
+                        rated = _detailedSeries.rated.toString(),
                         overview = (if(unPlayed) _detailedSeries.description else upNext.description) ?: "",
                         partiallyPlayed = !(unPlayed || fullyPlayed),
-                        seasonEpisode = if(unPlayed) "" else context.getString(R.string.season_episode, upNext.seasonNumber.toString(), upNext.episodeNumber.toString()),
+                        seasonEpisode = if(unPlayed) "" else "S${upNext.seasonNumber}E${upNext.episodeNumber}",
                         episodeTitle = if(unPlayed) "" else upNext.title,
                         accessRequestStatus = _detailedSeries.accessRequestStatus,
                         accessRequestBusy = false,

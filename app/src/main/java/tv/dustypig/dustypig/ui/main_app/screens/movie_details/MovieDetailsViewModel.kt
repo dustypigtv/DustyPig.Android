@@ -9,9 +9,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.api.models.Genres
-import tv.dustypig.dustypig.api.asString
 import tv.dustypig.dustypig.api.models.DetailedMovie
+import tv.dustypig.dustypig.api.models.Genres
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.OverrideRequestStatus
 import tv.dustypig.dustypig.api.models.PlaybackProgress
@@ -111,7 +110,7 @@ class MovieDetailsViewModel @Inject constructor(
                         year = SimpleDateFormat("yyyy").format(_detailedMovie.date),
                         canManage = _detailedMovie.canManage,
                         canPlay = _detailedMovie.canPlay,
-                        rated = _detailedMovie.rated.asString(),
+                        rated = _detailedMovie.rated.toString(),
                         length = _detailedMovie.length.toTimeString(),
                         partiallyPlayed = (_detailedMovie.played ?: 0.0) > 0.0,
                         overview = _detailedMovie.description ?: "",

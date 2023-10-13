@@ -6,10 +6,13 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.repositories.ProfilesRepository
 import tv.dustypig.dustypig.nav.RouteNavigator
+import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.edit_profile.EditProfileNav
+import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.edit_profile.EditProfileViewModel
 import javax.inject.Inject
 
 @HiltViewModel
@@ -18,24 +21,54 @@ class ProfilesSettingsViewModel @Inject constructor(
     routeNavigator: RouteNavigator
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val TAG = "ProfileSettingsVM"
+    companion object {
+        const val TAG = "ProfileSettingsVM"
+
+        private val _needsUpdate = MutableStateFlow(false)
+
+        fun triggerUpdate() {
+            _needsUpdate.tryEmit(true)
+        }
+    }
 
     private val _uiState = MutableStateFlow((ProfilesSettingsUIState()))
     val uiState = _uiState.asStateFlow()
 
     init {
+
+        //This automatically updates data on init, so set this to false to prevent 2 calls
+        _needsUpdate.update { false }
+
+        //Do the update
         viewModelScope.launch {
-            try {
-                val lst = profilesRepository.list()
-                _uiState.update {
-                    it.copy(
-                        busy = false,
-                        profiles = lst
-                    )
-                }
-            } catch (ex: Exception) {
-                setError(ex = ex, criticalError = true)
+            updateData(true)
+        }
+
+        //Now start watching for updates from other screens
+        viewModelScope.launch {
+            _needsUpdate.collectLatest { needsUpdate ->
+                if(needsUpdate)
+                    updateData(false)
             }
+        }
+    }
+
+    private suspend fun updateData(setCriticalError: Boolean) {
+        try {
+            _uiState.update {
+                it.copy(busy = true)
+            }
+
+            val lst = profilesRepository.list()
+
+            _uiState.update {
+                it.copy(
+                    busy = false,
+                    profiles = lst
+                )
+            }
+        } catch (ex: Exception) {
+            setError(ex = ex, criticalError = setCriticalError)
         }
     }
 
@@ -62,11 +95,17 @@ class ProfilesSettingsViewModel @Inject constructor(
     }
 
     fun navToAddProfile() {
-
+        val color = listOf<String>("blue", "gold", "green", "grey", "red").random()
+        EditProfileViewModel.preloadAvatar = "https://s3.dustypig.tv/user-art/profile/${color}.png"
+        EditProfileViewModel.selectedProfileId = 0
+        navigateToRoute(EditProfileNav.route)
     }
 
-    fun navToProfile(id: Int) {
 
+    fun navToProfile(id: Int) {
+        EditProfileViewModel.preloadAvatar = _uiState.value.profiles.first { it.id == id }.avatarUrl ?: ""
+        EditProfileViewModel.selectedProfileId = id
+        navigateToRoute(EditProfileNav.route)
     }
 
 }

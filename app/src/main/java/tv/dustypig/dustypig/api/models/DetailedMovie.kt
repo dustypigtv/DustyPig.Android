@@ -3,6 +3,7 @@ package tv.dustypig.dustypig.api.models
 import com.google.gson.annotations.SerializedName
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 
 data class DetailedMovie (
@@ -17,7 +18,7 @@ data class DetailedMovie (
     val writers: List<String>?,
     val owner: String?,
     val played: Double?,
-    val rated: Ratings,
+    val rated: MovieRatings,
     val genres: Long,
     @SerializedName("bif_url") val bifUrl: String?,
     @SerializedName("video_url") val videoUrl: String?,
@@ -31,14 +32,9 @@ data class DetailedMovie (
     @SerializedName("credit_start_time") val creditStartTime: Double?,
     @SerializedName("srt_subtitles") val externalSubtitles: List<ExternalSubtitle>?,
     @SerializedName("access_request_status") val accessRequestStatus: OverrideRequestStatus,
-
-//    @SerializedName("tmdb_id") val tmdbId: Int?,
-//    @SerializedName("library_id") val libraryId: Int?,
-//    @SerializedName("extra_search_terms") val extraSearchTerms: List<String>?
-
 ) {
     fun displayTitle(): String{
-        val year = SimpleDateFormat("yyyy").format(date)
+        val year = SimpleDateFormat("yyyy", Locale.US).format(date)
         return "$title ($year)"
     }
 }

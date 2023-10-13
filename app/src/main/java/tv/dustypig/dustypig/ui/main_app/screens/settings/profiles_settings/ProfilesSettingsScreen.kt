@@ -82,7 +82,7 @@ private fun ProfilesSettingsScreenInternal(
                     //Just some blank space between top and actual list
                 }
 
-                items(uiState.profiles) {
+                items(uiState.profiles, key = { it.clientUUID }) {
                     Row (
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier

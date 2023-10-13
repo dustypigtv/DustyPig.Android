@@ -13,7 +13,7 @@ data class DetailedSeries (
     val producers: List<String>?,
     val writers: List<String>?,
     val owner: String?,
-    val rated: Ratings,
+    val rated: TVRatings,
     val genres: Long,
     @SerializedName("in_watchlist") val inWatchlist: Boolean = false,
     @SerializedName("can_play") val canPlay: Boolean = false,

@@ -3,6 +3,7 @@ package tv.dustypig.dustypig.ui.main_app.screens.settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
@@ -64,11 +66,12 @@ private fun SettingsScreenInternal(
     ) {
 
         LinkRow(text = "Account Settings", onClick = navToAccountSettings)
-        LinkRow(text = "My Profile", onClick = navToMyProfile)
 
         if(uiState.isMainProfile) {
-            LinkRow(text = "Friends", onClick = navToFriendsSettings)
             LinkRow(text = "Profiles", onClick = navToAllProfilesSettings)
+            LinkRow(text = "Friends", onClick = navToFriendsSettings)
+        } else {
+            LinkRow(text = "My Profile", onClick = navToMyProfile)
         }
 
         LinkRow(text = "Theme", onClick = navToTheme)
@@ -107,14 +110,18 @@ private fun SettingsScreenPreview() {
     )
 
     PreviewBase {
-        SettingsScreenInternal(
-            navToTheme = { },
-            navToAccountSettings = { },
-            navToMyProfile = { },
-            navToFriendsSettings = { },
-            navToAllProfilesSettings = { },
-            uiState = uiState
-        )
+        Scaffold {
+            Box(modifier = Modifier.padding(it)) {
+                SettingsScreenInternal(
+                    navToTheme = { },
+                    navToAccountSettings = { },
+                    navToMyProfile = { },
+                    navToFriendsSettings = { },
+                    navToAllProfilesSettings = { },
+                    uiState = uiState
+                )
+            }
+        }
     }
 }
 

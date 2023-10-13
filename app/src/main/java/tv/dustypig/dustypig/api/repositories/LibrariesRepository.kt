@@ -13,4 +13,6 @@ class LibrariesRepository @Inject constructor(
 ): _RepositoryBase(authManager)  {
 
     suspend fun adminList() = wrapAPICallWithReturnData { apiService.adminListLibraries() }
+
+    suspend fun list() = wrapAPICallWithReturnData { apiService.listLibraries() }
 }

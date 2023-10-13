@@ -12,12 +12,14 @@ import retrofit2.http.Part
 import retrofit2.http.Path
 import tv.dustypig.dustypig.api.models.AddPlaylistItem
 import tv.dustypig.dustypig.api.models.BasicFriend
+import tv.dustypig.dustypig.api.models.BasicLibrary
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.BasicPlaylist
 import tv.dustypig.dustypig.api.models.BasicProfile
 import tv.dustypig.dustypig.api.models.CreateAccount
 import tv.dustypig.dustypig.api.models.CreateAccountResponse
 import tv.dustypig.dustypig.api.models.CreatePlaylist
+import tv.dustypig.dustypig.api.models.CreateProfile
 import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.api.models.DetailedFriend
 import tv.dustypig.dustypig.api.models.DetailedLibrary
@@ -35,6 +37,7 @@ import tv.dustypig.dustypig.api.models.Notification
 import tv.dustypig.dustypig.api.models.PasswordCredentials
 import tv.dustypig.dustypig.api.models.PlaybackProgress
 import tv.dustypig.dustypig.api.models.ProfileCredentials
+import tv.dustypig.dustypig.api.models.ProfileLibraryLink
 import tv.dustypig.dustypig.api.models.ResponseWrapper
 import tv.dustypig.dustypig.api.models.ResponseWrapperOf
 import tv.dustypig.dustypig.api.models.SearchRequest
@@ -123,6 +126,11 @@ interface ApiService {
     @GET("Libraries/AdminList")
     suspend fun adminListLibraries(): Response<ResponseWrapperOf<List<DetailedLibrary>>>
 
+    @GET("Libraries/List")
+    suspend fun listLibraries(): Response<ResponseWrapperOf<List<BasicLibrary>>>
+
+
+
 
 
     // ***** Media *****
@@ -158,6 +166,10 @@ interface ApiService {
     // ***** Movies *****
     @GET("Movies/Details/{id}")
     suspend fun movieDetails(@Path("id") id: Int): Response<ResponseWrapperOf<DetailedMovie>>
+
+
+
+
 
 
     // ***** Notifications *****
@@ -205,6 +217,9 @@ interface ApiService {
 
 
     // ***** Profiles *****
+    @POST("Profiles/Create")
+    suspend fun createProfile(@Body createProfile: CreateProfile): Response<ResponseWrapperOf<SimpleValue<Int>>>
+
     @GET("Profiles/List")
     suspend fun listProfiles(): Response<ResponseWrapperOf<List<BasicProfile>>>
 
@@ -218,6 +233,14 @@ interface ApiService {
     @PUT("Profiles/SetProfileAvatarMultipart/{id}")
     suspend fun setProfileAvatar(@Path("id") id: Int, @Part image: MultipartBody.Part): Response<ResponseWrapperOf<SimpleValue<String>>>
 
+    @POST("Profiles/LinkToLibrary")
+    suspend fun linkProfileLibrary(@Body profileLibraryLink: ProfileLibraryLink): Response<ResponseWrapper>
+
+    @POST("Profiles/UnLinkFromLibrary")
+    suspend fun unLinkProfileLibrary(@Body profileLibraryLink: ProfileLibraryLink): Response<ResponseWrapper>
+
+    @DELETE("Profiles/Delete/{id}")
+    suspend fun deleteProfile(@Path("id") id: Int): Response<ResponseWrapper>
 
 
 
