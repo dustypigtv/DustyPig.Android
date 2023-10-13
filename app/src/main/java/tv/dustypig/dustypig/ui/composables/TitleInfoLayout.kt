@@ -39,6 +39,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -80,7 +81,9 @@ data class TitleInfoData(
     val markWatchedBusy: Boolean = false,
     val inWatchList: Boolean = false,
     val watchListBusy: Boolean = false,
-    val seasonEpisode: String = "",
+    //val seasonEpisode: String = "",
+    val upNextSeason: UShort? = null,
+    val upNextEpisode: UShort? = null,
     val episodeTitle: String = "",
     val accessRequestStatus: OverrideRequestStatus = OverrideRequestStatus.NotRequested,
     val accessRequestBusy: Boolean = false,
@@ -114,21 +117,28 @@ fun ActionButton(onClick: () -> Unit, caption: String, icon: ImageVector) {
 fun TitleInfoLayout(info: TitleInfoData) {
 
     //Align buttons to center for phone, left for tablet
+    val context = LocalContext.current
     val configuration = LocalConfiguration.current
     val alignment = if(configuration.isTablet()) Alignment.Start else Alignment.CenterHorizontally
     val modifier = if(configuration.isTablet()) Modifier.width(320.dp) else Modifier.fillMaxWidth()
     val buttonPadding = if(configuration.isTablet()) PaddingValues(0.dp, 0.dp  ) else PaddingValues(16.dp, 0.dp)
 
+    val seasonEpisode =
+        if(info.upNextSeason == null || info.upNextEpisode == null)
+            ""
+        else
+            context.getString(R.string.season_episode, info.upNextSeason.toString(),  info.upNextEpisode.toString())
+
     val playButtonText =
         if (info.partiallyPlayed)
-            stringResource(R.string.resume_season_episode, info.seasonEpisode).trim()
+            stringResource(R.string.resume_season_episode, seasonEpisode).trim()
         else
-            stringResource(R.string.play_season_episode, info.seasonEpisode).trim()
+            stringResource(R.string.play_season_episode, seasonEpisode).trim()
 
 
     //This will leave at minimum just the colon, so check if
     //length > 1 before displaying
-    val epHeader = "${info.seasonEpisode}: ${info.episodeTitle}".trim()
+    val epHeader = "${seasonEpisode}: ${info.episodeTitle}".trim()
 
 
     val downloadIcon = when(info.downloadStatus) {
@@ -439,8 +449,7 @@ private fun TitleInfoLayoutPreview() {
         )
 
     PreviewBase {
-        Column(
-        ) {
+        Column {
             TitleInfoLayout(info = info)
         }
     }
