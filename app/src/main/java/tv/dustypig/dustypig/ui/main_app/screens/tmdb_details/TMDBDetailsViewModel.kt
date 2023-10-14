@@ -4,10 +4,15 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import tv.dustypig.dustypig.api.models.BasicFriend
+import tv.dustypig.dustypig.api.models.DetailedProfile
 import tv.dustypig.dustypig.api.models.DetailedTMDB
 import tv.dustypig.dustypig.api.models.Genres
 import tv.dustypig.dustypig.api.models.RequestStatus
@@ -15,7 +20,9 @@ import tv.dustypig.dustypig.api.models.TMDBMediaTypes
 import tv.dustypig.dustypig.api.models.TitleRequest
 import tv.dustypig.dustypig.api.models.TitleRequestPermissions
 import tv.dustypig.dustypig.api.repositories.FriendsRepository
+import tv.dustypig.dustypig.api.repositories.ProfilesRepository
 import tv.dustypig.dustypig.api.repositories.TMDBRepository
+import tv.dustypig.dustypig.global_managers.AuthManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
@@ -28,6 +35,8 @@ class TMDBDetailsViewModel @Inject constructor(
     private val routeNavigator: RouteNavigator,
     private val friendsRepository: FriendsRepository,
     private val tmdbRepository: TMDBRepository,
+    private val authManager: AuthManager,
+    private val profilesRepository: ProfilesRepository,
     savedStateHandle: SavedStateHandle
 ): ViewModel(), RouteNavigator by routeNavigator {
 
@@ -50,12 +59,51 @@ class TMDBDetailsViewModel @Inject constructor(
         }
         viewModelScope.launch {
             try {
+
                 _detailedTMDB = if(_isMovie)
                     tmdbRepository.getMovie(_tmdbId)
                 else
                     tmdbRepository.getSeries(_tmdbId)
 
-                 _uiState.update {
+
+                val friendsForRequests = arrayListOf<TMDBDetailsRequestFriend>()
+                if(_detailedTMDB.requestPermissions == TitleRequestPermissions.Enabled) {
+                    val calls = arrayListOf<Deferred<*>>()
+                    calls.add(async { friendsRepository.list() })
+                    if (!authManager.currentProfileIsMain) {
+                        calls.add(async { profilesRepository.details(authManager.currentProfileId) })
+                    }
+                    val results = calls.awaitAll()
+
+
+                    @Suppress("UNCHECKED_CAST")
+                    val friendsList = results[0] as List<BasicFriend>
+                    friendsList.forEach {
+                        friendsForRequests.add(
+                            TMDBDetailsRequestFriend(
+                                id = it.id,
+                                name = it.displayName,
+                                avatarUrl = it.avatarUrl
+                            )
+                        )
+                    }
+
+                    if(!authManager.currentProfileIsMain) {
+                        val detailedProfile = results[1] as DetailedProfile
+                        friendsForRequests.add(
+                            index =0,
+                            element = TMDBDetailsRequestFriend(
+                                id = null,
+                                name = detailedProfile.name,
+                                avatarUrl = detailedProfile.avatarUrl
+                            )
+                        )
+                    }
+
+                }
+
+
+                _uiState.update {
                     it.copy(
                         loading = false,
                         isMovie = _detailedTMDB.mediaType == TMDBMediaTypes.Movie,
@@ -63,16 +111,17 @@ class TMDBDetailsViewModel @Inject constructor(
                         overview = _detailedTMDB.description ?: "",
                         creditsData = CreditsData(
                             genres = Genres(_detailedTMDB.genres).toList(),
-                            cast = _detailedTMDB.cast ?: listOf(),
-                            directors = _detailedTMDB.directors ?: listOf(),
-                            producers = _detailedTMDB.producers ?: listOf(),
-                            writers = _detailedTMDB.writers ?: listOf()
+                            cast = _detailedTMDB.cast,
+                            directors = _detailedTMDB.directors,
+                            producers = _detailedTMDB.producers,
+                            writers = _detailedTMDB.writers
                         ),
                         rated = _detailedTMDB.rated ?: "",
                         year = if(_detailedTMDB.year > 1900) _detailedTMDB.year.toString() else "",
-                        available = _detailedTMDB.available ?: listOf(),
-                        requestPermissions = _detailedTMDB.requestPermissions ?: TitleRequestPermissions.Enabled,
-                        requestStatus = _detailedTMDB.requestStatus ?: RequestStatus.NotRequested
+                        available = _detailedTMDB.available,
+                        requestPermissions = _detailedTMDB.requestPermissions,
+                        requestStatus = _detailedTMDB.requestStatus,
+                        friends = friendsForRequests
                     )
                 }
             } catch (ex: Exception) {
@@ -105,18 +154,16 @@ class TMDBDetailsViewModel @Inject constructor(
     }
 
 
-    fun requestTitle(friendId: Int) {
+    fun requestTitle(id: Int?) {
         _uiState.update {
             it.copy(
-                busy = friendId >= 0
+                busy = true
             )
         }
-        if(friendId < 0)
-            return
 
         viewModelScope.launch {
             try{
-                tmdbRepository.requestTitle(titleRequest = TitleRequest(tmdbId = _tmdbId, friendId = friendId, mediaType = _detailedTMDB.mediaType))
+                tmdbRepository.requestTitle(titleRequest = TitleRequest(tmdbId = _tmdbId, friendId = id, mediaType = _detailedTMDB.mediaType))
                 _uiState.update {
                     it.copy(
                         busy = false,

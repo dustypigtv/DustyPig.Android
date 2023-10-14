@@ -24,6 +24,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -35,9 +36,9 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -54,7 +55,6 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.BasicMedia
-import tv.dustypig.dustypig.api.models.BasicProfile
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.RequestStatus
 import tv.dustypig.dustypig.api.models.TitleRequestPermissions
@@ -88,7 +88,7 @@ fun TMDBDetailsScreen(vm: TMDBDetailsViewModel) {
 private fun TMDBDetailsScreenInternal(
     popBackStack: () -> Unit,
     hideError: () -> Unit,
-    requestTitle: (Int) -> Unit,
+    requestTitle: (Int?) -> Unit,
     cancelRequest: () -> Unit,
     uiState: TMDBDetailsUIState,
     routeNavigator: RouteNavigator
@@ -152,7 +152,7 @@ private fun TMDBDetailsScreenInternal(
     }
 
     if(showFriendsDialog.value) {
-        val friendId = remember { mutableIntStateOf(-1) }
+        var friendId by remember { mutableStateOf<Int?>(-1) }
         val titleType = if(uiState.isMovie) "movie" else "series"
         val listState = rememberLazyListState()
 
@@ -170,24 +170,30 @@ private fun TMDBDetailsScreenInternal(
                     ) {
                         items(uiState.friends) { friend ->
 
+                            val backgroundColor = if(friendId == friend.id) MaterialTheme.colorScheme.primary else Color.Transparent
+                            val textColor = if(friendId == friend.id) MaterialTheme.colorScheme.onPrimary else AlertDialogDefaults.textContentColor
+
+
                             Row (
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
+                                    .background(color = backgroundColor, shape = RoundedCornerShape(48.dp))
                                     .clip(shape = RoundedCornerShape(size = 48.dp))
                                     .fillMaxSize()
-                                    .clickable { friendId.intValue = friend.id }
+                                    .clickable { friendId = friend.id }
                             ) {
                                 Avatar(
-                                    basicProfile = BasicProfile(id = friend.id, name = friend.displayName, avatarUrl = friend.avatarUrl),
+                                    imageUrl = friend.avatarUrl,
                                     modifier = Modifier
                                         .width(48.dp)
                                         .height(48.dp),
                                     clickable = false
                                 )
                                 Text(
-                                    text = friend.displayName,
+                                    text = friend.name,
                                     maxLines = 2,
+                                    color = textColor
                                 )
                             }
                         }
@@ -196,10 +202,10 @@ private fun TMDBDetailsScreenInternal(
             },
             confirmButton = {
                 TextButton(
-                    enabled = friendId.intValue >= 0,
+                    enabled = friendId != -1,
                     onClick = {
                         showFriendsDialog.value = false
-                        requestTitle(friendId.intValue)
+                        requestTitle(friendId)
                     }
                 ) {
                     Text(stringResource(R.string.save))
@@ -410,6 +416,7 @@ fun InfoLayout(
             Spacer(modifier = Modifier.height(12.dp))
 
             if(uiState.available.isEmpty()) {
+
                 if(uiState.requestPermissions != TitleRequestPermissions.Disabled) {
 
                     val configuration = LocalConfiguration.current

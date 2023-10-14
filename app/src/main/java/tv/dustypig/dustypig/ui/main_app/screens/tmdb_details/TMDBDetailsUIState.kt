@@ -1,6 +1,5 @@
 package tv.dustypig.dustypig.ui.main_app.screens.tmdb_details
 
-import tv.dustypig.dustypig.api.models.BasicFriend
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.RequestStatus
 import tv.dustypig.dustypig.api.models.TitleRequestPermissions
@@ -23,5 +22,5 @@ data class TMDBDetailsUIState (
     val requestPermissions: TitleRequestPermissions = TitleRequestPermissions.Enabled,
     val requestStatus: RequestStatus = RequestStatus.NotRequested,
     val busy: Boolean = false,
-    val friends: List<BasicFriend> = listOf()
+    val friends: List<TMDBDetailsRequestFriend> = listOf()
 )
