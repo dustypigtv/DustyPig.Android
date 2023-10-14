@@ -268,8 +268,11 @@ private fun DownloadsScreenInternal(
 
                                             var showPlay = job.status == DownloadStatus.Finished
                                             if (!showPlay) {
-                                                if (job.mediaType == MediaTypes.Series || job.mediaType == MediaTypes.Playlist)
-                                                    showPlay = job.downloads.firstOrNull()?.status == DownloadStatus.Finished
+                                                if (job.mediaType == MediaTypes.Series || job.mediaType == MediaTypes.Playlist) {
+                                                    showPlay = job.downloads.firstOrNull {
+                                                        it.mediaId != job.mediaId
+                                                    }?.status == DownloadStatus.Finished
+                                                }
                                             }
                                             if (showPlay) {
                                                 TintedIcon(

@@ -53,6 +53,7 @@ import compose.icons.fontawesomeicons.solid.UserLock
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.OverrideRequestStatus
+import tv.dustypig.dustypig.api.models.TitleRequestPermissions
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
 import tv.dustypig.dustypig.ui.isTablet
 
@@ -81,10 +82,10 @@ data class TitleInfoData(
     val markWatchedBusy: Boolean = false,
     val inWatchList: Boolean = false,
     val watchListBusy: Boolean = false,
-    //val seasonEpisode: String = "",
     val upNextSeason: UShort? = null,
     val upNextEpisode: UShort? = null,
     val episodeTitle: String = "",
+    val titleRequestPermissions: TitleRequestPermissions = TitleRequestPermissions.Enabled,
     val accessRequestStatus: OverrideRequestStatus = OverrideRequestStatus.NotRequested,
     val accessRequestBusy: Boolean = false,
     val downloadStatus: DownloadStatus = DownloadStatus.None,
@@ -342,12 +343,12 @@ fun TitleInfoLayout(info: TitleInfoData) {
                 }
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
+
     } else {
 
-        val btnTxt = when(info.accessRequestStatus) {
+        val btnTxt = when (info.accessRequestStatus) {
             OverrideRequestStatus.NotRequested -> stringResource(R.string.request_access)
-            OverrideRequestStatus.Requested -> stringResource(R.string.access_already_requested)
+            OverrideRequestStatus.Requested -> stringResource(R.string.access_requested)
             OverrideRequestStatus.Denied -> stringResource(R.string.access_denied)
             OverrideRequestStatus.Granted -> stringResource(R.string.if_you_see_this_it_s_a_bug)
         }
@@ -356,8 +357,8 @@ fun TitleInfoLayout(info: TitleInfoData) {
             horizontalAlignment = alignment,
             modifier = Modifier.fillMaxWidth()
         ) {
-            if(info.accessRequestBusy) {
-             CircularProgressIndicator()
+            if (info.accessRequestBusy) {
+                CircularProgressIndicator()
             } else {
                 Button(
                     onClick = info.requestAccess,
@@ -369,6 +370,7 @@ fun TitleInfoLayout(info: TitleInfoData) {
             }
         }
     }
+    Spacer(modifier = Modifier.height(16.dp))
 
 
     if(epHeader.length > 1) {
@@ -444,9 +446,8 @@ private fun TitleInfoLayoutPreview() {
         canManage = true,
         canPlay = true,
         partiallyPlayed = true,
-        inWatchList = true,
-
-        )
+        inWatchList = true
+    )
 
     PreviewBase {
         Column {

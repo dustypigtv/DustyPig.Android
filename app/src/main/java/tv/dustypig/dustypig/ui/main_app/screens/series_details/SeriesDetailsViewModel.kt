@@ -95,6 +95,7 @@ class SeriesDetailsViewModel  @Inject constructor(
                         backdropUrl = _detailedSeries.backdropUrl ?: "",
                         seasons = allSeasons.toList(),
                         upNextSeason = upNext.seasonNumber,
+                        selectedSeason = upNext.seasonNumber,
                         episodes = episodes,
                         creditsData = CreditsData(
                             genres = Genres(_detailedSeries.genres).toList(),
@@ -116,10 +117,10 @@ class SeriesDetailsViewModel  @Inject constructor(
                         rated = _detailedSeries.rated.toString(),
                         overview = (if(unPlayed) _detailedSeries.description else upNext.description) ?: "",
                         partiallyPlayed = !(unPlayed || fullyPlayed),
-                        //seasonEpisode = if(unPlayed) "" else "S${upNext.seasonNumber}E${upNext.episodeNumber}",
                         upNextSeason = if(unPlayed) null else upNext.seasonNumber,
                         upNextEpisode = if(unPlayed) null else upNext.episodeNumber,
                         episodeTitle = if(unPlayed) "" else upNext.title,
+                        titleRequestPermissions = _detailedSeries.titleRequestPermissions,
                         accessRequestStatus = _detailedSeries.accessRequestStatus,
                         accessRequestBusy = false,
                         mediaId = mediaId
@@ -267,5 +268,16 @@ class SeriesDetailsViewModel  @Inject constructor(
     fun navToEpisodeInfo(id: Int) {
         ScreenLoadingInfo.setInfo(_detailedSeries.title, _detailedSeries.artworkUrl, _detailedSeries.backdropUrl ?: "")
         navigateToRoute(EpisodeDetailsNav.getRoute(id, _detailedSeries.canPlay, true))
+    }
+
+    /**
+     * Put this here to survive recomposition when returning from navigation
+     */
+    fun selectSeason(seasonNumber: UShort) {
+        _uiState.update {
+            it.copy(
+                selectedSeason = seasonNumber
+            )
+        }
     }
 }

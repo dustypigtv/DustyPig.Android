@@ -80,7 +80,7 @@ class SearchViewModel @Inject constructor(
                     it.copy(
                         busy = false,
                         allowTMDB = response.otherTitlesAllowed,
-                        hasResults = !(response.available.isNullOrEmpty() || response.otherTitles.isNullOrEmpty()),
+                        hasResults = !(response.available.isNullOrEmpty() && response.otherTitles.isNullOrEmpty()),
                         progressOnly = false,
                         availableItems = response.available ?: listOf(),
                         tmdbItems = response.otherTitles ?: listOf()

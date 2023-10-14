@@ -13,5 +13,6 @@ data class SeriesDetailsUIState(
     val creditsData: CreditsData = CreditsData(),
     val seasons: List<UShort> = listOf(),
     val upNextSeason: UShort = 0u,
+    val selectedSeason: UShort = 0u,
     val episodes: List<DetailedEpisode> = listOf()
 )

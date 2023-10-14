@@ -18,10 +18,7 @@ data class DetailedSeries (
     @SerializedName("in_watchlist") val inWatchlist: Boolean = false,
     @SerializedName("can_play") val canPlay: Boolean = false,
     @SerializedName("can_manage") val canManage: Boolean = false,
+    @SerializedName("title_request_permission") val titleRequestPermissions: TitleRequestPermissions,
     @SerializedName("access_request_status") val accessRequestStatus: OverrideRequestStatus,
     val episodes: List<DetailedEpisode>?
-
-//    @SerializedName("tmdb_id") val tmdbId: Int?,
-//    @SerializedName("library_id") val libraryId: Int?,
-//    @SerializedName("extra_search_terms") val extraSearchTerms: List<String>?
 )

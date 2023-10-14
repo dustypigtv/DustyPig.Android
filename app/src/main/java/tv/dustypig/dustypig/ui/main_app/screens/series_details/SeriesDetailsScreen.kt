@@ -36,9 +36,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -80,6 +78,7 @@ fun SeriesDetailsScreen(vm: SeriesDetailsViewModel) {
         hideError = vm::hideError,
         playEpisode = vm::playEpisode,
         navToEpisodeInfo = vm::navToEpisodeInfo,
+        selectSeason = vm::selectSeason,
         uiState = uiState,
         titleInfoState = titleInfoState
     )
@@ -91,19 +90,11 @@ private fun SeriesDetailsScreenInternal(
     hideError: () -> Unit,
     playEpisode: (Int) -> Unit,
     navToEpisodeInfo: (Int) -> Unit,
+    selectSeason: (UShort) -> Unit,
     uiState: SeriesDetailsUIState,
     titleInfoState: TitleInfoData
 ) {
 
-    val criticalError by remember {
-        derivedStateOf {
-            uiState.showErrorDialog && uiState.criticalError
-        }
-    }
-
-    val selectedSeason = remember{
-        mutableStateOf(uiState.upNextSeason)
-    }
 
     var initialScrolled by remember {
         mutableStateOf(false)
@@ -134,11 +125,10 @@ private fun SeriesDetailsScreenInternal(
                 PhoneLayout(
                     playEpisode = playEpisode,
                     navToEpisodeInfo = navToEpisodeInfo,
+                    selectSeason = selectSeason,
                     innerPadding = innerPadding,
                     uiState = uiState,
                     titleInfoState = titleInfoState,
-                    selectedSeason = selectedSeason,
-                    criticalError = criticalError,
                     seasonsListState = seasonsListState
                 )
             },
@@ -148,11 +138,10 @@ private fun SeriesDetailsScreenInternal(
                         PhoneLayout(
                             playEpisode = playEpisode,
                             navToEpisodeInfo = navToEpisodeInfo,
+                            selectSeason = selectSeason,
                             innerPadding = innerPadding,
                             uiState = uiState,
                             titleInfoState = titleInfoState,
-                            selectedSeason = selectedSeason,
-                            criticalError = criticalError,
                             seasonsListState = seasonsListState
                         )
                     },
@@ -160,11 +149,10 @@ private fun SeriesDetailsScreenInternal(
                         HorizontalTabletLayout(
                             playEpisode = playEpisode,
                             navToEpisodeInfo = navToEpisodeInfo,
+                            selectSeason = selectSeason,
                             innerPadding = innerPadding,
                             uiState = uiState,
                             titleInfoState = titleInfoState,
-                            selectedSeason = selectedSeason,
-                            criticalError = criticalError,
                             seasonsListState = seasonsListState
                         )
                     })
@@ -260,11 +248,10 @@ private fun EpisodeRow(
 private fun PhoneLayout(
     playEpisode: (Int) -> Unit,
     navToEpisodeInfo: (Int) -> Unit,
+    selectSeason: (UShort) -> Unit,
     innerPadding: PaddingValues,
     uiState: SeriesDetailsUIState,
     titleInfoState: TitleInfoData,
-    selectedSeason: MutableState<UShort>,
-    criticalError: Boolean,
     seasonsListState: LazyListState
 ) {
 
@@ -273,6 +260,9 @@ private fun PhoneLayout(
 
     //Left aligns content or center aligns busy indicator
     val columnAlignment = if (uiState.loading) Alignment.CenterHorizontally else Alignment.Start
+
+    val criticalError = uiState.showErrorDialog && uiState.criticalError
+
 
 
     LazyColumn(
@@ -337,12 +327,12 @@ private fun PhoneLayout(
                 ) {
                     items(uiState.seasons) { season ->
                         val seasonName = if (season == 0.toUShort()) stringResource(R.string.specials) else stringResource(R.string.season, season)
-                        if (season == selectedSeason.value) {
+                        if (season == uiState.selectedSeason) {
                             Button(onClick = { /*Do nothing*/ }) {
                                 Text(text = seasonName)
                             }
                         } else {
-                            OutlinedButton(onClick = { selectedSeason.value = season }) {
+                            OutlinedButton(onClick = { selectSeason(season) }) {
                                 Text(text = seasonName)
                             }
                         }
@@ -353,7 +343,7 @@ private fun PhoneLayout(
         }
 
         if (!uiState.loading && !criticalError) {
-            items(uiState.episodes.filter { it.seasonNumber == selectedSeason.value }) { episode ->
+            items(uiState.episodes.filter { it.seasonNumber == uiState.selectedSeason }) { episode ->
                 EpisodeRow(
                     playEpisode = playEpisode,
                     navToEpisodeInfo = navToEpisodeInfo,
@@ -374,15 +364,17 @@ private fun PhoneLayout(
 private fun HorizontalTabletLayout(
     playEpisode: (Int) -> Unit,
     navToEpisodeInfo: (Int) -> Unit,
+    selectSeason: (UShort) -> Unit,
     innerPadding: PaddingValues,
     uiState: SeriesDetailsUIState,
     titleInfoState: TitleInfoData,
-    selectedSeason: MutableState<UShort>,
-    criticalError: Boolean,
     seasonsListState: LazyListState
 ) {
 
     val columnAlignment = if(uiState.loading) Alignment.CenterHorizontally else Alignment.Start
+
+    val criticalError = uiState.showErrorDialog && uiState.criticalError
+
 
     Row(
         modifier = Modifier
@@ -449,7 +441,7 @@ private fun HorizontalTabletLayout(
                                     Text(text = seasonName)
                                 }
                             } else {
-                                OutlinedButton(onClick = { selectedSeason.value = season }) {
+                                OutlinedButton(onClick = { selectSeason(season) }) {
                                     Text(text = seasonName)
                                 }
                             }
@@ -459,7 +451,7 @@ private fun HorizontalTabletLayout(
             }
 
             if (!uiState.loading && !criticalError) {
-                items(uiState.episodes.filter { it.seasonNumber == selectedSeason.value }) { episode ->
+                items(uiState.episodes.filter { it.seasonNumber == uiState.selectedSeason }) { episode ->
                     EpisodeRow(
                         playEpisode = playEpisode,
                         navToEpisodeInfo = navToEpisodeInfo,
@@ -542,6 +534,7 @@ private fun SeriesDetailsScreenPreview() {
             hideError = { },
             playEpisode = { _ -> },
             navToEpisodeInfo = { _ -> },
+            selectSeason = { _ -> },
             uiState = uiState,
             titleInfoState = titleInfoState
         )

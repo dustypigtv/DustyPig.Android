@@ -31,6 +31,7 @@ data class DetailedMovie (
     @SerializedName("intro_end_time") val introEndTime: Double?,
     @SerializedName("credit_start_time") val creditStartTime: Double?,
     @SerializedName("srt_subtitles") val externalSubtitles: List<ExternalSubtitle>?,
+    @SerializedName("title_request_permission") val titleRequestPermissions: TitleRequestPermissions,
     @SerializedName("access_request_status") val accessRequestStatus: OverrideRequestStatus,
 ) {
     fun displayTitle(): String{
@@ -38,6 +39,3 @@ data class DetailedMovie (
         return "$title ($year)"
     }
 }
-
-
-
