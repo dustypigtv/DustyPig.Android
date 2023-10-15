@@ -13,7 +13,16 @@ class NotificationsRepository @Inject constructor(
     authManager: AuthManager
 ): RepositoryBase(authManager)  {
 
-    suspend fun list(): List<Notification> = wrapAPICallWithReturnData { apiService.listNotifications() }
+    suspend fun list(): List<Notification> {
+        val ret = arrayListOf<Notification>()
+        while (true) {
+            //The call returns 100 notifications at once
+            val nextLst = wrapAPICallWithReturnData { apiService.listNotifications(ret.count()) }
+            ret.addAll(nextLst)
+            if(nextLst.count() < 100)
+                return ret
+        }
+    }
 
     suspend fun delete(id: Int) = wrapAPICall { apiService.deleteNotification(id) }
 

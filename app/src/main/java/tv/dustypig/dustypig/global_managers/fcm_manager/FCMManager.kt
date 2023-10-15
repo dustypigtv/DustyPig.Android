@@ -22,7 +22,6 @@ import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.logToCrashlytics
 
 
-
 class FCMManager: FirebaseMessagingService() {
 
     companion object {
@@ -93,9 +92,9 @@ class FCMManager: FirebaseMessagingService() {
             if(targetProfileId != currentProfileId)
                 return
 
+            NotificationsManager.triggerUpdate()
             val allowed = runBlocking { settingsManager.getAllowNotifications() }
             if(!allowed) {
-                NotificationsManager.refreshFromServer()
                 return
             }
 

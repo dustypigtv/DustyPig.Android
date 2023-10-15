@@ -179,8 +179,8 @@ interface ApiService {
     @DELETE("Notifications/Delete/{id}")
     suspend fun deleteNotification(@Path("id") id: Int): Response<ResponseWrapper>
 
-    @GET("Notifications/List")
-    suspend fun listNotifications(): Response<ResponseWrapperOf<List<Notification>>>
+    @GET("Notifications/List/{start}")
+    suspend fun listNotifications(@Path("start") start: Int): Response<ResponseWrapperOf<List<Notification>>>
 
     @GET("Notifications/MarkAsRead/{id}")
     suspend fun markNotificationRead(@Path("id") id: Int): Response<ResponseWrapper>

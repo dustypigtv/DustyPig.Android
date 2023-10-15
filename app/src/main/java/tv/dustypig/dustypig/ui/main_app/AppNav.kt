@@ -1,9 +1,13 @@
 package tv.dustypig.dustypig.ui.main_app
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -14,16 +18,19 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -44,6 +51,7 @@ import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.SettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.theme_settings.ThemeSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.home.show_more.ShowMoreNav
+import tv.dustypig.dustypig.ui.main_app.screens.notifications.NotificationsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.account_settings.AccountSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.friends_settings.FriendsSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.friends_settings.friend_details_settings.FriendDetailsSettingsNav
@@ -55,7 +63,8 @@ import tv.dustypig.dustypig.ui.main_app.screens.tmdb_details.TMDBDetailsNav
 private data class RootScreenMap(
     val name: String,
     val route: String,
-    val icon: ImageVector
+    val icon: ImageVector,
+    val notifications: Boolean = false
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,6 +73,7 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
 
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
+    val unseenNotifications by vm.unseenNotifications.collectAsState()
 
     val items = listOf<RootScreenMap>(
         RootScreenMap(
@@ -82,11 +92,18 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
             icon = Icons.Filled.Download
         ),
         RootScreenMap(
+            name = stringResource(R.string.notifications),
+            route = NotificationsNav.route,
+            icon = Icons.Filled.Notifications,
+            notifications = true
+        ),
+        RootScreenMap(
             name = stringResource(id = R.string.settings),
             route = SettingsNav.route,
             icon = Icons.Filled.Settings
         )
     )
+
 
     Scaffold(
         snackbarHost = {
@@ -108,12 +125,24 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
 
                 items.forEach { screen ->
                     NavigationBarItem(
-                        label = { Text(text= screen.name) },
+                        //label = { Text(text= screen.name) },
                         icon = {
-                            Icon(
-                                imageVector = screen.icon,
-                                contentDescription = null
-                            )
+                            Box {
+                                Icon(
+                                    imageVector = screen.icon,
+                                    contentDescription = null
+                                )
+                                if (screen.notifications && unseenNotifications) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Circle,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .size(8.dp),
+                                        tint = Color.Red
+                                    )
+                                }
+                            }
                         },
                         selected = screen.route == curRootRoute,
                         onClick = {
@@ -156,6 +185,7 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
             HomeNav.composable(this, navController)
             SearchNav.composable(this, navController)
             DownloadsNav.composable(this, navController)
+            NotificationsNav.composable(this, navController)
             SettingsNav.composable(this, navController)
 
             //Sub screens
@@ -178,8 +208,8 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
         }
 
         scope.launch {
-            vm.navFlow.collectLatest {
-                vm.doNav(navController, it)
+            vm.deepLinkFlow.collectLatest {
+                vm.navToDeepLink(navController, it)
             }
         }
     }

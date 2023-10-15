@@ -9,14 +9,20 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.global_managers.NotificationsManager
 import tv.dustypig.dustypig.global_managers.fcm_manager.FCMManager
+import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.ui.main_app.screens.movie_details.MovieDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
 import javax.inject.Inject
+
+
 
 @HiltViewModel
 class AppNavViewModel @Inject constructor(
@@ -28,12 +34,15 @@ class AppNavViewModel @Inject constructor(
 
         //Logic: Static flow that can be updated from MainActivity
         //Flow updates the main scaffold, which will then call navigate
-        private val _mutableNavFlow = MutableSharedFlow<String>(replay = 1)
+        private val _mutableDeepLinkFlow = MutableSharedFlow<String>(replay = 1)
 
-        fun queueNavRoute(deepLink: String) = _mutableNavFlow.tryEmit(deepLink)
+        fun queueDeepLink(deepLink: String) = _mutableDeepLinkFlow.tryEmit(deepLink)
     }
 
-    val navFlow = _mutableNavFlow.asSharedFlow()
+    val deepLinkFlow = _mutableDeepLinkFlow.asSharedFlow()
+
+    private val _unseenNotifications = MutableStateFlow(false)
+    val unseenNotifications = _unseenNotifications.asStateFlow()
 
     val snackbarHostState = SnackbarHostState()
 
@@ -60,7 +69,7 @@ class AppNavViewModel @Inject constructor(
                 }
 
                 if (result == SnackbarResult.ActionPerformed) {
-                    queueNavRoute(it.deepLink!!)
+                    queueDeepLink(it.deepLink!!)
                 }
 
                 //Snackbar notifications are seen
@@ -68,10 +77,17 @@ class AppNavViewModel @Inject constructor(
             }
         }
 
+        viewModelScope.launch {
+            notificationsManager.notifications.collectLatest { list ->
+                val hasUnseen = list.any { !it.seen }
+                _unseenNotifications.update { hasUnseen }
+            }
+        }
+
 
     }
 
-    fun doNav(navHostController: NavHostController, route: String) {
+    fun navToDeepLink(navHostController: NavHostController, route: String) {
         try {
 
             if(route.isBlank())
@@ -84,14 +100,14 @@ class AppNavViewModel @Inject constructor(
             when(type) {
                 "movie" -> { navHostController.navigate(MovieDetailsNav.getRouteForId(id)) }
                 "series" -> { navHostController.navigate(SeriesDetailsNav.getRouteForId(id)) }
-                "overrides" -> { }
                 "friendship" -> { }
                 "requests" -> { }
             }
 
 
         } catch(ex: Exception) {
-            Log.e(TAG, "doNav", ex)
+            Log.e(TAG, "navToDeepLink", ex)
+            ex.logToCrashlytics()
         }
 
     }

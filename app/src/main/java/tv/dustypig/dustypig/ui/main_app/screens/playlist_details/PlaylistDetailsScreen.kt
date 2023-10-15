@@ -684,7 +684,8 @@ private fun PlaylistItemLayout(
                     if (direction == DismissDirection.EndToStart) {
                         Icon(
                             imageVector = Icons.Filled.Delete,
-                            contentDescription = stringResource(R.string.delete)
+                            contentDescription = stringResource(R.string.delete),
+                            modifier = Modifier.padding(12.dp, 0.dp)
                         )
                     }
                 }
@@ -760,7 +761,7 @@ private fun PlaylistItemLayout(
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(modifier = Modifier.width(18.dp))
 
                     Box(
                         modifier = Modifier

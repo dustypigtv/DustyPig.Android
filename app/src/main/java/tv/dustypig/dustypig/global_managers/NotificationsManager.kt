@@ -7,8 +7,13 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.models.Notification
 import tv.dustypig.dustypig.api.repositories.NotificationsRepository
+import tv.dustypig.dustypig.logToCrashlytics
+import java.util.Calendar
+import java.util.Date
+import java.util.Timer
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.concurrent.schedule
 
 
 @Singleton
@@ -18,23 +23,68 @@ class NotificationsManager @Inject constructor(
 ) {
     companion object {
 
-        fun refreshFromServer() {
+        private var _nextTimerTick: Date = Calendar.getInstance().time
 
+        fun triggerUpdate() {
+            val calendar = Calendar.getInstance()
+            calendar.add(Calendar.SECOND, -2)
+            _nextTimerTick = calendar.time
+        }
+
+        private fun waitMinute() {
+            val calendar = Calendar.getInstance()
+            calendar.add(Calendar.MINUTE, 1)
+            _nextTimerTick = calendar.time
         }
     }
 
     private val _notificationsFlow = MutableSharedFlow<List<Notification>>(replay = 1)
     val notifications = _notificationsFlow.asSharedFlow()
 
+    private val _timer = Timer()
+    private var _timerBusy = false
+
+
+    init {
+        _timer.schedule(
+            delay = 0,
+            period = 1000
+        ){
+            loadData()
+        }
+    }
+
+    private fun logError(ex: Exception) {
+        ex.printStackTrace()
+        ex.logToCrashlytics()
+    }
+
+    private fun loadData() {
+        if(_timerBusy || Calendar.getInstance().time < _nextTimerTick)
+            return
+
+        _timerBusy = true
+
+        GlobalScope.launch {
+            try {
+                val lst = notificationsRepository.list()
+                _notificationsFlow.tryEmit(lst)
+            } catch (ex: Exception) {
+                logError(ex = ex)
+            }
+
+            waitMinute()
+            _timerBusy = false
+        }
+    }
+
     fun markAsRead(id: Int) {
         GlobalScope.launch {
             try {
                 notificationsRepository.markAsRead(id)
-                val lst = notificationsRepository.list()
-                _notificationsFlow.tryEmit(lst)
-
+                triggerUpdate()
             } catch (ex: Exception) {
-                ex.printStackTrace()
+                logError(ex = ex)
             }
         }
     }
@@ -43,10 +93,9 @@ class NotificationsManager @Inject constructor(
         GlobalScope.launch {
             try {
                 notificationsRepository.delete(id)
-                val lst = notificationsRepository.list()
-                _notificationsFlow.tryEmit(lst)
+                triggerUpdate()
             } catch (ex: Exception) {
-                ex.printStackTrace()
+                logError(ex = ex)
             }
         }
     }

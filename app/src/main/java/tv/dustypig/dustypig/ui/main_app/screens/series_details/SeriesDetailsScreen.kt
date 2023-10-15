@@ -290,13 +290,16 @@ private fun PhoneLayout(
                             .blur(50.dp)
                     )
 
-                    AsyncImage(
-                        model = uiState.posterUrl,
-                        contentDescription = "",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.fillMaxSize(),
-                        error = painterResource(id = R.drawable.error_tall)
-                    )
+                    //Prevents error flicker when navigating and no loading info was provided
+                    if(uiState.posterUrl.isNotBlank()) {
+                        AsyncImage(
+                            model = uiState.posterUrl,
+                            contentDescription = "",
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.fillMaxSize(),
+                            error = painterResource(id = R.drawable.error_tall)
+                        )
+                    }
                 } else {
                     AsyncImage(
                         model = uiState.backdropUrl,
@@ -400,13 +403,16 @@ private fun HorizontalTabletLayout(
                     .blur(50.dp)
             )
 
-            AsyncImage(
-                model = uiState.posterUrl,
-                contentDescription = "",
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxSize(),
-                error = painterResource(id = R.drawable.error_tall)
-            )
+            //Prevents error flicker when navigating and no loading info was provided
+            if(uiState.posterUrl.isNotBlank()) {
+                AsyncImage(
+                    model = uiState.posterUrl,
+                    contentDescription = "",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize(),
+                    error = painterResource(id = R.drawable.error_tall)
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))

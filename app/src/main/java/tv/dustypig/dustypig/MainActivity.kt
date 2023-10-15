@@ -123,7 +123,7 @@ class MainActivity: ComponentActivity() {
 
             val deepLink = intent.getStringExtra(FCMManager.INTENT_DATA_DEEP_LINK)
             if(!deepLink.isNullOrEmpty()) {
-                AppNavViewModel.queueNavRoute(deepLink)
+                AppNavViewModel.queueDeepLink(deepLink)
             }
         } catch (ex: Exception) {
             ex.printStackTrace()
