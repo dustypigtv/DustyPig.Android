@@ -24,10 +24,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
+import tv.dustypig.dustypig.ui.main_app.screens.settings.account_settings.AccountSettingsNav
+import tv.dustypig.dustypig.ui.main_app.screens.settings.friends_settings.FriendsSettingsNav
+import tv.dustypig.dustypig.ui.main_app.screens.settings.playback_settings.PlaybackSettingsNav
+import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.ProfilesSettingsNav
+import tv.dustypig.dustypig.ui.main_app.screens.settings.theme_settings.ThemeSettingsNav
 
 
 @Composable
@@ -35,11 +42,8 @@ fun SettingsScreen(vm: SettingsViewModel) {
     val uiState by vm.uiState.collectAsState()
 
     SettingsScreenInternal(
-        navToTheme = vm::navToTheme,
-        navToAccountSettings = vm::navToAccountSettings,
+        navToRoute = vm::navigateToRoute,
         navToMyProfile = vm::navToMyProfile,
-        navToFriendsSettings = vm::navToFriendsSettings,
-        navToAllProfilesSettings = vm::navToAllProfilesSettings,
         uiState = uiState
     )
 }
@@ -47,11 +51,8 @@ fun SettingsScreen(vm: SettingsViewModel) {
 
 @Composable
 private fun SettingsScreenInternal(
-    navToTheme: () -> Unit,
-    navToAccountSettings: () -> Unit,
+    navToRoute: (String) -> Unit,
     navToMyProfile: () -> Unit,
-    navToFriendsSettings: () -> Unit,
-    navToAllProfilesSettings: () -> Unit,
     uiState: SettingsUIState
 ) {
 
@@ -65,16 +66,17 @@ private fun SettingsScreenInternal(
             .verticalScroll(listState)
     ) {
 
-        LinkRow(text = "Account Settings", onClick = navToAccountSettings)
+        LinkRow(text = stringResource(R.string.playback_settings), onClick = { navToRoute(PlaybackSettingsNav.route) })
+        LinkRow(text = "Theme", onClick = { navToRoute(ThemeSettingsNav.route) })
+        LinkRow(text = "Account Settings", onClick = { navToRoute(AccountSettingsNav.route)  })
 
         if(uiState.isMainProfile) {
-            LinkRow(text = "Profiles", onClick = navToAllProfilesSettings)
-            LinkRow(text = "Friends", onClick = navToFriendsSettings)
+            LinkRow(text = "Profiles", onClick = { navToRoute(ProfilesSettingsNav.route) })
+            LinkRow(text = "Friends", onClick = { navToRoute(FriendsSettingsNav.route) })
         } else {
             LinkRow(text = "My Profile", onClick = navToMyProfile)
         }
 
-        LinkRow(text = "Theme", onClick = navToTheme)
     }
 }
 
@@ -113,11 +115,8 @@ private fun SettingsScreenPreview() {
         Scaffold {
             Box(modifier = Modifier.padding(it)) {
                 SettingsScreenInternal(
-                    navToTheme = { },
-                    navToAccountSettings = { },
+                    navToRoute = { _ -> },
                     navToMyProfile = { },
-                    navToFriendsSettings = { },
-                    navToAllProfilesSettings = { },
                     uiState = uiState
                 )
             }

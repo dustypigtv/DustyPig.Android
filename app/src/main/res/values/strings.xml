@@ -128,4 +128,7 @@
     <string name="invite_friend">Invite Friend</string>
     <string name="access_requested">Access Requested</string>
     <string name="notifications">Notifications</string>
+    <string name="playback_settings">Playback Settings</string>
+    <string name="auto_skip_intros">Auto-skip Intros</string>
+    <string name="auto_skip_credits">Auto-skip Credits</string>
 </resources>

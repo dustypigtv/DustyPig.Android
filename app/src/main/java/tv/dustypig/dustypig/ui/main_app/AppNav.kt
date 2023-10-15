@@ -55,6 +55,8 @@ import tv.dustypig.dustypig.ui.main_app.screens.notifications.NotificationsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.account_settings.AccountSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.friends_settings.FriendsSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.friends_settings.friend_details_settings.FriendDetailsSettingsNav
+import tv.dustypig.dustypig.ui.main_app.screens.settings.playback_settings.PlaybackSettingsNav
+import tv.dustypig.dustypig.ui.main_app.screens.settings.playback_settings.PlaybackSettingsScreen
 import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.ProfilesSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.edit_profile.EditProfileNav
 import tv.dustypig.dustypig.ui.main_app.screens.tmdb_details.TMDBDetailsNav
@@ -205,6 +207,7 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
             FriendDetailsSettingsNav.composable(this, navController)
             ProfilesSettingsNav.composable(this, navController)
             EditProfileNav.composable(this, navController)
+            PlaybackSettingsNav.composable(this, navController)
         }
 
         scope.launch {

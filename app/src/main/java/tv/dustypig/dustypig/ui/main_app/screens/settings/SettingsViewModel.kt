@@ -13,6 +13,7 @@ import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.main_app.screens.settings.account_settings.AccountSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.friends_settings.FriendsSettingsNav
+import tv.dustypig.dustypig.ui.main_app.screens.settings.playback_settings.PlaybackSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.ProfilesSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.edit_profile.EditProfileNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.edit_profile.EditProfileViewModel
@@ -43,6 +44,7 @@ class SettingsViewModel @Inject constructor(
 
     fun navToTheme() = navigateToRoute(ThemeSettingsNav.route)
 
+    fun navToPlaybackSettings() = navigateToRoute(PlaybackSettingsNav.route)
 
     fun navToAccountSettings() = navigateToRoute(AccountSettingsNav.route)
 
