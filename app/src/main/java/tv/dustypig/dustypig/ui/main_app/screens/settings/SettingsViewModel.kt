@@ -11,13 +11,8 @@ import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.global_managers.AuthManager
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.nav.RouteNavigator
-import tv.dustypig.dustypig.ui.main_app.screens.settings.account_settings.AccountSettingsNav
-import tv.dustypig.dustypig.ui.main_app.screens.settings.friends_settings.FriendsSettingsNav
-import tv.dustypig.dustypig.ui.main_app.screens.settings.playback_settings.PlaybackSettingsNav
-import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.ProfilesSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.edit_profile.EditProfileNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.edit_profile.EditProfileViewModel
-import tv.dustypig.dustypig.ui.main_app.screens.settings.theme_settings.ThemeSettingsNav
 import javax.inject.Inject
 
 @HiltViewModel
@@ -42,20 +37,9 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun navToTheme() = navigateToRoute(ThemeSettingsNav.route)
-
-    fun navToPlaybackSettings() = navigateToRoute(PlaybackSettingsNav.route)
-
-    fun navToAccountSettings() = navigateToRoute(AccountSettingsNav.route)
-
     fun navToMyProfile() {
         EditProfileViewModel.preloadAvatar = ""
         EditProfileViewModel.selectedProfileId = authManager.currentProfileId
         navigateToRoute(EditProfileNav.route)
     }
-
-    fun navToFriendsSettings() = navigateToRoute(FriendsSettingsNav.route)
-
-    fun navToAllProfilesSettings() = navigateToRoute(ProfilesSettingsNav.route)
-
 }
