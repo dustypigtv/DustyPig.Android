@@ -1,6 +1,8 @@
 package tv.dustypig.dustypig.global_managers.settings_manager
 
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -45,6 +47,15 @@ class SettingsManager @Inject constructor (
 
 
     // ***** Global Settings *****
+
+    fun getSystemLevelAllowNotifications(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+    }
+
 
     suspend fun getToken() = context.dataStore.data.map { it[authTokenPreferencesKey] ?: "" }.first()
     suspend fun setToken(value: String) = context.dataStore.edit { it[authTokenPreferencesKey] = value }

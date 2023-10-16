@@ -115,7 +115,7 @@ private fun AccountSettingsScreenInternal(
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = popBackStack, text = "Account Settings")
+            CommonTopAppBar(onClick = popBackStack, text = stringResource(R.string.account_settings))
         }
     ) { paddingValues ->
 

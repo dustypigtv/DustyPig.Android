@@ -131,4 +131,16 @@
     <string name="playback_settings">Playback Settings</string>
     <string name="auto_skip_intros">Auto-skip Intros</string>
     <string name="auto_skip_credits">Auto-skip Credits</string>
+    <string name="allow_alerts">Allow Alerts</string>
+    <string name="notification_settings">Notification Settings</string>
+    <string name="action_required">Action Required</string>
+    <string name="allow_system_notifications_instructions">Please allow notifications in the next screen before trying to set it here</string>
+    <string name="no_notifications">No notifications</string>
+    <string name="this_only_works_for_videos_that_have_intro_and_credit_timings">* This only works for videos that have intro and credit timings.</string>
+    <string name="allow_alerts_description">You can always see notifications on the Notifications tab. This setting allows you to receive notification alerts when Dusty Pig is not running.</string>
+    <string name="theme">Theme</string>
+    <string name="account_settings">Account Settings</string>
+    <string name="profiles">Profiles</string>
+    <string name="friends">Friends</string>
+    <string name="my_profile">My Profile</string>
 </resources>

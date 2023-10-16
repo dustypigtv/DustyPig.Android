@@ -17,7 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class NotificationsViewModel @Inject constructor(
     routeNavigator: RouteNavigator,
-    private val notificationsManager: NotificationsManager
+    private val notificationsManager: NotificationsManager,
 ): ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(NotificationsUIState())
@@ -35,6 +35,7 @@ class NotificationsViewModel @Inject constructor(
             }
         }
     }
+
 
     fun itemClicked(id: Int) {
 

@@ -32,6 +32,7 @@ import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.main_app.screens.settings.account_settings.AccountSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.friends_settings.FriendsSettingsNav
+import tv.dustypig.dustypig.ui.main_app.screens.settings.notification_settings.NotificationSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.playback_settings.PlaybackSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.ProfilesSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.theme_settings.ThemeSettingsNav
@@ -67,14 +68,15 @@ private fun SettingsScreenInternal(
     ) {
 
         LinkRow(text = stringResource(R.string.playback_settings), onClick = { navToRoute(PlaybackSettingsNav.route) })
-        LinkRow(text = "Theme", onClick = { navToRoute(ThemeSettingsNav.route) })
-        LinkRow(text = "Account Settings", onClick = { navToRoute(AccountSettingsNav.route)  })
+        LinkRow(text = stringResource(R.string.notification_settings), onClick = { navToRoute(NotificationSettingsNav.route) })
+        LinkRow(text = stringResource(R.string.theme), onClick = { navToRoute(ThemeSettingsNav.route) })
+        LinkRow(text = stringResource(R.string.account_settings), onClick = { navToRoute(AccountSettingsNav.route)  })
 
         if(uiState.isMainProfile) {
-            LinkRow(text = "Profiles", onClick = { navToRoute(ProfilesSettingsNav.route) })
-            LinkRow(text = "Friends", onClick = { navToRoute(FriendsSettingsNav.route) })
+            LinkRow(text = stringResource(R.string.profiles), onClick = { navToRoute(ProfilesSettingsNav.route) })
+            LinkRow(text = stringResource(R.string.friends), onClick = { navToRoute(FriendsSettingsNav.route) })
         } else {
-            LinkRow(text = "My Profile", onClick = navToMyProfile)
+            LinkRow(text = stringResource(R.string.my_profile), onClick = navToMyProfile)
         }
 
     }

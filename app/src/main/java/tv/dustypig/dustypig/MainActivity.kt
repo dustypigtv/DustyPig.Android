@@ -25,7 +25,10 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.global_managers.AuthManager
 import tv.dustypig.dustypig.global_managers.NotificationsManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
@@ -153,12 +156,17 @@ class MainActivity: ComponentActivity() {
     @Composable
     private fun AskNotificationPermission() {
 
+        if(authManager.loginState != AuthManager.LOGIN_STATE_LOGGED_IN)
+            return
+
         // This is only necessary for API level >= 33 (TIRAMISU)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) ==
                 PackageManager.PERMISSION_GRANTED
             ) {
                 // Permission already granted
+                Log.d(TAG, "Notification permission granted: true")
+
 
             } else if (shouldShowRequestPermissionRationale(android.Manifest.permission.POST_NOTIFICATIONS)) {
                 // TODO: display an educational UI explaining to the user the features that will be enabled
@@ -176,9 +184,28 @@ class MainActivity: ComponentActivity() {
 
 
 
+    @OptIn(DelicateCoroutinesApi::class)
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { isGranted: Boolean ->
         Log.d(TAG, "Notification permission granted: $isGranted")
+        GlobalScope.launch {
+            settingsManager.setAllowNotifications(isGranted)
+        }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

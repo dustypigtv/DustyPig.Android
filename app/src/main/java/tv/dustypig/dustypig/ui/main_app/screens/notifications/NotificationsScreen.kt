@@ -26,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.rememberDismissState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -64,26 +65,26 @@ private fun NotificationsScreenInternal(
     uiState: NotificationsUIState
 ) {
 
-    Box (
+    Box(
         modifier = Modifier.fillMaxSize()
-    ){
+    ) {
 
-        if(uiState.notifications.isEmpty()) {
+        if (uiState.notifications.isEmpty()) {
             Text(
-                text = "No notifications",
+                text = stringResource(R.string.no_notifications),
                 modifier = Modifier.align(Alignment.Center)
             )
         } else {
             val lazyColumnState = rememberLazyListState()
 
-            LazyColumn (
+            LazyColumn(
                 state = lazyColumnState,
             ) {
                 items(uiState.notifications, key = { it.clientUUID }) { notification ->
 
                     val dismissState = rememberDismissState(
                         confirmStateChange = {
-                            if(it == DismissValue.DismissedToStart) {
+                            if (it == DismissValue.DismissedToStart) {
                                 deleteItem(notification.id)
                                 return@rememberDismissState true
                             }
@@ -148,7 +149,8 @@ private fun NotificationsScreenInternal(
                                         Text(
                                             text = notification.message,
                                             style = MaterialTheme.typography.bodyMedium,
-                                            modifier = Modifier.padding(12.dp, 4.dp)
+                                            modifier = Modifier.padding(12.dp, 4.dp),
+                                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f)
                                         )
                                     }
 
@@ -175,9 +177,10 @@ private fun NotificationsScreenInternal(
             }
         }
 
-
+        if(uiState.busy) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        }
     }
-
 }
 
 @Preview
