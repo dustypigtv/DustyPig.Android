@@ -71,7 +71,7 @@ private fun NotificationsScreenInternal(
 
         if (uiState.notifications.isEmpty()) {
             Text(
-                text = stringResource(R.string.no_notifications),
+                text = stringResource(R.string.no_alerts),
                 modifier = Modifier.align(Alignment.Center)
             )
         } else {

@@ -131,13 +131,13 @@
     <string name="playback_settings">Playback Settings</string>
     <string name="auto_skip_intros">Auto-skip Intros</string>
     <string name="auto_skip_credits">Auto-skip Credits</string>
-    <string name="allow_alerts">Allow Alerts</string>
+    <string name="allow_notifications">Allow Notifications</string>
     <string name="notification_settings">Notification Settings</string>
     <string name="action_required">Action Required</string>
     <string name="allow_system_notifications_instructions">Please allow notifications in the next screen before trying to set it here</string>
     <string name="no_notifications">No notifications</string>
     <string name="this_only_works_for_videos_that_have_intro_and_credit_timings">* This only works for videos that have intro and credit timings.</string>
-    <string name="allow_alerts_description">You can always see notifications on the Notifications tab. This setting allows you to receive notification alerts when Dusty Pig is not running.</string>
+    <string name="allow_alerts_description">You can always see alerts on the Alerts tab. This setting allows you to receive notifications when Dusty Pig is not running.</string>
     <string name="theme">Theme</string>
     <string name="account_settings">Account Settings</string>
     <string name="manage_profiles">Manage Profiles</string>
@@ -148,4 +148,6 @@
     <string name="download_over_mobile_currently_running">Changing this does not affect any downloads currently running.</string>
     <string name="download_settings">Download Settings</string>
     <string name="switch_profiles">Switch Profiles</string>
+    <string name="alerts">Alerts</string>
+    <string name="no_alerts">No Alerts</string>
 </resources>

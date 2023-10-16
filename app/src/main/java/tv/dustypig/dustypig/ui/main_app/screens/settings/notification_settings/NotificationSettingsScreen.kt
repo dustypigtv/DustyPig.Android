@@ -72,7 +72,7 @@ private fun NotificationSettingsScreenInternal(
                     .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp))
             ) {
                 Text(
-                    text = stringResource(R.string.allow_alerts),
+                    text = stringResource(R.string.allow_notifications),
                     modifier = Modifier.padding(12.dp)
                 )
 

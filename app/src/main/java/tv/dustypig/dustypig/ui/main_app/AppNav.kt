@@ -1,15 +1,19 @@
 package tv.dustypig.dustypig.ui.main_app
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -18,6 +22,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -25,12 +30,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -39,7 +43,6 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.R
-import tv.dustypig.dustypig.ui.auth_flow.screens.select_profile.SelectProfileNav
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.downloads.DownloadsNav
 import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNav
@@ -59,7 +62,6 @@ import tv.dustypig.dustypig.ui.main_app.screens.settings.friends_settings.Friend
 import tv.dustypig.dustypig.ui.main_app.screens.settings.friends_settings.friend_details_settings.FriendDetailsSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.notification_settings.NotificationSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.playback_settings.PlaybackSettingsNav
-import tv.dustypig.dustypig.ui.main_app.screens.settings.playback_settings.PlaybackSettingsScreen
 import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.ProfilesSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.edit_profile.EditProfileNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.switch_profiles.SwitchProfilesNav
@@ -69,7 +71,8 @@ import tv.dustypig.dustypig.ui.main_app.screens.tmdb_details.TMDBDetailsNav
 private data class RootScreenMap(
     val name: String,
     val route: String,
-    val icon: ImageVector,
+    val selectedIcon: ImageVector,
+    val unselectedIcon: ImageVector,
     val notifications: Boolean = false
 )
 
@@ -85,28 +88,33 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
         RootScreenMap(
             name = stringResource(id = R.string.home),
             route = HomeNav.route,
-            icon = Icons.Filled.Home
+            selectedIcon = Icons.Filled.Home,
+            unselectedIcon = Icons.Outlined.Home
         ),
         RootScreenMap(
             name = stringResource(id = R.string.search),
             route = SearchNav.route,
-            icon = Icons.Filled.Search
+            selectedIcon = Icons.Filled.Search,
+            unselectedIcon = Icons.Outlined.Search
         ),
         RootScreenMap(
             name = stringResource(id = R.string.downloads),
             route = DownloadsNav.route,
-            icon = Icons.Filled.Download
+            selectedIcon = Icons.Filled.Download,
+            unselectedIcon = Icons.Outlined.Download
         ),
         RootScreenMap(
-            name = stringResource(R.string.notifications),
+            name = stringResource(R.string.alerts),
             route = NotificationsNav.route,
-            icon = Icons.Filled.Notifications,
+            selectedIcon = Icons.Filled.Notifications,
+            unselectedIcon = Icons.Outlined.Notifications,
             notifications = true
         ),
         RootScreenMap(
             name = stringResource(id = R.string.settings),
             route = SettingsNav.route,
-            icon = Icons.Filled.Settings
+            selectedIcon = Icons.Filled.Settings,
+            unselectedIcon = Icons.Outlined.Settings
         )
     )
 
@@ -131,23 +139,29 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
 
                 items.forEach { screen ->
                     NavigationBarItem(
-                        //label = { Text(text= screen.name) },
+                        alwaysShowLabel = false,
+                        label = {
+                            Text(
+                                text = screen.name,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        },
                         icon = {
-                            Box {
+                            BadgedBox(
+                                badge = {
+                                    if (screen.notifications && unseenNotifications) {
+                                        Badge(
+                                            containerColor = Color.Red
+                                        )
+                                    }
+                                }
+                            ) {
                                 Icon(
-                                    imageVector = screen.icon,
+                                    imageVector = if(screen.route == curRootRoute) screen.selectedIcon else screen.unselectedIcon,
                                     contentDescription = null
                                 )
-                                if (screen.notifications && unseenNotifications) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Circle,
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .align(Alignment.TopEnd)
-                                            .size(8.dp),
-                                        tint = Color.Red
-                                    )
-                                }
+
                             }
                         },
                         selected = screen.route == curRootRoute,
