@@ -88,7 +88,7 @@ private fun FriendsSettingsScreenInternal(
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = popBackStack, text = stringResource(R.string.friends))
+            CommonTopAppBar(onClick = popBackStack, text = stringResource(R.string.manage_friends))
         }
     ) { paddingValues ->
 

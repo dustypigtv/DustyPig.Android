@@ -68,7 +68,7 @@ class DownloadManager @Inject constructor(
     private val _okHttpClient = OkHttpClient()
     private val _rootDir = File(context.getExternalFilesDir(null)!!, "downloads")
     private var _profileId = 0
-    private var _downloadOverCellular = false
+    private var _downloadOverMobile = false
 
     private val _statusTimer = Timer()
     private var _statusTimerBusy = false
@@ -103,7 +103,7 @@ class DownloadManager @Inject constructor(
         }
 
         GlobalScope.launch {
-            settingsManager.downloadOverCellularFlow.collectLatest { _downloadOverCellular = it }
+            settingsManager.downloadOverMobileFlow.collectLatest { _downloadOverMobile = it }
         }
 
         _statusTimer.schedule(
@@ -355,7 +355,7 @@ class DownloadManager @Inject constructor(
                 val uri = android.net.Uri.parse(url)
                 val request = android.app.DownloadManager.Request(uri)
                 request.setDestinationUri(android.net.Uri.fromFile(file))
-                request.setAllowedOverMetered(_downloadOverCellular)
+                request.setAllowedOverMetered(_downloadOverMobile)
                 request.setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_HIDDEN)
                 nextDownload.androidId = _androidDownloadManager.enqueue(request)
                 _db.update(nextDownload)
@@ -382,7 +382,7 @@ class DownloadManager @Inject constructor(
                 val uri = android.net.Uri.parse(url)
                 val request = android.app.DownloadManager.Request(uri)
                 request.setDestinationUri(android.net.Uri.fromFile(file))
-                request.setAllowedOverMetered(_downloadOverCellular)
+                request.setAllowedOverMetered(_downloadOverMobile)
                 request.setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_HIDDEN)
                 nextDownload.androidId = _androidDownloadManager.enqueue(request)
                 _db.update(nextDownload)

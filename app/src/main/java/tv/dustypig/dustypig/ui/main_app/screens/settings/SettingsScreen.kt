@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,6 +33,7 @@ import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.main_app.screens.settings.account_settings.AccountSettingsNav
+import tv.dustypig.dustypig.ui.main_app.screens.settings.download_settings.DownloadSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.friends_settings.FriendsSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.notification_settings.NotificationSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.playback_settings.PlaybackSettingsNav
@@ -61,20 +64,24 @@ private fun SettingsScreenInternal(
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(listState)
     ) {
 
+        Spacer(modifier = Modifier.height(1.dp))
+
+
         LinkRow(text = stringResource(R.string.playback_settings), onClick = { navToRoute(PlaybackSettingsNav.route) })
         LinkRow(text = stringResource(R.string.notification_settings), onClick = { navToRoute(NotificationSettingsNav.route) })
+        LinkRow(text = stringResource(R.string.download_settings), onClick = { navToRoute(DownloadSettingsNav.route) })
         LinkRow(text = stringResource(R.string.theme), onClick = { navToRoute(ThemeSettingsNav.route) })
         LinkRow(text = stringResource(R.string.account_settings), onClick = { navToRoute(AccountSettingsNav.route)  })
 
         if(uiState.isMainProfile) {
-            LinkRow(text = stringResource(R.string.profiles), onClick = { navToRoute(ProfilesSettingsNav.route) })
-            LinkRow(text = stringResource(R.string.friends), onClick = { navToRoute(FriendsSettingsNav.route) })
+            LinkRow(text = stringResource(R.string.manage_profiles), onClick = { navToRoute(ProfilesSettingsNav.route) })
+            LinkRow(text = stringResource(R.string.manage_friends), onClick = { navToRoute(FriendsSettingsNav.route) })
         } else {
             LinkRow(text = stringResource(R.string.my_profile), onClick = navToMyProfile)
         }

@@ -140,7 +140,11 @@
     <string name="allow_alerts_description">You can always see notifications on the Notifications tab. This setting allows you to receive notification alerts when Dusty Pig is not running.</string>
     <string name="theme">Theme</string>
     <string name="account_settings">Account Settings</string>
-    <string name="profiles">Profiles</string>
-    <string name="friends">Friends</string>
+    <string name="manage_profiles">Manage Profiles</string>
+    <string name="manage_friends">Manage Friends</string>
     <string name="my_profile">My Profile</string>
+    <string name="download_over_mobile">Download Over Mobile</string>
+    <string name="download_over_mobile_description">If turned off, downloads will only occur when connected to WiFi.</string>
+    <string name="download_over_mobile_currently_running">Changing this does not affect any downloads currently running.</string>
+    <string name="download_settings">Download Settings</string>
 </resources>

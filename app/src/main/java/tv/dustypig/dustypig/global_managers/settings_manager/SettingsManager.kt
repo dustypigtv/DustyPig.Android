@@ -72,9 +72,10 @@ class SettingsManager @Inject constructor (
 
     private suspend fun profileKey(key: String) = "${key}_${getProfileId()}"
 
-    private suspend fun downloadOverCellularPreferencesKey() = booleanPreferencesKey(profileKey(DOWNLOAD_OVER_CELLULAR_KEY))
-    suspend fun setDownloadOverCellular(value: Boolean) = context.dataStore.edit { it[downloadOverCellularPreferencesKey()] = value }
-    val downloadOverCellularFlow = context.dataStore.data.map { it[downloadOverCellularPreferencesKey()] ?: false }
+    private suspend fun downloadOverMobilePreferencesKey() = booleanPreferencesKey(profileKey(DOWNLOAD_OVER_CELLULAR_KEY))
+    suspend fun getDownloadOverMobile() = context.dataStore.data.map { it[downloadOverMobilePreferencesKey()] ?: false }.first()
+    suspend fun setDownloadOverMobile(value: Boolean) = context.dataStore.edit { it[downloadOverMobilePreferencesKey()] = value }
+    val downloadOverMobileFlow = context.dataStore.data.map { it[downloadOverMobilePreferencesKey()] ?: false }
 
 
     private suspend fun skipIntrosPreferencesKey() = booleanPreferencesKey(profileKey(SKIP_INTROS_KEY))

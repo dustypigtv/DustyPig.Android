@@ -64,7 +64,7 @@ private fun ProfilesSettingsScreenInternal(
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = popBackStack, text = stringResource(R.string.profiles))
+            CommonTopAppBar(onClick = popBackStack, text = stringResource(R.string.manage_profiles))
         }
     ) { paddingValues ->
 

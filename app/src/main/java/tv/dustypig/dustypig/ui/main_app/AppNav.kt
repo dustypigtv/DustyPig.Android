@@ -53,6 +53,7 @@ import tv.dustypig.dustypig.ui.main_app.screens.settings.theme_settings.ThemeSet
 import tv.dustypig.dustypig.ui.main_app.screens.home.show_more.ShowMoreNav
 import tv.dustypig.dustypig.ui.main_app.screens.notifications.NotificationsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.account_settings.AccountSettingsNav
+import tv.dustypig.dustypig.ui.main_app.screens.settings.download_settings.DownloadSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.friends_settings.FriendsSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.friends_settings.friend_details_settings.FriendDetailsSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.notification_settings.NotificationSettingsNav
@@ -210,6 +211,7 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
             EditProfileNav.composable(this, navController)
             PlaybackSettingsNav.composable(this, navController)
             NotificationSettingsNav.composable(this, navController)
+            DownloadSettingsNav.composable(this, navController)
         }
 
         scope.launch {
