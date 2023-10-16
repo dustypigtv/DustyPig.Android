@@ -39,6 +39,7 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.R
+import tv.dustypig.dustypig.ui.auth_flow.screens.select_profile.SelectProfileNav
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.downloads.DownloadsNav
 import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNav
@@ -61,6 +62,7 @@ import tv.dustypig.dustypig.ui.main_app.screens.settings.playback_settings.Playb
 import tv.dustypig.dustypig.ui.main_app.screens.settings.playback_settings.PlaybackSettingsScreen
 import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.ProfilesSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.edit_profile.EditProfileNav
+import tv.dustypig.dustypig.ui.main_app.screens.settings.switch_profiles.SwitchProfilesNav
 import tv.dustypig.dustypig.ui.main_app.screens.tmdb_details.TMDBDetailsNav
 
 
@@ -212,6 +214,7 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
             PlaybackSettingsNav.composable(this, navController)
             NotificationSettingsNav.composable(this, navController)
             DownloadSettingsNav.composable(this, navController)
+            SwitchProfilesNav.composable(this, navController)
         }
 
         scope.launch {

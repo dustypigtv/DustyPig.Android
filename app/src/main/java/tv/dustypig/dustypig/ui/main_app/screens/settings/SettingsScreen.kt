@@ -38,6 +38,7 @@ import tv.dustypig.dustypig.ui.main_app.screens.settings.friends_settings.Friend
 import tv.dustypig.dustypig.ui.main_app.screens.settings.notification_settings.NotificationSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.playback_settings.PlaybackSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.ProfilesSettingsNav
+import tv.dustypig.dustypig.ui.main_app.screens.settings.switch_profiles.SwitchProfilesNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.theme_settings.ThemeSettingsNav
 
 
@@ -77,6 +78,8 @@ private fun SettingsScreenInternal(
         LinkRow(text = stringResource(R.string.notification_settings), onClick = { navToRoute(NotificationSettingsNav.route) })
         LinkRow(text = stringResource(R.string.download_settings), onClick = { navToRoute(DownloadSettingsNav.route) })
         LinkRow(text = stringResource(R.string.theme), onClick = { navToRoute(ThemeSettingsNav.route) })
+        LinkRow(text = stringResource(R.string.switch_profiles), onClick = { navToRoute(SwitchProfilesNav.route) })
+
         LinkRow(text = stringResource(R.string.account_settings), onClick = { navToRoute(AccountSettingsNav.route)  })
 
         if(uiState.isMainProfile) {

@@ -9,8 +9,12 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -18,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.core.content.ContextCompat
@@ -143,12 +148,27 @@ class MainActivity: ComponentActivity() {
         if(!LocalConfiguration.current.isTablet())
             LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
 
-        AskNotificationPermission()
-
         if (authManager.loginState == AuthManager.LOGIN_STATE_LOGGED_IN) {
+            AskNotificationPermission()
             AppNav()
         } else if (authManager.loginState == AuthManager.LOGIN_STATE_LOGGED_OUT) {
             AuthNav()
+        } else {
+            Scaffold { paddingValues ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+            if (authManager.loginState == AuthManager.LOGIN_STATE_SWITCHING_PROFILES) {
+                LaunchedEffect(true) {
+                    authManager.switchProfileEnd()
+                }
+            }
         }
     }
 
@@ -168,13 +188,8 @@ class MainActivity: ComponentActivity() {
                 Log.d(TAG, "Notification permission granted: true")
 
 
-            } else if (shouldShowRequestPermissionRationale(android.Manifest.permission.POST_NOTIFICATIONS)) {
-                // TODO: display an educational UI explaining to the user the features that will be enabled
-                //       by them granting the POST_NOTIFICATION permission. This UI should provide the user
-                //       "OK" and "No thanks" buttons. If the user selects "OK," directly request the permission.
-                //       If the user selects "No thanks," allow the user to continue without notifications.
-
-                requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+//            } else if (shouldShowRequestPermissionRationale(android.Manifest.permission.POST_NOTIFICATIONS)) {
+//                requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
             } else {
                 // Directly ask for the permission
                 requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)

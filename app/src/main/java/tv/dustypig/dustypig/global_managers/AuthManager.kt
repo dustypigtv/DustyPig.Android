@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig.global_managers
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
@@ -15,9 +16,12 @@ import javax.inject.Singleton
 class AuthManager @Inject constructor(private val settingsManager: SettingsManager) {
 
     companion object {
+        private const val TAG = "AuthManager"
+
         const val LOGIN_STATE_UNKNOWN: Int = 0
         const val LOGIN_STATE_LOGGED_IN: Int = 1
         const val LOGIN_STATE_LOGGED_OUT: Int = 2
+        const val LOGIN_STATE_SWITCHING_PROFILES: Int = 3
 
         const val TEST_USER: String = "testuser@dustypig.tv"
         const val TEST_PASSWORD: String = "test password"
@@ -56,6 +60,28 @@ class AuthManager @Inject constructor(private val settingsManager: SettingsManag
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
+    fun switchProfileBegin(token: String, profileId: Int, isMain: Boolean) {
+        GlobalScope.launch {
+            settingsManager.setToken(token)
+            settingsManager.setProfileId(profileId)
+            settingsManager.setIsMainProfile(isMain)
+            loginState = LOGIN_STATE_SWITCHING_PROFILES
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun switchProfileEnd() {
+        GlobalScope.launch {
+            setState(
+                token = settingsManager.getToken(),
+                profileId = settingsManager.getProfileId(),
+                isMain = settingsManager.getIsMainProfile()
+            )
+        }
+    }
+
+
     fun logout() {
         setAuthState(token = "", profileId = 0, isMain = false)
     }
@@ -75,5 +101,7 @@ class AuthManager @Inject constructor(private val settingsManager: SettingsManag
 
         loginState =
             if(currentToken != "" && currentProfileId > 0) LOGIN_STATE_LOGGED_IN else LOGIN_STATE_LOGGED_OUT
+
+        Log.d(TAG, token)
     }
 }

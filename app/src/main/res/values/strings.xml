@@ -147,4 +147,5 @@
     <string name="download_over_mobile_description">If turned off, downloads will only occur when connected to WiFi.</string>
     <string name="download_over_mobile_currently_running">Changing this does not affect any downloads currently running.</string>
     <string name="download_settings">Download Settings</string>
+    <string name="switch_profiles">Switch Profiles</string>
 </resources>
