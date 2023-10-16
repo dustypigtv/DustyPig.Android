@@ -1,4 +1,4 @@
-package tv.dustypig.dustypig.ui.main_app.screens.notifications
+package tv.dustypig.dustypig.ui.main_app.screens.alerts
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.spring
@@ -48,9 +48,9 @@ import tv.dustypig.dustypig.ui.composables.PreviewBase
 import java.util.Date
 
 @Composable
-fun NotificationsScreen(vm: NotificationsViewModel) {
+fun AlertsScreen(vm: AlertsViewModel) {
     val uiState by vm.uiState.collectAsState()
-    NotificationsScreenInternal(
+    AlertsScreenInternal(
         itemClicked = vm::itemClicked,
         deleteItem = vm::deleteItem,
         uiState = uiState
@@ -59,10 +59,10 @@ fun NotificationsScreen(vm: NotificationsViewModel) {
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun NotificationsScreenInternal(
+private fun AlertsScreenInternal(
     itemClicked: (Int) -> Unit,
     deleteItem: (Int) -> Unit,
-    uiState: NotificationsUIState
+    uiState: AlertsUIState
 ) {
 
     Box(
@@ -185,8 +185,8 @@ private fun NotificationsScreenInternal(
 
 @Preview
 @Composable
-private fun NotificationsViewModelPreview() {
-    val uiState = NotificationsUIState(
+private fun AlertsViewModelPreview() {
+    val uiState = AlertsUIState(
         notifications = listOf(
             Notification(
                 id = 1,
@@ -212,7 +212,7 @@ private fun NotificationsViewModelPreview() {
     PreviewBase {
         Scaffold {
             Box(modifier = Modifier.padding(it)) {
-                NotificationsScreenInternal(
+                AlertsScreenInternal(
                     itemClicked = { _ -> },
                     deleteItem = { _ -> },
                     uiState = uiState

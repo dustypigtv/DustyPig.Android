@@ -7,6 +7,5 @@ data class SelectProfileUIState(
     val busy: Boolean = true,
     val showError: Boolean = false,
     val errorMessage: String? = null,
-    val showPinDialog: Boolean = false,
     val profiles: List<BasicProfile> = listOf()
 )

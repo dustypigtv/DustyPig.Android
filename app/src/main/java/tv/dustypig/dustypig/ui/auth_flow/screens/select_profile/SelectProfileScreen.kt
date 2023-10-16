@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -44,12 +45,10 @@ fun SelectProfileScreen(vm: SelectProfileViewModel) {
 
     val uiState by vm.uiState.collectAsState()
     SelectProfileScreenInternal(
-        uiState = uiState,
         popBackStack = vm::popBackStack,
         hideError = vm::hideError,
-        onProfileSelected = vm::onProfileSelected,
-        cancelPinDialog = vm::cancelPinDialog,
-        onPinSubmitted = vm::onPinSubmitted
+        signIn = vm::signIn,
+        uiState = uiState
     )
 }
 
@@ -57,16 +56,16 @@ fun SelectProfileScreen(vm: SelectProfileViewModel) {
 
 @Composable
 private fun SelectProfileScreenInternal(
-    uiState: SelectProfileUIState,
     popBackStack: () -> Unit,
     hideError: () -> Unit,
-    onProfileSelected: (BasicProfile) -> Unit,
-    cancelPinDialog: () -> Unit,
-    onPinSubmitted: (String) -> Unit,
-) {
+    signIn: (Int, UShort?) -> Unit,
+    uiState: SelectProfileUIState
+    ) {
 
     val listState = rememberLazyGridState()
     var pin by remember { mutableStateOf("") }
+    var showPinDialog by remember { mutableStateOf(false) }
+    var selectedProfileId by remember { mutableIntStateOf(0) }
 
     Scaffold(
         topBar = {
@@ -95,9 +94,13 @@ private fun SelectProfileScreenInternal(
                     ) {
                         Avatar(
                             basicProfile = it,
+                            clickable = !uiState.busy,
                             onClick = {
-                                if(!uiState.busy) {
-                                    onProfileSelected(it)
+                                if(it.hasPin) {
+                                    selectedProfileId = it.id
+                                    showPinDialog = true
+                                } else {
+                                    signIn(it.id, null)
                                 }
                             },
                             modifier = Modifier
@@ -119,7 +122,7 @@ private fun SelectProfileScreenInternal(
         ErrorDialog(onDismissRequest = hideError, message = uiState.errorMessage)
     }
 
-    if(uiState.showPinDialog) {
+    if(showPinDialog) {
 
         val confirmEnabled by remember {
             derivedStateOf {
@@ -129,21 +132,25 @@ private fun SelectProfileScreenInternal(
 
         AlertDialog(
             shape = RoundedCornerShape(8.dp),
-            onDismissRequest = { cancelPinDialog() },
+            onDismissRequest = { showPinDialog = false },
             title = { Text(stringResource(R.string.enter_pin)) },
             text = {
                 PinEntry(
                     valueChanged = { pin = it },
                     onSubmit = {
                         pin = it
-                        onPinSubmitted(pin)
+                        showPinDialog = false
+                        signIn(selectedProfileId, pin.toUShortOrNull())
                     }
                 )
             },
             confirmButton = {
                 TextButton(
                     enabled = confirmEnabled,
-                    onClick = { onPinSubmitted(pin) }
+                    onClick = {
+                        showPinDialog = false
+                        signIn(selectedProfileId, pin.toUShortOrNull())
+                    }
                 ) {
                     Text(stringResource(R.string.ok))
                 }
@@ -151,7 +158,7 @@ private fun SelectProfileScreenInternal(
             dismissButton = {
                 TextButton(
                     enabled = !uiState.busy,
-                    onClick = { cancelPinDialog() }
+                    onClick = { showPinDialog = false }
                 ) {
                     Text(stringResource(R.string.cancel))
                 }
@@ -187,12 +194,10 @@ private fun SelectProfileScreenPreview() {
 
     PreviewBase {
         SelectProfileScreenInternal(
-            uiState = uiState,
             popBackStack = { },
             hideError = { },
-            onProfileSelected = { },
-            cancelPinDialog = { },
-            onPinSubmitted = { }
+            signIn = { _, _ -> },
+            uiState = uiState
         )
     }
 }

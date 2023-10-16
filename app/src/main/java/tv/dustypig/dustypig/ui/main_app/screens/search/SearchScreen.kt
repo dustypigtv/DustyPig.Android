@@ -62,7 +62,7 @@ import tv.dustypig.dustypig.ui.composables.BasicMediaView
 import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.main_app.ScreenLoadingInfo
-import tv.dustypig.dustypig.ui.main_app.screens.tmdb_details.TMDBDetailsNav
+import tv.dustypig.dustypig.ui.main_app.screens.search.tmdb_details.TMDBDetailsNav
 
 
 @Composable

@@ -1,4 +1,4 @@
-package tv.dustypig.dustypig.ui.main_app.screens.tmdb_details
+package tv.dustypig.dustypig.ui.main_app.screens.search.tmdb_details
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

@@ -1,4 +1,4 @@
-package tv.dustypig.dustypig.ui.main_app.screens.notifications
+package tv.dustypig.dustypig.ui.main_app.screens.alerts
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,12 +15,12 @@ import javax.inject.Inject
 
 
 @HiltViewModel
-class NotificationsViewModel @Inject constructor(
+class AlertsViewModel @Inject constructor(
     routeNavigator: RouteNavigator,
     private val notificationsManager: NotificationsManager,
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val _uiState = MutableStateFlow(NotificationsUIState())
+    private val _uiState = MutableStateFlow(AlertsUIState())
     val uiState = _uiState.asStateFlow()
 
     init {

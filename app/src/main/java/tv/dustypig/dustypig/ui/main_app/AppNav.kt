@@ -55,7 +55,7 @@ import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.SettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.theme_settings.ThemeSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.home.show_more.ShowMoreNav
-import tv.dustypig.dustypig.ui.main_app.screens.notifications.NotificationsNav
+import tv.dustypig.dustypig.ui.main_app.screens.alerts.AlertsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.account_settings.AccountSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.download_settings.DownloadSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.friends_settings.FriendsSettingsNav
@@ -65,7 +65,7 @@ import tv.dustypig.dustypig.ui.main_app.screens.settings.playback_settings.Playb
 import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.ProfilesSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.edit_profile.EditProfileNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.switch_profiles.SwitchProfilesNav
-import tv.dustypig.dustypig.ui.main_app.screens.tmdb_details.TMDBDetailsNav
+import tv.dustypig.dustypig.ui.main_app.screens.search.tmdb_details.TMDBDetailsNav
 
 
 private data class RootScreenMap(
@@ -105,7 +105,7 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
         ),
         RootScreenMap(
             name = stringResource(R.string.alerts),
-            route = NotificationsNav.route,
+            route = AlertsNav.route,
             selectedIcon = Icons.Filled.Notifications,
             unselectedIcon = Icons.Outlined.Notifications,
             notifications = true
@@ -205,7 +205,7 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
             HomeNav.composable(this, navController)
             SearchNav.composable(this, navController)
             DownloadsNav.composable(this, navController)
-            NotificationsNav.composable(this, navController)
+            AlertsNav.composable(this, navController)
             SettingsNav.composable(this, navController)
 
             //Sub screens

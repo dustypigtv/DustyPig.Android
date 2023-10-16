@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.api.models.BasicProfile
 import tv.dustypig.dustypig.api.models.LoginTypes
 import tv.dustypig.dustypig.api.models.ProfileCredentials
 import tv.dustypig.dustypig.api.repositories.AuthRepository
@@ -31,8 +30,7 @@ class SelectProfileViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(SelectProfileUIState())
     val uiState: StateFlow<SelectProfileUIState> = _uiState.asStateFlow()
 
-    private var _loadingError = false
-    private var _profileId: Int = 0
+    private var criticalError = false
 
 
     init {
@@ -41,56 +39,43 @@ class SelectProfileViewModel @Inject constructor(
                 val data = profilesRepository.list()
                 _uiState.update { it.copy(busy = false, profiles = data) }
             } catch (ex: Exception) {
-                ex.logToCrashlytics()
-                _loadingError = true
-                _uiState.update { it.copy(busy = false, showError = true, errorMessage = ex.localizedMessage) }
+                setError(ex = ex, isCritical = true)
             }
         }
     }
 
+    fun setError(ex: Exception, isCritical: Boolean) {
+        criticalError = isCritical
+        _uiState.update {
+            it.copy(
+                busy = false,
+                showError = true,
+                errorMessage = ex.localizedMessage,
+            )
+        }
+        ex.logToCrashlytics()
+    }
 
     fun hideError() {
         _uiState.update { it.copy(showError = false) }
-        if(_loadingError)
+        if(criticalError)
             popBackStack()
     }
 
-    fun cancelPinDialog() {
-        _uiState.update { it.copy(showPinDialog = false) }
-    }
 
-    private fun profileSignIn(pin: Int?) {
-        _uiState.update { it.copy(busy = true, showPinDialog = false) }
+    fun signIn(profileId: Int, pin: UShort?) {
+        _uiState.update {
+            it.copy(
+                busy = true
+            )
+        }
         viewModelScope.launch {
             try{
-                val data = authRepository.profileLogin(ProfileCredentials(_profileId, pin, FCMManager.currentToken))
+                val data = authRepository.profileLogin(ProfileCredentials(profileId, pin?.toInt(), FCMManager.currentToken))
                 authManager.setAuthState(data.token!!, data.profileId!!, data.loginType == LoginTypes.MainProfile)
             } catch (ex: Exception) {
-                ex.logToCrashlytics()
-                _loadingError = false
-                _uiState.update { it.copy(busy = false, showError = true, errorMessage = ex.localizedMessage) }
+                setError(ex = ex, isCritical = false)
             }
         }
     }
-
-    fun onProfileSelected(profile: BasicProfile) {
-        _profileId = profile.id
-        if(profile.hasPin) {
-            _uiState.update { it.copy(showPinDialog = true) }
-        }
-        else {
-            profileSignIn(null)
-        }
-    }
-
-    fun onPinSubmitted(pinString: String) {
-        val pin = try {
-            Integer.parseUnsignedInt(pinString)
-        } catch (ex: Exception) {
-            null
-        }
-
-        profileSignIn(pin)
-    }
-
 }
