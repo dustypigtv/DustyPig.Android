@@ -167,14 +167,14 @@ class SeriesDetailsViewModel  @Inject constructor(
     private fun playUpNext() {
         val episodes = _detailedSeries.episodes ?: listOf()
         val upNext: DetailedEpisode = episodes.firstOrNull { it.upNext } ?: episodes.first()
-        PlayerViewModel.mediaType = MediaTypes.Playlist
+        PlayerViewModel.mediaType = MediaTypes.Series
         PlayerViewModel.detailedSeries = _detailedSeries
         PlayerViewModel.upNextId = upNext.id
         navigateToRoute(PlayerNav.route)
     }
 
     fun playEpisode(id: Int) {
-        PlayerViewModel.mediaType = MediaTypes.Playlist
+        PlayerViewModel.mediaType = MediaTypes.Series
         PlayerViewModel.detailedSeries = _detailedSeries
         PlayerViewModel.upNextId = id
         navigateToRoute(PlayerNav.route)

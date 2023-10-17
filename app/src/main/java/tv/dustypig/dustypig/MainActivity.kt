@@ -45,6 +45,7 @@ import tv.dustypig.dustypig.ui.composables.LockScreenOrientation
 import tv.dustypig.dustypig.ui.isTablet
 import tv.dustypig.dustypig.ui.main_app.AppNav
 import tv.dustypig.dustypig.ui.main_app.AppNavViewModel
+import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerViewModel
 import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 import javax.inject.Inject
 
@@ -145,9 +146,13 @@ class MainActivity: ComponentActivity() {
     @Composable
     fun AppStateSwitcher() {
 
-        if(!LocalConfiguration.current.isTablet())
+        
+        if(PlayerViewModel.playerScreenVisible) {
+            LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
+        } else if(!LocalConfiguration.current.isTablet()) {
             LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
-
+        }
+            
         if (authManager.loginState == AuthManager.LOGIN_STATE_LOGGED_IN) {
             AskNotificationPermission()
             AppNav()
