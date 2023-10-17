@@ -1,8 +1,8 @@
 package tv.dustypig.dustypig.ui.main_app.screens.alerts
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,24 +17,27 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.DismissDirection
-import androidx.compose.material.DismissValue
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.FractionalThreshold
-import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.rememberDismissState
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DismissDirection
+import androidx.compose.material3.DismissValue
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDismissState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,6 +45,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.Notification
 import tv.dustypig.dustypig.ui.composables.PreviewBase
@@ -57,13 +61,15 @@ fun AlertsScreen(vm: AlertsViewModel) {
     )
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AlertsScreenInternal(
     itemClicked: (Int) -> Unit,
     deleteItem: (Int) -> Unit,
     uiState: AlertsUIState
 ) {
+
+    val delayTime = 300
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -80,28 +86,40 @@ private fun AlertsScreenInternal(
             LazyColumn(
                 state = lazyColumnState,
             ) {
-                items(uiState.notifications, key = { it.clientUUID }) { notification ->
+                items(uiState.notifications, key = { it.id }) { notification ->
+
+                    var show by remember { mutableStateOf(true) }
 
                     val dismissState = rememberDismissState(
-                        confirmStateChange = {
-                            if (it == DismissValue.DismissedToStart) {
-                                deleteItem(notification.id)
-                                return@rememberDismissState true
+                        initialValue = DismissValue.Default,
+                        confirmValueChange = {
+                            if(it == DismissValue.DismissedToStart) {
+                                show = false
                             }
-                            false
-                        }
+                            it == DismissValue.DismissedToStart
+                        },
+                        positionalThreshold = { totalDistance -> (totalDistance * 0.5).dp.toPx() }
                     )
 
+                    LaunchedEffect(show) {
+                        if(!show) {
+                            delay(delayTime.toLong())
+                            deleteItem(notification.id)
+                        }
+                    }
+
                     AnimatedVisibility(
-                        true, exit = fadeOut(spring())
+                        visible = show,
+                        exit = shrinkVertically(
+                            animationSpec = tween(
+                                durationMillis = delayTime,
+                            )
+                        )
                     ) {
                         SwipeToDismiss(
                             state = dismissState,
                             modifier = Modifier.padding(12.dp),
                             directions = setOf(DismissDirection.EndToStart),
-                            dismissThresholds = {
-                                FractionalThreshold(0.5f)
-                            },
                             background = {
                                 val color = when (dismissState.dismissDirection) {
                                     DismissDirection.EndToStart -> MaterialTheme.colorScheme.errorContainer

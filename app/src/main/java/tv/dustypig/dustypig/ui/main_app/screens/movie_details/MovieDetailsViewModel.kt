@@ -28,6 +28,7 @@ import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
 import tv.dustypig.dustypig.ui.main_app.screens.manage_parental_controls_for_title.ManageParentalControlsForTitleNav
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
+import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerViewModel
 import java.text.SimpleDateFormat
 import javax.inject.Inject
 
@@ -179,7 +180,9 @@ class MovieDetailsViewModel @Inject constructor(
 
 
     private fun play() {
-        navigateToRoute(PlayerNav.getRouteForId(mediaId))
+        PlayerViewModel.mediaType = MediaTypes.Movie
+        PlayerViewModel.detailedMovie = _detailedMovie
+        navigateToRoute(PlayerNav.route)
     }
 
 

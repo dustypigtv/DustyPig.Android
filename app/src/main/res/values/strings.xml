@@ -150,4 +150,5 @@
     <string name="switch_profiles">Switch Profiles</string>
     <string name="alerts">Alerts</string>
     <string name="no_alerts">No Alerts</string>
+    <string name="delete_playlist">Delete Playlist</string>
 </resources>

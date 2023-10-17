@@ -1,8 +1,8 @@
 package tv.dustypig.dustypig.ui.main_app.screens.downloads
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,11 +21,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.DismissDirection
-import androidx.compose.material.DismissValue
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.FractionalThreshold
-import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DownloadDone
@@ -34,15 +29,20 @@ import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.HourglassBottom
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayCircleOutline
-import androidx.compose.material.rememberDismissState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DismissDirection
+import androidx.compose.material3.DismissValue
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDismissState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,6 +61,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import kotlinx.coroutines.delay
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
@@ -89,7 +90,7 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun DownloadsScreenInternal(
     hideError: () -> Unit,
@@ -101,6 +102,8 @@ private fun DownloadsScreenInternal(
     modifyDownload: (job: UIJob, newCount: Int) -> Unit,
     uiState: DownloadsUIState
 ) {
+
+    val delayTime = 300
 
     val listState = rememberLazyListState()
 
@@ -151,13 +154,17 @@ private fun DownloadsScreenInternal(
                             else -> Modifier
                         }
 
+                        var show by remember { mutableStateOf(true) }
 
                         val dismissState = rememberDismissState(
-                            confirmStateChange = {
+                            initialValue = DismissValue.Default,
+                            confirmValueChange = {
                                 when (it) {
                                     DismissValue.DismissedToStart -> {
-                                        selectedJob = job
-                                        deleteDownload(job)
+                                        if(uiState.expandedMediaIds.contains(job.mediaId)) {
+                                            toggleExpansion(job.mediaId)
+                                        }
+                                        show = false
                                     }
 
                                     DismissValue.DismissedToEnd -> {
@@ -168,8 +175,17 @@ private fun DownloadsScreenInternal(
                                     else -> {}
                                 }
                                 false
-                            }
+                            },
+                            positionalThreshold = { totalDistance -> (totalDistance * 0.5).dp.toPx() }
                         )
+
+                        LaunchedEffect(show) {
+                            if(!show) {
+                                delay(delayTime.toLong())
+                                deleteDownload(job)
+                            }
+                        }
+
 
                         val directions = when (job.mediaType) {
                             MediaTypes.Series, MediaTypes.Playlist -> setOf(DismissDirection.EndToStart, DismissDirection.StartToEnd)
@@ -177,15 +193,17 @@ private fun DownloadsScreenInternal(
                         }
 
                         AnimatedVisibility(
-                            true, exit = fadeOut(spring())
+                            visible = show,
+                            exit = shrinkVertically(
+                                animationSpec = tween(
+                                    durationMillis = delayTime,
+                                )
+                            )
                         ) {
 
                             SwipeToDismiss(
                                 state = dismissState,
                                 directions = directions,
-                                dismissThresholds = {
-                                    FractionalThreshold(0.5f)
-                                },
                                 background = {
                                     val color = when (dismissState.dismissDirection) {
                                         DismissDirection.EndToStart -> MaterialTheme.colorScheme.errorContainer
@@ -387,6 +405,9 @@ private fun DownloadsScreenInternal(
 
                         for (dl in job.downloads.filter { it.mediaId != job.mediaId }) {
                             item(key = dl.mediaId) {
+
+
+
                                 Row(
                                     modifier = Modifier
                                         .padding(start = 36.dp, top = 0.dp, end = 0.dp, bottom = 0.dp)

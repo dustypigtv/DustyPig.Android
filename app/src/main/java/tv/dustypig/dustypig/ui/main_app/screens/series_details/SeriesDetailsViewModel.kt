@@ -27,6 +27,7 @@ import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNa
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
 import tv.dustypig.dustypig.ui.main_app.screens.manage_parental_controls_for_title.ManageParentalControlsForTitleNav
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
+import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerViewModel
 import javax.inject.Inject
 
 @HiltViewModel
@@ -166,11 +167,17 @@ class SeriesDetailsViewModel  @Inject constructor(
     private fun playUpNext() {
         val episodes = _detailedSeries.episodes ?: listOf()
         val upNext: DetailedEpisode = episodes.firstOrNull { it.upNext } ?: episodes.first()
-        navigateToRoute(PlayerNav.getRouteForId(upNext.id))
+        PlayerViewModel.mediaType = MediaTypes.Playlist
+        PlayerViewModel.detailedSeries = _detailedSeries
+        PlayerViewModel.upNextId = upNext.id
+        navigateToRoute(PlayerNav.route)
     }
 
     fun playEpisode(id: Int) {
-        navigateToRoute(PlayerNav.getRouteForId(id))
+        PlayerViewModel.mediaType = MediaTypes.Playlist
+        PlayerViewModel.detailedSeries = _detailedSeries
+        PlayerViewModel.upNextId = id
+        navigateToRoute(PlayerNav.route)
     }
 
     private fun updateDownloads(newCount: Int) {

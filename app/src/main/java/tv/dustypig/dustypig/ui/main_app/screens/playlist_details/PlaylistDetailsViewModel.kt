@@ -24,6 +24,7 @@ import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNa
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
 import tv.dustypig.dustypig.ui.main_app.screens.movie_details.MovieDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
+import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerViewModel
 import javax.inject.Inject
 
 @HiltViewModel
@@ -232,7 +233,7 @@ class PlaylistDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 playlistRepository.deletePlaylist(_detailedPlaylist.id)
-                //DownloadManager.delete(_detailedPlaylist.id)
+                downloadManager.delete(_detailedPlaylist.id, MediaTypes.Playlist)
                 HomeViewModel.triggerUpdate()
                 popBackStack()
             } catch (ex: Exception) {
@@ -243,12 +244,21 @@ class PlaylistDetailsViewModel @Inject constructor(
 
 
     fun playUpNext() {
-        val upNext = _detailedPlaylist.items!!.firstOrNull { it.index == _detailedPlaylist.currentIndex } ?: _detailedPlaylist.items!!.first()
-        navigateToRoute(PlayerNav.getRouteForId(upNext.id))
+        val upNext = _detailedPlaylist.items!!.firstOrNull {
+            it.index == _detailedPlaylist.currentIndex
+        } ?: _detailedPlaylist.items!!.first()
+
+        PlayerViewModel.mediaType = MediaTypes.Playlist
+        PlayerViewModel.detailedPlaylist = _detailedPlaylist
+        PlayerViewModel.upNextId = upNext.id
+        navigateToRoute(PlayerNav.route)
     }
 
     fun playItem(id: Int) {
-        navigateToRoute(PlayerNav.getRouteForId(id))
+        PlayerViewModel.mediaType = MediaTypes.Playlist
+        PlayerViewModel.detailedPlaylist = _detailedPlaylist
+        PlayerViewModel.upNextId = id
+        navigateToRoute(PlayerNav.route)
     }
 
     fun navToItem(id: Int) {

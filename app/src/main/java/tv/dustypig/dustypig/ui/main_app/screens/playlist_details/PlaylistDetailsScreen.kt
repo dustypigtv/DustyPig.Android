@@ -2,8 +2,8 @@ package tv.dustypig.dustypig.ui.main_app.screens.playlist_details
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,11 +26,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.DismissDirection
-import androidx.compose.material.DismissValue
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.FractionalThreshold
-import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
@@ -40,20 +35,25 @@ import androidx.compose.material.icons.filled.DragIndicator
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PlayCircleOutline
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.rememberDismissState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DismissDirection
+import androidx.compose.material3.DismissValue
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDismissState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -84,6 +84,7 @@ import coil.compose.AsyncImage
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Play
+import kotlinx.coroutines.delay
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.detectReorder
@@ -373,7 +374,7 @@ private fun HorizontalTabletLayout(
                 .fillMaxWidth()
                 .reorderable(state),
             horizontalAlignment = columnAlignment,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            //verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
             if (!uiState.loading && !criticalError) {
@@ -470,7 +471,7 @@ private fun PhoneLayout(
                 .fillMaxSize()
                 .reorderable(state),
             horizontalAlignment = columnAlignment,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            //verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
             item {
@@ -634,7 +635,7 @@ private fun PlaybackLayout(
 }
 
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PlaylistItemLayout(
     deleteItem: (Int) -> Unit,
@@ -646,26 +647,41 @@ private fun PlaylistItemLayout(
 ) {
 
     val elevation = animateDpAsState(if (isDragging) 16.dp else 0.dp, label = "")
+    var show by remember { mutableStateOf(true) }
 
     val dismissState = rememberDismissState(
-        confirmStateChange = {
+        initialValue = DismissValue.Default,
+        confirmValueChange = {
             if(it == DismissValue.DismissedToStart) {
-                deleteItem(playlistItem.id)
-                return@rememberDismissState true
+                show = false
             }
-            false
-        }
+            it == DismissValue.DismissedToStart
+        },
+        positionalThreshold = { totalDistance -> (totalDistance * 0.5).dp.toPx() }
     )
 
+    val delayTime = 300
+
+    LaunchedEffect(show) {
+        if(!show) {
+            delay(delayTime.toLong())
+            deleteItem(playlistItem.id)
+        }
+    }
+
     AnimatedVisibility(
-        true, exit = fadeOut(spring())
+        visible = show,
+        exit = shrinkVertically(
+            animationSpec = tween(
+                durationMillis = delayTime,
+            )
+        )
+
     ) {
         SwipeToDismiss(
+            modifier = Modifier.padding(12.dp, 0.dp),
             state = dismissState,
             directions = setOf(DismissDirection.EndToStart),
-            dismissThresholds = {
-                FractionalThreshold(0.5f)
-            },
             background = {
                 val color = when (dismissState.dismissDirection) {
                     DismissDirection.EndToStart -> MaterialTheme.colorScheme.errorContainer
@@ -674,10 +690,11 @@ private fun PlaylistItemLayout(
                 val direction = dismissState.dismissDirection
 
                 Row(
+                    //Padding doesn't seem to work here
                     modifier = Modifier
-                        .fillMaxSize()
-                        .background(color, shape = RoundedCornerShape(4.dp))
-                        .padding(12.dp, 8.dp),
+                        .fillMaxWidth()
+                        .height(64.dp)
+                        .background(color, shape = RoundedCornerShape(4.dp)),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.End
                 ) {
@@ -695,7 +712,8 @@ private fun PlaylistItemLayout(
                     horizontalArrangement = Arrangement.spacedBy(0.dp),
                     verticalAlignment = Alignment.Top,
                     modifier = Modifier
-                        .height(64.dp)
+                        .height(80.dp)
+                        .padding(bottom = 16.dp)
                         .shadow(elevation.value)
                         .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp), shape = RoundedCornerShape(4.dp))
                 ) {
@@ -811,7 +829,7 @@ private fun DeleteLayout(
             ),
             modifier = modifier
         ) {
-            Text(text = stringResource(R.string.delete))
+            Text(text = stringResource(R.string.delete_playlist))
         }
 
         Spacer(modifier = Modifier.height(16.dp))

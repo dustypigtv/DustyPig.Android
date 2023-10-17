@@ -22,6 +22,7 @@ import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.main_app.ScreenLoadingInfo
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
+import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerViewModel
 import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
 import javax.inject.Inject
 
@@ -130,7 +131,9 @@ class EpisodeDetailsViewModel  @Inject constructor(
     }
 
     fun play() {
-        navigateToRoute(PlayerNav.getRouteForId(_mediaId))
+        PlayerViewModel.mediaType = MediaTypes.Episode
+        PlayerViewModel.detailedEpisode = _detailedEpisode
+        navigateToRoute(PlayerNav.route)
     }
 
     fun addToPlaylist() {

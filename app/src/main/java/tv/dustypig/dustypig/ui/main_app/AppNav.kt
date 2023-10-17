@@ -56,6 +56,7 @@ import tv.dustypig.dustypig.ui.main_app.screens.settings.SettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.theme_settings.ThemeSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.home.show_more.ShowMoreNav
 import tv.dustypig.dustypig.ui.main_app.screens.alerts.AlertsNav
+import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.account_settings.AccountSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.download_settings.DownloadSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.friends_settings.FriendsSettingsNav
@@ -83,6 +84,16 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
     val unseenNotifications by vm.unseenNotifications.collectAsState()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+
+    //Because there are multiple paths to the same route, using
+    //  selected = currentDestination?.hierarchy?.any { it.route == screen.key } == true
+    //doesn't work well here. So instead just rememebr the new 'root tab route' when it changes
+    var curRootRoute by remember {
+        mutableStateOf(HomeNav.route)
+    }
+
 
     val items = listOf<RootScreenMap>(
         RootScreenMap(
@@ -126,76 +137,69 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
             )
         },
         bottomBar = {
-            NavigationBar {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentDestination = navBackStackEntry?.destination
 
-                //Because there are multiple paths to the same route, using
-                //  selected = currentDestination?.hierarchy?.any { it.route == screen.key } == true
-                //doesn't work well here. So instead just rememebr the new 'root tab route' when it changes
-                var curRootRoute by remember {
-                    mutableStateOf(HomeNav.route)
-                }
-
-                items.forEach { screen ->
-                    NavigationBarItem(
-                        alwaysShowLabel = false,
-                        label = {
-                            Text(
-                                text = screen.name,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        },
-                        icon = {
-                            BadgedBox(
-                                badge = {
-                                    if (screen.notifications && unseenNotifications) {
-                                        Badge(
-                                            containerColor = Color.Red
-                                        )
-                                    }
-                                }
-                            ) {
-                                Icon(
-                                    imageVector = if(screen.route == curRootRoute) screen.selectedIcon else screen.unselectedIcon,
-                                    contentDescription = null
+            if(currentDestination?.route != PlayerNav.route) {
+                NavigationBar {
+                    items.forEach { screen ->
+                        NavigationBarItem(
+                            alwaysShowLabel = false,
+                            label = {
+                                Text(
+                                    text = screen.name,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
-
-                            }
-                        },
-                        selected = screen.route == curRootRoute,
-                        onClick = {
-
-                            if(curRootRoute == screen.route && curRootRoute != currentDestination?.route) {
-                                navController.popBackStack()
-                            }
-                            else {
-                                curRootRoute = screen.route
-
-                                navController.navigate(screen.route) {
-                                    // Pop up to the start destination of the graph to
-                                    // avoid building up a large stack of destinations
-                                    // on the back stack as users select items
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
+                            },
+                            icon = {
+                                BadgedBox(
+                                    badge = {
+                                        if (screen.notifications && unseenNotifications) {
+                                            Badge(
+                                                containerColor = Color.Red
+                                            )
+                                        }
                                     }
-                                    // Avoid multiple copies of the same destination when
-                                    // reselecting the same item
-                                    launchSingleTop = true
+                                ) {
+                                    Icon(
+                                        imageVector = if (screen.route == curRootRoute) screen.selectedIcon else screen.unselectedIcon,
+                                        contentDescription = null
+                                    )
 
-                                    // Restore state when reselecting a previously selected item
-                                    restoreState = true
                                 }
-                            }
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            //SecondaryContainer
+                            },
+                            selected = screen.route == curRootRoute,
+                            onClick = {
+
+                                if (curRootRoute == screen.route && curRootRoute != currentDestination?.route) {
+                                    navController.popBackStack()
+                                } else {
+                                    curRootRoute = screen.route
+
+                                    navController.navigate(screen.route) {
+                                        // Pop up to the start destination of the graph to
+                                        // avoid building up a large stack of destinations
+                                        // on the back stack as users select items
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        // Avoid multiple copies of the same destination when
+                                        // reselecting the same item
+                                        launchSingleTop = true
+
+                                        // Restore state when reselecting a previously selected item
+                                        restoreState = true
+                                    }
+                                }
+                            },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                selectedTextColor = MaterialTheme.colorScheme.primary,
+                                //SecondaryContainer
+                            )
                         )
-                    )
+                    }
                 }
+
             }
         }
     ) { innerPadding ->
@@ -217,6 +221,8 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
             TMDBDetailsNav.composable(this, navController)
             AddToPlaylistNav.composable(this, navController)
             ManageParentalControlsForTitleNav.composable(this, navController)
+            PlayerNav.composable(this, navController)
+
 
             //Settings
             ThemeSettingsNav.composable(this, navController)
