@@ -14,12 +14,13 @@ import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.repositories.EpisodesRepository
 import tv.dustypig.dustypig.api.toTimeString
+import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
+import tv.dustypig.dustypig.global_managers.media_cache_manager.MediaCacheManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
-import tv.dustypig.dustypig.ui.main_app.ScreenLoadingInfo
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerViewModel
@@ -37,20 +38,35 @@ class EpisodeDetailsViewModel  @Inject constructor(
     private val _uiState = MutableStateFlow(EpisodeDetailsUIState())
     val uiState: StateFlow<EpisodeDetailsUIState> = _uiState.asStateFlow()
 
-    private val _mediaId: Int = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_ID)
+    private val _cacheId: String = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_CACHE_ID)
+    private val _mediaId: Int = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_MEDIA_ID)
     private val _canPlay: Boolean = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_CAN_PLAY)
     private val _fromSeriesDetails: Boolean = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_FROM_SERIES_DETAILS)
 
     private lateinit var _detailedEpisode: DetailedEpisode
 
     init {
-
+        val cachedInfo = MediaCacheManager.get(_cacheId)
         _uiState.update {
             it.copy(
-                artworkUrl = ScreenLoadingInfo.backdropUrl,
-                episodeTitle = ScreenLoadingInfo.title
+                artworkUrl = cachedInfo.backdropUrl ?: "",
+                episodeTitle = cachedInfo.title
             )
         }
+
+        viewModelScope.launch {
+            PlayerStateManager.playbackEnded.collectLatest {
+                updateData()
+            }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        MediaCacheManager.remove(_cacheId)
+    }
+
+    private fun updateData() {
 
         viewModelScope.launch {
             downloadManager.downloads.collectLatest {listOfJobs ->
@@ -141,7 +157,16 @@ class EpisodeDetailsViewModel  @Inject constructor(
     }
 
     fun goToSeries() {
-        ScreenLoadingInfo.setInfo(_detailedEpisode.seriesTitle ?: "", "", "")
-        navigateToRoute(SeriesDetailsNav.getRouteForId(_detailedEpisode.seriesId))
+        val cacheId = MediaCacheManager.add(
+            title = _detailedEpisode.seriesTitle ?: "",
+            posterUrl = "",
+            backdropUrl = null
+        )
+        navigateToRoute(
+            SeriesDetailsNav.getRoute(
+                mediaId = _detailedEpisode.seriesId,
+                cacheId = cacheId
+            )
+        )
     }
 }

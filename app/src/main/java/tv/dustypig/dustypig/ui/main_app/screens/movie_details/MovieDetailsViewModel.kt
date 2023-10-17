@@ -7,6 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.models.DetailedMovie
@@ -17,46 +18,66 @@ import tv.dustypig.dustypig.api.models.PlaybackProgress
 import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.api.repositories.MoviesRepository
 import tv.dustypig.dustypig.api.toTimeString
+import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
+import tv.dustypig.dustypig.global_managers.media_cache_manager.MediaCacheManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.composables.CreditsData
 import tv.dustypig.dustypig.ui.main_app.DetailsScreenBaseViewModel
-import tv.dustypig.dustypig.ui.main_app.ScreenLoadingInfo
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
 import tv.dustypig.dustypig.ui.main_app.screens.manage_parental_controls_for_title.ManageParentalControlsForTitleNav
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerViewModel
+import tv.dustypig.dustypig.ui.main_app.screens.playlist_details.PlaylistDetailsNav
 import java.text.SimpleDateFormat
 import javax.inject.Inject
-
-
-
-
 
 @SuppressLint("SimpleDateFormat")
 @HiltViewModel
 class MovieDetailsViewModel @Inject constructor(
-    routeNavigator: RouteNavigator,
-    savedStateHandle: SavedStateHandle,
-    private val mediaRepository: MediaRepository,
-    private val moviesRepository: MoviesRepository,
-    downloadManager: DownloadManager
+        routeNavigator: RouteNavigator,
+        savedStateHandle: SavedStateHandle,
+        private val mediaRepository: MediaRepository,
+        private val moviesRepository: MoviesRepository,
+        downloadManager: DownloadManager
 ): DetailsScreenBaseViewModel(routeNavigator, downloadManager, MediaTypes.Movie) {
 
     private val _uiState = MutableStateFlow(MovieDetailsUIState())
     val uiState: StateFlow<MovieDetailsUIState> = _uiState.asStateFlow()
 
-    override val mediaId: Int = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_ID)
+    private val _cacheId: String = savedStateHandle.getOrThrow(PlaylistDetailsNav.KEY_CACHE_ID)
+    override val mediaId: Int = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_MEDIA_ID)
     private lateinit var _detailedMovie: DetailedMovie
 
     init {
+        val cachedInfo = MediaCacheManager.get(_cacheId)
+        _uiState.update {
+            it.copy(
+                posterUrl = cachedInfo.posterUrl,
+                backdropUrl = cachedInfo.backdropUrl ?: ""
+            )
+        }
 
+        viewModelScope.launch {
+            PlayerStateManager.playbackEnded.collectLatest {
+                updateData()
+            }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        MediaCacheManager.remove(_cacheId)
+    }
+
+    private fun updateData() {
+        val cachedInfo = MediaCacheManager.get(_cacheId)
         baseTitleInfoUIState.update {
             it.copy(
-                title = ScreenLoadingInfo.title,
+                title = cachedInfo.title,
                 mediaType = MediaTypes.Movie,
                 playClick = ::play,
                 toggleWatchList = ::toggleWatchList,
@@ -68,14 +89,6 @@ class MovieDetailsViewModel @Inject constructor(
                 manageClick = ::manageParentalControls
             )
         }
-
-        _uiState.update {
-            it.copy(
-                posterUrl = ScreenLoadingInfo.posterUrl,
-                backdropUrl = ScreenLoadingInfo.backdropUrl
-            )
-        }
-
 
         viewModelScope.launch {
             try {

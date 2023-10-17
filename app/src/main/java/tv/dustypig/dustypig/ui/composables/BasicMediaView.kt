@@ -20,9 +20,9 @@ import coil.compose.AsyncImage
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.MediaTypes
+import tv.dustypig.dustypig.global_managers.media_cache_manager.MediaCacheManager
 import tv.dustypig.dustypig.nav.MyRouteNavigator
 import tv.dustypig.dustypig.nav.RouteNavigator
-import tv.dustypig.dustypig.ui.main_app.ScreenLoadingInfo
 import tv.dustypig.dustypig.ui.main_app.screens.movie_details.MovieDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.playlist_details.PlaylistDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
@@ -46,21 +46,34 @@ fun BasicMediaView(
         if(!navigateOnClick)
             return
 
-        ScreenLoadingInfo.setInfo(
-            title = basicMedia.title,
-            posterUrl = basicMedia.artworkUrl,
-            backdropUrl = basicMedia.backdropUrl ?: ""
-        )
+        val cachedId = MediaCacheManager.add(basicMedia)
 
         when (basicMedia.mediaType) {
             MediaTypes.Movie -> {
-                routeNavigator.navigateToRoute(route = MovieDetailsNav.getRouteForId(id = basicMedia.id))
+                routeNavigator.navigateToRoute(
+                    route = MovieDetailsNav.getRoute(
+                        mediaId = basicMedia.id,
+                        cacheId = cachedId
+                    )
+                )
             }
+
             MediaTypes.Series -> {
-                routeNavigator.navigateToRoute(route = SeriesDetailsNav.getRouteForId(id = basicMedia.id))
+                routeNavigator.navigateToRoute(
+                    route = SeriesDetailsNav.getRoute(
+                        mediaId = basicMedia.id,
+                        cacheId = cachedId
+                    )
+                )
             }
+
             MediaTypes.Playlist -> {
-                routeNavigator.navigateToRoute(route = PlaylistDetailsNav.getRouteForId(id = basicMedia.id))
+                routeNavigator.navigateToRoute(
+                    route = PlaylistDetailsNav.getRoute(
+                        mediaId = basicMedia.id,
+                        cacheId = cachedId
+                    )
+                )
             }
 
             else -> { }

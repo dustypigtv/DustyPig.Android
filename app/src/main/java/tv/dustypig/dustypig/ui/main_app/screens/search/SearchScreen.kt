@@ -56,12 +56,12 @@ import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.BasicTMDB
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.TMDBMediaTypes
+import tv.dustypig.dustypig.global_managers.media_cache_manager.MediaCacheManager
 import tv.dustypig.dustypig.nav.MyRouteNavigator
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.composables.BasicMediaView
 import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
-import tv.dustypig.dustypig.ui.main_app.ScreenLoadingInfo
 import tv.dustypig.dustypig.ui.main_app.screens.search.tmdb_details.TMDBDetailsNav
 
 
@@ -301,16 +301,14 @@ fun TMDBMediaView(
             clicked(basicTMDB.tmdbId)
 
 
-        ScreenLoadingInfo.setInfo(title = basicTMDB.title, posterUrl = basicTMDB.artworkUrl ?: "", backdropUrl = basicTMDB.backdropUrl ?: "")
-
-        when (basicTMDB.mediaType) {
-            TMDBMediaTypes.Movie -> {
-                routeNavigator.navigateToRoute(route = TMDBDetailsNav.getRouteForId(basicTMDB.tmdbId, true))
-            }
-            TMDBMediaTypes.Series -> {
-                routeNavigator.navigateToRoute(route = TMDBDetailsNav.getRouteForId(basicTMDB.tmdbId, false))
-            }
-        }
+        val cacheId = MediaCacheManager.add(basicTMDB)
+        routeNavigator.navigateToRoute(
+            route = TMDBDetailsNav.getRoute(
+                basicTMDB.tmdbId,
+                cacheId = cacheId,
+                isMovie = basicTMDB.mediaType == TMDBMediaTypes.Movie
+            )
+        )
     }
 
     val wdp = 100.dp

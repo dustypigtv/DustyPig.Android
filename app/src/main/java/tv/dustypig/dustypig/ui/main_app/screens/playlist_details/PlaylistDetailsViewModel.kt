@@ -14,12 +14,13 @@ import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.PlaylistItem
 import tv.dustypig.dustypig.api.models.UpdatesPlaylist
 import tv.dustypig.dustypig.api.repositories.PlaylistRepository
+import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
+import tv.dustypig.dustypig.global_managers.media_cache_manager.MediaCacheManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
-import tv.dustypig.dustypig.ui.main_app.ScreenLoadingInfo
 import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
 import tv.dustypig.dustypig.ui.main_app.screens.movie_details.MovieDetailsNav
@@ -38,20 +39,34 @@ class PlaylistDetailsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(PlaylistDetailsUIState())
     val uiState = _uiState.asStateFlow()
 
-
-    private val _playlistId: Int = savedStateHandle.getOrThrow(PlaylistDetailsNav.KEY_ID)
+    private val _cacheId: String = savedStateHandle.getOrThrow(PlaylistDetailsNav.KEY_CACHE_ID)
+    private val _playlistId: Int = savedStateHandle.getOrThrow(PlaylistDetailsNav.KEY_MEDIA_ID)
     private lateinit var _detailedPlaylist: DetailedPlaylist
     private val _localItems = mutableListOf<PlaylistItem>()
 
     init {
-
+        val cachedInfo = MediaCacheManager.get(_cacheId)
         _uiState.update {
             it.copy(
                 loading = true,
-                posterUrl = ScreenLoadingInfo.posterUrl,
-                title = ScreenLoadingInfo.title
+                posterUrl = cachedInfo.posterUrl,
+                title = cachedInfo.title
             )
         }
+
+        viewModelScope.launch {
+            PlayerStateManager.playbackEnded.collectLatest {
+                updateData()
+            }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        MediaCacheManager.remove(_cacheId)
+    }
+
+    private fun updateData() {
 
         viewModelScope.launch {
             try{
@@ -70,7 +85,7 @@ class PlaylistDetailsViewModel @Inject constructor(
 
                 _uiState.update {
                     it.copy(
-                        playlistId = _playlistId,
+                        playlistId = _detailedPlaylist.id,
                         loading = false,
                         title = _detailedPlaylist.name,
                         canPlay = items.isNotEmpty(),
@@ -85,10 +100,9 @@ class PlaylistDetailsViewModel @Inject constructor(
             }
         }
 
-
         viewModelScope.launch {
             downloadManager.downloads.collectLatest { jobs ->
-                val job = jobs.firstOrNull { it.mediaId == _playlistId && it.mediaType == MediaTypes.Playlist }
+                val job = jobs.firstOrNull { it.mediaId == _detailedPlaylist.id && it.mediaType == MediaTypes.Playlist }
                 if(job == null) {
                     _uiState.update {
                         it.copy(
@@ -106,6 +120,7 @@ class PlaylistDetailsViewModel @Inject constructor(
                 }
             }
         }
+
     }
 
     private fun setError(ex: Exception, criticalError: Boolean) {
@@ -142,7 +157,7 @@ class PlaylistDetailsViewModel @Inject constructor(
             try {
                 playlistRepository.rename(
                     UpdatesPlaylist(
-                        id = _playlistId,
+                        id = _detailedPlaylist.id,
                         name = newName
                     )
                 )
@@ -161,7 +176,7 @@ class PlaylistDetailsViewModel @Inject constructor(
     fun updateDownloads(newCount: Int) {
         viewModelScope.launch {
             if (newCount == 0)
-                downloadManager.delete(_playlistId, MediaTypes.Playlist)
+                downloadManager.delete(_detailedPlaylist.id, MediaTypes.Playlist)
             else
                 downloadManager.addOrUpdatePlaylist(_detailedPlaylist, newCount)
         }
@@ -262,12 +277,31 @@ class PlaylistDetailsViewModel @Inject constructor(
     }
 
     fun navToItem(id: Int) {
+
         val pli = _detailedPlaylist.items?.firstOrNull { it.id == id } ?: return
-        ScreenLoadingInfo.clearInfo()
-        if(pli.mediaType == MediaTypes.Movie) {
-            navigateToRoute(MovieDetailsNav.getRouteForId(pli.mediaId))
-        } else if(pli.mediaType == MediaTypes.Episode) {
-            navigateToRoute(EpisodeDetailsNav.getRoute(id = pli.mediaId, canPlay = true, fromSeriesDetails = false))
+
+        val cacheId = MediaCacheManager.add(
+            title = pli.title,
+            posterUrl = "",
+            backdropUrl = pli.artworkUrl
+        )
+
+        if (pli.mediaType == MediaTypes.Movie) {
+            navigateToRoute(
+                MovieDetailsNav.getRoute(
+                    mediaId = pli.mediaId,
+                    cacheId = cacheId
+                )
+            )
+        } else if (pli.mediaType == MediaTypes.Episode) {
+            navigateToRoute(
+                EpisodeDetailsNav.getRoute(
+                    mediaId = pli.mediaId,
+                    cacheId = cacheId,
+                    canPlay = true,
+                    fromSeriesDetails = false
+                )
+            )
         }
     }
 }

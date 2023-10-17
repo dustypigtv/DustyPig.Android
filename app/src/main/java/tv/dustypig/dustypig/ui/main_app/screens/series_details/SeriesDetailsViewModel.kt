@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.models.DetailedEpisode
@@ -15,13 +16,14 @@ import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.OverrideRequestStatus
 import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.api.repositories.SeriesRepository
+import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
+import tv.dustypig.dustypig.global_managers.media_cache_manager.MediaCacheManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.composables.CreditsData
 import tv.dustypig.dustypig.ui.main_app.DetailsScreenBaseViewModel
-import tv.dustypig.dustypig.ui.main_app.ScreenLoadingInfo
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
@@ -39,17 +41,40 @@ class SeriesDetailsViewModel  @Inject constructor(
     savedStateHandle: SavedStateHandle
 ): DetailsScreenBaseViewModel(routeNavigator, downloadManager, MediaTypes.Series) {
 
+
+
     private val _uiState = MutableStateFlow(SeriesDetailsUIState())
     val uiState: StateFlow<SeriesDetailsUIState> = _uiState.asStateFlow()
 
-    override val mediaId: Int = savedStateHandle.getOrThrow(SeriesDetailsNav.KEY_ID)
+    private val _cacheId: String = savedStateHandle.getOrThrow(SeriesDetailsNav.KEY_CACHE_ID)
+    override val mediaId: Int = savedStateHandle.getOrThrow(SeriesDetailsNav.KEY_MEDIA_ID)
     private lateinit var _detailedSeries: DetailedSeries
 
     init {
+        val cachedInfo = MediaCacheManager.get(_cacheId)
+        _uiState.update {
+            it.copy(
+                posterUrl = cachedInfo.posterUrl,
+                backdropUrl = cachedInfo.backdropUrl ?: ""
+            )
+        }
 
+        viewModelScope.launch {
+            PlayerStateManager.playbackEnded.collectLatest {
+                updateData()
+            }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        MediaCacheManager.remove(_cacheId)
+    }
+
+    private fun updateData() {
         baseTitleInfoUIState.update {
             it.copy(
-                title = ScreenLoadingInfo.title,
+                title = MediaCacheManager.get(_cacheId).title,
                 mediaType = MediaTypes.Series,
                 playClick = ::playUpNext,
                 toggleWatchList = ::toggleWatchList,
@@ -60,14 +85,6 @@ class SeriesDetailsViewModel  @Inject constructor(
                 manageClick = ::manageParentalControls,
             )
         }
-
-        _uiState.update {
-            it.copy(
-                posterUrl = ScreenLoadingInfo.posterUrl,
-                backdropUrl = ScreenLoadingInfo.backdropUrl
-            )
-        }
-
 
         viewModelScope.launch {
             try {
@@ -273,8 +290,23 @@ class SeriesDetailsViewModel  @Inject constructor(
     }
 
     fun navToEpisodeInfo(id: Int) {
-        ScreenLoadingInfo.setInfo(_detailedSeries.title, _detailedSeries.artworkUrl, _detailedSeries.backdropUrl ?: "")
-        navigateToRoute(EpisodeDetailsNav.getRoute(id, _detailedSeries.canPlay, true))
+        val episode = _detailedSeries.episodes?.firstOrNull {
+            it.id == id
+        } ?: return
+
+        val cacheId = MediaCacheManager.add(
+            title = episode.title,
+            posterUrl = _detailedSeries.artworkUrl,
+            backdropUrl = episode.artworkUrl
+        )
+        navigateToRoute(
+            EpisodeDetailsNav.getRoute(
+                mediaId = id,
+                cacheId = cacheId,
+                canPlay = _detailedSeries.canPlay,
+                fromSeriesDetails = true
+            )
+        )
     }
 
     /**

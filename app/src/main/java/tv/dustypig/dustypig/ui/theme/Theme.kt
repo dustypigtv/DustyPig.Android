@@ -6,14 +6,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.global_managers.settings_manager.Themes
-import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerViewModel
 
 
 private val maggiesColorScheme = darkColorScheme(
@@ -85,9 +87,10 @@ fun DustyPigTheme(
 
     val view = LocalView.current
     if (!view.isInEditMode) {
+        val playerScreenVisible by PlayerStateManager.playerScreenVisible.collectAsState()
         SideEffect {
             val window = (view.context as Activity).window
-            if (PlayerViewModel.playerScreenVisible) {
+            if (playerScreenVisible) {
                 val insetsController = WindowCompat.getInsetsController(window, window.decorView)
                 insetsController.apply {
                     hide(WindowInsetsCompat.Type.statusBars())

@@ -9,15 +9,22 @@ import tv.dustypig.dustypig.nav.NavRoute
 
 object SeriesDetailsNav : NavRoute<SeriesDetailsViewModel> {
 
-    const val KEY_ID = "KEY_ID"
+    const val KEY_MEDIA_ID = "KEY_MEDIA_ID"
+    const val KEY_CACHE_ID = "KEY_CACHE_ID"
 
-    override val route = "seriesDetails/{$KEY_ID}"
+    override val route = "seriesDetails/{$KEY_MEDIA_ID}/{$KEY_CACHE_ID}"
 
 
-    fun getRouteForId(id: Int): String = route.replace("{$KEY_ID}", "$id")
+    fun getRoute(
+        mediaId: Int,
+        cacheId: String
+    ): String = route
+        .replace("{$KEY_MEDIA_ID}", "$mediaId")
+        .replace("{$KEY_CACHE_ID}", cacheId)
 
     override fun getArguments(): List<NamedNavArgument> = listOf(
-        navArgument(KEY_ID) { type = NavType.IntType }
+        navArgument(KEY_MEDIA_ID) { type = NavType.IntType },
+        navArgument(KEY_CACHE_ID) { type = NavType.StringType }
     )
 
     @Composable

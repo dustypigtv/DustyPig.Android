@@ -23,11 +23,11 @@ import tv.dustypig.dustypig.api.repositories.FriendsRepository
 import tv.dustypig.dustypig.api.repositories.ProfilesRepository
 import tv.dustypig.dustypig.api.repositories.TMDBRepository
 import tv.dustypig.dustypig.global_managers.AuthManager
+import tv.dustypig.dustypig.global_managers.media_cache_manager.MediaCacheManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.composables.CreditsData
-import tv.dustypig.dustypig.ui.main_app.ScreenLoadingInfo
 import javax.inject.Inject
 
 @HiltViewModel
@@ -43,17 +43,19 @@ class TMDBDetailsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(TMDBDetailsUIState())
     val uiState = _uiState.asStateFlow()
 
-    private val _tmdbId: Int = savedStateHandle.getOrThrow(TMDBDetailsNav.KEY_ID)
+    private val _cacheId: String = savedStateHandle.getOrThrow(TMDBDetailsNav.KEY_CACHE_ID)
+    private val _tmdbId: Int = savedStateHandle.getOrThrow(TMDBDetailsNav.KEY_MEDIA_ID)
     private val _isMovie: Boolean = savedStateHandle.getOrThrow(TMDBDetailsNav.KEY_IS_MOVIE)
     private lateinit var _detailedTMDB: DetailedTMDB
 
     init {
+        val cachedInfo = MediaCacheManager.get(_cacheId)
         _uiState.update {
             it.copy(
                 loading = true,
-                posterUrl = ScreenLoadingInfo.posterUrl,
-                backdropUrl = ScreenLoadingInfo.backdropUrl,
-                title = ScreenLoadingInfo.title,
+                posterUrl = cachedInfo.posterUrl,
+                backdropUrl = cachedInfo.backdropUrl ?: "",
+                title = cachedInfo.title,
                 isMovie = _isMovie
             )
         }
@@ -128,6 +130,11 @@ class TMDBDetailsViewModel @Inject constructor(
                 setError(ex = ex, criticalError = true)
             }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        MediaCacheManager.remove(_cacheId)
     }
 
     private fun setError(ex: Exception, criticalError: Boolean) {

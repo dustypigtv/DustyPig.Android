@@ -18,8 +18,6 @@ import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.global_managers.NotificationsManager
 import tv.dustypig.dustypig.global_managers.fcm_manager.FCMManager
 import tv.dustypig.dustypig.logToCrashlytics
-import tv.dustypig.dustypig.ui.main_app.screens.movie_details.MovieDetailsNav
-import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
 import javax.inject.Inject
 
 
@@ -98,8 +96,8 @@ class AppNavViewModel @Inject constructor(
             val id = parts[1].toInt()
 
             when(type) {
-                "movie" -> { navHostController.navigate(MovieDetailsNav.getRouteForId(id)) }
-                "series" -> { navHostController.navigate(SeriesDetailsNav.getRouteForId(id)) }
+                //"movie" -> { navHostController.navigate(MovieDetailsNav.getRoute(id)) }
+                //"series" -> { navHostController.navigate(SeriesDetailsNav.getRouteForId(id)) }
                 "friendship" -> { }
                 "requests" -> { }
             }

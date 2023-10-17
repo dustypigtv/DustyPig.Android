@@ -29,7 +29,7 @@ class AddToPlaylistViewModel  @Inject constructor(
     private val _uiState = MutableStateFlow(AddToPlaylistUIState())
     val uiState = _uiState.asStateFlow()
 
-    private var _data: List<BasicPlaylist> = listOf()
+    private var _existingPlaylists: List<BasicPlaylist> = listOf()
 
     private val _mediaId: Int = savedStateHandle.getOrThrow(AddToPlaylistNav.KEY_ID)
     private val _isSeries: Boolean = savedStateHandle.getOrThrow<String>(AddToPlaylistNav.KEY_IS_SERIES).toBoolean()
@@ -37,11 +37,11 @@ class AddToPlaylistViewModel  @Inject constructor(
     init {
         viewModelScope.launch {
             try {
-                _data = playlistRepository.list()
+                _existingPlaylists = playlistRepository.list()
                 _uiState.update {
                     it.copy(
                         busy = false,
-                        playlists = _data
+                        playlists = _existingPlaylists
                     )
                 }
             } catch(ex: Exception) {

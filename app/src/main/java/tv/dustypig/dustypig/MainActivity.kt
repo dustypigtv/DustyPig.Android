@@ -18,6 +18,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,6 +37,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.global_managers.AuthManager
 import tv.dustypig.dustypig.global_managers.NotificationsManager
+import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
 import tv.dustypig.dustypig.global_managers.fcm_manager.FCMManager
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
@@ -45,7 +47,6 @@ import tv.dustypig.dustypig.ui.composables.LockScreenOrientation
 import tv.dustypig.dustypig.ui.isTablet
 import tv.dustypig.dustypig.ui.main_app.AppNav
 import tv.dustypig.dustypig.ui.main_app.AppNavViewModel
-import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerViewModel
 import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 import javax.inject.Inject
 
@@ -146,17 +147,20 @@ class MainActivity: ComponentActivity() {
     @Composable
     fun AppStateSwitcher() {
 
-        
-        if(PlayerViewModel.playerScreenVisible) {
+        val playerScreenVisible by PlayerStateManager.playerScreenVisible.collectAsState()
+
+        if(playerScreenVisible) {
             LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
         } else if(!LocalConfiguration.current.isTablet()) {
             LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
         }
-            
-        if (authManager.loginState == AuthManager.LOGIN_STATE_LOGGED_IN) {
+
+        val loginState by authManager.loginState.collectAsState()
+
+        if (loginState == AuthManager.LOGIN_STATE_LOGGED_IN) {
             AskNotificationPermission()
             AppNav()
-        } else if (authManager.loginState == AuthManager.LOGIN_STATE_LOGGED_OUT) {
+        } else if (loginState == AuthManager.LOGIN_STATE_LOGGED_OUT) {
             AuthNav()
         } else {
             Scaffold { paddingValues ->
@@ -169,7 +173,7 @@ class MainActivity: ComponentActivity() {
                     CircularProgressIndicator()
                 }
             }
-            if (authManager.loginState == AuthManager.LOGIN_STATE_SWITCHING_PROFILES) {
+            if (loginState == AuthManager.LOGIN_STATE_SWITCHING_PROFILES) {
                 LaunchedEffect(true) {
                     authManager.switchProfileEnd()
                 }
@@ -181,9 +185,6 @@ class MainActivity: ComponentActivity() {
     @Composable
     private fun AskNotificationPermission() {
 
-        if(authManager.loginState != AuthManager.LOGIN_STATE_LOGGED_IN)
-            return
-
         // This is only necessary for API level >= 33 (TIRAMISU)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) ==
@@ -191,8 +192,6 @@ class MainActivity: ComponentActivity() {
             ) {
                 // Permission already granted
                 Log.d(TAG, "Notification permission granted: true")
-
-
 //            } else if (shouldShowRequestPermissionRationale(android.Manifest.permission.POST_NOTIFICATIONS)) {
 //                requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
             } else {

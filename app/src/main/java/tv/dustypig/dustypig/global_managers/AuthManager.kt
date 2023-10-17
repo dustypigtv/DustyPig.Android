@@ -1,18 +1,20 @@
 package tv.dustypig.dustypig.global_managers
 
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.setValue
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import tv.dustypig.dustypig.global_managers.media_cache_manager.MediaCacheManager
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import javax.inject.Inject
 import javax.inject.Singleton
 
 
 @Singleton
+@OptIn(DelicateCoroutinesApi::class)
 class AuthManager @Inject constructor(private val settingsManager: SettingsManager) {
 
     companion object {
@@ -27,8 +29,8 @@ class AuthManager @Inject constructor(private val settingsManager: SettingsManag
         const val TEST_PASSWORD: String = "test password"
     }
 
-    var loginState by mutableIntStateOf(LOGIN_STATE_UNKNOWN)
-        private set
+    private val _loginState = MutableStateFlow(LOGIN_STATE_UNKNOWN)
+    val loginState = _loginState.asStateFlow()
 
     var currentToken: String = ""
         private set
@@ -39,7 +41,6 @@ class AuthManager @Inject constructor(private val settingsManager: SettingsManag
     var currentProfileIsMain: Boolean = false
         private set
 
-    @OptIn(DelicateCoroutinesApi::class)
     fun init() {
         GlobalScope.launch {
             setState(
@@ -50,7 +51,6 @@ class AuthManager @Inject constructor(private val settingsManager: SettingsManag
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     fun setAuthState(token: String, profileId: Int, isMain: Boolean) {
         GlobalScope.launch {
             settingsManager.setToken(token)
@@ -60,17 +60,18 @@ class AuthManager @Inject constructor(private val settingsManager: SettingsManag
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     fun switchProfileBegin(token: String, profileId: Int, isMain: Boolean) {
+        MediaCacheManager.reset()
         GlobalScope.launch {
             settingsManager.setToken(token)
             settingsManager.setProfileId(profileId)
             settingsManager.setIsMainProfile(isMain)
-            loginState = LOGIN_STATE_SWITCHING_PROFILES
+            _loginState.update {
+                LOGIN_STATE_SWITCHING_PROFILES
+            }
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     fun switchProfileEnd() {
         GlobalScope.launch {
             setState(
@@ -83,6 +84,7 @@ class AuthManager @Inject constructor(private val settingsManager: SettingsManag
 
 
     fun logout() {
+        MediaCacheManager.reset()
         setAuthState(token = "", profileId = 0, isMain = false)
     }
 
@@ -99,8 +101,12 @@ class AuthManager @Inject constructor(private val settingsManager: SettingsManag
         currentProfileId = profileId
         currentProfileIsMain = isMain
 
-        loginState =
-            if(currentToken != "" && currentProfileId > 0) LOGIN_STATE_LOGGED_IN else LOGIN_STATE_LOGGED_OUT
+        _loginState.update {
+            if(currentToken != "" && currentProfileId > 0)
+                LOGIN_STATE_LOGGED_IN
+            else
+                LOGIN_STATE_LOGGED_OUT
+        }
 
         Log.d(TAG, token)
     }
