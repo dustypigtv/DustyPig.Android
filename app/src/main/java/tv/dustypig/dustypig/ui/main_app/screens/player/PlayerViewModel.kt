@@ -230,7 +230,9 @@ class PlayerViewModel @Inject constructor(
                     if(abs(seconds - lastReportedTime) >= 0.1) {
                         lastReportedTime = seconds
                         when (mediaType) {
-                            MediaTypes.Movie, MediaTypes.Series, MediaTypes.Episode -> mediaRepository.updatePlaybackProgress(
+                            MediaTypes.Movie,
+                            MediaTypes.Series,
+                            MediaTypes.Episode -> mediaRepository.updatePlaybackProgress(
                                 PlaybackProgress(
                                     id = player.currentMediaItem!!.mediaId.toInt(),
                                     seconds = seconds
