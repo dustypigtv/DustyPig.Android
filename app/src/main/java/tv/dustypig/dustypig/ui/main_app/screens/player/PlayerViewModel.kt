@@ -225,10 +225,10 @@ class PlayerViewModel @Inject constructor(
                     popBackStack()
                 } else {
 
+                    //Don't constantly update if paused
                     val seconds = player.currentPosition.toDouble() / 1000
-                    if(abs(seconds - lastReportedTime) >= 1.0) {
+                    if(abs(seconds - lastReportedTime) >= 0.1) {
                         lastReportedTime = seconds
-                        Log.d(TAG, "lastReportedTime: $lastReportedTime")
                         when (mediaType) {
                             MediaTypes.Movie, MediaTypes.Series, MediaTypes.Episode -> mediaRepository.updatePlaybackProgress(
                                 PlaybackProgress(
