@@ -150,7 +150,7 @@ class MainActivity: ComponentActivity() {
         val playerScreenVisible by PlayerStateManager.playerScreenVisible.collectAsState()
 
         if(playerScreenVisible) {
-            LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
+            LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE)
         } else if(!LocalConfiguration.current.isTablet()) {
             LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
         }

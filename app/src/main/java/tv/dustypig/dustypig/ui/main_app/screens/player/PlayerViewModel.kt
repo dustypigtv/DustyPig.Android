@@ -5,7 +5,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
+import androidx.media3.common.MediaItem.SubtitleConfiguration
 import androidx.media3.common.Player
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +17,7 @@ import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.api.models.DetailedMovie
 import tv.dustypig.dustypig.api.models.DetailedPlaylist
 import tv.dustypig.dustypig.api.models.DetailedSeries
+import tv.dustypig.dustypig.api.models.ExternalSubtitle
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.PlaybackProgress
 import tv.dustypig.dustypig.api.models.SetPlaylistProgress
@@ -58,6 +59,7 @@ class PlayerViewModel @Inject constructor(
     private val timer = Timer()
     private var timerBusy = false
     private var lastReportedTime = 0.0
+    private val itemsWithSubtitles = arrayListOf<String>()
 
     init {
 
@@ -69,44 +71,31 @@ class PlayerViewModel @Inject constructor(
             )
         }
 
+
         try {
             when (mediaType) {
                 MediaTypes.Movie -> {
                     player.setMediaItem(
-                        MediaItem
-                            .Builder()
-                            .setMediaId(detailedMovie!!.id.toString())
-                            .setUri(detailedMovie!!.videoUrl)
-                            .setMediaMetadata(
-                                MediaMetadata
-                                    .Builder()
-                                    .setArtworkUri(detailedMovie!!.artworkUrl.toUri())
-                                    .setDescription(detailedMovie!!.description)
-                                    .setDisplayTitle(detailedMovie!!.displayTitle())
-                                    .build()
-                            )
-                            .build(),
-                        max(((detailedMovie!!.played ?: 0.0) * 1000).toLong(), 0)
+                        buildMediaItem(
+                            detailedMovie!!.id,
+                            detailedMovie!!.videoUrl,
+                            detailedMovie!!.externalSubtitles,
+                            itemsWithSubtitles
+                        ),
+                        convertPlayedToMs(detailedMovie!!.played)
                     )
                 }
 
 
                 MediaTypes.Episode -> {
                     player.setMediaItem(
-                        MediaItem
-                            .Builder()
-                            .setMediaId(detailedEpisode!!.id.toString())
-                            .setUri(detailedEpisode!!.videoUrl)
-                            .setMediaMetadata(
-                                MediaMetadata
-                                    .Builder()
-                                    .setArtworkUri(detailedEpisode!!.artworkUrl.toUri())
-                                    .setDescription(detailedEpisode!!.description)
-                                    .setDisplayTitle(detailedEpisode!!.title)
-                                    .build()
-                            )
-                            .build(),
-                        max(((detailedEpisode!!.played ?: 0.0) * 1000).toLong(), 0)
+                        buildMediaItem(
+                            detailedEpisode!!.id,
+                            detailedEpisode!!.videoUrl,
+                            detailedEpisode!!.externalSubtitles,
+                            itemsWithSubtitles
+                        ),
+                        convertPlayedToMs(detailedEpisode!!.played)
                     )
                 }
 
@@ -118,25 +107,17 @@ class PlayerViewModel @Inject constructor(
                             found = true
                         }
                         if (found) {
-                            val mi = MediaItem
-                                .Builder()
-                                .setMediaId(ep.id.toString())
-                                .setUri(ep.videoUrl)
-                                .setMediaMetadata(
-                                    MediaMetadata
-                                        .Builder()
-                                        .setArtworkUri(ep.artworkUrl.toUri())
-                                        .setDescription(ep.description)
-                                        .setDisplayTitle(ep.title)
-                                        .build()
-                                )
-                                .build()
+                            val mi = buildMediaItem(
+                                ep.id,
+                                ep.videoUrl,
+                                ep.externalSubtitles,
+                                itemsWithSubtitles
+                            )
                             if (first) {
-                                player.setMediaItem(mi, max(((ep.played ?: 0.0) * 1000).toLong(), 0))
+                                player.setMediaItem(mi, convertPlayedToMs(ep.played))
                             } else {
                                 player.addMediaItem(mi)
                             }
-
                             first = false
                         }
                     }
@@ -151,21 +132,15 @@ class PlayerViewModel @Inject constructor(
                             found = true
                         }
                         if (found) {
-                            val mi = MediaItem
-                                .Builder()
-                                .setMediaId(pli.id.toString())
-                                .setUri(pli.videoUrl)
-                                .setMediaMetadata(
-                                    MediaMetadata
-                                        .Builder()
-                                        .setArtworkUri(pli.artworkUrl.toUri())
-                                        .setDescription(pli.description)
-                                        .setDisplayTitle(pli.title)
-                                        .build()
-                                )
-                                .build()
+                            val mi = buildMediaItem(
+                                /* for playlists, mediaId = playlistItem.Index */
+                                pli.index,
+                                pli.videoUrl,
+                                pli.externalSubtitles,
+                                itemsWithSubtitles
+                            )
                             if (first) {
-                                player.setMediaItem(mi, max(((pli.played ?: 0.0) * 1000).toLong(), 0))
+                                player.setMediaItem(mi, convertPlayedToMs(pli.played))
                             } else {
                                 player.addMediaItem(mi)
                             }
@@ -207,6 +182,34 @@ class PlayerViewModel @Inject constructor(
         player.release()
     }
 
+    private fun buildMediaItem(
+        mediaId: Int,
+        videoUrl: String?,
+        subTitles: List<ExternalSubtitle>?,
+        itemsWithSubtitles: ArrayList<String>
+    ): MediaItem {
+        val ret = MediaItem
+            .Builder()
+            .setMediaId(mediaId.toString())
+            .setUri(videoUrl)
+        if(!subTitles.isNullOrEmpty()) {
+            val subtitleConfigurations = arrayListOf<SubtitleConfiguration>()
+            for (sub in subTitles) {
+                subtitleConfigurations.add(
+                    SubtitleConfiguration
+                        .Builder(sub.url.toUri())
+                        .setLabel(sub.name)
+                        .build()
+                )
+            }
+            ret.setSubtitleConfigurations(subtitleConfigurations)
+            itemsWithSubtitles.add(mediaId.toString())
+        }
+        return ret.build()
+    }
+
+    private fun convertPlayedToMs(played: Double?) = max(((played ?: 0.0) * 1000).toLong(), 0)
+
     fun hideError() {
         popBackStack()
     }
@@ -225,6 +228,17 @@ class PlayerViewModel @Inject constructor(
                     popBackStack()
                 } else {
 
+                    val currentMediaItem = player.currentMediaItem!!
+
+                    val showSubtitlesButton = itemsWithSubtitles.contains(currentMediaItem.mediaId)
+                    if(showSubtitlesButton != _uiState.value.showSubtitlesButton) {
+                        _uiState.update {
+                            it.copy(
+                                showSubtitlesButton = showSubtitlesButton
+                            )
+                        }
+                    }
+
                     //Don't constantly update if paused
                     val seconds = player.currentPosition.toDouble() / 1000
                     if(abs(seconds - lastReportedTime) >= 0.1) {
@@ -234,7 +248,7 @@ class PlayerViewModel @Inject constructor(
                             MediaTypes.Series,
                             MediaTypes.Episode -> mediaRepository.updatePlaybackProgress(
                                 PlaybackProgress(
-                                    id = player.currentMediaItem!!.mediaId.toInt(),
+                                    id = currentMediaItem.mediaId.toInt(),
                                     seconds = seconds
                                 )
                             )
@@ -242,7 +256,9 @@ class PlayerViewModel @Inject constructor(
                             MediaTypes.Playlist -> playlistRepository.setPlaylistProgress(
                                 SetPlaylistProgress(
                                     playlistId = detailedPlaylist!!.id,
-                                    newIndex = player.currentMediaItemIndex,
+
+                                    /* for playlists, mediaId = playlistItem.Index */
+                                    newIndex = currentMediaItem.mediaId.toInt(),
                                     newProgress = seconds
                                 )
                             )

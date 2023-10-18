@@ -71,9 +71,10 @@ private fun PlayerScreenInternal(
             factory = { context ->
                 PlayerView(context).also {
                     it.player = uiState.player
+                    it.setShowSubtitleButton(uiState.showSubtitlesButton)
                     it.setControllerVisibilityListener (
-                        PlayerView.ControllerVisibilityListener {
-                            showExtendedControls = it == PlayerView.VISIBLE
+                        PlayerView.ControllerVisibilityListener { visible ->
+                            showExtendedControls = visible == PlayerView.VISIBLE
                         }
                     )
                 }
