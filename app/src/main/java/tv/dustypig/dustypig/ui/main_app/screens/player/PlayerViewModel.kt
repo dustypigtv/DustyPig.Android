@@ -208,7 +208,7 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun hideError() {
-        popBack()
+        popBackStack()
     }
 
     private fun timerTick() {
@@ -222,7 +222,7 @@ class PlayerViewModel @Inject constructor(
             try {
 
                 if(player.playbackState == Player.STATE_ENDED) {
-                    popBack()
+                    popBackStack()
                 } else {
 
                     val seconds = player.currentPosition.toDouble() / 1000
@@ -255,10 +255,10 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    fun popBack() {
+    override fun popBackStack() {
         player.release()
         HomeViewModel.triggerUpdate()
         PlayerStateManager.playerDisposed()
-        popBackStack()
+        routeNavigator.popBackStack()
     }
 }

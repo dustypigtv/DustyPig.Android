@@ -32,7 +32,7 @@ import tv.dustypig.dustypig.ui.composables.PreviewBase
 fun PlayerScreen(vm: PlayerViewModel) {
     val uiState by vm.uiState.collectAsState()
     PlayerScreenInternal(
-        popBack = vm::popBack,
+        popBackStack = vm::popBackStack,
         hideError = vm::hideError,
         uiState = uiState
     )
@@ -42,7 +42,7 @@ fun PlayerScreen(vm: PlayerViewModel) {
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
 private fun PlayerScreenInternal(
-    popBack: () -> Unit,
+    popBackStack: () -> Unit,
     hideError: () -> Unit,
     uiState: PlayerUIState
 ) {
@@ -111,7 +111,7 @@ private fun PlayerScreenInternal(
             )
         ) {
             IconButton(
-                onClick = popBack
+                onClick = popBackStack
             ) {
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
@@ -139,7 +139,7 @@ private fun PlayerScreenPreview() {
     )
     PreviewBase {
         PlayerScreenInternal(
-            popBack = { },
+            popBackStack = { },
             hideError = { },
             uiState = uiState
         )
