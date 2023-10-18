@@ -1,8 +1,15 @@
 package tv.dustypig.dustypig.ui.main_app.screens.player
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -11,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
@@ -24,7 +32,7 @@ import tv.dustypig.dustypig.ui.composables.PreviewBase
 fun PlayerScreen(vm: PlayerViewModel) {
     val uiState by vm.uiState.collectAsState()
     PlayerScreenInternal(
-        popBackStack = vm::popBackStack,
+        popBack = vm::popBack,
         hideError = vm::hideError,
         uiState = uiState
     )
@@ -34,7 +42,7 @@ fun PlayerScreen(vm: PlayerViewModel) {
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
 private fun PlayerScreenInternal(
-    popBackStack: () -> Unit,
+    popBack: () -> Unit,
     hideError: () -> Unit,
     uiState: PlayerUIState
 ) {
@@ -53,12 +61,21 @@ private fun PlayerScreenInternal(
         }
     }
 
-    Scaffold { paddingValues ->
+    val delayTime = 250
+    var showExtendedControls by remember { mutableStateOf(false) }
 
+    Box(
+        modifier = Modifier.fillMaxSize(),
+    ) {
         AndroidView(
             factory = { context ->
                 PlayerView(context).also {
                     it.player = uiState.player
+                    it.setControllerVisibilityListener (
+                        PlayerView.ControllerVisibilityListener {
+                            showExtendedControls = it == PlayerView.VISIBLE
+                        }
+                    )
                 }
             },
             update = {
@@ -77,11 +94,35 @@ private fun PlayerScreenInternal(
             },
             modifier = Modifier
                 .fillMaxSize()
-                .padding((paddingValues))
         )
-    }
 
-    if(uiState.showErrorDialog) {
+
+        AnimatedVisibility(
+            visible = showExtendedControls,
+            enter = expandVertically(
+                animationSpec = tween(
+                    durationMillis = delayTime,
+                )
+            ),
+            exit = shrinkVertically(
+                animationSpec = tween(
+                    durationMillis = delayTime,
+                )
+            )
+        ) {
+            IconButton(
+                onClick = popBack
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.ArrowBack,
+                    contentDescription = null,
+                    tint = Color.White
+                )
+            }
+        }
+    }
+    
+    if (uiState.showErrorDialog) {
         ErrorDialog(
             onDismissRequest = hideError,
             message = uiState.errorMessage
@@ -98,7 +139,7 @@ private fun PlayerScreenPreview() {
     )
     PreviewBase {
         PlayerScreenInternal(
-            popBackStack = { },
+            popBack = { },
             hideError = { },
             uiState = uiState
         )

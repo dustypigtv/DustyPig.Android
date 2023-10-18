@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig.ui.main_app.screens.player
 
+import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -40,6 +41,8 @@ class PlayerViewModel @Inject constructor(
 ): ViewModel(), RouteNavigator by routeNavigator  {
 
     companion object {
+        private const val TAG = "PlayerViewModel"
+
         var mediaType = MediaTypes.Movie
         var upNextId = 0
 
@@ -201,15 +204,11 @@ class PlayerViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-
-        HomeViewModel.triggerUpdate()
-        PlayerStateManager.playerDisposed()
-
         player.release()
     }
 
     fun hideError() {
-        popBackStack()
+        popBack()
     }
 
     private fun timerTick() {
@@ -223,12 +222,13 @@ class PlayerViewModel @Inject constructor(
             try {
 
                 if(player.playbackState == Player.STATE_ENDED) {
-                    popBackStack()
+                    popBack()
                 } else {
 
                     val seconds = player.currentPosition.toDouble() / 1000
                     if(abs(seconds - lastReportedTime) >= 1.0) {
                         lastReportedTime = seconds
+                        Log.d(TAG, "lastReportedTime: $lastReportedTime")
                         when (mediaType) {
                             MediaTypes.Movie, MediaTypes.Series, MediaTypes.Episode -> mediaRepository.updatePlaybackProgress(
                                 PlaybackProgress(
@@ -248,10 +248,17 @@ class PlayerViewModel @Inject constructor(
                     }
                 }
             } catch (ex: Exception) {
-                ex.printStackTrace()
+                Log.e(TAG, "timerTick", ex)
             }
 
             timerBusy = false
         }
+    }
+
+    fun popBack() {
+        player.release()
+        HomeViewModel.triggerUpdate()
+        PlayerStateManager.playerDisposed()
+        popBackStack()
     }
 }
