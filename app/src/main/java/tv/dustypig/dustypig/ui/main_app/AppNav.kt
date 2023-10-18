@@ -21,14 +21,13 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -41,7 +40,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.downloads.DownloadsNav
@@ -82,7 +80,6 @@ private data class RootScreenMap(
 fun AppNav(vm: AppNavViewModel = hiltViewModel()){
 
     val navController = rememberNavController()
-    val scope = rememberCoroutineScope()
     val unseenNotifications by vm.unseenNotifications.collectAsState()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -131,11 +128,6 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
 
 
     Scaffold(
-        snackbarHost = {
-            SnackbarHost(
-                hostState = vm.snackbarHostState
-            )
-        },
         bottomBar = {
 
             if(currentDestination?.route != PlayerNav.route) {
@@ -236,11 +228,40 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
             DownloadSettingsNav.composable(this, navController)
             SwitchProfilesNav.composable(this, navController)
         }
+    }
 
-        scope.launch {
-            vm.deepLinkFlow.collectLatest {
-                vm.navToDeepLink(navController, it)
+    LaunchedEffect(true) {
+        vm.deepLinkFlow.collectLatest { deepLink ->
+            if(!deepLink.isNullOrBlank()) {
+               vm.navToDeepLink(
+                   deepLink = deepLink,
+                   navController = navController
+               )
             }
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -6,6 +6,7 @@ import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import tv.dustypig.dustypig.nav.NavRoute
+import java.util.UUID
 
 object SeriesDetailsNav : NavRoute<SeriesDetailsViewModel> {
 
@@ -17,7 +18,7 @@ object SeriesDetailsNav : NavRoute<SeriesDetailsViewModel> {
 
     fun getRoute(
         mediaId: Int,
-        cacheId: String
+        cacheId: String = UUID.randomUUID().toString()
     ): String = route
         .replace("{$KEY_MEDIA_ID}", "$mediaId")
         .replace("{$KEY_CACHE_ID}", cacheId)

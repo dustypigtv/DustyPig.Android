@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.global_managers.NotificationsManager
 import tv.dustypig.dustypig.nav.RouteNavigator
-import tv.dustypig.dustypig.ui.main_app.AppNavViewModel
 import javax.inject.Inject
 
 
@@ -48,7 +47,8 @@ class AlertsViewModel @Inject constructor(
         }
 
         if(!notification.deepLink.isNullOrEmpty()) {
-            AppNavViewModel.queueDeepLink(notification.deepLink)
+            val route = notificationsManager.getNavRoute(notification.deepLink)
+            navigateToRoute(route)
         }
     }
 

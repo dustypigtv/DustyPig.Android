@@ -6,6 +6,7 @@ import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import tv.dustypig.dustypig.nav.NavRoute
+import java.util.UUID
 
 object MovieDetailsNav : NavRoute<MovieDetailsViewModel> {
 
@@ -14,7 +15,10 @@ object MovieDetailsNav : NavRoute<MovieDetailsViewModel> {
 
     override val route = "movieDetails/{$KEY_MEDIA_ID}/{$KEY_CACHE_ID}"
 
-    fun getRoute(mediaId: Int, cacheId: String): String = route
+    fun getRoute(
+        mediaId: Int,
+        cacheId: String = UUID.randomUUID().toString()
+    ): String = route
         .replace("{$KEY_MEDIA_ID}", "$mediaId")
         .replace("{$KEY_CACHE_ID}", cacheId)
 

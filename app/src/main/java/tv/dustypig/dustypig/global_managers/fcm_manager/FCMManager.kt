@@ -13,7 +13,6 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.runBlocking
 import tv.dustypig.dustypig.MainActivity
 import tv.dustypig.dustypig.R
@@ -25,6 +24,7 @@ import tv.dustypig.dustypig.logToCrashlytics
 class FCMManager: FirebaseMessagingService() {
 
     companion object {
+        private const val TAG = "FCMManager"
 
         const val DATA_ID = "id"
         const val DATA_TITLE = "title"
@@ -36,14 +36,12 @@ class FCMManager: FirebaseMessagingService() {
         const val INTENT_DATA_ID = "${INTENT_PREFIX}.notification_id"
         const val INTENT_DATA_DEEP_LINK = "${INTENT_PREFIX}.notification_deep_link"
 
-        private const val TAG = "FCMManager"
         private const val CHANNEL_NAME = "Notifications"
 
         private var _activityCount = 0
 
         private var _nextAlertId: Int = 0
         private val _inAppAlertFlow = MutableSharedFlow<FCMAlertData>(replay = 1)
-        val inAppAlerts = _inAppAlertFlow.asSharedFlow()
 
         var currentToken: String = ""
             private set
@@ -142,6 +140,7 @@ class FCMManager: FirebaseMessagingService() {
             .setSmallIcon(R.drawable.ic_notification)
             .setColor(Color.BLACK)
             .setAutoCancel(true)
+            //.setSound(Uri.parse("android.resource://tv.dustypig.dustypig/" + R.raw.oink))
             .setContentIntent(pendingIntent)
 
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager

@@ -31,7 +31,6 @@ import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
 import tv.dustypig.dustypig.ui.main_app.screens.manage_parental_controls_for_title.ManageParentalControlsForTitleNav
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerViewModel
-import tv.dustypig.dustypig.ui.main_app.screens.playlist_details.PlaylistDetailsNav
 import java.text.SimpleDateFormat
 import javax.inject.Inject
 
@@ -48,7 +47,7 @@ class MovieDetailsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(MovieDetailsUIState())
     val uiState: StateFlow<MovieDetailsUIState> = _uiState.asStateFlow()
 
-    private val _cacheId: String = savedStateHandle.getOrThrow(PlaylistDetailsNav.KEY_CACHE_ID)
+    private val _cacheId: String = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_CACHE_ID)
     override val mediaId: Int = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_MEDIA_ID)
     private lateinit var _detailedMovie: DetailedMovie
 
