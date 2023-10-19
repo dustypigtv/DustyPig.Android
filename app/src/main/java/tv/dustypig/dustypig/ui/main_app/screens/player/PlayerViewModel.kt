@@ -24,6 +24,7 @@ import tv.dustypig.dustypig.api.models.SetPlaylistProgress
 import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.api.repositories.PlaylistRepository
 import tv.dustypig.dustypig.global_managers.PlayerStateManager
+import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
@@ -39,6 +40,7 @@ class PlayerViewModel @Inject constructor(
     private val player: Player,
     private val mediaRepository: MediaRepository,
     private val playlistRepository: PlaylistRepository,
+    settingsManager: SettingsManager
 ): ViewModel(), RouteNavigator by routeNavigator  {
 
     companion object {
@@ -60,10 +62,18 @@ class PlayerViewModel @Inject constructor(
     private var timerBusy = false
     private var lastReportedTime = 0.0
     private val itemsWithSubtitles = arrayListOf<String>()
+    private val videoTimings = arrayListOf<VideoTiming>()
+    private var autoSkipIntros = false
+    private var autoSkipCredits = false
 
     init {
 
         PlayerStateManager.playerCreated()
+
+        viewModelScope.launch {
+            autoSkipIntros = settingsManager.getSkipIntros()
+            autoSkipCredits = settingsManager.getSkipCredits()
+        }
 
         _uiState.update {
             it.copy(
@@ -80,7 +90,10 @@ class PlayerViewModel @Inject constructor(
                             detailedMovie!!.id,
                             detailedMovie!!.videoUrl,
                             detailedMovie!!.externalSubtitles,
-                            itemsWithSubtitles
+                            detailedMovie!!.introStartTime,
+                            detailedMovie!!.introEndTime,
+                            detailedMovie!!.creditStartTime,
+                            isMovie = true
                         ),
                         convertPlayedToMs(detailedMovie!!.played)
                     )
@@ -93,7 +106,10 @@ class PlayerViewModel @Inject constructor(
                             detailedEpisode!!.id,
                             detailedEpisode!!.videoUrl,
                             detailedEpisode!!.externalSubtitles,
-                            itemsWithSubtitles
+                            detailedEpisode!!.introStartTime,
+                            detailedEpisode!!.introEndTime,
+                            detailedEpisode!!.creditStartTime,
+                            isMovie = false
                         ),
                         convertPlayedToMs(detailedEpisode!!.played)
                     )
@@ -111,7 +127,10 @@ class PlayerViewModel @Inject constructor(
                                 ep.id,
                                 ep.videoUrl,
                                 ep.externalSubtitles,
-                                itemsWithSubtitles
+                                ep.introStartTime,
+                                ep.introEndTime,
+                                ep.creditStartTime,
+                                isMovie = false
                             )
                             if (first) {
                                 player.setMediaItem(mi, convertPlayedToMs(ep.played))
@@ -137,7 +156,10 @@ class PlayerViewModel @Inject constructor(
                                 pli.index,
                                 pli.videoUrl,
                                 pli.externalSubtitles,
-                                itemsWithSubtitles
+                                pli.introStartTime,
+                                pli.introEndTime,
+                                pli.creditStartTime,
+                                isMovie = pli.mediaType == MediaTypes.Movie
                             )
                             if (first) {
                                 player.setMediaItem(mi, convertPlayedToMs(pli.played))
@@ -160,7 +182,7 @@ class PlayerViewModel @Inject constructor(
 
             timer.schedule(
                 delay = 0,
-                period = 1000
+                period = 100
             ){
                 timerTick()
             }
@@ -186,7 +208,10 @@ class PlayerViewModel @Inject constructor(
         mediaId: Int,
         videoUrl: String?,
         subTitles: List<ExternalSubtitle>?,
-        itemsWithSubtitles: ArrayList<String>
+        introStartTime: Double?,
+        introEndTime: Double?,
+        creditsStartTime: Double?,
+        isMovie: Boolean
     ): MediaItem {
         val ret = MediaItem
             .Builder()
@@ -205,6 +230,15 @@ class PlayerViewModel @Inject constructor(
             ret.setSubtitleConfigurations(subtitleConfigurations)
             itemsWithSubtitles.add(mediaId.toString())
         }
+        videoTimings.add(
+            VideoTiming(
+                mediaId = mediaId.toString(),
+                introStartTime = introStartTime,
+                introEndTime = introEndTime,
+                creditsStartTime = creditsStartTime,
+                isMovie = isMovie
+            )
+        )
         return ret.build()
     }
 
@@ -239,8 +273,61 @@ class PlayerViewModel @Inject constructor(
                         }
                     }
 
-                    //Don't constantly update if paused
                     val seconds = player.currentPosition.toDouble() / 1000
+
+                    val videoTiming = videoTimings.first {
+                        it.mediaId == currentMediaItem.mediaId
+                    }
+                    if(videoTiming.introClicked) {
+                        if(_uiState.value.showSkipIntroButton) {
+                            _uiState.update {
+                                it.copy(
+                                    showSkipIntroButton = false
+                                )
+                            }
+                        }
+                    } else {
+                        val positionWithinIntro = videoTiming.positionWithinIntro(seconds)
+                        if (positionWithinIntro && autoSkipIntros) {
+                            skipIntro()
+                        } else {
+                            if (_uiState.value.showSkipIntroButton != positionWithinIntro) {
+                                _uiState.update {
+                                    it.copy(
+                                        showSkipIntroButton = positionWithinIntro
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    if(videoTiming.creditsClicked) {
+                        if(_uiState.value.showSkipCreditsButton) {
+                            _uiState.update {
+                                it.copy(
+                                    showSkipCreditsButton = true
+                                )
+                            }
+                        }
+                    } else {
+                        val length = player.contentDuration.toDouble() / 1000
+                        val positionWithinCredits = videoTiming.positionWithinCredits(seconds, length)
+                        if (positionWithinCredits && autoSkipCredits) {
+                            skipCredits()
+                        } else {
+                            if (_uiState.value.showSkipCreditsButton != positionWithinCredits) {
+                                _uiState.update {
+                                    it.copy(
+                                        showSkipCreditsButton = positionWithinCredits
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+
+
+                    //Don't constantly update if paused
                     if(abs(seconds - lastReportedTime) >= 0.1) {
                         lastReportedTime = seconds
                         when (mediaType) {
@@ -278,5 +365,33 @@ class PlayerViewModel @Inject constructor(
         HomeViewModel.triggerUpdate()
         PlayerStateManager.playerDisposed()
         routeNavigator.popBackStack()
+    }
+
+    fun skipIntro() {
+        try {
+            val currentMediaItem = player.currentMediaItem!!
+            val videoTiming = videoTimings.first {
+                it.mediaId == currentMediaItem.mediaId
+            }
+            videoTiming.introClicked = true
+            player.seekTo((videoTiming.introEndTime ?: 0) .toLong() * 1000)
+        } catch (_: Exception) {
+        }
+    }
+
+    fun skipCredits() {
+        try {
+            val currentMediaItem = player.currentMediaItem!!
+            val videoTiming = videoTimings.first {
+                it.mediaId == currentMediaItem.mediaId
+            }
+            videoTiming.creditsClicked = true
+            if(player.hasNextMediaItem()) {
+                player.seekToNextMediaItem()
+            } else {
+                popBackStack()
+            }
+        } catch (_: Exception) {
+        }
     }
 }

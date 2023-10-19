@@ -13,6 +13,7 @@ import tv.dustypig.dustypig.api.models.ProfileCredentials
 import tv.dustypig.dustypig.api.repositories.AuthRepository
 import tv.dustypig.dustypig.api.repositories.ProfilesRepository
 import tv.dustypig.dustypig.global_managers.AuthManager
+import tv.dustypig.dustypig.global_managers.NotificationsManager
 import tv.dustypig.dustypig.global_managers.fcm_manager.FCMManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
@@ -86,6 +87,7 @@ class SwitchProfilesViewModel @Inject constructor(
                     isMain = data.loginType == LoginTypes.MainProfile
                 )
                 HomeViewModel.triggerUpdate()
+                NotificationsManager.triggerUpdate()
                 popToRoute(HomeNav.route)
             } catch (ex: Exception) {
                 criticalError = false
