@@ -29,7 +29,7 @@ import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNa
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
 import tv.dustypig.dustypig.ui.main_app.screens.manage_parental_controls_for_title.ManageParentalControlsForTitleNav
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
-import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerViewModel
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -46,12 +46,14 @@ class SeriesDetailsViewModel  @Inject constructor(
     private val _uiState = MutableStateFlow(SeriesDetailsUIState())
     val uiState: StateFlow<SeriesDetailsUIState> = _uiState.asStateFlow()
 
-    private val _cacheId: String = savedStateHandle.getOrThrow(SeriesDetailsNav.KEY_CACHE_ID)
+    private val _basicCacheId: String = savedStateHandle.getOrThrow(SeriesDetailsNav.KEY_BASIC_CACHE_ID)
     override val mediaId: Int = savedStateHandle.getOrThrow(SeriesDetailsNav.KEY_MEDIA_ID)
+
     private lateinit var _detailedSeries: DetailedSeries
+    private val _detailCacheId = UUID.randomUUID().toString()
 
     init {
-        val cachedInfo = MediaCacheManager.get(_cacheId)
+        val cachedInfo = MediaCacheManager.getBasicInfo(_basicCacheId)
         _uiState.update {
             it.copy(
                 posterUrl = cachedInfo.posterUrl,
@@ -68,13 +70,14 @@ class SeriesDetailsViewModel  @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        MediaCacheManager.remove(_cacheId)
+        MediaCacheManager.BasicInfo.removeAll { it.cacheId == _basicCacheId }
+        MediaCacheManager.Series.remove(_detailCacheId)
     }
 
     private fun updateData() {
         baseTitleInfoUIState.update {
             it.copy(
-                title = MediaCacheManager.get(_cacheId).title,
+                title = MediaCacheManager.getBasicInfo(_basicCacheId).title,
                 mediaType = MediaTypes.Series,
                 playClick = ::playUpNext,
                 toggleWatchList = ::toggleWatchList,
@@ -89,6 +92,8 @@ class SeriesDetailsViewModel  @Inject constructor(
         viewModelScope.launch {
             try {
                 _detailedSeries = seriesRepository.details(mediaId)
+                MediaCacheManager.Series[_detailCacheId] = _detailedSeries
+
                 val episodes = _detailedSeries.episodes ?: listOf()
                 if(episodes.isEmpty()) {
                     throw Exception("No episodes found.")
@@ -184,17 +189,23 @@ class SeriesDetailsViewModel  @Inject constructor(
     private fun playUpNext() {
         val episodes = _detailedSeries.episodes ?: listOf()
         val upNext: DetailedEpisode = episodes.firstOrNull { it.upNext } ?: episodes.first()
-        PlayerViewModel.mediaType = MediaTypes.Series
-        PlayerViewModel.detailedSeries = _detailedSeries
-        PlayerViewModel.upNextId = upNext.id
-        navigateToRoute(PlayerNav.route)
+        navigateToRoute(
+            PlayerNav.getRoute(
+                cacheId = _detailCacheId,
+                sourceType = PlayerNav.SOURCE_TYPE_SERIES,
+                upNextId = upNext.id
+            )
+        )
     }
 
     fun playEpisode(id: Int) {
-        PlayerViewModel.mediaType = MediaTypes.Series
-        PlayerViewModel.detailedSeries = _detailedSeries
-        PlayerViewModel.upNextId = id
-        navigateToRoute(PlayerNav.route)
+        navigateToRoute(
+            PlayerNav.getRoute(
+                cacheId = _detailCacheId,
+                sourceType = PlayerNav.SOURCE_TYPE_SERIES,
+                upNextId = id
+            )
+        )
     }
 
     private fun updateDownloads(newCount: Int) {
@@ -302,9 +313,11 @@ class SeriesDetailsViewModel  @Inject constructor(
         navigateToRoute(
             EpisodeDetailsNav.getRoute(
                 mediaId = id,
-                cacheId = cacheId,
+                basicCacheId = cacheId,
+                detailedCacheId = _detailCacheId,
                 canPlay = _detailedSeries.canPlay,
-                fromSeriesDetails = true
+                fromSeriesDetails = true,
+                playlistUpNextIndex = 0
             )
         )
     }

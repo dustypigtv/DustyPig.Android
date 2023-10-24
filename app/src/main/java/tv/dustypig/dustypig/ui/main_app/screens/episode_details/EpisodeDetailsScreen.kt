@@ -88,7 +88,6 @@ private fun EpisodeDetailsScreenInternal (
     uiState: EpisodeDetailsUIState
 ) {
 
-
     val criticalError by remember {
         derivedStateOf {
             uiState.showErrorDialog && uiState.criticalError

@@ -30,8 +30,8 @@ import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
 import tv.dustypig.dustypig.ui.main_app.screens.manage_parental_controls_for_title.ManageParentalControlsForTitleNav
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
-import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerViewModel
 import java.text.SimpleDateFormat
+import java.util.UUID
 import javax.inject.Inject
 
 @SuppressLint("SimpleDateFormat")
@@ -47,12 +47,18 @@ class MovieDetailsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(MovieDetailsUIState())
     val uiState: StateFlow<MovieDetailsUIState> = _uiState.asStateFlow()
 
-    private val _cacheId: String = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_CACHE_ID)
     override val mediaId: Int = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_MEDIA_ID)
+    private val _basicCacheId: String = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_BASIC_CACHE_ID)
+    private val _detailedPlaylistCacheId: String = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_DETAILED_PLAYLIST_CACHE_ID)
+    private val _fromPlaylistDetails: Boolean = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_FROM_PLAYLIST_ID)
+    private val _playlistUpNextIndex: Int = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_PLAYLIST_UPNEXT_INDEX_ID)
+
     private lateinit var _detailedMovie: DetailedMovie
+    private val _detailCacheId = UUID.randomUUID().toString()
+
 
     init {
-        val cachedInfo = MediaCacheManager.get(_cacheId)
+        val cachedInfo = MediaCacheManager.getBasicInfo(_basicCacheId)
         _uiState.update {
             it.copy(
                 posterUrl = cachedInfo.posterUrl,
@@ -69,11 +75,12 @@ class MovieDetailsViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        MediaCacheManager.remove(_cacheId)
+        MediaCacheManager.BasicInfo.removeAll { it.cacheId == _basicCacheId }
+        MediaCacheManager.Movies.remove(_detailCacheId)
     }
 
     private fun updateData() {
-        val cachedInfo = MediaCacheManager.get(_cacheId)
+        val cachedInfo = MediaCacheManager.getBasicInfo(_basicCacheId)
         baseTitleInfoUIState.update {
             it.copy(
                 title = cachedInfo.title,
@@ -92,6 +99,8 @@ class MovieDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _detailedMovie = moviesRepository.details(mediaId)
+                MediaCacheManager.Movies[_detailCacheId] = _detailedMovie
+
                 _uiState.update {
                     it.copy(
                         loading = false,
@@ -192,11 +201,26 @@ class MovieDetailsViewModel @Inject constructor(
 
 
     private fun play() {
-        PlayerViewModel.mediaType = MediaTypes.Movie
-        PlayerViewModel.detailedMovie = _detailedMovie
-        navigateToRoute(PlayerNav.route)
+        navigateToRoute(
+            PlayerNav.getRoute(
+                cacheId =
+                    if(_fromPlaylistDetails)
+                        _detailedPlaylistCacheId
+                    else
+                        _detailCacheId,
+                sourceType =
+                    if(_fromPlaylistDetails)
+                        PlayerNav.SOURCE_TYPE_PLAYLIST
+                    else
+                        PlayerNav.SOURCE_TYPE_MOVIE,
+                upNextId =
+                    if(_fromPlaylistDetails)
+                        _playlistUpNextIndex
+                    else
+                        0
+            )
+        )
     }
-
 
     private fun requestAccess() {
         baseTitleInfoUIState.update {

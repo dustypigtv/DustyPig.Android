@@ -11,6 +11,7 @@ import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
 import tv.dustypig.dustypig.api.models.AddPlaylistItem
+import tv.dustypig.dustypig.api.models.AddSeriesToPlaylistInfo
 import tv.dustypig.dustypig.api.models.BasicFriend
 import tv.dustypig.dustypig.api.models.BasicLibrary
 import tv.dustypig.dustypig.api.models.BasicMedia
@@ -193,7 +194,7 @@ interface ApiService {
     suspend fun addItemToPlaylist(@Body addPlaylistItem: AddPlaylistItem): Response<ResponseWrapperOf<SimpleValue<Int>>>
 
     @POST("Playlists/AddSeries")
-    suspend fun addSeriesToPlaylist(@Body addPlaylistItem: AddPlaylistItem): Response<ResponseWrapper>
+    suspend fun addSeriesToPlaylist(@Body addSeriesToPlaylistInfo: AddSeriesToPlaylistInfo): Response<ResponseWrapper>
 
     @POST("Playlists/Create")
     suspend fun createPlaylist(@Body createPlaylist: CreatePlaylist): Response<ResponseWrapperOf<SimpleValue<Int>>>

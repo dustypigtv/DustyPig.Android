@@ -26,6 +26,7 @@ import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.main_app.screens.movie_details.MovieDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.playlist_details.PlaylistDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
+import java.util.UUID
 
 
 @Composable
@@ -53,7 +54,10 @@ fun BasicMediaView(
                 routeNavigator.navigateToRoute(
                     route = MovieDetailsNav.getRoute(
                         mediaId = basicMedia.id,
-                        cacheId = cachedId
+                        basicCacheId = cachedId,
+                        detailedPlaylistCacheId = UUID.randomUUID().toString(),
+                        fromPlaylist = false,
+                        playlistUpNextIndex = 0
                     )
                 )
             }
@@ -62,7 +66,7 @@ fun BasicMediaView(
                 routeNavigator.navigateToRoute(
                     route = SeriesDetailsNav.getRoute(
                         mediaId = basicMedia.id,
-                        cacheId = cachedId
+                        basicCacheId = cachedId
                     )
                 )
             }

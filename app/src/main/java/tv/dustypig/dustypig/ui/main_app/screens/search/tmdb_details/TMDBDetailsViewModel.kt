@@ -49,7 +49,7 @@ class TMDBDetailsViewModel @Inject constructor(
     private lateinit var _detailedTMDB: DetailedTMDB
 
     init {
-        val cachedInfo = MediaCacheManager.get(_cacheId)
+        val cachedInfo = MediaCacheManager.getBasicInfo(_cacheId)
         _uiState.update {
             it.copy(
                 loading = true,
@@ -134,7 +134,7 @@ class TMDBDetailsViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        MediaCacheManager.remove(_cacheId)
+        MediaCacheManager.BasicInfo.removeAll { it.cacheId == _cacheId }
     }
 
     private fun setError(ex: Exception, criticalError: Boolean) {

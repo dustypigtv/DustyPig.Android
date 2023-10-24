@@ -13,6 +13,7 @@ object PlayerStateManager {
     private val _playbackEnded = MutableStateFlow(UUID.randomUUID())
     val playbackEnded = _playbackEnded.asStateFlow()
 
+
     fun playerCreated() {
         _playerScreenVisible.update {
             true

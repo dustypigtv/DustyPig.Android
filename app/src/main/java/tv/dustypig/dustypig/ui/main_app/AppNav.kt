@@ -41,6 +41,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.flow.collectLatest
 import tv.dustypig.dustypig.R
+import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.downloads.DownloadsNav
 import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNav
@@ -83,6 +84,7 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
     val unseenNotifications by vm.unseenNotifications.collectAsState()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+    val playerVisible by PlayerStateManager.playerScreenVisible.collectAsState()
 
     //Because there are multiple paths to the same route, using
     //  selected = currentDestination?.hierarchy?.any { it.route == screen.key } == true
@@ -130,7 +132,9 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
     Scaffold(
         bottomBar = {
 
-            if(currentDestination?.route != PlayerNav.route) {
+            if(!playerVisible) {
+
+
                 NavigationBar {
                     items.forEach { screen ->
                         NavigationBarItem(
@@ -193,6 +197,7 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
                 }
 
             }
+
         }
     ) { innerPadding ->
         NavHost(navController, startDestination = HomeNav.route, Modifier.padding(innerPadding)) {

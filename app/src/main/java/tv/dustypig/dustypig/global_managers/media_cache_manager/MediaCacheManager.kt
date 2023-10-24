@@ -2,19 +2,26 @@ package tv.dustypig.dustypig.global_managers.media_cache_manager
 
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.BasicTMDB
+import tv.dustypig.dustypig.api.models.DetailedMovie
+import tv.dustypig.dustypig.api.models.DetailedPlaylist
+import tv.dustypig.dustypig.api.models.DetailedSeries
+import java.util.UUID
 
 object MediaCacheManager {
 
-    private val _cachedInfoArray: ArrayList<CachedInfo> = arrayListOf()
+    val BasicInfo: ArrayList<CachedBasicInfo> = arrayListOf()
+    val Movies: MutableMap<String, DetailedMovie> = mutableMapOf()
+    val Series: MutableMap<String, DetailedSeries> = mutableMapOf()
+    val Playlists: MutableMap<String, DetailedPlaylist> = mutableMapOf()
 
-    fun add(cachedInfo: CachedInfo): String {
-        _cachedInfoArray.add(cachedInfo)
-        return cachedInfo.cacheId
+    private fun add(cachedBasicInfo: CachedBasicInfo): String {
+        BasicInfo.add(cachedBasicInfo)
+        return cachedBasicInfo.cacheId
     }
 
     fun add(basicMedia: BasicMedia): String {
         return add(
-            CachedInfo(
+            CachedBasicInfo(
                 title = basicMedia.title,
                 posterUrl = basicMedia.artworkUrl,
                 backdropUrl = basicMedia.backdropUrl
@@ -24,7 +31,7 @@ object MediaCacheManager {
 
     fun add(basicTMDB: BasicTMDB): String {
         return add(
-            CachedInfo(
+            CachedBasicInfo(
                 title = basicTMDB.title,
                 posterUrl = basicTMDB.artworkUrl ?: "",
                 backdropUrl = basicTMDB.backdropUrl
@@ -34,7 +41,7 @@ object MediaCacheManager {
 
     fun add(title: String, posterUrl: String, backdropUrl: String?): String {
         return add(
-            CachedInfo(
+            CachedBasicInfo(
                 title = title,
                 posterUrl = posterUrl,
                 backdropUrl = backdropUrl
@@ -42,21 +49,33 @@ object MediaCacheManager {
         )
     }
 
-    fun remove(cacheId: String) {
-        _cachedInfoArray.removeAll {
+    fun getBasicInfo(cacheId: String) = BasicInfo.firstOrNull {
             it.cacheId == cacheId
-        }
+        } ?: CachedBasicInfo()
+
+    fun add(detailedMovie: DetailedMovie): String {
+        val id = UUID.randomUUID().toString()
+        Movies[id] = detailedMovie
+        return id
     }
 
-    fun get(cacheId: String): CachedInfo {
-        return _cachedInfoArray.firstOrNull {
-            it.cacheId == cacheId
-        } ?: CachedInfo(
-            cacheId = cacheId
-        )
+    fun add(detailedSeries: DetailedSeries): String {
+        val id = UUID.randomUUID().toString()
+        Series[id] = detailedSeries
+        return id
+    }
+
+
+    fun add(detailedPlaylist: DetailedPlaylist): String {
+        val id = UUID.randomUUID().toString()
+        Playlists[id] = detailedPlaylist
+        return id
     }
 
     fun reset() {
-        _cachedInfoArray.clear()
+        BasicInfo.clear()
+        Movies.clear()
+        Series.clear()
+        Playlists.clear()
     }
 }

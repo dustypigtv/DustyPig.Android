@@ -4,8 +4,14 @@ import android.content.res.Configuration
 
 fun Configuration.isTablet(): Boolean {
 
+//    return if (this.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+//        this.screenWidthDp > 840
+//    } else {
+//        this.screenWidthDp > 600
+//    }
+
     return if (this.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-        this.screenWidthDp > 840
+        this.screenHeightDp > 600
     } else {
         this.screenWidthDp > 600
     }

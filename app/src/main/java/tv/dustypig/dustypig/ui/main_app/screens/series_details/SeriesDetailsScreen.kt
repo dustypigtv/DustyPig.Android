@@ -172,7 +172,6 @@ private fun EpisodeRow(
     navToEpisodeInfo: (Int) -> Unit,
     episode: DetailedEpisode
 ) {
-    
     Row(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.Top,

@@ -6,7 +6,8 @@ data class PlayerUIState (
     val showErrorDialog: Boolean = false,
     val errorMessage: String? = null,
     val player: Player? = null,
-    val showSubtitlesButton: Boolean = false,
-    val showSkipIntroButton: Boolean = false,
-    val showSkipCreditsButton: Boolean = false
+    val currentItemHasSubtitles: Boolean = false,
+    val currentPositionWithinIntro: Boolean = false,
+    val currentPositionWithinCredits: Boolean = false,
+    val currentItemTitle: String? = null
 )

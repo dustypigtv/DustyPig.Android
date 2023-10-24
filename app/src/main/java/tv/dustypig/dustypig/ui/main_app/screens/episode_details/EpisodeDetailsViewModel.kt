@@ -23,7 +23,6 @@ import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
-import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerViewModel
 import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
 import javax.inject.Inject
 
@@ -38,15 +37,19 @@ class EpisodeDetailsViewModel  @Inject constructor(
     private val _uiState = MutableStateFlow(EpisodeDetailsUIState())
     val uiState: StateFlow<EpisodeDetailsUIState> = _uiState.asStateFlow()
 
-    private val _cacheId: String = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_CACHE_ID)
+    private val _detailedCacheId: String = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_DETAILED_CACHE_ID)
+    private val _fromSeriesDetails: Boolean = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_FROM_SERIES_DETAILS)
+    private val _playlistUpNextIndex: Int = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_PLAYLIST_UPNEXT_INDEX_ID)
+    private val _basicCacheId: String = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_BASIC_CACHE_ID)
     private val _mediaId: Int = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_MEDIA_ID)
     private val _canPlay: Boolean = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_CAN_PLAY)
-    private val _fromSeriesDetails: Boolean = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_FROM_SERIES_DETAILS)
 
     private lateinit var _detailedEpisode: DetailedEpisode
+    private var _firstLoad = true
 
     init {
-        val cachedInfo = MediaCacheManager.get(_cacheId)
+
+        val cachedInfo = MediaCacheManager.getBasicInfo(_basicCacheId)
         _uiState.update {
             it.copy(
                 artworkUrl = cachedInfo.backdropUrl ?: "",
@@ -63,7 +66,7 @@ class EpisodeDetailsViewModel  @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        MediaCacheManager.remove(_cacheId)
+        MediaCacheManager.BasicInfo.removeAll { it.cacheId == _basicCacheId }
     }
 
     private fun updateData() {
@@ -88,7 +91,16 @@ class EpisodeDetailsViewModel  @Inject constructor(
 
         viewModelScope.launch {
             try {
-                _detailedEpisode = episodesRepository.details(_mediaId)
+
+                _detailedEpisode = if(_firstLoad && _fromSeriesDetails) {
+                    val detailedSeries = MediaCacheManager.Series[_detailedCacheId]
+                    detailedSeries!!.episodes!!.first { it.id == _mediaId }
+                } else {
+                    episodesRepository.details(_mediaId)
+                }
+                _firstLoad = false
+
+
                 _uiState.update {
                     it.copy(
                         mediaId = _mediaId,
@@ -147,13 +159,25 @@ class EpisodeDetailsViewModel  @Inject constructor(
     }
 
     fun play() {
-        PlayerViewModel.mediaType = MediaTypes.Episode
-        PlayerViewModel.detailedEpisode = _detailedEpisode
-        navigateToRoute(PlayerNav.route)
+        navigateToRoute(
+            PlayerNav.getRoute(
+                cacheId = _detailedCacheId,
+                sourceType =
+                    if(_fromSeriesDetails)
+                        PlayerNav.SOURCE_TYPE_SERIES
+                    else
+                        PlayerNav.SOURCE_TYPE_PLAYLIST,
+                upNextId =
+                    if(_fromSeriesDetails)
+                        _mediaId
+                    else
+                        _playlistUpNextIndex
+            )
+        )
     }
 
     fun addToPlaylist() {
-        navigateToRoute(AddToPlaylistNav.getRouteForId(_mediaId, false))
+        navigateToRoute(AddToPlaylistNav.getRouteForId(id = _mediaId, isSeries = false))
     }
 
     fun goToSeries() {
@@ -165,7 +189,7 @@ class EpisodeDetailsViewModel  @Inject constructor(
         navigateToRoute(
             SeriesDetailsNav.getRoute(
                 mediaId = _detailedEpisode.seriesId,
-                cacheId = cacheId
+                basicCacheId = cacheId
             )
         )
     }

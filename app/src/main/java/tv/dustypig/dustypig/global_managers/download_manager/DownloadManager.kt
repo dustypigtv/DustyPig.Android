@@ -1131,4 +1131,18 @@ class DownloadManager @Inject constructor(
         for(job in jobs)
             _db.delete(job)
     }
+
+    private fun getLocalFile(filename: String): String? {
+        val file = _rootDir.resolve(filename)
+        if(file.exists())
+            return file.absolutePath
+        return null
+    }
+
+    fun getLocalVideo(mediaId: Int, ext: String) =
+        getLocalFile("${mediaId}.$DISPOSITION_VIDEO$ext")
+
+
+    fun getLocalSubtitle(mediaId: Int, ext: String) =
+        getLocalFile("${mediaId}.$DISPOSITION_SUBTITLE")
 }

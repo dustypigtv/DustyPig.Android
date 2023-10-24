@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.models.AddPlaylistItem
+import tv.dustypig.dustypig.api.models.AddSeriesToPlaylistInfo
 import tv.dustypig.dustypig.api.models.BasicPlaylist
 import tv.dustypig.dustypig.api.models.CreatePlaylist
 import tv.dustypig.dustypig.api.repositories.PlaylistRepository
@@ -41,7 +42,8 @@ class AddToPlaylistViewModel  @Inject constructor(
                 _uiState.update {
                     it.copy(
                         busy = false,
-                        playlists = _existingPlaylists
+                        playlists = _existingPlaylists,
+                        addingSeries = _isSeries
                     )
                 }
             } catch(ex: Exception) {
@@ -74,7 +76,7 @@ class AddToPlaylistViewModel  @Inject constructor(
         }
     }
 
-    fun newPlaylist(name: String) {
+    fun newPlaylist(name: String, autoAddEpisodes: Boolean) {
         _uiState.update {
             it.copy(
                 busy = true
@@ -85,7 +87,13 @@ class AddToPlaylistViewModel  @Inject constructor(
             try{
                 val newId = playlistRepository.create(CreatePlaylist(name))
                 if(_isSeries) {
-                    playlistRepository.addSeries(AddPlaylistItem(newId, _mediaId))
+                    playlistRepository.addSeries(
+                        AddSeriesToPlaylistInfo(
+                            playlistId = newId,
+                            mediaId = _mediaId,
+                            autoAddNewEpisodes = autoAddEpisodes
+                        )
+                    )
                 }
                 else {
                     playlistRepository.addItem(AddPlaylistItem(newId, _mediaId))
@@ -99,7 +107,7 @@ class AddToPlaylistViewModel  @Inject constructor(
         }
     }
 
-    fun selectPlaylist(id: Int) {
+    fun selectPlaylist(id: Int, autoAddEpisodes: Boolean) {
         _uiState.update {
             it.copy(
                 busy = true
@@ -109,10 +117,18 @@ class AddToPlaylistViewModel  @Inject constructor(
         viewModelScope.launch {
             try{
                 if(_isSeries) {
-                    playlistRepository.addSeries(AddPlaylistItem(id, _mediaId))
+                    playlistRepository.addSeries(
+                        AddSeriesToPlaylistInfo(
+                            playlistId = id,
+                            mediaId = _mediaId,
+                            autoAddNewEpisodes = autoAddEpisodes
+                        )
+                    )
                 }
                 else {
-                    playlistRepository.addItem(AddPlaylistItem(id, _mediaId))
+                    playlistRepository.addItem(
+                        AddPlaylistItem(playlistId = id, mediaId = _mediaId)
+                    )
                 }
 
                 HomeViewModel.triggerUpdate()

@@ -2,6 +2,7 @@ package tv.dustypig.dustypig.api.repositories
 
 import tv.dustypig.dustypig.api.ApiService
 import tv.dustypig.dustypig.api.models.AddPlaylistItem
+import tv.dustypig.dustypig.api.models.AddSeriesToPlaylistInfo
 import tv.dustypig.dustypig.api.models.CreatePlaylist
 import tv.dustypig.dustypig.api.models.MovePlaylistItem
 import tv.dustypig.dustypig.api.models.SetPlaylistProgress
@@ -19,7 +20,7 @@ class PlaylistRepository @Inject constructor(
 
     suspend fun addItem(addPlaylistItem: AddPlaylistItem) = wrapAPICallWithReturnSimpleValue { apiService.addItemToPlaylist(addPlaylistItem) }
 
-    suspend fun addSeries(addPlaylistItem: AddPlaylistItem) = wrapAPICall { apiService.addSeriesToPlaylist(addPlaylistItem) }
+    suspend fun addSeries(addSeriesToPlaylistInfo: AddSeriesToPlaylistInfo) = wrapAPICall { apiService.addSeriesToPlaylist(addSeriesToPlaylistInfo) }
 
     suspend fun create(createPlaylist: CreatePlaylist) = wrapAPICallWithReturnSimpleValue { apiService.createPlaylist(createPlaylist) }
 

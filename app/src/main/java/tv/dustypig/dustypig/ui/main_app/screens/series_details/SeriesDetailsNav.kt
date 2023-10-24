@@ -6,26 +6,25 @@ import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import tv.dustypig.dustypig.nav.NavRoute
-import java.util.UUID
 
 object SeriesDetailsNav : NavRoute<SeriesDetailsViewModel> {
 
     const val KEY_MEDIA_ID = "KEY_MEDIA_ID"
-    const val KEY_CACHE_ID = "KEY_CACHE_ID"
+    const val KEY_BASIC_CACHE_ID = "KEY_BASIC_CACHE_ID"
 
-    override val route = "seriesDetails/{$KEY_MEDIA_ID}/{$KEY_CACHE_ID}"
+    override val route = "seriesDetails/{$KEY_MEDIA_ID}/{$KEY_BASIC_CACHE_ID}"
 
 
     fun getRoute(
         mediaId: Int,
-        cacheId: String = UUID.randomUUID().toString()
+        basicCacheId: String
     ): String = route
         .replace("{$KEY_MEDIA_ID}", "$mediaId")
-        .replace("{$KEY_CACHE_ID}", cacheId)
+        .replace("{$KEY_BASIC_CACHE_ID}", basicCacheId)
 
     override fun getArguments(): List<NamedNavArgument> = listOf(
         navArgument(KEY_MEDIA_ID) { type = NavType.IntType },
-        navArgument(KEY_CACHE_ID) { type = NavType.StringType }
+        navArgument(KEY_BASIC_CACHE_ID) { type = NavType.StringType }
     )
 
     @Composable

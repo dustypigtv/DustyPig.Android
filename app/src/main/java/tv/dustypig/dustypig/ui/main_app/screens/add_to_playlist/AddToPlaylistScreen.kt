@@ -53,6 +53,7 @@ import tv.dustypig.dustypig.ui.composables.BasicMediaView
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.PreviewBase
+import tv.dustypig.dustypig.ui.composables.YesNoDialog
 
 @Composable
 fun AddToPlaylistScreen(vm: AddToPlaylistViewModel) {
@@ -73,8 +74,8 @@ fun AddToPlaylistScreen(vm: AddToPlaylistViewModel) {
 private fun AddToPlaylistScreenInternal(
     popBackStack: () -> Unit,
     hideError: () -> Unit,
-    newPlaylist: (String) -> Unit,
-    selectPlaylist: (Int) -> Unit,
+    newPlaylist: (String, Boolean) -> Unit,
+    selectPlaylist: (Int, Boolean) -> Unit,
     routeNavigator: RouteNavigator,
     uiState: AddToPlaylistUIState
 ) {
@@ -83,6 +84,9 @@ private fun AddToPlaylistScreenInternal(
     val listState = rememberLazyListState()
     var newName by remember { mutableStateOf("")}
     val enableSaveButton = !uiState.busy && newName.isNotBlank()
+    var showAutoEpisodesDialog by remember { mutableStateOf(false) }
+    var newPlaylistMode by remember { mutableStateOf(false) }
+    var selectedId by remember { mutableStateOf(0) }
 
     Scaffold(
         topBar = {
@@ -127,7 +131,14 @@ private fun AddToPlaylistScreenInternal(
                         )
 
                         Button(
-                            onClick = { newPlaylist(newName) },
+                            onClick = {
+                                if (uiState.addingSeries) {
+                                    newPlaylistMode = true
+                                    showAutoEpisodesDialog = true
+                                } else {
+                                    newPlaylist(newName, false)
+                                }
+                            },
                             enabled = enableSaveButton,
                             modifier = Modifier.width(300.dp)
                         ) {
@@ -165,11 +176,21 @@ private fun AddToPlaylistScreenInternal(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(150.dp)
-                            .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp), shape = RoundedCornerShape(4.dp))
+                            .background(
+                                MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
+                                shape = RoundedCornerShape(4.dp)
+                            )
                             .clip(RoundedCornerShape(4.dp))
                             .clickable {
-                                if (!uiState.busy)
-                                    selectPlaylist(id)
+                                if (!uiState.busy) {
+                                    if (uiState.addingSeries) {
+                                        newPlaylistMode = false
+                                        selectedId = id
+                                        showAutoEpisodesDialog = true
+                                    } else {
+                                        selectPlaylist(id, false)
+                                    }
+                                }
                             },
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -218,6 +239,26 @@ private fun AddToPlaylistScreenInternal(
         }
     }
 
+    if(showAutoEpisodesDialog) {
+        YesNoDialog(
+            onNo = {
+                if (newPlaylistMode) {
+                    newPlaylist(newName, false)
+                } else {
+                    selectPlaylist(selectedId, false)
+                }
+            },
+            onYes = {
+                if (newPlaylistMode) {
+                    newPlaylist(newName, true)
+                } else {
+                    selectPlaylist(selectedId, true)
+                }
+            },
+            title = stringResource(R.string.new_episodes),
+            message = stringResource(R.string.new_episodes_message)
+        )
+    }
 
 
     if(uiState.showErrorDialog) {
@@ -265,8 +306,8 @@ private fun AddToPlaylistScreenPreview() {
         AddToPlaylistScreenInternal(
             popBackStack = { },
             hideError = { },
-            newPlaylist = { },
-            selectPlaylist = { },
+            newPlaylist = { _, _ -> },
+            selectPlaylist = { _, _ -> },
             routeNavigator = MyRouteNavigator(),
             uiState = uiState
         )

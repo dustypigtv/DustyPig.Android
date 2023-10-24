@@ -151,4 +151,7 @@
     <string name="alerts">Alerts</string>
     <string name="no_alerts">No Alerts</string>
     <string name="delete_playlist">Delete Playlist</string>
+    <string name="media_route_menu_title">Cast</string>
+    <string name="new_episodes">New Episodes</string>
+    <string name="new_episodes_message">Do you want to automatically add new episodes to this playlist as they become available?</string>
 </resources>

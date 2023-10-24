@@ -7,5 +7,6 @@ data class AddToPlaylistUIState (
     val showErrorDialog: Boolean = false,
     val errorMessage: String? = null,
     val criticalError: Boolean = false,
-    val playlists: List<BasicPlaylist> = listOf()
+    val playlists: List<BasicPlaylist> = listOf(),
+    val addingSeries: Boolean = false
 )

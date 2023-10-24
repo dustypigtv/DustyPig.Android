@@ -6,7 +6,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
@@ -27,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
@@ -43,7 +43,6 @@ import tv.dustypig.dustypig.global_managers.fcm_manager.FCMManager
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.auth_flow.AuthNav
-import tv.dustypig.dustypig.ui.composables.LockScreenOrientation
 import tv.dustypig.dustypig.ui.isTablet
 import tv.dustypig.dustypig.ui.main_app.AppNav
 import tv.dustypig.dustypig.ui.main_app.AppNavViewModel
@@ -51,7 +50,7 @@ import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity: ComponentActivity() {
+class MainActivity: FragmentActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
@@ -78,6 +77,7 @@ class MainActivity: ComponentActivity() {
         analytics = Firebase.analytics
         authManager.init()
         downloadManager.start()
+
 
         setContent {
 
@@ -149,10 +149,12 @@ class MainActivity: ComponentActivity() {
 
         val playerScreenVisible by PlayerStateManager.playerScreenVisible.collectAsState()
 
-        if(playerScreenVisible) {
-            LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE)
-        } else if(!LocalConfiguration.current.isTablet()) {
-            LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+        requestedOrientation = if(playerScreenVisible) {
+            ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        } else if (LocalConfiguration.current.isTablet()) {
+            ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        } else {
+            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         }
 
         val loginState by authManager.loginState.collectAsState()
@@ -185,17 +187,14 @@ class MainActivity: ComponentActivity() {
     @Composable
     private fun AskNotificationPermission() {
 
-        // This is only necessary for API level >= 33 (TIRAMISU)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) ==
                 PackageManager.PERMISSION_GRANTED
             ) {
-                // Permission already granted
                 Log.d(TAG, "Notification permission granted: true")
 //            } else if (shouldShowRequestPermissionRationale(android.Manifest.permission.POST_NOTIFICATIONS)) {
 //                requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
             } else {
-                // Directly ask for the permission
                 requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
             }
         }

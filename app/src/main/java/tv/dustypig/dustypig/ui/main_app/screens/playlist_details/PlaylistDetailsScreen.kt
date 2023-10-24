@@ -715,7 +715,10 @@ private fun PlaylistItemLayout(
                         .height(80.dp)
                         .padding(bottom = 16.dp)
                         .shadow(elevation.value)
-                        .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp), shape = RoundedCornerShape(4.dp))
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
+                            shape = RoundedCornerShape(4.dp)
+                        )
                 ) {
 
                     Box(
@@ -755,7 +758,7 @@ private fun PlaylistItemLayout(
                                 .size(36.dp)
                                 .clip(shape = CircleShape)
                                 .background(color = Color.Black.copy(alpha = 0.5f))
-                                .clickable { playItem(playlistItem.id) }
+                                .clickable { playItem(playlistItem.index) }
                         )
 
                     }

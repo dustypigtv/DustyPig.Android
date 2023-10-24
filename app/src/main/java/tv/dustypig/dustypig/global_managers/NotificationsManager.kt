@@ -114,11 +114,20 @@ class NotificationsManager @Inject constructor(
 
             when(type) {
                 "movie" -> {
-                    return MovieDetailsNav.getRoute(mediaId = linkId)
+                    return MovieDetailsNav.getRoute(
+                        mediaId = linkId,
+                        basicCacheId = "",
+                        detailedPlaylistCacheId = "",
+                        fromPlaylist = false,
+                        playlistUpNextIndex = 0
+                    )
                 }
 
                 "series" -> {
-                    return SeriesDetailsNav.getRoute(mediaId = linkId)
+                    return SeriesDetailsNav.getRoute(
+                        mediaId = linkId,
+                        basicCacheId = ""
+                    )
                 }
 
                 "friendship" -> { }

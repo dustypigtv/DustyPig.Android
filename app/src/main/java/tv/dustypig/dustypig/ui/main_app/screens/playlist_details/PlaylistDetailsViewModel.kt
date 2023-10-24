@@ -25,7 +25,7 @@ import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNa
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
 import tv.dustypig.dustypig.ui.main_app.screens.movie_details.MovieDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
-import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerViewModel
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -39,13 +39,15 @@ class PlaylistDetailsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(PlaylistDetailsUIState())
     val uiState = _uiState.asStateFlow()
 
-    private val _cacheId: String = savedStateHandle.getOrThrow(PlaylistDetailsNav.KEY_CACHE_ID)
+    private val _basicCacheId: String = savedStateHandle.getOrThrow(PlaylistDetailsNav.KEY_CACHE_ID)
     private val _playlistId: Int = savedStateHandle.getOrThrow(PlaylistDetailsNav.KEY_MEDIA_ID)
+
     private lateinit var _detailedPlaylist: DetailedPlaylist
+    private val _detailCacheId = UUID.randomUUID().toString()
     private val _localItems = mutableListOf<PlaylistItem>()
 
     init {
-        val cachedInfo = MediaCacheManager.get(_cacheId)
+        val cachedInfo = MediaCacheManager.getBasicInfo(_basicCacheId)
         _uiState.update {
             it.copy(
                 loading = true,
@@ -63,7 +65,8 @@ class PlaylistDetailsViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        MediaCacheManager.remove(_cacheId)
+        MediaCacheManager.BasicInfo.removeAll { it.cacheId == _basicCacheId }
+        MediaCacheManager.Playlists.remove(_detailCacheId)
     }
 
     private fun updateData() {
@@ -71,6 +74,8 @@ class PlaylistDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             try{
                 _detailedPlaylist = playlistRepository.details(_playlistId)
+                MediaCacheManager.Playlists[_detailCacheId] = _detailedPlaylist
+
                 val items = _detailedPlaylist.items ?: listOf()
                 _localItems.addAll(items)
                 val upNext = items.firstOrNull { it.index == _detailedPlaylist.currentIndex } ?: items.firstOrNull()
@@ -259,21 +264,23 @@ class PlaylistDetailsViewModel @Inject constructor(
 
 
     fun playUpNext() {
-        val upNext = _detailedPlaylist.items!!.firstOrNull {
-            it.index == _detailedPlaylist.currentIndex
-        } ?: _detailedPlaylist.items!!.first()
-
-        PlayerViewModel.mediaType = MediaTypes.Playlist
-        PlayerViewModel.detailedPlaylist = _detailedPlaylist
-        PlayerViewModel.upNextId = upNext.id
-        navigateToRoute(PlayerNav.route)
+       navigateToRoute(
+            PlayerNav.getRoute(
+                cacheId = _detailCacheId,
+                sourceType = PlayerNav.SOURCE_TYPE_PLAYLIST,
+                upNextId = _detailedPlaylist.currentIndex
+            )
+        )
     }
 
-    fun playItem(id: Int) {
-        PlayerViewModel.mediaType = MediaTypes.Playlist
-        PlayerViewModel.detailedPlaylist = _detailedPlaylist
-        PlayerViewModel.upNextId = id
-        navigateToRoute(PlayerNav.route)
+    fun playItem(index: Int) {
+        navigateToRoute(
+            PlayerNav.getRoute(
+                cacheId = _detailCacheId,
+                sourceType = PlayerNav.SOURCE_TYPE_PLAYLIST,
+                upNextId = index
+            )
+        )
     }
 
     fun navToItem(id: Int) {
@@ -290,16 +297,21 @@ class PlaylistDetailsViewModel @Inject constructor(
             navigateToRoute(
                 MovieDetailsNav.getRoute(
                     mediaId = pli.mediaId,
-                    cacheId = cacheId
+                    basicCacheId = cacheId,
+                    detailedPlaylistCacheId = _detailCacheId,
+                    fromPlaylist = true,
+                    playlistUpNextIndex = pli.index
                 )
             )
         } else if (pli.mediaType == MediaTypes.Episode) {
             navigateToRoute(
                 EpisodeDetailsNav.getRoute(
                     mediaId = pli.mediaId,
-                    cacheId = cacheId,
+                    basicCacheId = cacheId,
+                    detailedCacheId = _detailCacheId,
                     canPlay = true,
-                    fromSeriesDetails = false
+                    fromSeriesDetails = false,
+                    playlistUpNextIndex = pli.index
                 )
             )
         }

@@ -5,7 +5,6 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
@@ -87,22 +86,28 @@ fun DustyPigTheme(
 
     val view = LocalView.current
     if (!view.isInEditMode) {
-        val playerScreenVisible by PlayerStateManager.playerScreenVisible.collectAsState()
-        SideEffect {
-            val window = (view.context as Activity).window
-            if (playerScreenVisible) {
-                val insetsController = WindowCompat.getInsetsController(window, window.decorView)
-                insetsController.apply {
-                    hide(WindowInsetsCompat.Type.statusBars())
-                    hide(WindowInsetsCompat.Type.navigationBars())
-                    systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-                }
-            } else {
-                window.statusBarColor = colorScheme.background.toArgb()
-                WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+
+        val window = (view.context as Activity).window
+        window.statusBarColor = colorScheme.background.toArgb()
+        WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+
+        val playerVisible by PlayerStateManager.playerScreenVisible.collectAsState()
+        if (playerVisible) {
+            insetsController.apply {
+                hide(WindowInsetsCompat.Type.statusBars())
+                hide(WindowInsetsCompat.Type.navigationBars())
+                systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            }
+        } else {
+            insetsController.apply {
+                show(WindowInsetsCompat.Type.statusBars())
+                show(WindowInsetsCompat.Type.navigationBars())
+                systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
             }
         }
     }
+
 
     MaterialTheme(
         colorScheme = colorScheme,
