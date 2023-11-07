@@ -65,27 +65,13 @@ import tv.dustypig.dustypig.ui.composables.TintedIcon
 @Composable
 fun FriendDetailsSettingsScreen(vm: FriendDetailsSettingsViewModel) {
     val uiState by vm.uiState.collectAsState()
-    FriendDetailsSettingsScreenInternal(
-        popBackStack = vm::popBackStack,
-        hideError = vm::hideError,
-        changeDisplayName = vm::changeDisplayName,
-        toggleLibraryShare = vm::toggleLibraryShare,
-        unfriend = vm::unfriend,
-        uiState = uiState
-    )
+    FriendDetailsSettingsScreenInternal(uiState = uiState)
 }
 
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun FriendDetailsSettingsScreenInternal(
-    popBackStack: () -> Unit,
-    hideError: () -> Unit,
-    changeDisplayName: (String) -> Unit,
-    toggleLibraryShare: (Int) -> Unit,
-    unfriend: () -> Unit,
-    uiState: FriendDetailsSettingsUIState
-) {
+private fun FriendDetailsSettingsScreenInternal(uiState: FriendDetailsSettingsUIState) {
 
     val listState = rememberLazyListState()
     var showChangeDisplayName by remember {
@@ -94,7 +80,7 @@ private fun FriendDetailsSettingsScreenInternal(
 
     Scaffold (
         topBar = {
-            CommonTopAppBar(onClick = popBackStack, text = "Friend Info")
+            CommonTopAppBar(onClick = uiState.onPopBackStack, text = "Friend Info")
         }
     ) { paddingValues ->
 
@@ -214,7 +200,7 @@ private fun FriendDetailsSettingsScreenInternal(
                                 modifier = Modifier.padding(12.dp, 0.dp),
                                 checked = lib.shared,
                                 enabled = !uiState.busy,
-                                onCheckedChange = { toggleLibraryShare(lib.id) }
+                                onCheckedChange = { uiState.onToggleLibraryShare(lib.id) }
                             )
                         }
                     }
@@ -260,7 +246,7 @@ private fun FriendDetailsSettingsScreenInternal(
 
                 item {
                     Button(
-                        onClick = unfriend,
+                        onClick = uiState.onUnfriend,
                         enabled = !uiState.busy,
                         modifier = Modifier.padding(48.dp),
                         colors = ButtonDefaults.buttonColors(
@@ -303,7 +289,7 @@ private fun FriendDetailsSettingsScreenInternal(
         fun submitClicked() {
             keyboardController?.hide()
             showChangeDisplayName = false
-            changeDisplayName(displayName)
+            uiState.onChangeDisplayName(displayName)
         }
 
         fun dismissClicked() {
@@ -355,7 +341,7 @@ private fun FriendDetailsSettingsScreenInternal(
     }
 
     if(uiState.showError) {
-        ErrorDialog(onDismissRequest = hideError, message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
     }
 }
 
@@ -395,14 +381,7 @@ private fun FriendDetailsSettingsScreenPreview() {
     )
 
     PreviewBase {
-        FriendDetailsSettingsScreenInternal(
-            popBackStack = { },
-            hideError = { },
-            changeDisplayName = { _ -> },
-            toggleLibraryShare = { _ -> },
-            unfriend = { },
-            uiState = uiState
-        )
+        FriendDetailsSettingsScreenInternal(uiState = uiState)
     }
 }
 

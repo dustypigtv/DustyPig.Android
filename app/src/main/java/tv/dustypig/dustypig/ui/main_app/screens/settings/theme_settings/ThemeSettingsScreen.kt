@@ -36,23 +36,12 @@ import tv.dustypig.dustypig.ui.composables.TintedIcon
 
 @Composable
 fun SettingsThemeScreen(vm: ThemeSettingsViewModel) {
-
     val uiState by vm.uiState.collectAsState()
-
-    SettingsThemeScreenInternal(
-        popBackStack = vm::popBackStack,
-        setTheme = vm::setTheme,
-        uiState = uiState
-    )
-
+    SettingsThemeScreenInternal(uiState = uiState)
 }
 
 @Composable
-private fun SettingsThemeScreenInternal(
-    popBackStack: () -> Unit,
-    setTheme: (Themes) -> Unit,
-    uiState: ThemeSettingsUIState
-) {
+private fun SettingsThemeScreenInternal(uiState: ThemeSettingsUIState) {
 
     val themes = mapOf(
         Pair(stringResource(R.string.maggie_s), Themes.Maggies),
@@ -68,7 +57,7 @@ private fun SettingsThemeScreenInternal(
     Scaffold(
         topBar = {
             CommonTopAppBar(
-                onClick = popBackStack,
+                onClick = uiState.onPopBackStack,
                 text = stringResource(R.string.select_theme)
             )
         }
@@ -87,7 +76,7 @@ private fun SettingsThemeScreenInternal(
                     modifier = Modifier
                         .padding(12.dp)
                         .fillMaxWidth()
-                        .clickable { setTheme(theme.value) }
+                        .clickable { uiState.onSetTheme(theme.value) }
                         .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp), shape = RoundedCornerShape(4.dp))
                         .clip(shape = RoundedCornerShape(4.dp)),
                     verticalAlignment = Alignment.CenterVertically
@@ -124,12 +113,7 @@ private fun SettingsThemeScreenPreview () {
     val uiState = ThemeSettingsUIState(
         currentTheme = Themes.Maggies
     )
-
     PreviewBase {
-        SettingsThemeScreenInternal(
-            popBackStack = { },
-            setTheme = { _ -> },
-            uiState = uiState
-        )
+        SettingsThemeScreenInternal(uiState = uiState)
     }
 }

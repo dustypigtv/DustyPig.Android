@@ -5,15 +5,10 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
-import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 
 
@@ -90,22 +85,20 @@ fun DustyPigTheme(
         val window = (view.context as Activity).window
         window.statusBarColor = colorScheme.background.toArgb()
         WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
-        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
 
-        val playerVisible by PlayerStateManager.playerScreenVisible.collectAsState()
-        if (playerVisible) {
-            insetsController.apply {
-                hide(WindowInsetsCompat.Type.statusBars())
-                hide(WindowInsetsCompat.Type.navigationBars())
-                systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            }
-        } else {
-            insetsController.apply {
-                show(WindowInsetsCompat.Type.statusBars())
-                show(WindowInsetsCompat.Type.navigationBars())
-                systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
-            }
-        }
+//        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+//        val playerVisible by PlayerStateManager.playerScreenVisible.collectAsState()
+//        if (playerVisible) {
+//            insetsController.apply {
+//                hide(WindowInsetsCompat.Type.systemBars())
+//                //systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+//            }
+//        } else {
+//            insetsController.apply {
+//                show(WindowInsetsCompat.Type.systemBars())
+//                //systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
+//            }
+//        }
     }
 
 

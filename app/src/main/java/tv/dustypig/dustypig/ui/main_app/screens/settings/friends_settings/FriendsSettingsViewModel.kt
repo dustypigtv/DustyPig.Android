@@ -30,7 +30,14 @@ class FriendsSettingsViewModel @Inject constructor(
         }
     }
 
-    private val _uiState = MutableStateFlow(FriendsSettingsUIState())
+    private val _uiState = MutableStateFlow(
+        FriendsSettingsUIState(
+            onPopBackStack = ::popBackStack,
+            onAddFriend = ::addFriend,
+            onHideDialogs = ::hideDialog,
+            onNavToFriendDetails = ::navToFriendDetails
+        )
+    )
     val uiState = _uiState.asStateFlow()
 
     init {
@@ -65,14 +72,16 @@ class FriendsSettingsViewModel @Inject constructor(
     }
 
 
-    fun hideDialog() = _uiState.update {
-        it.copy(
-            showError = false,
-            showInviteSuccessDialog = false
-        )
+    private fun hideDialog() {
+        _uiState.update {
+            it.copy(
+                showError = false,
+                showInviteSuccessDialog = false
+            )
+        }
     }
 
-    fun addFriend(email: String) {
+    private fun addFriend(email: String) {
         _uiState.update {
             it.copy(busy = false)
         }
@@ -98,11 +107,9 @@ class FriendsSettingsViewModel @Inject constructor(
         }
     }
 
-    fun navToFriendDetails(id: Int) {
+    private fun navToFriendDetails(id: Int) {
         navigateToRoute(FriendDetailsSettingsNav.getRouteForId(id))
     }
-
-
 }
 
 

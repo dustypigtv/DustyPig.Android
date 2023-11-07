@@ -6,6 +6,8 @@ import tv.dustypig.dustypig.api.models.TitleRequestPermissions
 import tv.dustypig.dustypig.ui.composables.CreditsData
 
 data class TMDBDetailsUIState (
+
+    //Data
     val loading: Boolean = true,
     val showErrorDialog: Boolean = false,
     val errorMessage: String? = null,
@@ -22,5 +24,11 @@ data class TMDBDetailsUIState (
     val requestPermissions: TitleRequestPermissions = TitleRequestPermissions.Enabled,
     val requestStatus: RequestStatus = RequestStatus.NotRequested,
     val busy: Boolean = false,
-    val friends: List<TMDBDetailsRequestFriend> = listOf()
+    val friends: List<TMDBDetailsRequestFriend> = listOf(),
+
+    //Events
+    val onPopBackStack: () -> Unit = { },
+    val onHideError: () -> Unit = { },
+    val onRequestTitle: (friendId: Int?) -> Unit = { },
+    val onCancelRequest: () -> Unit = { }
 )

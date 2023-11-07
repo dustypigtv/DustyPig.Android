@@ -29,7 +29,13 @@ class SwitchProfilesViewModel @Inject constructor(
     private val authManager: AuthManager
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val _uiState = MutableStateFlow(SwitchProfilesUIState())
+    private val _uiState = MutableStateFlow(
+        SwitchProfilesUIState(
+            onPopBackStack = ::popBackStack,
+            onHideError = ::hideError,
+            onSignIn = ::signIn
+        )
+    )
     val uiState = _uiState.asStateFlow()
 
     private var criticalError = false
@@ -58,7 +64,7 @@ class SwitchProfilesViewModel @Inject constructor(
         }
     }
 
-    fun hideError() {
+    private fun hideError() {
         if(criticalError) {
             popBackStack()
         } else {
@@ -68,7 +74,7 @@ class SwitchProfilesViewModel @Inject constructor(
         }
     }
 
-    fun signIn(profile: BasicProfile, pin: UShort?) {
+    private fun signIn(profile: BasicProfile, pin: UShort?) {
         _uiState.update {
             it.copy(busy = true)
         }

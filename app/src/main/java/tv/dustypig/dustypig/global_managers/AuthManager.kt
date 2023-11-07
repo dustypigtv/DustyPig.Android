@@ -1,8 +1,9 @@
 package tv.dustypig.dustypig.global_managers
 
 import android.util.Log
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -14,7 +15,6 @@ import javax.inject.Singleton
 
 
 @Singleton
-@OptIn(DelicateCoroutinesApi::class)
 class AuthManager @Inject constructor(private val settingsManager: SettingsManager) {
 
     companion object {
@@ -42,7 +42,7 @@ class AuthManager @Inject constructor(private val settingsManager: SettingsManag
         private set
 
     fun init() {
-        GlobalScope.launch {
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             setState(
                 token = settingsManager.getToken(),
                 profileId = settingsManager.getProfileId(),
@@ -52,7 +52,7 @@ class AuthManager @Inject constructor(private val settingsManager: SettingsManag
     }
 
     fun setAuthState(token: String, profileId: Int, isMain: Boolean) {
-        GlobalScope.launch {
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             settingsManager.setToken(token)
             settingsManager.setProfileId(profileId)
             settingsManager.setIsMainProfile(isMain)
@@ -62,7 +62,7 @@ class AuthManager @Inject constructor(private val settingsManager: SettingsManag
 
     fun switchProfileBegin(token: String, profileId: Int, isMain: Boolean) {
         MediaCacheManager.reset()
-        GlobalScope.launch {
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             settingsManager.setToken(token)
             settingsManager.setProfileId(profileId)
             settingsManager.setIsMainProfile(isMain)
@@ -73,7 +73,7 @@ class AuthManager @Inject constructor(private val settingsManager: SettingsManag
     }
 
     fun switchProfileEnd() {
-        GlobalScope.launch {
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             setState(
                 token = settingsManager.getToken(),
                 profileId = settingsManager.getProfileId(),

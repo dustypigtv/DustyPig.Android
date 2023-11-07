@@ -22,7 +22,17 @@ class DownloadsViewModel @Inject constructor(
     private val downloadManager: DownloadManager
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val _uiState = MutableStateFlow(DownloadsUIState())
+    private val _uiState = MutableStateFlow(
+        DownloadsUIState(
+            onHideError = ::hideError,
+            onDeleteAll = ::deleteAll,
+            onDeleteDownload = ::deleteDownload,
+            onModifyDownload = ::modifyDownload,
+            onPlayItem = ::playItem,
+            onPlayNext = ::playNext,
+            onToggleExpansion = ::toggleExpansion
+        )
+    )
     val uiState = _uiState.asStateFlow()
 
     private val _expandedMediaIds: ArrayList<Int> = arrayListOf()
@@ -59,7 +69,7 @@ class DownloadsViewModel @Inject constructor(
         }
     }
 
-    fun toggleExpansion(id: Int) {
+    private fun toggleExpansion(id: Int) {
         if(_expandedMediaIds.contains(id))
             _expandedMediaIds.remove(id)
         else
@@ -71,16 +81,16 @@ class DownloadsViewModel @Inject constructor(
         }
     }
 
-    fun playNext(job: UIJob) {
-
+    private fun playNext(job: UIJob) {
+        TODO()
     }
 
-    fun playItem(job: UIJob, download: UIDownload) {
-
+    private fun playItem(job: UIJob, download: UIDownload) {
+        TODO()
     }
 
 
-    fun deleteDownload(job: UIJob) {
+    private fun deleteDownload(job: UIJob) {
         viewModelScope.launch {
             try {
                 downloadManager.delete(job.mediaId, job.mediaType)
@@ -91,7 +101,7 @@ class DownloadsViewModel @Inject constructor(
     }
 
 
-    fun modifyDownload(job: UIJob, newCount: Int) {
+    private fun modifyDownload(job: UIJob, newCount: Int) {
         viewModelScope.launch {
             try {
                 when (job.mediaType) {
@@ -105,7 +115,7 @@ class DownloadsViewModel @Inject constructor(
         }
     }
 
-    fun deleteAll() {
+    private fun deleteAll() {
         viewModelScope.launch {
             try{
                 downloadManager.deleteAll()

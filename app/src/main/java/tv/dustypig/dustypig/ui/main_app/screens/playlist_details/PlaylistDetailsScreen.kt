@@ -71,6 +71,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -94,7 +95,7 @@ import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.PlaylistItem
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
-import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
+import tv.dustypig.dustypig.ui.composables.CastTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.MultiDownloadDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
@@ -106,39 +107,12 @@ import tv.dustypig.dustypig.ui.isTablet
 
 @Composable
 fun PlaylistDetailsScreen(vm: PlaylistDetailsViewModel) {
-
     val uiState by vm.uiState.collectAsState()
-    PlaylistDetailsScreenInternal(
-        popBackStack = vm::popBackStack,
-        hideError = vm::hideError,
-        listUpdated = vm::listUpdated,
-        updateListOrderOnServer = vm::updateListOrderOnServer,
-        playUpNext = vm::playUpNext,
-        deletePlaylist = vm::deletePlaylist,
-        deleteItem = vm::deleteItem,
-        playItem = vm::playItem,
-        navToItem = vm::navToItem,
-        renamePlaylist = vm::renamePlaylist,
-        updateDownloads = vm::updateDownloads,
-        uiState = uiState
-    )
+    PlaylistDetailsScreenInternal(uiState = uiState)
 }
 
 @Composable
-private fun PlaylistDetailsScreenInternal(
-    popBackStack: () -> Unit,
-    hideError: () -> Unit,
-    listUpdated: () -> Unit,
-    updateListOrderOnServer: (Int, Int) -> Unit,
-    playUpNext: () -> Unit,
-    deletePlaylist: () -> Unit,
-    deleteItem: (Int) -> Unit,
-    playItem: (Int) -> Unit,
-    navToItem: (Int) -> Unit,
-    renamePlaylist: (String) -> Unit,
-    updateDownloads: (Int) -> Unit,
-    uiState: PlaylistDetailsUIState
-) {
+private fun PlaylistDetailsScreenInternal(uiState: PlaylistDetailsUIState) {
 
     val showRenameDialog = remember {
         mutableStateOf(false)
@@ -160,19 +134,17 @@ private fun PlaylistDetailsScreenInternal(
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = popBackStack, text = stringResource(R.string.playlist_info))
+            CastTopAppBar(
+                onClick = uiState.onPopBackStack,
+                text = stringResource(R.string.playlist_info),
+                castManager = uiState.castManager
+            )
         }
     ) { innerPadding ->
 
         OnDevice(
             onPhone = {
                 PhoneLayout(
-                    listUpdated = listUpdated,
-                    updateListOrderOnServer = updateListOrderOnServer,
-                    playUpNext = playUpNext,
-                    deleteItem = deleteItem,
-                    playItem = playItem,
-                    navToItem = navToItem,
                     showRenameDialog = showRenameDialog,
                     showDownloadDialog = showDownloadDialog,
                     showDeletePlaylistDialog = showDeletePlaylistDialog,
@@ -185,12 +157,6 @@ private fun PlaylistDetailsScreenInternal(
                 OnOrientation(
                     onPortrait = {
                         PhoneLayout(
-                            listUpdated = listUpdated,
-                            updateListOrderOnServer = updateListOrderOnServer,
-                            playUpNext = playUpNext,
-                            deleteItem = deleteItem,
-                            playItem = playItem,
-                            navToItem = navToItem,
                             showRenameDialog = showRenameDialog,
                             showDownloadDialog = showDownloadDialog,
                             showDeletePlaylistDialog = showDeletePlaylistDialog,
@@ -201,12 +167,6 @@ private fun PlaylistDetailsScreenInternal(
                     },
                     onLandscape = {
                         HorizontalTabletLayout(
-                            listUpdated = listUpdated,
-                            updateListOrderOnServer = updateListOrderOnServer,
-                            playUpNext = playUpNext,
-                            deleteItem = deleteItem,
-                            playItem = playItem,
-                            navToItem = navToItem,
                             showRenameDialog = showRenameDialog,
                             showDownloadDialog = showDownloadDialog,
                             showDeletePlaylistDialog = showDeletePlaylistDialog,
@@ -241,7 +201,7 @@ private fun PlaylistDetailsScreenInternal(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Go),
                     keyboardActions = KeyboardActions(onGo = {
                         showRenameDialog.value = false
-                        renamePlaylist(newName)
+                        uiState.onRenamePlaylist(newName)
                     })
                 )
             },
@@ -249,7 +209,7 @@ private fun PlaylistDetailsScreenInternal(
             confirmButton = {
                 TextButton(onClick = {
                     showRenameDialog.value = false
-                    renamePlaylist(newName)
+                    uiState.onRenamePlaylist(newName)
                 }) {
                     Text(text = stringResource(R.string.save))
                 }
@@ -266,7 +226,7 @@ private fun PlaylistDetailsScreenInternal(
         MultiDownloadDialog(
             onSave = {
                 showDownloadDialog.value = false
-                updateDownloads(it)
+                uiState.onUpdateDownloads(it)
             },
             title = stringResource(R.string.download_playlist),
             text = stringResource(R.string.how_many_unwatched_items_do_you_want_to_keep_downloaded),
@@ -281,7 +241,7 @@ private fun PlaylistDetailsScreenInternal(
             },
             onYes = {
                 showDeletePlaylistDialog.value = false
-                deletePlaylist()
+                uiState.onDeletePlaylist()
             },
             title = stringResource(R.string.confirm_delete),
             message = stringResource(R.string.are_you_sure_you_want_to_delete_this_playlist)
@@ -289,19 +249,13 @@ private fun PlaylistDetailsScreenInternal(
     }
 
     if(uiState.showErrorDialog) {
-        ErrorDialog(onDismissRequest = hideError, message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
     }
 }
 
 
 @Composable
 private fun HorizontalTabletLayout(
-    listUpdated: () -> Unit,
-    updateListOrderOnServer: (Int, Int) -> Unit,
-    playUpNext: () -> Unit,
-    deleteItem: (Int) -> Unit,
-    playItem: (Int) -> Unit,
-    navToItem: (Int) -> Unit,
     showRenameDialog: MutableState<Boolean>,
     showDownloadDialog: MutableState<Boolean>,
     showDeletePlaylistDialog: MutableState<Boolean>,
@@ -319,7 +273,7 @@ private fun HorizontalTabletLayout(
 
     if(uiState.updateList) {
         data.value = uiState.items
-        listUpdated()
+        uiState.onListUpdated()
     }
 
     //There is 1 before the playlist items, so subtract 1 from indices
@@ -332,7 +286,7 @@ private fun HorizontalTabletLayout(
             } catch(_: Throwable) { }
         },
         onDragEnd = { from, to ->
-            updateListOrderOnServer(from - 1, to - 1)
+            uiState.onUpdateListOnServer(from - 1, to - 1)
         }
     )
 
@@ -381,7 +335,7 @@ private fun HorizontalTabletLayout(
                 item {
                     PlaybackLayout(
                         showRenameDialog = showRenameDialog,
-                        playUpNext = playUpNext,
+                        playUpNext = uiState.onPlayUpNext,
                         showDownloadDialog = showDownloadDialog,
                         uiState = uiState
                     )
@@ -390,12 +344,10 @@ private fun HorizontalTabletLayout(
                 items(data.value, { it.id }) { playlistItem ->
                     ReorderableItem(state, key = playlistItem.id) { isDragging ->
                         PlaylistItemLayout(
-                            deleteItem = deleteItem,
-                            playItem = playItem,
-                            navToItem = navToItem,
                             playlistItem = playlistItem,
                             isDragging = isDragging,
-                            state = state
+                            state = state,
+                            uiState = uiState
                         )
                     }
                 }
@@ -415,12 +367,6 @@ private fun HorizontalTabletLayout(
 
 @Composable
 private fun PhoneLayout(
-    listUpdated: () -> Unit,
-    updateListOrderOnServer: (Int, Int) -> Unit,
-    playUpNext: () -> Unit,
-    deleteItem: (Int) -> Unit,
-    playItem: (Int) -> Unit,
-    navToItem: (Int) -> Unit,
     showRenameDialog: MutableState<Boolean>,
     showDownloadDialog: MutableState<Boolean>,
     showDeletePlaylistDialog: MutableState<Boolean>,
@@ -441,7 +387,7 @@ private fun PhoneLayout(
 
     if (uiState.updateList) {
         data.value = uiState.items
-        listUpdated()
+        uiState.onListUpdated()
     }
 
     //There are 2 items before the playlist items, so subtract 2 from indices
@@ -455,7 +401,7 @@ private fun PhoneLayout(
             }
         },
         onDragEnd = { from, to ->
-            updateListOrderOnServer(from - 2, to - 2)
+            uiState.onUpdateListOnServer(from - 2, to - 2)
         }
     )
 
@@ -504,7 +450,7 @@ private fun PhoneLayout(
                 item {
                     PlaybackLayout(
                         showRenameDialog = showRenameDialog,
-                        playUpNext = playUpNext,
+                        playUpNext = uiState.onPlayUpNext,
                         showDownloadDialog = showDownloadDialog,
                         uiState = uiState
                     )
@@ -513,12 +459,10 @@ private fun PhoneLayout(
                 items(data.value, { it.id }) { playlistItem ->
                     ReorderableItem(state, key = playlistItem.id) { isDragging ->
                         PlaylistItemLayout(
-                            deleteItem = deleteItem,
-                            playItem = playItem,
-                            navToItem = navToItem,
                             playlistItem = playlistItem,
                             isDragging = isDragging,
-                            state = state
+                            state = state,
+                            uiState = uiState
                         )
                     }
                 }
@@ -546,10 +490,12 @@ private fun PlaybackLayout(
     uiState: PlaylistDetailsUIState
 ) {
 
-    val configuration = LocalConfiguration.current
-    val alignment = if(configuration.isTablet()) Alignment.Start else Alignment.CenterHorizontally
-    val modifier = if(configuration.isTablet()) Modifier.width(320.dp) else Modifier.fillMaxWidth()
-    val buttonPadding = if(configuration.isTablet()) PaddingValues(0.dp, 0.dp  ) else PaddingValues(16.dp, 0.dp)
+    val isTablet = LocalContext.current.isTablet()
+
+    //val configuration = LocalConfiguration.current
+    val alignment = if(isTablet) Alignment.Start else Alignment.CenterHorizontally
+    val modifier = if(isTablet) Modifier.width(320.dp) else Modifier.fillMaxWidth()
+    val buttonPadding = if(isTablet) PaddingValues(0.dp, 0.dp  ) else PaddingValues(16.dp, 0.dp)
 
     if (uiState.loading) {
         Spacer(modifier = Modifier.height(48.dp))
@@ -638,12 +584,10 @@ private fun PlaybackLayout(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PlaylistItemLayout(
-    deleteItem: (Int) -> Unit,
-    playItem: (Int) -> Unit,
-    navToItem: (Int) -> Unit,
     playlistItem: PlaylistItem,
     isDragging: Boolean,
-    state: ReorderableLazyListState
+    state: ReorderableLazyListState,
+    uiState: PlaylistDetailsUIState
 ) {
 
     val elevation = animateDpAsState(if (isDragging) 16.dp else 0.dp, label = "")
@@ -665,7 +609,7 @@ private fun PlaylistItemLayout(
     LaunchedEffect(show) {
         if(!show) {
             delay(delayTime.toLong())
-            deleteItem(playlistItem.id)
+            uiState.onDeleteItem(playlistItem.id)
         }
     }
 
@@ -758,7 +702,7 @@ private fun PlaylistItemLayout(
                                 .size(36.dp)
                                 .clip(shape = CircleShape)
                                 .background(color = Color.Black.copy(alpha = 0.5f))
-                                .clickable { playItem(playlistItem.index) }
+                                .clickable { uiState.onPlayItem(playlistItem.id) }
                         )
 
                     }
@@ -792,7 +736,7 @@ private fun PlaylistItemLayout(
                         contentAlignment = Alignment.Center
                     ) {
 
-                        IconButton(onClick = { navToItem(playlistItem.id) }) {
+                        IconButton(onClick = { uiState.onNavToItem(playlistItem.id) }) {
                             Icon(
                                 imageVector = Icons.Outlined.Info,
                                 contentDescription = null
@@ -856,7 +800,6 @@ private fun PlaylistDetailsScreenPreview() {
                 title = "Item $i",
                 description = "Overview $i",
                 artworkUrl = "",
-                played = null,
                 length = 5000.0,
                 introStartTime = null,
                 introEndTime = null,
@@ -876,20 +819,7 @@ private fun PlaylistDetailsScreenPreview() {
     )
 
     PreviewBase {
-        PlaylistDetailsScreenInternal(
-            popBackStack = { },
-            hideError = { },
-            listUpdated = { },
-            updateListOrderOnServer = { _, _ -> },
-            playUpNext = { },
-            deletePlaylist = { },
-            deleteItem = { _ -> },
-            playItem = { _ -> },
-            navToItem = { _ -> },
-            renamePlaylist = { _ -> },
-            updateDownloads = { _ -> },
-            uiState = uiState
-        )
+        PlaylistDetailsScreenInternal(uiState = uiState)
     }
 }
 

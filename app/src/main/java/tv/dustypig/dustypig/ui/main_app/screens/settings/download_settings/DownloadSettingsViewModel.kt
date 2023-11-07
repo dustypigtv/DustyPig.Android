@@ -17,7 +17,11 @@ class DownloadSettingsViewModel @Inject constructor(
     private val settingsManager: SettingsManager
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val _uiState = MutableStateFlow(DownloadSettingsUIState())
+    private val _uiState = MutableStateFlow(
+        DownloadSettingsUIState(
+            onSetDownloadOverMobile = ::setDownloadOverMobile
+        )
+    )
     val uiState = _uiState.asStateFlow()
 
     init {
@@ -31,7 +35,7 @@ class DownloadSettingsViewModel @Inject constructor(
         }
     }
 
-    fun setDownloadOverMobile(value: Boolean) {
+    private fun setDownloadOverMobile(value: Boolean) {
         viewModelScope.launch {
             settingsManager.setDownloadOverMobile(value)
             _uiState.update {

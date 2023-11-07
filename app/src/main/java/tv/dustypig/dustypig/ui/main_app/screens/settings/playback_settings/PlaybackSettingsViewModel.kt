@@ -18,7 +18,12 @@ class PlaybackSettingsViewModel @Inject constructor(
     private val settingsManager: SettingsManager
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val _uiState = MutableStateFlow(PlaybackSettingsUIState())
+    private val _uiState = MutableStateFlow(
+        PlaybackSettingsUIState(
+            onSetAutoSkipCredits = ::setAutoSkipCredits,
+            onSetAutoSkipIntros = ::setAutoSkipIntros
+        )
+    )
     val uiState = _uiState.asStateFlow()
 
     init {
@@ -32,7 +37,7 @@ class PlaybackSettingsViewModel @Inject constructor(
         }
     }
 
-    fun setAutoSkipIntros(value: Boolean) {
+    private fun setAutoSkipIntros(value: Boolean) {
         viewModelScope.launch {
             settingsManager.setSkipIntros(value)
             _uiState.update {
@@ -43,7 +48,7 @@ class PlaybackSettingsViewModel @Inject constructor(
         }
     }
 
-    fun setAutoSkipCredits(value: Boolean) {
+    private fun setAutoSkipCredits(value: Boolean) {
         viewModelScope.launch {
             settingsManager.setSkipCredits(value)
             _uiState.update {

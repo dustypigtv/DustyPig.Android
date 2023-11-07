@@ -26,7 +26,13 @@ class ManageParentalControlsForTitleViewModel  @Inject constructor(
     savedStateHandle: SavedStateHandle
 ): ViewModel(), RouteNavigator by routeNavigator{
 
-    private val _uiState = MutableStateFlow(ManageParentalControlsForTitleUIState())
+    private val _uiState = MutableStateFlow(
+        ManageParentalControlsForTitleUIState(
+            onHideError = ::hideError,
+            onPopBackStack = ::popBackStack,
+            onTogglePermission = ::togglePermission
+        )
+    )
     val uiState: StateFlow<ManageParentalControlsForTitleUIState> = _uiState.asStateFlow()
 
     private val _mediaId: Int = savedStateHandle.getOrThrow(AddToPlaylistNav.KEY_ID)
@@ -76,7 +82,7 @@ class ManageParentalControlsForTitleViewModel  @Inject constructor(
         }
     }
 
-    fun hideError() {
+    private fun hideError() {
         if (_uiState.value.criticalError) {
             popBackStack()
         } else {
@@ -86,7 +92,7 @@ class ManageParentalControlsForTitleViewModel  @Inject constructor(
         }
     }
 
-    fun togglePermission(profileId: Int) {
+    private fun togglePermission(profileId: Int) {
 
         _uiState.update {
             it.copy(busy = true)

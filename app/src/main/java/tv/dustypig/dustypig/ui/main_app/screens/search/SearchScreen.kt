@@ -70,9 +70,6 @@ fun SearchScreen(vm: SearchViewModel) {
 
     val uiState by vm.uiState.collectAsState()
     SearchScreenInternal(
-        search = vm::search,
-        updateQuery = vm::updateQuery,
-        updateTabIndex = vm::updateTabIndex,
         uiState = uiState,
         routeNavigator = vm
     )
@@ -82,9 +79,6 @@ fun SearchScreen(vm: SearchViewModel) {
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 private fun SearchScreenInternal(
-    search: () -> Unit,
-    updateQuery: (String) -> Unit,
-    updateTabIndex: (Int) -> Unit,
     uiState: SearchUIState,
     routeNavigator: RouteNavigator
 ) {
@@ -101,10 +95,10 @@ private fun SearchScreenInternal(
 
         SearchBar(
             query = uiState.query,
-            onQueryChange = updateQuery,
+            onQueryChange = uiState.onUpdateQuery,
             onSearch = {
                 active = false
-                search()
+                uiState.onSearch()
             },
             active = active,
             onActiveChange = { active = it },
@@ -118,8 +112,8 @@ private fun SearchScreenInternal(
                         if(uiState.query.isEmpty()) {
                             active = false
                         } else {
-                            updateQuery("")
-                            search()
+                            uiState.onUpdateQuery("")
+                            uiState.onSearch()
                         }
                     }
                 ) {
@@ -131,9 +125,9 @@ private fun SearchScreenInternal(
                 Row(
                     modifier = Modifier
                         .clickable {
-                            updateQuery(history)
+                            uiState.onUpdateQuery(history)
                             active = false
-                            search()
+                            uiState.onSearch()
                         }
                         .fillMaxWidth()
                         .padding(12.dp),
@@ -186,7 +180,7 @@ private fun SearchScreenInternal(
                                 },
                                 selected = uiState.tabIndex == 0,
                                 onClick = {
-                                    updateTabIndex(0)
+                                    uiState.onUpdateTabIndex(0)
                                     keyboardController?.hide()
                                 },
                             )
@@ -200,7 +194,7 @@ private fun SearchScreenInternal(
                                 },
                                 selected = uiState.tabIndex == 1,
                                 onClick = {
-                                    updateTabIndex(1)
+                                    uiState.onUpdateTabIndex(1)
                                     keyboardController?.hide()
                                 },
                             )
@@ -233,7 +227,11 @@ private fun SearchScreenInternal(
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun AvailableLayout(uiState: SearchUIState, listState: LazyGridState, routeNavigator: RouteNavigator) {
+private fun AvailableLayout(
+    uiState: SearchUIState,
+    listState: LazyGridState,
+    routeNavigator: RouteNavigator
+) {
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -261,7 +259,11 @@ private fun AvailableLayout(uiState: SearchUIState, listState: LazyGridState, ro
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun TMDBLayout(uiState: SearchUIState, listState: LazyGridState, routeNavigator: RouteNavigator) {
+private fun TMDBLayout(
+    uiState: SearchUIState,
+    listState: LazyGridState,
+    routeNavigator: RouteNavigator
+) {
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -380,9 +382,6 @@ private fun SearchScreenPreview() {
 
     PreviewBase {
         SearchScreenInternal(
-            search = { },
-            updateQuery = { },
-            updateTabIndex = { },
             uiState = uiState,
             routeNavigator = MyRouteNavigator()
         )

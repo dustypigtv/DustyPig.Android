@@ -39,28 +39,18 @@ import tv.dustypig.dustypig.ui.composables.PreviewBase
 @Composable
 fun ManageParentalControlsForTitleScreen(vm: ManageParentalControlsForTitleViewModel) {
     val uiState by vm.uiState.collectAsState()
-    ManageParentalControlsForTitleScreenInternal(
-        popBackStack = vm::popBackStack,
-        togglePermission = vm::togglePermission,
-        hideError = vm::hideError,
-        uiState = uiState
-    )
+    ManageParentalControlsForTitleScreenInternal(uiState = uiState)
 }
 
 
 @Composable
-private fun ManageParentalControlsForTitleScreenInternal(
-    popBackStack: () -> Unit,
-    togglePermission: (Int) -> Unit,
-    hideError: () -> Unit,
-    uiState: ManageParentalControlsForTitleUIState
-) {
+private fun ManageParentalControlsForTitleScreenInternal(uiState: ManageParentalControlsForTitleUIState) {
 
     val listState = rememberLazyListState()
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = popBackStack, text = stringResource(R.string.parental_controls))
+            CommonTopAppBar(onClick = uiState.onPopBackStack, text = stringResource(R.string.parental_controls))
         }
     ) { innerPadding ->
 
@@ -142,7 +132,7 @@ private fun ManageParentalControlsForTitleScreenInternal(
                                 modifier = Modifier.padding(12.dp, 0.dp),
                                 checked = info.overrideState == OverrideState.Allow,
                                 enabled = !uiState.busy,
-                                onCheckedChange = { togglePermission(info.profileId) })
+                                onCheckedChange = { uiState.onTogglePermission(info.profileId) })
                         }
 
                     }
@@ -193,7 +183,7 @@ private fun ManageParentalControlsForTitleScreenInternal(
                                 modifier = Modifier.padding(12.dp, 0.dp),
                                 checked = info.overrideState == OverrideState.Allow,
                                 enabled = !uiState.busy,
-                                onCheckedChange = { togglePermission(info.profileId) })
+                                onCheckedChange = { uiState.onTogglePermission(info.profileId) })
                         }
 
                     }
@@ -215,7 +205,7 @@ private fun ManageParentalControlsForTitleScreenInternal(
 
     if(uiState.showErrorDialog) {
         ErrorDialog(
-            onDismissRequest = hideError,
+            onDismissRequest = uiState.onHideError,
             message = uiState.errorMessage
         )
     }
@@ -255,11 +245,6 @@ private fun ManageParentalControlsForTitleScreenPreview() {
     )
 
     PreviewBase {
-        ManageParentalControlsForTitleScreenInternal(
-            popBackStack = { },
-            togglePermission = { _ -> },
-            hideError = { },
-            uiState = uiState
-        )
+        ManageParentalControlsForTitleScreenInternal(uiState = uiState)
     }
 }

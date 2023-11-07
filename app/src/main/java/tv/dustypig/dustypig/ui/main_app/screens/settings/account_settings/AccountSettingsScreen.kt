@@ -61,35 +61,13 @@ import tv.dustypig.dustypig.ui.theme.BurntOrange
 
 @Composable
 fun AccountSettingsScreen(vm: AccountSettingsViewModel) {
-
     val uiState by vm.uiState.collectAsState()
-    AccountSettingsScreenInternal(
-        popBackStack = vm::popBackStack,
-        hideError = vm::hideError,
-        signOut = vm::signOut,
-        loginToDevice = vm::loginToDevice,
-        changePassword = vm::changePassword,
-        hideChangePasswordSuccess = vm::hideChangePasswordDialogs,
-        signOutEverywhere = vm::signOutEverywhere,
-        deleteAccount = vm::deleteAccount,
-        uiState = uiState
-    )
-
+    AccountSettingsScreenInternal(uiState = uiState)
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun AccountSettingsScreenInternal(
-    popBackStack: () -> Unit,
-    hideError: () -> Unit,
-    signOut: () -> Unit,
-    loginToDevice: (String) -> Unit,
-    changePassword: (String) -> Unit,
-    hideChangePasswordSuccess: () -> Unit,
-    signOutEverywhere: () -> Unit,
-    deleteAccount: () -> Unit,
-    uiState: AccountSettingsUIState
-) {
+private fun AccountSettingsScreenInternal(uiState: AccountSettingsUIState) {
 
     val buttonModifier = Modifier.width(320.dp)
     val focusRequester = remember { FocusRequester() }
@@ -115,7 +93,7 @@ private fun AccountSettingsScreenInternal(
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = popBackStack, text = stringResource(R.string.account_settings))
+            CommonTopAppBar(onClick = uiState.onPopBackStack, text = stringResource(R.string.account_settings))
         }
     ) { paddingValues ->
 
@@ -153,7 +131,7 @@ private fun AccountSettingsScreenInternal(
                 }
 
                 Button(
-                    onClick = signOut,
+                    onClick = uiState.onSignOut,
                     modifier = buttonModifier,
                     enabled = !uiState.busy
                 ) {
@@ -215,7 +193,7 @@ private fun AccountSettingsScreenInternal(
         fun loginToDevice() {
             keyboardController?.hide()
             if (enableOk) {
-                loginToDevice(code)
+                uiState.onLoginToDevice(code)
             }
         }
 
@@ -320,7 +298,7 @@ private fun AccountSettingsScreenInternal(
             passwordVisible = false
             keyboardController?.hide()
             if(enableOk) {
-                changePassword(newPassword)
+                uiState.onChangePassword(newPassword)
             }
         }
 
@@ -376,7 +354,7 @@ private fun AccountSettingsScreenInternal(
 
     if(uiState.showChangePasswordSuccessAlert) {
         OkDialog(
-            onDismissRequest = hideChangePasswordSuccess,
+            onDismissRequest = uiState.onHideChangePasswordDialog,
             title = stringResource(R.string.success),
             message = stringResource(R.string.your_password_was_successfully_changed)
         )
@@ -387,7 +365,7 @@ private fun AccountSettingsScreenInternal(
             onNo = { showSignoutEverywhereDialog = false },
             onYes = {
                 showSignoutEverywhereDialog = false
-                signOutEverywhere()
+                uiState.onSignoutEverywhere
             },
             title = stringResource(R.string.logout_of_all_devices),
             message = stringResource(R.string.are_you_sure_you_want_to_force_all_devices_to_log_out)
@@ -416,7 +394,7 @@ private fun AccountSettingsScreenInternal(
                 TextButton(
                     onClick = {
                         showDeleteAccountDialog = false
-                        deleteAccount()
+                        uiState.onDeleteAccount()
                     },
                     colors = ButtonDefaults.textButtonColors(
                         containerColor = Color.Red,
@@ -436,7 +414,7 @@ private fun AccountSettingsScreenInternal(
 
 
     if(uiState.showErrorDialog) {
-        ErrorDialog(onDismissRequest = hideError, message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
     }
 
 }
@@ -451,16 +429,6 @@ private fun AccountSettingsScreenPreview() {
     )
 
     PreviewBase {
-        AccountSettingsScreenInternal(
-            popBackStack = { },
-            hideError = { },
-            signOut = { },
-            loginToDevice = { _ -> },
-            changePassword = { _ -> },
-            hideChangePasswordSuccess = { },
-            signOutEverywhere = { },
-            deleteAccount = { },
-            uiState = uiState
-        )
+        AccountSettingsScreenInternal(uiState = uiState)
     }
 }

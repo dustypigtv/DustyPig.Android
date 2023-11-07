@@ -26,7 +26,12 @@ class HomeViewModel @Inject constructor(
     private val mediaRepository: MediaRepository
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val _uiState = MutableStateFlow(HomeUIState())
+    private val _uiState = MutableStateFlow(
+        HomeUIState(
+            onRefresh = ::refresh,
+            onShowMoreClicked = ::navToShowMore
+        )
+    )
     val uiState: StateFlow<HomeUIState> = _uiState.asStateFlow()
 
     private val _timer = Timer()
@@ -94,14 +99,14 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun onRefresh() {
+    private fun refresh() {
         _uiState.update {
             it.copy(isRefreshing = true)
         }
         triggerUpdate()
     }
 
-    fun onShowMoreClicked(hsl: HomeScreenList) {
+    private fun navToShowMore(hsl: HomeScreenList) {
         ShowMorePagingSource.showMoreData = hsl
         navigateToRoute(ShowMoreNav.route)
     }

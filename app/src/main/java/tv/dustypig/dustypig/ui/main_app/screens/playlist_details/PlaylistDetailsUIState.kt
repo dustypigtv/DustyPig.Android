@@ -1,9 +1,12 @@
 package tv.dustypig.dustypig.ui.main_app.screens.playlist_details
 
 import tv.dustypig.dustypig.api.models.PlaylistItem
+import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
 
 data class PlaylistDetailsUIState (
+
+    //Data
     val loading: Boolean = true,
     val busy: Boolean = false,
     val showErrorDialog: Boolean = false,
@@ -18,5 +21,41 @@ data class PlaylistDetailsUIState (
     val playlistId: Int = 0,
     val items: List<PlaylistItem> = listOf(),
     val updateList: Boolean = false,
-    val downloadStatus: DownloadStatus = DownloadStatus.None
+    val downloadStatus: DownloadStatus = DownloadStatus.None,
+    val castManager: CastManager? = null,
+
+    //Events
+    val onPopBackStack: () -> Unit = { },
+    val onHideError: () -> Unit = { },
+    val onListUpdated: () -> Unit = { },
+    val onUpdateListOnServer: (from: Int, to: Int) -> Unit = { _, _ -> },
+    val onPlayUpNext: () -> Unit = { },
+    val onPlayItem: (id: Int) -> Unit = { },
+    val onDeletePlaylist: () -> Unit = { },
+    val onDeleteItem: (id: Int) -> Unit = { },
+    val onNavToItem: (id: Int) -> Unit = { },
+    val onRenamePlaylist: (newName: String) -> Unit = { },
+    val onUpdateDownloads: (newCount: Int) -> Unit = { }
 )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

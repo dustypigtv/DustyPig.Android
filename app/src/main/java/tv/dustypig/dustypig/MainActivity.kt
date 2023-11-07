@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
@@ -24,9 +25,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentActivity
+import androidx.media3.common.util.UnstableApi
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
@@ -38,6 +38,7 @@ import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.global_managers.AuthManager
 import tv.dustypig.dustypig.global_managers.NotificationsManager
 import tv.dustypig.dustypig.global_managers.PlayerStateManager
+import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
 import tv.dustypig.dustypig.global_managers.fcm_manager.FCMManager
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
@@ -46,11 +47,12 @@ import tv.dustypig.dustypig.ui.auth_flow.AuthNav
 import tv.dustypig.dustypig.ui.isTablet
 import tv.dustypig.dustypig.ui.main_app.AppNav
 import tv.dustypig.dustypig.ui.main_app.AppNavViewModel
+import tv.dustypig.dustypig.ui.showSystemUi
 import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity: FragmentActivity() {
+class MainActivity: ComponentActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
@@ -68,14 +70,17 @@ class MainActivity: FragmentActivity() {
     @Inject
     lateinit var settingsManager: SettingsManager
 
+    @Inject
+    lateinit var castManager: CastManager
+
     private lateinit var analytics: FirebaseAnalytics
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        authManager.init()
         FCMManager.init()
         analytics = Firebase.analytics
-        authManager.init()
         downloadManager.start()
 
 
@@ -109,14 +114,24 @@ class MainActivity: FragmentActivity() {
         checkIntent(intent)
     }
 
+    @androidx.annotation.OptIn(UnstableApi::class)
     override fun onResume() {
         super.onResume()
         FCMManager.activityResumed()
+        castManager.setPassiveScanning()
     }
 
+    @androidx.annotation.OptIn(UnstableApi::class)
     override fun onPause() {
         super.onPause()
         FCMManager.activityPaused()
+        castManager.stopScanning()
+    }
+
+    @androidx.annotation.OptIn(UnstableApi::class)
+    override fun onDestroy() {
+        super.onDestroy()
+        castManager.destroy()
     }
 
 
@@ -147,24 +162,29 @@ class MainActivity: FragmentActivity() {
     @Composable
     fun AppStateSwitcher() {
 
-        val playerScreenVisible by PlayerStateManager.playerScreenVisible.collectAsState()
-
-        requestedOrientation = if(playerScreenVisible) {
-            ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-        } else if (LocalConfiguration.current.isTablet()) {
-            ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-        } else {
-            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-        }
-
         val loginState by authManager.loginState.collectAsState()
 
         if (loginState == AuthManager.LOGIN_STATE_LOGGED_IN) {
+
+            val playerScreenVisible by PlayerStateManager.playerScreenVisible.collectAsState()
+            if(!playerScreenVisible)
+                showSystemUi()
+
+            requestedOrientation = if(playerScreenVisible) {
+                ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            } else if (isTablet()) {
+                ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            } else {
+                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            }
+
             AskNotificationPermission()
             AppNav()
         } else if (loginState == AuthManager.LOGIN_STATE_LOGGED_OUT) {
+            showSystemUi()
             AuthNav()
         } else {
+            showSystemUi()
             Scaffold { paddingValues ->
                 Box(
                     modifier = Modifier

@@ -52,8 +52,6 @@ fun HomeScreen(vm: HomeViewModel) {
     val uiState by vm.uiState.collectAsState()
     HomeScreenInternal(
         uiState = uiState,
-        onRefresh = vm::onRefresh,
-        onShowMoreClicked = vm::onShowMoreClicked,
         routeNavigator = vm
     )
 }
@@ -62,14 +60,12 @@ fun HomeScreen(vm: HomeViewModel) {
 @Composable
 private fun HomeScreenInternal(
     uiState: HomeUIState,
-    onRefresh: () -> Unit,
-    onShowMoreClicked: (HomeScreenList) -> Unit,
     routeNavigator: RouteNavigator
 ) {
 
     val ptrState = rememberPullRefreshState(
         refreshing = uiState.isRefreshing,
-        onRefresh = onRefresh
+        onRefresh = uiState.onRefresh
     )
 
     val showLoading = uiState.isRefreshing && uiState.sections.isEmpty()
@@ -112,7 +108,7 @@ private fun HomeScreenInternal(
                             .animateItemPlacement()
                     ) {
                         Button(
-                            onClick = { onShowMoreClicked(section) },
+                            onClick = { uiState.onShowMoreClicked(section) },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.Transparent,
                                 contentColor = MaterialTheme.colorScheme.primary
@@ -205,8 +201,6 @@ private fun HomeScreenPreview() {
     PreviewBase {
         HomeScreenInternal(
             uiState = uiState,
-            onRefresh = { },
-            onShowMoreClicked = { _ -> },
             routeNavigator = MyRouteNavigator()
         )
     }

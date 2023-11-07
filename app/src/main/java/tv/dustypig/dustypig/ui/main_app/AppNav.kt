@@ -1,10 +1,18 @@
 package tv.dustypig.dustypig.ui.main_app
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Download
@@ -16,12 +24,15 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -29,19 +40,26 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
+import com.google.android.gms.cast.framework.media.widget.MiniControllerFragment
 import kotlinx.coroutines.flow.collectLatest
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.global_managers.PlayerStateManager
+import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.downloads.DownloadsNav
 import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNav
@@ -85,6 +103,7 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val playerVisible by PlayerStateManager.playerScreenVisible.collectAsState()
+    val castState by vm.castManager.state.collectAsState()
 
     //Because there are multiple paths to the same route, using
     //  selected = currentDestination?.hierarchy?.any { it.route == screen.key } == true
@@ -134,68 +153,137 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
 
             if(!playerVisible) {
 
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
 
-                NavigationBar {
-                    items.forEach { screen ->
-                        NavigationBarItem(
-                            alwaysShowLabel = false,
-                            label = {
-                                Text(
-                                    text = screen.name,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
+                    if(castState.connected && castState.playingContent && castState.hasInfo) {
+
+                        Row (
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
                                 )
-                            },
-                            icon = {
-                                BadgedBox(
-                                    badge = {
-                                        if (screen.notifications && unseenNotifications) {
-                                            Badge(
-                                                containerColor = Color.Red
-                                            )
-                                        }
-                                    }
-                                ) {
-                                    Icon(
-                                        imageVector = if (screen.route == curRootRoute) screen.selectedIcon else screen.unselectedIcon,
-                                        contentDescription = null
-                                    )
-
-                                }
-                            },
-                            selected = screen.route == curRootRoute,
-                            onClick = {
-
-                                if (curRootRoute == screen.route && curRootRoute != currentDestination?.route) {
-                                    navController.popBackStack()
-                                } else {
-                                    curRootRoute = screen.route
-
-                                    navController.navigate(screen.route) {
-                                        // Pop up to the start destination of the graph to
-                                        // avoid building up a large stack of destinations
-                                        // on the back stack as users select items
-                                        popUpTo(navController.graph.findStartDestination().id) {
-                                            saveState = true
-                                        }
-                                        // Avoid multiple copies of the same destination when
-                                        // reselecting the same item
-                                        launchSingleTop = true
-
-                                        // Restore state when reselecting a previously selected item
-                                        restoreState = true
-                                    }
-                                }
-                            },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = MaterialTheme.colorScheme.primary,
-                                selectedTextColor = MaterialTheme.colorScheme.primary,
-                                //SecondaryContainer
+                        ){
+                            AsyncImage(
+                                model = castState.artworkUrl,
+                                contentDescription = null,
+                                contentScale = ContentScale.FillHeight,
+                                modifier = Modifier.padding(4.dp),
+                                alignment = Alignment.CenterStart
                             )
-                        )
+
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(4.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Column(
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text(
+                                            text = castState.title ?: "",
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+
+                                    IconButton(
+                                        onClick = { vm.castManager.togglePlayPause() }
+                                    ) {
+                                        TintedIcon(
+                                            imageVector =
+                                                if(castState.paused)
+                                                    Icons.Filled.PlayArrow
+                                                else
+                                                    Icons.Filled.Pause
+                                        )
+                                    }
+                                    IconButton(onClick = { vm.castManager.disconnect() }) {
+                                        TintedIcon(imageVector = Icons.Filled.Close)
+                                    }
+                                }
+                                LinearProgressIndicator(
+                                    progress = castState.progress,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(end = 4.dp)
+                                )
+
+                            }
+
+                        }
+                    }
+
+
+                    NavigationBar {
+                        items.forEach { screen ->
+                            NavigationBarItem(
+                                alwaysShowLabel = false,
+                                label = {
+                                    Text(
+                                        text = screen.name,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                },
+                                icon = {
+                                    BadgedBox(
+                                        badge = {
+                                            if (screen.notifications && unseenNotifications) {
+                                                Badge(
+                                                    containerColor = Color.Red
+                                                )
+                                            }
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = if (screen.route == curRootRoute) screen.selectedIcon else screen.unselectedIcon,
+                                            contentDescription = null
+                                        )
+
+                                    }
+                                },
+                                selected = screen.route == curRootRoute,
+                                onClick = {
+
+                                    if (curRootRoute == screen.route && curRootRoute != currentDestination?.route) {
+                                        navController.popBackStack()
+                                    } else {
+                                        curRootRoute = screen.route
+
+                                        navController.navigate(screen.route) {
+                                            // Pop up to the start destination of the graph to
+                                            // avoid building up a large stack of destinations
+                                            // on the back stack as users select items
+                                            popUpTo(navController.graph.findStartDestination().id) {
+                                                saveState = true
+                                            }
+                                            // Avoid multiple copies of the same destination when
+                                            // reselecting the same item
+                                            launchSingleTop = true
+
+                                            // Restore state when reselecting a previously selected item
+                                            restoreState = true
+                                        }
+                                    }
+                                },
+                                colors = NavigationBarItemDefaults.colors(
+                                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                                    //SecondaryContainer
+                                )
+                            )
+                        }
                     }
                 }
-
             }
 
         }
@@ -246,27 +334,3 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

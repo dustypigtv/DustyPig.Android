@@ -42,21 +42,11 @@ import tv.dustypig.dustypig.ui.composables.TintedIcon
 @Composable
 fun ProfilesSettingsScreen(vm: ProfilesSettingsViewModel){
     val uiState by vm.uiState.collectAsState()
-    ProfilesSettingsScreenInternal(
-        popBackStack = vm::popBackStack,
-        hideError = vm::hideError,
-        navToAddProfile = vm::navToAddProfile,
-        navToProfile = vm::navToProfile,
-        uiState = uiState
-    )
+    ProfilesSettingsScreenInternal(uiState = uiState)
 }
 
 @Composable
 private fun ProfilesSettingsScreenInternal(
-    popBackStack: () -> Unit,
-    hideError: () -> Unit,
-    navToAddProfile: () -> Unit,
-    navToProfile: (Int) -> Unit,
     uiState: ProfilesSettingsUIState
 ) {
 
@@ -64,7 +54,7 @@ private fun ProfilesSettingsScreenInternal(
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = popBackStack, text = stringResource(R.string.manage_profiles))
+            CommonTopAppBar(onClick = uiState.onPopBackStack, text = stringResource(R.string.manage_profiles))
         }
     ) { paddingValues ->
 
@@ -92,7 +82,7 @@ private fun ProfilesSettingsScreenInternal(
                             .padding(12.dp, 0.dp)
                             .clip(shape = RoundedCornerShape(4.dp))
                             .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp))
-                            .clickable { navToProfile(it.id) }
+                            .clickable { uiState.onNavToProfile(it.id) }
                     ) {
                         Avatar(
                             imageUrl = it.avatarUrl ?: "",
@@ -117,7 +107,7 @@ private fun ProfilesSettingsScreenInternal(
                 }
 
                 item {
-                    Button(onClick = navToAddProfile) {
+                    Button(onClick = uiState.onNavToAddProfile) {
                         Text(text = "Add Profile")
                     }
                 }
@@ -133,7 +123,7 @@ private fun ProfilesSettingsScreenInternal(
 
 
         if(uiState.showErrorDialog) {
-            ErrorDialog(onDismissRequest = hideError, message = uiState.errorMessage)
+            ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
         }
     }
 }
@@ -157,12 +147,6 @@ private fun ProfilesSettingsScreenPreview() {
     )
 
     PreviewBase {
-        ProfilesSettingsScreenInternal(
-            popBackStack = { },
-            hideError = { },
-            navToAddProfile = { },
-            navToProfile = { _ -> },
-            uiState = uiState
-        )
+        ProfilesSettingsScreenInternal(uiState = uiState)
     }
 }

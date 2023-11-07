@@ -19,7 +19,12 @@ class AlertsViewModel @Inject constructor(
     private val notificationsManager: NotificationsManager,
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val _uiState = MutableStateFlow(AlertsUIState())
+    private val _uiState = MutableStateFlow(
+        AlertsUIState(
+            onItemClicked = ::itemClicked,
+            onDeleteItem = ::deleteItem
+        )
+    )
     val uiState = _uiState.asStateFlow()
 
     init {
@@ -36,7 +41,7 @@ class AlertsViewModel @Inject constructor(
     }
 
 
-    fun itemClicked(id: Int) {
+    private fun itemClicked(id: Int) {
 
         val notification = _uiState.value.notifications.firstOrNull {
             it.id == id
@@ -52,7 +57,7 @@ class AlertsViewModel @Inject constructor(
         }
     }
 
-    fun deleteItem(id: Int) {
+    private fun deleteItem(id: Int) {
         _uiState.update {
             it.copy(busy = true)
         }

@@ -1,91 +1,98 @@
 package tv.dustypig.dustypig.ui.main_app.screens.player
 
+import android.annotation.SuppressLint
 import android.app.Application
-import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.cast.CastPlayer
-import androidx.media3.cast.SessionAvailabilityListener
-import androidx.media3.common.C
 import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaItem.SubtitleConfiguration
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import com.google.android.gms.cast.framework.CastContext
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.api.models.ExternalSubtitle
-import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.PlaybackProgress
-import tv.dustypig.dustypig.api.models.SetPlaylistProgress
 import tv.dustypig.dustypig.api.repositories.MediaRepository
+import tv.dustypig.dustypig.api.repositories.MoviesRepository
 import tv.dustypig.dustypig.api.repositories.PlaylistRepository
+import tv.dustypig.dustypig.api.repositories.SeriesRepository
+import tv.dustypig.dustypig.global_managers.AuthManager
 import tv.dustypig.dustypig.global_managers.PlayerStateManager
-import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
-import tv.dustypig.dustypig.global_managers.media_cache_manager.MediaCacheManager
+import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
 import java.lang.Long.max
+import java.util.Calendar
 import java.util.Timer
 import javax.inject.Inject
 import kotlin.concurrent.schedule
 import kotlin.math.abs
 
 
+@SuppressLint("SimpleDateFormat")
 @UnstableApi
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
     private val routeNavigator: RouteNavigator,
+    private val authManager: AuthManager,
     private val mediaRepository: MediaRepository,
+    private val moviesRepository: MoviesRepository,
+    private val seriesRepository: SeriesRepository,
     private val playlistRepository: PlaylistRepository,
-    private val downloadManager: DownloadManager,
+    //private val downloadManager: DownloadManager,
+    private val castManager: CastManager,
     app: Application,
     settingsManager: SettingsManager,
     savedStateHandle: SavedStateHandle
-): ViewModel(), RouteNavigator by routeNavigator, Player.Listener, SessionAvailabilityListener {
+): ViewModel(), RouteNavigator by routeNavigator, Player.Listener {
 
-    companion object {
-        private const val TAG = "PlayerViewModel"
-    }
+    private data class StartInfo(
+        val index:Int,
+        val milliSeconds:Long
+    )
 
-    private val _uiState = MutableStateFlow(PlayerUIState())
+    private val _uiState = MutableStateFlow(
+        PlayerUIState(
+            castManager = castManager,
+            onPopBackStack = ::navBack,
+            onPlayNext = ::playNext,
+            onSkipIntro = ::skipIntro
+        )
+    )
     val uiState: StateFlow<PlayerUIState> = _uiState.asStateFlow()
 
-    private val _cacheId: String = savedStateHandle.getOrThrow(PlayerNav.KEY_CACHE_ID)
-    private val _sourceType: Int = savedStateHandle.getOrThrow(PlayerNav.KEY_SOURCE_TYPE)
-    private val _upNextId: Int = savedStateHandle.getOrThrow(PlayerNav.KEY_UPNEXT_ID)
+    private val _mediaId: Int = savedStateHandle.getOrThrow(PlayerNav.KEY_MEDIA_ID)
+    private val _mediaType: Int = savedStateHandle.getOrThrow(PlayerNav.KEY_MEDIA_TYPE)
+    private var _upNextId: Int = savedStateHandle.getOrThrow(PlayerNav.KEY_UPNEXT_ID)
 
 
-
-    private var _localPlayer = ExoPlayer
+    private val _localPlayer = ExoPlayer
         .Builder(app)
-        .build()
+        .build().also {
+            it.addListener(this)
+            it.playWhenReady = true
+        }
 
     private val _timer = Timer()
     private var _timerBusy = false
-    private val _itemsWithSubtitles = arrayListOf<String>()
     private val _videoTimings = arrayListOf<VideoTiming>()
     private var _autoSkipIntros = false
     private var _autoSkipCredits = false
-    private var _playing = false
     private var _previousSeconds = 0.0
-    private lateinit var _castPlayer: CastPlayer
-    private var _currentPlayer: Player
-    private var _localMediaQueue = arrayListOf<MediaItem>()
-    private val _castMediaQueue = arrayListOf<MediaItem>()
-    private var _playlistId = 0
+    private var _mediaQueue = arrayListOf<MediaItem>()
+    private var _firstLoad = true
+    private var _currentMediaItemId: String? = null
 
     init {
         PlayerStateManager.playerCreated()
@@ -95,112 +102,120 @@ class PlayerViewModel @Inject constructor(
             _autoSkipCredits = settingsManager.getSkipCredits()
         }
 
-        _localPlayer.addListener(this)
-        _localPlayer.playWhenReady = true
-        _localPlayer.prepare()
-        _currentPlayer = _localPlayer
-
-        try {
-            _castPlayer = CastPlayer(CastContext.getSharedInstance()!!)
-            _castPlayer.addListener(this)
-            _castPlayer.setSessionAvailabilityListener(this)
-            _castPlayer.playWhenReady = true
-            _castPlayer.prepare()
-            if (_castPlayer.isCastSessionAvailable) {
-                _currentPlayer = _castPlayer
-            }
-        } catch (_: Exception) {
-        }
-
         _uiState.update {
             it.copy(
-                player = _currentPlayer
+                player = _localPlayer
             )
         }
 
 
-        try {
-            var playbackPositionMs = 0L
-            var currentItemIndex = 0
+        //Apparently there is no listener for currentPosition, so poll it with a timer
+        _timer.schedule(
+            delay = 0,
+            period = 100
+        ) {
+            timerTick()
+        }
 
-            when(_sourceType) {
-                PlayerNav.SOURCE_TYPE_MOVIE -> {
-                    val detailedMovie = MediaCacheManager.Movies[_cacheId]!!
-                    addMediaItem(
-                        detailedMovie.id,
-                        detailedMovie.displayTitle(),
-                        detailedMovie.videoUrl!!,
-                        detailedMovie.externalSubtitles,
-                        detailedMovie.introStartTime,
-                        detailedMovie.introEndTime,
-                        detailedMovie.creditStartTime,
-                        isMovie = true
+        viewModelScope.launch {
+            try {
+                castManager.state.collectLatest { castState ->
+                    if (_firstLoad || (_uiState.value.isCastPlayer != castState.castAvailable)) {
+                        _firstLoad = false
+                        _uiState.update {
+                            it.copy(
+                                isCastPlayer = castState.connected
+                            )
+                        }
+                        switchPlayer()
+                    }
+                    _uiState.update {
+                        it.copy(
+                            currentItemTitle = castState.title,
+                            castPaused = castState.paused,
+                            castBuffering = castState.buffering,
+                            castHasPrevious = castState.hasPrevious,
+                            castHasNext = castState.hasNext,
+                            castPosition = castState.position,
+                            castDuration = castState.duration.coerceAtLeast(0f)
+                        )
+                    }
+                }
+            } catch (ex: Exception) {
+                ex.logToCrashlytics()
+                _uiState.update {
+                    it.copy(
+                        showErrorDialog = true,
+                        errorMessage = ex.localizedMessage
                     )
-                    playbackPositionMs = convertPlayedToMs(detailedMovie.played)
-                }
-
-                PlayerNav.SOURCE_TYPE_SERIES -> {
-                    val detailedSeries = MediaCacheManager.Series[_cacheId]!!
-                    detailedSeries.episodes?.forEach { ep ->
-                        addMediaItem(
-                            ep.id,
-                            ep.fullDisplayTitle(),
-                            ep.videoUrl,
-                            ep.externalSubtitles,
-                            ep.introStartTime,
-                            ep.introEndTime,
-                            ep.creditStartTime,
-                            isMovie = false
-                        )
-
-                        if(ep.id == _upNextId){
-                            currentItemIndex = _localMediaQueue.count() - 1
-                            playbackPositionMs = convertPlayedToMs(ep.played)
-                        }
-
-                    }
-                }
-
-                PlayerNav.SOURCE_TYPE_PLAYLIST -> {
-                    val detailedPlaylist = MediaCacheManager.Playlists[_cacheId]!!
-                    _playlistId = detailedPlaylist.id
-                    detailedPlaylist.items?.forEach { pli ->
-                        addMediaItem(
-                            pli.mediaId,
-                            pli.title,
-                            pli.videoUrl,
-                            pli.externalSubtitles,
-                            pli.introStartTime,
-                            pli.introEndTime,
-                            pli.creditStartTime,
-                            isMovie = pli.mediaType == MediaTypes.Movie
-                        )
-
-                        if(pli.index == _upNextId){
-                            currentItemIndex = _localMediaQueue.count() - 1
-                            playbackPositionMs = convertPlayedToMs(pli.played)
-                        }
-                    }
                 }
             }
+        }
+    }
 
 
-            if (_localMediaQueue.isEmpty()) {
-                throw Exception("No playable items found")
+
+
+
+
+
+    //Player.Listener
+
+    override fun onPlayerError(error: PlaybackException) {
+        super.onPlayerError(error)
+        _uiState.update {
+            it.copy(
+                showErrorDialog = true,
+                errorMessage = error.localizedMessage
+            )
+        }
+    }
+
+    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+        super.onMediaItemTransition(mediaItem, reason)
+
+        try {
+            if (mediaItem == null) {
+                _currentMediaItemId = null
+            } else {
+
+                _currentMediaItemId = mediaItem.mediaId
+                val videoTiming = _videoTimings.first {
+                    it.mediaId == _currentMediaItemId
+                }
+                videoTiming.introClicked = false
+                videoTiming.creditsClicked = false
+                _uiState.update {
+                    it.copy(
+                        currentItemTitle = mediaItem.mediaMetadata.title.toString()
+                    )
+                }
             }
+        } catch (_: Exception) {
+        }
+    }
 
-            setMediaQueue(currentItemIndex, playbackPositionMs)
 
-            //Apparently there is no listener for currentPosition, so poll it with a timer
-            _timer.schedule(
-                delay = 0,
-                period = 100
-            ) {
-                timerTick()
+
+
+
+
+    //Internal functions
+
+    private fun navBack() {
+        release()
+        HomeViewModel.triggerUpdate()
+        routeNavigator.popBackStack()
+    }
+
+    private fun skipIntro() {
+        try {
+            val videoTiming = _videoTimings.first {
+                it.mediaId == _currentMediaItemId
             }
-
-        }  catch (ex: Exception) {
-            ex.logToCrashlytics()
+            videoTiming.introClicked = true
+            _localPlayer.seekTo((videoTiming.introEndTime ?: 0).toLong() * 1000)
+        } catch (ex: Exception) {
             _uiState.update {
                 it.copy(
                     showErrorDialog = true,
@@ -208,129 +223,281 @@ class PlayerViewModel @Inject constructor(
                 )
             }
         }
+    }
 
+    private fun playNext() {
+        _uiState.update {
+            it.copy(
+                showErrorDialog = false
+            )
+        }
+        try {
+            val videoTiming = _videoTimings.first {
+                it.mediaId == _currentMediaItemId
+            }
+            videoTiming.creditsClicked = true
+            if (_localPlayer.hasNextMediaItem()) {
+                _localPlayer.seekToNextMediaItem()
+            } else {
+                popBackStack()
+            }
+        } catch (ex: Exception) {
+            _uiState.update {
+                it.copy(
+                    showErrorDialog = true,
+                    errorMessage = ex.localizedMessage
+                )
+            }
+        }
+    }
+
+
+    private suspend fun switchPlayer() {
+
+        _uiState.update {
+            it.copy(busy = true)
+        }
+
+        _localPlayer.stop()
+        _localPlayer.clearMediaItems()
+
+        _mediaQueue.clear()
+        _videoTimings.clear()
+
+        if(_uiState.value.isCastPlayer) {
+            when (_mediaType) {
+                PlayerNav.MEDIA_TYPE_MOVIE -> castManager.playMovie(_mediaId)
+                PlayerNav.MEDIA_TYPE_SERIES -> castManager.playSeries(_mediaId, _upNextId)
+                else -> castManager.playPlaylist(_mediaId, _upNextId)
+            }
+        } else {
+            val startInfo = when (_mediaType) {
+                PlayerNav.MEDIA_TYPE_MOVIE -> loadMovie()
+                PlayerNav.MEDIA_TYPE_SERIES -> loadSeries()
+                else -> loadPlaylist()
+            }
+            _localPlayer.setMediaItems(_mediaQueue, startInfo.index, startInfo.milliSeconds)
+            _localPlayer.prepare()
+        }
+
+        //On first load, the upNext is used. When switching between cast and local,
+        //allow the loader to specify resume position
+        _upNextId = -1
+
+        _uiState.update {
+            it.copy(busy = false)
+        }
+    }
+
+    private suspend fun loadMovie(): StartInfo {
+        val detailedMovie = moviesRepository.details(_mediaId)
+
+        val calendar = Calendar.getInstance()
+        calendar.time = detailedMovie.date
+
+        _videoTimings.add(
+            VideoTiming(
+                mediaId = _mediaId.toString(),
+                introStartTime = detailedMovie.introStartTime,
+                introEndTime = detailedMovie.introEndTime,
+                creditsStartTime = detailedMovie.creditStartTime,
+                isMovie = true
+            )
+        )
+
+        // Store TOKEN in mediaItem.mediaMetadata.description
+        _mediaQueue.add(
+            MediaItem
+                .Builder()
+                .setMediaId(_mediaId.toString())
+                .setUri(detailedMovie.videoUrl!!)
+                .setMediaMetadata(
+                    MediaMetadata
+                        .Builder()
+                        .setArtworkUri(detailedMovie.artworkUrl.toUri())
+                        .setMediaType(MediaMetadata.MEDIA_TYPE_MOVIE)
+                        .setTitle(detailedMovie.title)
+                        .setReleaseYear(calendar.get(Calendar.YEAR))
+                        .setReleaseMonth(calendar.get(Calendar.MONTH))
+                        .setRecordingDay(calendar.get(Calendar.DAY_OF_MONTH))
+                        .setDescription(authManager.currentToken)
+                        .build()
+                )
+                .build()
+        )
+
+        return StartInfo(index = 0, milliSeconds = convertPlayedToMs(detailedMovie.played))
+    }
+
+    private suspend fun loadSeries(): StartInfo {
+        val detailedSeries = seriesRepository.details(_mediaId)
+        var currentItemIndex = 0
+        var playbackPositionMs = 0L
+
+        detailedSeries.episodes!!.forEach { ep ->
+
+            _videoTimings.add(
+                VideoTiming(
+                    mediaId = _mediaId.toString(),
+                    introStartTime = ep.introStartTime,
+                    introEndTime = ep.introEndTime,
+                    creditsStartTime = ep.creditStartTime,
+                    isMovie = false
+                )
+            )
+
+            /*
+            * Store Series Title in mediaItem.mediaMetadata.subtitle
+            * Store Season Number in mediaItem.mediaMetadata.discNumber
+            * Store Episode Number in mediaItem.mediaMetadata.trackNumber
+            * Store TOKEN in mediaItem.mediaMetadata.description
+            */
+            _mediaQueue.add(
+                MediaItem
+                    .Builder()
+                    .setMediaId(_mediaId.toString())
+                    .setUri(ep.videoUrl)
+                    .setMediaMetadata(
+                        MediaMetadata
+                            .Builder()
+                            .setArtworkUri(detailedSeries.artworkUrl.toUri())
+                            .setMediaType(MediaMetadata.MEDIA_TYPE_TV_SHOW)
+                            .setTitle(ep.title)
+                            .setSubtitle(ep.seriesTitle)
+                            .setDiscNumber(ep.seasonNumber.toInt())
+                            .setTrackNumber(ep.episodeNumber.toInt())
+                            .setDescription(authManager.currentToken)
+                            .build()
+                    )
+                    .build()
+            )
+
+            if (ep.id == _upNextId) {
+                currentItemIndex = _mediaQueue.count() - 1
+                playbackPositionMs = convertPlayedToMs(ep.played)
+            }
+        }
+
+        return StartInfo(index = currentItemIndex, milliSeconds =  playbackPositionMs)
+    }
+
+    private suspend fun loadPlaylist(): StartInfo {
+        val detailedPlaylist = playlistRepository.details(_mediaId)
+        var currentItemIndex = 0
+        var playbackPositionMs = 0L
+
+        detailedPlaylist.items?.forEach { pli ->
+
+            _videoTimings.add(
+                VideoTiming(
+                    mediaId = _mediaId.toString(),
+                    introStartTime = pli.introStartTime,
+                    introEndTime = pli.introEndTime,
+                    creditsStartTime = pli.creditStartTime,
+                    isMovie = false
+                )
+            )
+
+            _mediaQueue.add(
+                MediaItem
+                    .Builder()
+                    .setMediaId(_mediaId.toString())
+                    .setUri(pli.videoUrl)
+                    .setMediaMetadata(
+                        MediaMetadata
+                            .Builder()
+                            .setArtworkUri(detailedPlaylist.artworkUrl.toUri())
+                            .setMediaType(MediaMetadata.MEDIA_TYPE_TV_SHOW)
+                            .setTitle(pli.title)
+                            .setSubtitle(detailedPlaylist.name)
+                            .setDescription(authManager.currentToken)
+                            .build()
+                    )
+                    .build()
+            )
+            if (pli.id == _upNextId) {
+                currentItemIndex = _mediaQueue.count() - 1
+                playbackPositionMs = convertPlayedToMs(detailedPlaylist.currentProgress)
+            }
+        }
+        return StartInfo(index = currentItemIndex, milliSeconds = playbackPositionMs)
     }
 
 
     private fun release() {
         _timer.cancel()
-        _currentPlayer.stop()
 
-        _castMediaQueue.clear()
-        try {
-            _castPlayer.setSessionAvailabilityListener(null)
-            _castPlayer.release()
-        }
-        catch(_: Exception) {
-        }
-
-        _localMediaQueue.clear()
+        _localPlayer.stop()
+        _mediaQueue.clear()
         _localPlayer.release()
 
         PlayerStateManager.playerDisposed()
     }
-
-    private fun addMediaItem(
-        mediaId: Int,
-        title: String,
-        videoUrl: String,
-        subTitles: List<ExternalSubtitle>?,
-        introStartTime: Double?,
-        introEndTime: Double?,
-        creditsStartTime: Double?,
-        isMovie: Boolean
-    ) {
-
-        var ext = videoUrl.split("?")[0]
-        ext = ext.substring(ext.lastIndexOf("."))
-
-
-        //Cast is remote only
-        var builder = MediaItem
-            .Builder()
-            .setMediaId(mediaId.toString())
-            .setMediaMetadata(
-                MediaMetadata
-                    .Builder()
-                    .setTitle(title)
-                    .build()
-            )
-            .setUri(videoUrl)
-            .setMimeType("video/${ext.substring(1)}")
-        if(!subTitles.isNullOrEmpty()) {
-            val subtitleConfigurations = arrayListOf<SubtitleConfiguration>()
-            for (sub in subTitles) {
-                subtitleConfigurations.add(
-                    SubtitleConfiguration
-                        .Builder(sub.url.toUri())
-                        .setLabel(sub.name)
-                        .build()
-                )
-            }
-            builder.setSubtitleConfigurations(subtitleConfigurations)
-            _itemsWithSubtitles.add(mediaId.toString())
-        }
-        _castMediaQueue.add(builder.build())
-
-
-
-        //For local, check for downloaded files
-        builder = MediaItem
-            .Builder()
-            .setMediaId(mediaId.toString())
-            .setMediaMetadata(
-                MediaMetadata
-                    .Builder()
-                    .setTitle(title)
-                    .build()
-            )
-
-        var localUrl = downloadManager.getLocalVideo(mediaId, ext) ?: videoUrl
-        builder.setUri(localUrl)
-
-        if(!subTitles.isNullOrEmpty()) {
-            val subtitleConfigurations = arrayListOf<SubtitleConfiguration>()
-            for (sub in subTitles) {
-
-                ext = sub.url.split("?")[0]
-                ext = ext.substring(ext.lastIndexOf("."))
-                localUrl = downloadManager.getLocalVideo(mediaId, ext) ?: sub.url
-
-                subtitleConfigurations.add(
-                    SubtitleConfiguration
-                        .Builder(localUrl.toUri())
-                        .setLabel(sub.name)
-                        .build()
-                )
-            }
-            builder.setSubtitleConfigurations(subtitleConfigurations)
-            _itemsWithSubtitles.add(mediaId.toString())
-        }
-        _localMediaQueue.add(builder.build())
-
-        _videoTimings.add(
-            VideoTiming(
-                mediaId = mediaId.toString(),
-                introStartTime = introStartTime,
-                introEndTime = introEndTime,
-                creditsStartTime = creditsStartTime,
-                isMovie = isMovie
-            )
-        )
-
-
-    }
-
-    private fun setMediaQueue(itemIndex: Int, startPositionMs: Long) {
-        if(_currentPlayer == _localPlayer)
-            _currentPlayer.setMediaItems(_localMediaQueue, itemIndex, startPositionMs)
-        else
-            _currentPlayer.setMediaItems(_castMediaQueue, itemIndex, startPositionMs)
-    }
+//
+//    private fun addMediaItem(
+//        id: Int,
+//        displayTitle: String?,
+//        videoUrl: String,
+//        subTitles: List<ExternalSubtitle>?,
+//        introStartTime: Double?,
+//        introEndTime: Double?,
+//        creditsStartTime: Double?,
+//        isMovie: Boolean
+//    ) {
+//
+//        val builder = MediaItem
+//            .Builder()
+//            .setMediaId(id.toString())
+//            .setMediaMetadata(
+//                MediaMetadata
+//                    .Builder()
+//                    .setMediaType(MediaMetadata.MEDIA_TYPE_MOVIE)
+//                    .setTitle(displayTitle)
+//                    .build()
+//            )
+//
+//        var videoExt = videoUrl.split("?")[0]
+//        videoExt = videoExt.substring(videoExt.lastIndexOf("."))
+//        var localUrl = downloadManager.getLocalVideo(id, videoExt) ?: videoUrl
+//        builder.setUri(videoUrl)
+//
+//        if(!subTitles.isNullOrEmpty()) {
+//            val subtitleConfigurations = arrayListOf<MediaItem.SubtitleConfiguration>()
+//            for (sub in subTitles) {
+//
+//                var subExt = sub.url.split("?")[0]
+//                subExt = subExt.substring(subExt.lastIndexOf("."))
+//                localUrl = downloadManager.getLocalSubtitle(id, subExt) ?: sub.url
+//
+//                subtitleConfigurations.add(
+//                    MediaItem.SubtitleConfiguration
+//                        .Builder(localUrl.toUri())
+//                        .setLabel(sub.name)
+//                        .build()
+//                )
+//            }
+//            builder.setSubtitleConfigurations(subtitleConfigurations)
+//        }
+//        _mediaQueue.add(builder.build())
+//
+//        _videoTimings.add(
+//            VideoTiming(
+//                mediaId = id.toString(),
+//                introStartTime = introStartTime,
+//                introEndTime = introEndTime,
+//                creditsStartTime = creditsStartTime,
+//                isMovie = isMovie
+//            )
+//        )
+//    }
 
     private fun convertPlayedToMs(played: Double?) = max(((played ?: 0.0) * 1000).toLong(), 0)
 
     private fun timerTick() {
+
+        if(_uiState.value.isCastPlayer) {
+            return
+        }
 
         if (_timerBusy) {
             return
@@ -340,17 +507,15 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             try {
 
-                if(_currentPlayer.playbackState == Player.STATE_ENDED) {
+                if(_localPlayer.playbackState == Player.STATE_ENDED) {
                     popBackStack()
                 } else {
 
-                    val currentMediaItem = _currentPlayer.currentMediaItem!!
-
-                    val seconds = _currentPlayer.currentPosition.toDouble() / 1000
-
+                    val seconds = _localPlayer.currentPosition.toDouble() / 1000
                     val videoTiming = _videoTimings.first {
-                        it.mediaId == currentMediaItem.mediaId
+                        it.mediaId == _currentMediaItemId!!
                     }
+
                     if(videoTiming.introClicked) {
                         if(_uiState.value.currentPositionWithinIntro) {
                             _uiState.update {
@@ -383,7 +548,7 @@ class PlayerViewModel @Inject constructor(
                             }
                         }
                     } else {
-                        val length = _currentPlayer.contentDuration.toDouble() / 1000
+                        val length = _localPlayer.contentDuration.toDouble() / 1000
                         val positionWithinCredits = videoTiming.positionWithinCredits(seconds, length)
                         if (positionWithinCredits && _autoSkipCredits) {
                             playNext()
@@ -400,141 +565,34 @@ class PlayerViewModel @Inject constructor(
 
 
 
-                    if(_playing && abs(_previousSeconds - seconds) >= 1.0) {
+                    if(seconds > 1.0 && abs(_previousSeconds - seconds) >= 1.0) {
                         _previousSeconds = seconds
 
-                        when(_sourceType) {
-                            PlayerNav.SOURCE_TYPE_MOVIE,
-                            PlayerNav.SOURCE_TYPE_SERIES ->
+                        when(_mediaType) {
+                            PlayerNav.MEDIA_TYPE_MOVIE,
+                            PlayerNav.MEDIA_TYPE_SERIES ->
                                 mediaRepository.updatePlaybackProgress(
                                     PlaybackProgress(
-                                        id = currentMediaItem.mediaId.toInt(),
+                                        id = _currentMediaItemId!!.toInt(),
                                         seconds = seconds
                                     )
                                 )
 
 
-                            PlayerNav.SOURCE_TYPE_PLAYLIST ->
+                            PlayerNav.MEDIA_TYPE_PLAYLIST ->
                                 playlistRepository.setPlaylistProgress(
-                                    SetPlaylistProgress(
-                                        playlistId = _playlistId,
-                                        newIndex = _currentPlayer.currentMediaItemIndex,
-                                        newProgress = seconds
+                                    PlaybackProgress(
+                                        id = _currentMediaItemId!!.toInt(),
+                                        seconds = seconds
                                     )
                                 )
                         }
                     }
                 }
-            } catch (ex: Exception) {
-                Log.e(TAG, "timerTick", ex)
+            } catch (_: Exception) {
             }
 
             _timerBusy = false
         }
-    }
-
-    override fun popBackStack() {
-        release()
-        HomeViewModel.triggerUpdate()
-        routeNavigator.popBackStack()
-    }
-
-    fun skipIntro() {
-        try {
-            val currentMediaItem = _currentPlayer.currentMediaItem!!
-            val videoTiming = _videoTimings.first {
-                it.mediaId == currentMediaItem.mediaId
-            }
-            videoTiming.introClicked = true
-            _currentPlayer.seekTo((videoTiming.introEndTime ?: 0) .toLong() * 1000)
-        } catch (_: Exception) {
-        }
-    }
-
-    fun playNext() {
-        _uiState.update {
-            it.copy(
-                showErrorDialog = false
-            )
-        }
-        try {
-            val currentMediaItem = _currentPlayer.currentMediaItem!!
-            val videoTiming = _videoTimings.first {
-                it.mediaId == currentMediaItem.mediaId
-            }
-            videoTiming.creditsClicked = true
-            if(_currentPlayer.hasNextMediaItem()) {
-                _currentPlayer.seekToNextMediaItem()
-            } else {
-                popBackStack()
-            }
-        } catch (_: Exception) {
-            popBackStack()
-        }
-    }
-
-    override fun onCastSessionAvailable() {
-        setCurrentPlayer(_castPlayer)
-    }
-
-    override fun onCastSessionUnavailable() {
-        setCurrentPlayer(_localPlayer)
-    }
-
-    override fun onIsPlayingChanged(isPlaying: Boolean) {
-        super.onIsPlayingChanged(isPlaying)
-        _playing = isPlaying
-    }
-
-    override fun onPlayerError(error: PlaybackException) {
-        super.onPlayerError(error)
-        _uiState.update {
-            it.copy(
-                showErrorDialog = true,
-                errorMessage = error.localizedMessage
-            )
-        }
-    }
-
-    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-        super.onMediaItemTransition(mediaItem, reason)
-        if (mediaItem != null) {
-            val videoTiming = _videoTimings.first {
-                it.mediaId == mediaItem.mediaId
-            }
-            videoTiming.introClicked = false
-            videoTiming.creditsClicked = false
-            _uiState.update {
-                it.copy(
-                    currentItemTitle = mediaItem.mediaMetadata.title.toString(),
-                    currentItemHasSubtitles = _itemsWithSubtitles.contains(mediaItem.mediaId)
-                )
-            }
-        }
-    }
-
-    private fun setCurrentPlayer(newPlayer: Player) {
-        if (_currentPlayer === newPlayer) {
-            return
-        }
-
-        _uiState.update {
-            it.copy(
-                player = _currentPlayer
-            )
-        }
-
-        var playbackPositionMs = C.TIME_UNSET
-        var currentItemIndex = C.INDEX_UNSET
-        if (_currentPlayer.playbackState != Player.STATE_ENDED) {
-            playbackPositionMs = _currentPlayer.currentPosition
-            currentItemIndex = _currentPlayer.currentMediaItemIndex
-        }
-
-        _currentPlayer.stop()
-        _currentPlayer.clearMediaItems()
-
-        _currentPlayer = newPlayer
-        setMediaQueue(currentItemIndex, playbackPositionMs)
     }
 }

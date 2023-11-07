@@ -28,23 +28,32 @@ class SignInViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val _uiState = MutableStateFlow(SignInUIState())
+    private val _uiState = MutableStateFlow(
+        SignInUIState(
+            onSignIn = ::signIn,
+            onHideError = ::hideError,
+            onHideForgotPasswordError = ::hideForgotPasswordError,
+            onHideForgotPasswordSuccess = ::hideForgotPasswordSuccess,
+            onNavToSignUp = ::navToSignUp,
+            onSendForgotPasswordEmail = ::sendForgotPasswordEmail
+        )
+    )
     val uiState: StateFlow<SignInUIState> = _uiState.asStateFlow()
 
-    fun hideError() {
+    private fun hideError() {
         _uiState.update {
             it.copy(showError = false)
         }
     }
 
 
-    fun hideForgotPasswordSuccess() {
+    private fun hideForgotPasswordSuccess() {
         _uiState.update {
             it.copy(showForgotPasswordSuccess = false)
         }
     }
 
-    fun hideForgotPasswordError() {
+    private fun hideForgotPasswordError() {
         _uiState.update {
             it.copy(
                 showForgotPasswordError = false
@@ -53,7 +62,7 @@ class SignInViewModel @Inject constructor(
     }
 
 
-    fun signIn(email: String, password: String){
+    private fun signIn(email: String, password: String){
 
         _uiState.update {
             it.copy(busy = true)
@@ -100,7 +109,7 @@ class SignInViewModel @Inject constructor(
     }
 
 
-    fun sendForgotPasswordEmail(email: String) {
+    private fun sendForgotPasswordEmail(email: String) {
 
         _uiState.update {
             it.copy(
@@ -135,7 +144,7 @@ class SignInViewModel @Inject constructor(
         }
     }
 
-    fun navToSignUp(email: String) {
+    private fun navToSignUp(email: String) {
         SharedEmailModel.updateEmail(email)
         navigateToRoute(SignUpNav.route)
     }

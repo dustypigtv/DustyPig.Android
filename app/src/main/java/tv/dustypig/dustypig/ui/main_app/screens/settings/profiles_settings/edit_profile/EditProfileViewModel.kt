@@ -44,7 +44,16 @@ class EditProfileViewModel @Inject constructor(
         var selectedProfileId = 0
     }
 
-    private val _uiState = MutableStateFlow(EditProfileUIState())
+    private val _uiState = MutableStateFlow(
+        EditProfileUIState(
+            onPopBackStack = ::popBackStack,
+            onHideError = ::hideError,
+            onDeleteProfile = ::deleteProfile,
+            onInfoLoaded = ::infoLoaded,
+            onSaveProfile = ::saveProfile,
+            onSetError = ::setError
+        )
+    )
     val uiState = _uiState.asStateFlow()
 
     private var allLibIds = arrayListOf<Int>()
@@ -137,7 +146,7 @@ class EditProfileViewModel @Inject constructor(
         }
     }
 
-    fun infoLoaded() {
+    private fun infoLoaded() {
         _uiState.update {
             it.copy(
                 busy = false,
@@ -147,7 +156,7 @@ class EditProfileViewModel @Inject constructor(
     }
 
 
-    fun setError(ex: Exception, criticalError: Boolean) {
+    private fun setError(ex: Exception, criticalError: Boolean) {
         ex.logToCrashlytics()
         ex.printStackTrace()
         _uiState.update {
@@ -160,7 +169,7 @@ class EditProfileViewModel @Inject constructor(
         }
     }
 
-    fun hideError() {
+    private fun hideError() {
         if (_uiState.value.criticalError) {
             popBackStack()
         } else {
@@ -170,7 +179,7 @@ class EditProfileViewModel @Inject constructor(
         }
     }
 
-    fun saveProfile(
+    private fun saveProfile(
         name: String,
         pin: String,
         deletePin: Boolean,
@@ -435,7 +444,7 @@ class EditProfileViewModel @Inject constructor(
         }
     }
 
-    fun deleteProfile() {
+    private fun deleteProfile() {
         _uiState.update {
             it.copy(busy = true)
         }

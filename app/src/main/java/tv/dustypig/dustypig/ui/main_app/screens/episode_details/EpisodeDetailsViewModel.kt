@@ -15,8 +15,10 @@ import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.repositories.EpisodesRepository
 import tv.dustypig.dustypig.api.toTimeString
 import tv.dustypig.dustypig.global_managers.PlayerStateManager
+import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
+import tv.dustypig.dustypig.global_managers.download_manager.UIJob
 import tv.dustypig.dustypig.global_managers.media_cache_manager.MediaCacheManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
@@ -28,13 +30,25 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EpisodeDetailsViewModel  @Inject constructor(
-    private val routeNavigator: RouteNavigator,
     private val episodesRepository: EpisodesRepository,
     private val downloadManager: DownloadManager,
+    castManager: CastManager,
+    routeNavigator: RouteNavigator,
     savedStateHandle: SavedStateHandle
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val _uiState = MutableStateFlow(EpisodeDetailsUIState())
+    private val _uiState = MutableStateFlow(
+        EpisodeDetailsUIState(
+            castManager = castManager,
+            onHideError = ::hideError,
+            onPopBackStack = ::popBackStack,
+            onRemoveDownload = ::removeDownload,
+            onPlay = ::play,
+            onAddToPlaylist = ::addToPlaylist,
+            onAddDownload = ::addDownload,
+            onGoToSeries = ::goToSeries
+        )
+    )
     val uiState: StateFlow<EpisodeDetailsUIState> = _uiState.asStateFlow()
 
     private val _detailedCacheId: String = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_DETAILED_CACHE_ID)
@@ -44,7 +58,7 @@ class EpisodeDetailsViewModel  @Inject constructor(
     private val _mediaId: Int = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_MEDIA_ID)
     private val _canPlay: Boolean = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_CAN_PLAY)
 
-    private lateinit var _detailedEpisode: DetailedEpisode
+    private var _detailedEpisode = DetailedEpisode()
     private var _firstLoad = true
 
     init {
@@ -62,6 +76,13 @@ class EpisodeDetailsViewModel  @Inject constructor(
                 updateData()
             }
         }
+
+        viewModelScope.launch {
+            downloadManager.downloads.collectLatest { listOfJobs ->
+               updateDownloadStatus(listOfJobs)
+            }
+        }
+
     }
 
     override fun onCleared() {
@@ -69,72 +90,63 @@ class EpisodeDetailsViewModel  @Inject constructor(
         MediaCacheManager.BasicInfo.removeAll { it.cacheId == _basicCacheId }
     }
 
-    private fun updateData() {
+    private suspend fun updateData() {
+        try {
+            _detailedEpisode = if (_firstLoad && _fromSeriesDetails) {
+                val detailedSeries = MediaCacheManager.Series[_detailedCacheId]
+                detailedSeries!!.episodes!!.first { it.id == _mediaId }
+            } else {
+                episodesRepository.details(_mediaId)
+            }
+            _firstLoad = false
 
-        viewModelScope.launch {
-            downloadManager.downloads.collectLatest {listOfJobs ->
-                val job = listOfJobs.firstOrNull{
-                    it.mediaId == _mediaId && it.mediaType == MediaTypes.Episode
-                }
-                if(job == null) {
-                    _uiState.update {
-                        it.copy(downloadStatus = DownloadStatus.None)
-                    }
-                } else {
-                    _uiState.update {
-                        it.copy(downloadStatus = job.status)
-                    }
+            _uiState.update {
+                it.copy(
+                    mediaId = _mediaId,
+                    loading = false,
+                    canPlay = _canPlay,
+                    episodeTitle = _detailedEpisode.fullDisplayTitle(),
+                    overview = _detailedEpisode.description ?: "No description",
+                    seriesTitle = _detailedEpisode.seriesTitle!!,
+                    showGoToSeries = !_fromSeriesDetails,
+                    length = _detailedEpisode.length.toTimeString()
+                )
+            }
+
+            // Prevent flicker by only updating if needed
+            if (_detailedEpisode.artworkUrl != _uiState.value.artworkUrl) {
+                _uiState.update {
+                    it.copy(artworkUrl = _detailedEpisode.artworkUrl)
                 }
             }
-        }
-
-
-        viewModelScope.launch {
-            try {
-
-                _detailedEpisode = if(_firstLoad && _fromSeriesDetails) {
-                    val detailedSeries = MediaCacheManager.Series[_detailedCacheId]
-                    detailedSeries!!.episodes!!.first { it.id == _mediaId }
-                } else {
-                    episodesRepository.details(_mediaId)
-                }
-                _firstLoad = false
-
-
-                _uiState.update {
-                    it.copy(
-                        mediaId = _mediaId,
-                        loading = false,
-                        canPlay = _canPlay,
-                        episodeTitle = _detailedEpisode.fullDisplayTitle(),
-                        overview = _detailedEpisode.description ?: "No description",
-                        seriesTitle = _detailedEpisode.seriesTitle!!,
-                        showGoToSeries = !_fromSeriesDetails,
-                        length = _detailedEpisode.length.toTimeString()
-                    )
-                }
-
-                // Prevent flicker by only updating if needed
-                if(_detailedEpisode.artworkUrl != _uiState.value.artworkUrl) {
-                    _uiState.update {
-                        it.copy(artworkUrl = _detailedEpisode.artworkUrl)
-                    }
-                }
-            } catch(ex: Exception) {
-                ex.logToCrashlytics()
-                _uiState.update {
-                    it.copy(
-                        showErrorDialog = true,
-                        criticalError = true,
-                        errorMessage = ex.message
-                    )
-                }
+        } catch (ex: Exception) {
+            ex.logToCrashlytics()
+            _uiState.update {
+                it.copy(
+                    showErrorDialog = true,
+                    criticalError = true,
+                    errorMessage = ex.message
+                )
             }
         }
     }
 
+    private fun updateDownloadStatus(listOfJobs: List<UIJob>) {
+        val job = listOfJobs.firstOrNull {
+            it.mediaId == _mediaId && it.mediaType == MediaTypes.Episode
+        }
+        if (job == null) {
+            _uiState.update {
+                it.copy(downloadStatus = DownloadStatus.None)
+            }
+        } else {
+            _uiState.update {
+                it.copy(downloadStatus = job.status)
+            }
+        }
+    }
 
-    fun hideError() {
+    private fun hideError() {
         if(_uiState.value.criticalError) {
             popBackStack()
         }
@@ -145,28 +157,31 @@ class EpisodeDetailsViewModel  @Inject constructor(
         }
     }
 
-
-    fun addDownload() {
+    private fun addDownload() {
         viewModelScope.launch {
             downloadManager.addEpisode(_detailedEpisode)
         }
     }
 
-    fun removeDownload() {
+    private fun removeDownload() {
         viewModelScope.launch {
             downloadManager.delete(_mediaId, MediaTypes.Episode)
         }
     }
 
-    fun play() {
+    private fun play() {
         navigateToRoute(
             PlayerNav.getRoute(
-                cacheId = _detailedCacheId,
+                mediaId =
+                    if(_fromSeriesDetails)
+                        _detailedEpisode.seriesId
+                    else
+                        MediaCacheManager.Playlists[_detailedCacheId]!!.id,
                 sourceType =
                     if(_fromSeriesDetails)
-                        PlayerNav.SOURCE_TYPE_SERIES
+                        PlayerNav.MEDIA_TYPE_SERIES
                     else
-                        PlayerNav.SOURCE_TYPE_PLAYLIST,
+                        PlayerNav.MEDIA_TYPE_PLAYLIST,
                 upNextId =
                     if(_fromSeriesDetails)
                         _mediaId
@@ -176,11 +191,11 @@ class EpisodeDetailsViewModel  @Inject constructor(
         )
     }
 
-    fun addToPlaylist() {
+    private fun addToPlaylist() {
         navigateToRoute(AddToPlaylistNav.getRouteForId(id = _mediaId, isSeries = false))
     }
 
-    fun goToSeries() {
+    private fun goToSeries() {
         val cacheId = MediaCacheManager.add(
             title = _detailedEpisode.seriesTitle ?: "",
             posterUrl = "",

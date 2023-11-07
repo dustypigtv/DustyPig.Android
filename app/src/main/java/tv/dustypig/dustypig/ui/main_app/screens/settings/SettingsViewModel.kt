@@ -22,7 +22,12 @@ class SettingsViewModel @Inject constructor(
     private val authManager: AuthManager
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val _uiState = MutableStateFlow(SettingsUIState())
+    private val _uiState = MutableStateFlow(
+        SettingsUIState(
+            onNavToRoute = ::navigateToRoute,
+            onNavToMyProfile = ::navToMyProfile
+        )
+    )
     val uiState = _uiState.asStateFlow()
 
     init {

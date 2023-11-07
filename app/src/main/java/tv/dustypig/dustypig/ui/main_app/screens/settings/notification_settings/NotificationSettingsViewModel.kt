@@ -21,7 +21,13 @@ class NotificationSettingsViewModel @Inject constructor(
     private val settingsManager: SettingsManager
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val _uiState = MutableStateFlow(NotificationSettingsUIState())
+    private val _uiState = MutableStateFlow(
+        NotificationSettingsUIState(
+            onPopBackStack = ::popBackStack,
+            onSetAllowAlerts = ::setAllowAlerts,
+            onHideAlertsDialog = ::hideAlertsDialog
+        )
+    )
     val uiState = _uiState.asStateFlow()
 
     init {
@@ -35,14 +41,13 @@ class NotificationSettingsViewModel @Inject constructor(
         }
     }
 
-    fun hideAlertsDialog(context: Context) {
+    private fun hideAlertsDialog(context: Context) {
         _uiState.update {
             it.copy(
                 showAlertsDialog = false
             )
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-
             val settingsIntent: Intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
@@ -50,7 +55,7 @@ class NotificationSettingsViewModel @Inject constructor(
         }
     }
 
-    fun setAllowAlerts(value: Boolean) {
+    private fun setAllowAlerts(value: Boolean) {
 
         viewModelScope.launch {
 

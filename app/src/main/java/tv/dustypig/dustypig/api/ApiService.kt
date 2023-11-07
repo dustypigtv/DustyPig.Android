@@ -43,7 +43,6 @@ import tv.dustypig.dustypig.api.models.ResponseWrapper
 import tv.dustypig.dustypig.api.models.ResponseWrapperOf
 import tv.dustypig.dustypig.api.models.SearchRequest
 import tv.dustypig.dustypig.api.models.SearchResults
-import tv.dustypig.dustypig.api.models.SetPlaylistProgress
 import tv.dustypig.dustypig.api.models.SetTitlePermissionInfo
 import tv.dustypig.dustypig.api.models.SimpleValue
 import tv.dustypig.dustypig.api.models.TitlePermissionInfo
@@ -218,7 +217,7 @@ interface ApiService {
     suspend fun movePlaylistItemToNewIndex(@Body movePlaylistItem: MovePlaylistItem): Response<ResponseWrapper>
 
     @POST("Playlists/SetPlaylistProgress")
-    suspend fun setPlaylistProgress(@Body setPlaylistProgress: SetPlaylistProgress): Response<ResponseWrapper>
+    suspend fun setPlaylistProgress(@Body playbackProgress: PlaybackProgress): Response<ResponseWrapper>
 
 
 

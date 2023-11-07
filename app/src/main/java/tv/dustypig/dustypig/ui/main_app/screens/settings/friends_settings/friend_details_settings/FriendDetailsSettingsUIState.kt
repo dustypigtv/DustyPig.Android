@@ -10,6 +10,8 @@ data class ShareableLibrary(
 )
 
 data class FriendDetailsSettingsUIState(
+
+    //Data
     val busy: Boolean = true,
     val showError: Boolean = false,
     val errorMessage: String? = null,
@@ -17,5 +19,12 @@ data class FriendDetailsSettingsUIState(
     val displayName: String = "",
     val avatarUrl: String = "",
     val libsSharedWithMe: List<BasicLibrary> = listOf(),
-    val myLibs: List<ShareableLibrary> = listOf()
+    val myLibs: List<ShareableLibrary> = listOf(),
+
+    //Events
+    val onPopBackStack: () -> Unit = { },
+    val onHideError: () -> Unit = { },
+    val onChangeDisplayName: (newName: String) -> Unit = { },
+    val onToggleLibraryShare: (libraryId: Int) -> Unit = { },
+    val onUnfriend: () -> Unit = { }
 )

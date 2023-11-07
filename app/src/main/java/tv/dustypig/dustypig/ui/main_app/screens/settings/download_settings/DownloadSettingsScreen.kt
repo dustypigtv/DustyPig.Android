@@ -30,23 +30,17 @@ import tv.dustypig.dustypig.ui.composables.PreviewBase
 @Composable
 fun DownloadSettingsScreen(vm: DownloadSettingsViewModel) {
     val uiState by vm.uiState.collectAsState()
-    DownloadSettingsScreenInternal(
-        popBackStack = vm::popBackStack,
-        setDownloadOverMobile = vm::setDownloadOverMobile,
-        uiState = uiState
-    )
+    DownloadSettingsScreenInternal(uiState = uiState)
 }
 
 
 @Composable
 private fun DownloadSettingsScreenInternal (
-    popBackStack: () -> Unit,
-    setDownloadOverMobile: (Boolean) -> Unit,
     uiState: DownloadSettingsUIState
 ) {
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = popBackStack, text = stringResource(R.string.download_settings))
+            CommonTopAppBar(onClick = uiState.onPopBackStack, text = stringResource(R.string.download_settings))
         }
     ){ paddingValues ->
         Column(
@@ -73,7 +67,7 @@ private fun DownloadSettingsScreenInternal (
 
                 Switch(
                     checked = uiState.downloadOverMobile,
-                    onCheckedChange = setDownloadOverMobile,
+                    onCheckedChange = uiState.onSetDownloadOverMobile,
                     modifier = Modifier.padding(12.dp, 8.dp)
                 )
             }
@@ -94,14 +88,8 @@ private fun DownloadSettingsScreenInternal (
 @Preview
 @Composable
 private fun DownloadSettingsScreenPreview() {
-    val uiState = DownloadSettingsUIState (
-
-    )
+    val uiState = DownloadSettingsUIState ()
     PreviewBase {
-        DownloadSettingsScreenInternal(
-            popBackStack = { },
-            setDownloadOverMobile = { _ -> },
-            uiState = uiState
-        )
+        DownloadSettingsScreenInternal(uiState = uiState)
     }
 }

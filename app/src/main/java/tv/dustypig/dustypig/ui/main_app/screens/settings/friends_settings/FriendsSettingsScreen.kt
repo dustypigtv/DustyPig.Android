@@ -61,24 +61,12 @@ import tv.dustypig.dustypig.ui.composables.TintedIcon
 @Composable
 fun FriendsSettingsScreen(vm: FriendsSettingsViewModel) {
     val uiState by vm.uiState.collectAsState()
-    FriendsSettingsScreenInternal(
-        popBackStack = vm::popBackStack,
-        navToFriendDetails = vm::navToFriendDetails,
-        hideDialogs = vm::hideDialog,
-        addFriend = vm::addFriend,
-        uiState = uiState
-    )
+    FriendsSettingsScreenInternal(uiState = uiState)
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun FriendsSettingsScreenInternal(
-    popBackStack: () -> Unit,
-    navToFriendDetails: (Int) -> Unit,
-    hideDialogs: () -> Unit,
-    addFriend: (String) -> Unit,
-    uiState: FriendsSettingsUIState
-) {
+private fun FriendsSettingsScreenInternal(uiState: FriendsSettingsUIState) {
 
     var showAddFriendDialog by remember {
         mutableStateOf(false)
@@ -88,7 +76,7 @@ private fun FriendsSettingsScreenInternal(
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = popBackStack, text = stringResource(R.string.manage_friends))
+            CommonTopAppBar(onClick = uiState.onPopBackStack, text = stringResource(R.string.manage_friends))
         }
     ) { paddingValues ->
 
@@ -116,7 +104,7 @@ private fun FriendsSettingsScreenInternal(
                             .padding(12.dp, 0.dp)
                             .clip(shape = RoundedCornerShape(4.dp))
                             .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp))
-                            .clickable { navToFriendDetails(it.id) }
+                            .clickable { uiState.onNavToFriendDetails(it.id) }
                     ) {
                         Avatar(
                             imageUrl = it.avatarUrl,
@@ -185,7 +173,7 @@ private fun FriendsSettingsScreenInternal(
             fun submitClicked() {
                 keyboardController?.hide()
                 showAddFriendDialog = false
-                addFriend(email)
+                uiState.onAddFriend(email)
             }
 
             fun dismissClicked() {
@@ -249,12 +237,12 @@ private fun FriendsSettingsScreenInternal(
 
 
         if(uiState.showInviteSuccessDialog) {
-            OkDialog(onDismissRequest = hideDialogs, title = "Add Friend", message = "Invite Sent")
+            OkDialog(onDismissRequest = uiState.onHideDialogs, title = "Add Friend", message = "Invite Sent")
         }
 
 
         if(uiState.showError) {
-            ErrorDialog(onDismissRequest = hideDialogs, message = uiState.errorMessage)
+            ErrorDialog(onDismissRequest = uiState.onHideDialogs, message = uiState.errorMessage)
         }
     }
 }
@@ -284,13 +272,7 @@ private fun FriendSettingsScreenPreview() {
     )
 
     PreviewBase {
-        FriendsSettingsScreenInternal(
-            popBackStack = { },
-            navToFriendDetails = { _ -> },
-            hideDialogs = { },
-            addFriend = { _ -> },
-            uiState = uiState
-        )
+        FriendsSettingsScreenInternal(uiState = uiState)
     }
 }
 

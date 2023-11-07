@@ -1,6 +1,7 @@
 package tv.dustypig.dustypig.ui.main_app.screens.series_details
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,17 +18,25 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.DownloadDone
+import androidx.compose.material.icons.filled.Downloading
 import androidx.compose.material.icons.filled.PlayCircleOutline
+import androidx.compose.material.icons.filled.PlaylistAdd
+import androidx.compose.material.icons.filled.RemoveRedEye
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -46,114 +55,77 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import compose.icons.FontAwesomeIcons
+import compose.icons.fontawesomeicons.Solid
+import compose.icons.fontawesomeicons.solid.Play
+import compose.icons.fontawesomeicons.solid.UserLock
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.DetailedEpisode
-import tv.dustypig.dustypig.api.models.MediaTypes
-import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
+import tv.dustypig.dustypig.api.models.OverrideRequestStatus
+import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
+import tv.dustypig.dustypig.ui.composables.ActionButton
+import tv.dustypig.dustypig.ui.composables.CastTopAppBar
 import tv.dustypig.dustypig.ui.composables.Credits
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
+import tv.dustypig.dustypig.ui.composables.MultiDownloadDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
 import tv.dustypig.dustypig.ui.composables.OnOrientation
 import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
-import tv.dustypig.dustypig.ui.composables.TitleInfoData
-import tv.dustypig.dustypig.ui.composables.TitleInfoLayout
+import tv.dustypig.dustypig.ui.composables.YesNoDialog
+import tv.dustypig.dustypig.ui.isTablet
 
 @Composable
 fun SeriesDetailsScreen(vm: SeriesDetailsViewModel) {
-
     val uiState: SeriesDetailsUIState by vm.uiState.collectAsState()
-    val titleInfoState: TitleInfoData by vm.titleInfoUIState.collectAsState()
-
-    SeriesDetailsScreenInternal(
-        popBackStack = vm::popBackStack,
-        hideError = vm::hideError,
-        playEpisode = vm::playEpisode,
-        navToEpisodeInfo = vm::navToEpisodeInfo,
-        selectSeason = vm::selectSeason,
-        uiState = uiState,
-        titleInfoState = titleInfoState
-    )
+    SeriesDetailsScreenInternal(uiState = uiState)
 }
 
 @Composable
-private fun SeriesDetailsScreenInternal(
-    popBackStack: () -> Unit,
-    hideError: () -> Unit,
-    playEpisode: (Int) -> Unit,
-    navToEpisodeInfo: (Int) -> Unit,
-    selectSeason: (UShort) -> Unit,
-    uiState: SeriesDetailsUIState,
-    titleInfoState: TitleInfoData
-) {
-
-
-    var initialScrolled by remember {
-        mutableStateOf(false)
-    }
-    val seasonsListState = rememberLazyListState()
-    var selSeasonIdx = 0
-    if(!(initialScrolled || uiState.loading)) {
-        initialScrolled = false
-        for (season in uiState.seasons) {
-            if (season == uiState.upNextSeason)
-                break
-            selSeasonIdx++
-        }
-        LaunchedEffect(false){
-            seasonsListState.scrollToItem(selSeasonIdx)
-        }
-    }
-
+private fun SeriesDetailsScreenInternal(uiState: SeriesDetailsUIState) {
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = popBackStack, text = stringResource(R.string.series_info))
+            CastTopAppBar(
+                onClick = uiState.onPopBackStack,
+                text = stringResource(R.string.series_info),
+                castManager = uiState.castManager
+            )
         }
     ) { innerPadding ->
 
         OnDevice(
             onPhone = {
                 PhoneLayout(
-                    playEpisode = playEpisode,
-                    navToEpisodeInfo = navToEpisodeInfo,
-                    selectSeason = selectSeason,
                     innerPadding = innerPadding,
-                    uiState = uiState,
-                    titleInfoState = titleInfoState,
-                    seasonsListState = seasonsListState
+                    uiState = uiState
                 )
             },
             onTablet = {
                 OnOrientation(
                     onPortrait = {
                         PhoneLayout(
-                            playEpisode = playEpisode,
-                            navToEpisodeInfo = navToEpisodeInfo,
-                            selectSeason = selectSeason,
                             innerPadding = innerPadding,
-                            uiState = uiState,
-                            titleInfoState = titleInfoState,
-                            seasonsListState = seasonsListState
+                            uiState = uiState
                         )
                     },
                     onLandscape = {
                         HorizontalTabletLayout(
-                            playEpisode = playEpisode,
-                            navToEpisodeInfo = navToEpisodeInfo,
-                            selectSeason = selectSeason,
                             innerPadding = innerPadding,
-                            uiState = uiState,
-                            titleInfoState = titleInfoState,
-                            seasonsListState = seasonsListState
+                            uiState = uiState
                         )
                     })
             }
@@ -161,97 +133,15 @@ private fun SeriesDetailsScreenInternal(
     }
 
     if(uiState.showErrorDialog) {
-        ErrorDialog(onDismissRequest = hideError, message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
     }
 }
 
-
-@Composable
-private fun EpisodeRow(
-    playEpisode: (Int) -> Unit,
-    navToEpisodeInfo: (Int) -> Unit,
-    episode: DetailedEpisode
-) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.Top,
-        modifier = Modifier
-            .height(64.dp)
-            .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp), shape = RoundedCornerShape(4.dp))
-    ) {
-        Box(
-            modifier = Modifier
-                .width(114.dp)
-                .height(64.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            AsyncImage(
-                model = episode.artworkUrl,
-                contentDescription = "",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(color = Color.DarkGray)
-                    .clip(shape = RoundedCornerShape(4.dp)),
-                error = painterResource(id = R.drawable.error_wide)
-            )
-
-            TintedIcon(
-                imageVector = Icons.Filled.PlayCircleOutline,
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(shape = CircleShape)
-                    .background(color = Color.Black.copy(alpha = 0.5f))
-                    .clickable { playEpisode(episode.id) }
-            )
-
-        }
-
-
-        Column(
-            modifier = Modifier.weight(1f)
-        ){
-            Text(
-                text = episode.shortDisplayTitle(),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleMedium,
-            )
-            Text(
-                text = episode.description ?: stringResource(R.string.no_description),
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-
-        Box(
-            modifier = Modifier
-                .width(24.dp)
-                .height(64.dp)
-                .offset(x = (-12).dp),
-            contentAlignment = Alignment.Center
-        ) {
-
-            IconButton(onClick = { navToEpisodeInfo(episode.id) }) {
-                TintedIcon(
-                    imageVector = Icons.Outlined.Info
-                )
-            }
-        }
-
-    }
-}
 
 @Composable
 private fun PhoneLayout(
-    playEpisode: (Int) -> Unit,
-    navToEpisodeInfo: (Int) -> Unit,
-    selectSeason: (UShort) -> Unit,
     innerPadding: PaddingValues,
-    uiState: SeriesDetailsUIState,
-    titleInfoState: TitleInfoData,
-    seasonsListState: LazyListState
+    uiState: SeriesDetailsUIState
 ) {
 
     val configuration = LocalConfiguration.current
@@ -259,10 +149,6 @@ private fun PhoneLayout(
 
     //Left aligns content or center aligns busy indicator
     val columnAlignment = if (uiState.loading) Alignment.CenterHorizontally else Alignment.Start
-
-    val criticalError = uiState.showErrorDialog && uiState.criticalError
-
-
 
     LazyColumn(
         modifier = Modifier
@@ -312,71 +198,19 @@ private fun PhoneLayout(
                 }
             }
 
-            if (uiState.loading) {
-                Spacer(modifier = Modifier.height(48.dp))
-                CircularProgressIndicator()
-            } else  if (!criticalError) {
-                TitleInfoLayout(titleInfoState)
-            }
-
-
-            Spacer(modifier = Modifier.height(24.dp))
-            if(uiState.seasons.count() > 1) {
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                    state = seasonsListState
-                ) {
-                    items(uiState.seasons) { season ->
-                        val seasonName = if (season == 0.toUShort()) stringResource(R.string.specials) else stringResource(R.string.season, season)
-                        if (season == uiState.selectedSeason) {
-                            Button(onClick = { /*Do nothing*/ }) {
-                                Text(text = seasonName)
-                            }
-                        } else {
-                            OutlinedButton(onClick = { selectSeason(season) }) {
-                                Text(text = seasonName)
-                            }
-                        }
-                    }
-                }
-            }
-
         }
 
-        if (!uiState.loading && !criticalError) {
-            items(uiState.episodes.filter { it.seasonNumber == uiState.selectedSeason }) { episode ->
-                EpisodeRow(
-                    playEpisode = playEpisode,
-                    navToEpisodeInfo = navToEpisodeInfo,
-                    episode = episode,
-                )
-            }
-        }
-
-        item {
-            if (!criticalError) {
-                Credits(uiState.creditsData)
-            }
-        }
+        seriesLayout(uiState)
     }
 }
 
 @Composable
 private fun HorizontalTabletLayout(
-    playEpisode: (Int) -> Unit,
-    navToEpisodeInfo: (Int) -> Unit,
-    selectSeason: (UShort) -> Unit,
     innerPadding: PaddingValues,
-    uiState: SeriesDetailsUIState,
-    titleInfoState: TitleInfoData,
-    seasonsListState: LazyListState
+    uiState: SeriesDetailsUIState
 ) {
 
     val columnAlignment = if(uiState.loading) Alignment.CenterHorizontally else Alignment.Start
-
-    val criticalError = uiState.showErrorDialog && uiState.criticalError
-
 
     Row(
         modifier = Modifier
@@ -422,62 +256,447 @@ private fun HorizontalTabletLayout(
             horizontalAlignment = columnAlignment,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item {
-                if (uiState.loading) {
-                    Spacer(modifier = Modifier.height(48.dp))
-                    CircularProgressIndicator()
-                } else if (!criticalError) {
-                    TitleInfoLayout(titleInfoState)
-                }
-            }
+            seriesLayout(uiState)
+        }
+    }
+}
 
-            item {
-                Spacer(modifier = Modifier.height(24.dp))
-                if (uiState.seasons.count() > 1) {
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                        state = seasonsListState
-                    ) {
-                        items(uiState.seasons) { season ->
-                            val seasonName = if (season == 0.toUShort()) stringResource(R.string.specials) else stringResource(R.string.season, season)
-                            if (season == uiState.upNextSeason) {
-                                Button(onClick = { /*Do nothing*/ }) {
-                                    Text(text = seasonName)
-                                }
-                            } else {
-                                OutlinedButton(onClick = { selectSeason(season) }) {
-                                    Text(text = seasonName)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
 
-            if (!uiState.loading && !criticalError) {
-                items(uiState.episodes.filter { it.seasonNumber == uiState.selectedSeason }) { episode ->
-                    EpisodeRow(
-                        playEpisode = playEpisode,
-                        navToEpisodeInfo = navToEpisodeInfo,
-                        episode = episode,
+private fun LazyListScope.seriesLayout(uiState: SeriesDetailsUIState) {
+
+    val criticalError = uiState.showErrorDialog && uiState.criticalError
+
+    item {
+        if (uiState.loading) {
+            Spacer(modifier = Modifier.height(48.dp))
+            CircularProgressIndicator()
+        } else if (!criticalError) {
+            SeriesTitleLayout(uiState = uiState)
+        }
+    }
+
+    if (!uiState.loading && !criticalError) {
+
+        item {
+            Spacer(modifier = Modifier.height(24.dp))
+            SeasonsRow(uiState)
+        }
+
+        items(uiState.episodes.filter { it.seasonNumber == uiState.selectedSeason }) { episode ->
+            EpisodeRow(
+                uiState = uiState,
+                episode = episode,
+            )
+        }
+
+        item {
+            Credits(uiState.creditsData)
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+}
+
+
+@Composable
+private fun SeriesTitleLayout(uiState: SeriesDetailsUIState) {
+
+    //Align buttons to center for phone, left for tablet
+    val context = LocalContext.current
+    val isTablet = context.isTablet()
+    val alignment = if(isTablet) Alignment.Start else Alignment.CenterHorizontally
+    val modifier = if(isTablet) Modifier.width(320.dp) else Modifier.fillMaxWidth()
+    val buttonPadding = if(isTablet) PaddingValues(0.dp, 0.dp  ) else PaddingValues(16.dp, 0.dp)
+
+    val seasonEpisode =
+        if(uiState.upNextSeason == null || uiState.upNextEpisode == null)
+            ""
+        else
+            context.getString(R.string.season_episode, uiState.upNextSeason.toString(),  uiState.upNextEpisode.toString())
+
+    val playButtonText =
+        if (uiState.partiallyPlayed)
+            stringResource(R.string.resume_season_episode, seasonEpisode).trim()
+        else
+            stringResource(R.string.play_season_episode, seasonEpisode).trim()
+
+
+    //This will leave at minimum just the colon, so check if
+    //length > 1 before displaying
+    val epHeader = "${seasonEpisode}: ${uiState.episodeTitle}".trim()
+
+
+    val downloadIcon = when(uiState.downloadStatus) {
+        DownloadStatus.None -> Icons.Filled.Download
+        DownloadStatus.Finished -> Icons.Filled.DownloadDone
+        else -> Icons.Filled.Downloading
+    }
+    val downloadText = when(uiState.downloadStatus) {
+        DownloadStatus.None -> stringResource(R.string.download)
+        DownloadStatus.Finished -> stringResource(R.string.downloaded)
+        else -> stringResource(R.string.downloading)
+    }
+
+    var showChangeDownloadCount by remember {
+        mutableStateOf(false)
+    }
+
+
+    var showMarkWatchedDialog by remember {
+        mutableStateOf(false)
+    }
+
+
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top,
+        modifier = Modifier.padding(8.dp)
+    ) {
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.weight(1F)
+        ) {
+            Text(
+                text = uiState.title,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleLarge
+            )
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if(uiState.year.isNotBlank()) {
+                    Text(
+                        text = uiState.year,
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                }
+
+                if (uiState.rated.isNotBlank()) {
+                    Text(
+                        text = uiState.rated,
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.outline,
+                                shape = RectangleShape
+                            )
+                            .padding(8.dp, 4.dp)
                     )
                 }
             }
-
-            item {
-                if (!uiState.loading && !criticalError) {
-                    Credits(uiState.creditsData)
-                }
-            }
-
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        if (uiState.canManage) {
+            IconButton(onClick = uiState.onManagePermissions) {
+                TintedIcon(
+                    imageVector = FontAwesomeIcons.Solid.UserLock,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+
 
     }
 
+    Spacer(modifier = Modifier.height(12.dp))
+
+    if (uiState.canPlay) {
+        Column(
+            horizontalAlignment = alignment,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Button(
+                onClick = uiState.onPlay,
+                modifier = modifier.padding(buttonPadding)
+            ) {
+                Icon(
+                    imageVector = FontAwesomeIcons.Solid.Play,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(text = playButtonText)
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.Top,
+                modifier = modifier.padding(0.dp, 12.dp)
+            ) {
+
+
+                if(uiState.watchListBusy) {
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.width(70.dp)
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .padding(12.dp)
+                        )
+                        Text(
+                            text = "Watchlist",
+                            style = MaterialTheme.typography.labelSmall,
+                            textAlign = TextAlign.Center,
+                            maxLines = 2
+                        )
+                    }
+
+                } else {
+                    ActionButton(
+                        onClick = uiState.onToggleWatchList,
+                        caption = stringResource(R.string.watchlist),
+                        icon = if (uiState.inWatchList) Icons.Filled.Check else Icons.Filled.Add
+                    )
+                }
+
+                ActionButton(
+                    onClick =  { showChangeDownloadCount = true },
+                    caption = downloadText,
+                    icon = downloadIcon
+                )
+
+                ActionButton(
+                    onClick = uiState.onAddToPlaylist,
+                    caption = stringResource(R.string.add_to_playlist),
+                    icon = Icons.Filled.PlaylistAdd
+                )
+
+                if(uiState.partiallyPlayed) {
+                    if(uiState.markWatchedBusy) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .padding(12.dp)
+                            )
+                            Text(
+                                text = stringResource(R.string.mark_watched),
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.width(58.dp),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    } else {
+                        ActionButton(
+                            onClick = { showMarkWatchedDialog = true },
+                            caption = stringResource(R.string.mark_watched),
+                            icon = Icons.Filled.RemoveRedEye
+                        )
+                    }
+                }
+            }
+        }
+
+    } else {
+
+        val btnTxt = when (uiState.accessRequestStatus) {
+            OverrideRequestStatus.NotRequested -> stringResource(R.string.request_access)
+            OverrideRequestStatus.Requested -> stringResource(R.string.access_requested)
+            OverrideRequestStatus.Denied -> stringResource(R.string.access_denied)
+            OverrideRequestStatus.Granted -> stringResource(R.string.if_you_see_this_it_s_a_bug)
+        }
+
+        Column(
+            horizontalAlignment = alignment,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            if (uiState.accessRequestBusy) {
+                CircularProgressIndicator()
+            } else {
+                Button(
+                    onClick = uiState.onRequestAccess,
+                    modifier = Modifier.padding(buttonPadding),
+                    enabled = uiState.accessRequestStatus == OverrideRequestStatus.NotRequested
+                ) {
+                    Text(text = btnTxt)
+                }
+            }
+        }
+    }
+    Spacer(modifier = Modifier.height(16.dp))
+
+
+    if(epHeader.length > 1) {
+        Text(
+            text = epHeader,
+            textDecoration = TextDecoration.Underline,
+            modifier = Modifier.padding(12.dp, 0.dp)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+    }
+
+    Text(
+        text = uiState.overview,
+        modifier = Modifier.padding(12.dp, 0.dp)
+    )
+
+
+    if(showChangeDownloadCount) {
+        MultiDownloadDialog(
+            onSave = {
+                showChangeDownloadCount = false
+                uiState.onUpdateDownload(it)
+            },
+            title = stringResource(R.string.download_series),
+            text = stringResource(R.string.how_many_unwatched_episodes_do_you_want_to_keep_downloaded),
+            currentDownloadCount = uiState.currentDownloadCount
+        )
+    }
+
+    if(showMarkWatchedDialog) {
+        YesNoDialog(
+            onNo = {
+                showMarkWatchedDialog = false
+                uiState.onMarkWatched(false)
+            },
+            onYes = {
+                showMarkWatchedDialog = false
+                uiState.onMarkWatched(true)
+            },
+            title = stringResource(R.string.mark_watched),
+            message = stringResource(R.string.do_you_want_to_also_block_this_series_from_appearing_in_continue_watching)
+        )
+    }
 }
+
+
+@Composable
+private fun SeasonsRow(uiState: SeriesDetailsUIState) {
+    if (uiState.seasons.count() > 1) {
+
+        var initialScrolled by remember {
+            mutableStateOf(false)
+        }
+        val seasonsListState = rememberLazyListState()
+        var selSeasonIdx = 0
+        if(!(initialScrolled || uiState.loading)) {
+            initialScrolled = false
+            for (season in uiState.seasons) {
+                if (season == uiState.upNextSeason)
+                    break
+                selSeasonIdx++
+            }
+            LaunchedEffect(false){
+                seasonsListState.scrollToItem(selSeasonIdx)
+            }
+        }
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.fillMaxWidth(),
+            state = seasonsListState
+        ) {
+            items(uiState.seasons) { season ->
+                val seasonName =
+                    if (season == 0.toUShort())
+                        stringResource(R.string.specials)
+                    else
+                        stringResource(R.string.season, season)
+                if (season == uiState.selectedSeason) {
+                    Button(onClick = { /*Do nothing*/ }) {
+                        Text(text = seasonName)
+                    }
+                } else {
+                    OutlinedButton(onClick = { uiState.onSelectSeason(season) }) {
+                        Text(text = seasonName)
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun EpisodeRow(
+    uiState: SeriesDetailsUIState,
+    episode: DetailedEpisode
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Top,
+        modifier = Modifier
+            .height(64.dp)
+            .background(
+                color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
+                shape = RoundedCornerShape(4.dp)
+            )
+    ) {
+        Box(
+            modifier = Modifier
+                .width(114.dp)
+                .height(64.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            AsyncImage(
+                model = episode.artworkUrl,
+                contentDescription = "",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = Color.DarkGray)
+                    .clip(shape = RoundedCornerShape(4.dp)),
+                error = painterResource(id = R.drawable.error_wide)
+            )
+
+            TintedIcon(
+                imageVector = Icons.Filled.PlayCircleOutline,
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(shape = CircleShape)
+                    .background(color = Color.Black.copy(alpha = 0.5f))
+                    .clickable { uiState.onPlayEpisode(episode.id) }
+            )
+
+        }
+
+
+        Column(
+            modifier = Modifier.weight(1f)
+        ){
+            Text(
+                text = episode.shortDisplayTitle(),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Text(
+                text = episode.description ?: stringResource(R.string.no_description),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .width(24.dp)
+                .height(64.dp)
+                .offset(x = (-12).dp),
+            contentAlignment = Alignment.Center
+        ) {
+
+            IconButton(onClick = { uiState.onNavToEpisodeInfo(episode.id) }) {
+                TintedIcon(
+                    imageVector = Icons.Outlined.Info
+                )
+            }
+        }
+
+    }
+}
+
 
 
 @Preview
@@ -518,14 +737,9 @@ private fun SeriesDetailsScreenPreview() {
         loading = false,
         seasons = seasons,
         upNextSeason = 2U,
-        episodes = episodes
-    )
-
-    val titleInfoState = TitleInfoData(
-        mediaType = MediaTypes.Series,
+        episodes = episodes,
         title = "My Series",
         rated = "TV-Y7",
-        length = "22m",
         overview = "Events Happen. People are affected. The story moves forward.",
         canManage = true,
         canPlay = true,
@@ -534,42 +748,7 @@ private fun SeriesDetailsScreenPreview() {
     )
 
     PreviewBase {
-        SeriesDetailsScreenInternal(
-            popBackStack = { },
-            hideError = { },
-            playEpisode = { _ -> },
-            navToEpisodeInfo = { _ -> },
-            selectSeason = { _ -> },
-            uiState = uiState,
-            titleInfoState = titleInfoState
-        )
+        SeriesDetailsScreenInternal(uiState = uiState)
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

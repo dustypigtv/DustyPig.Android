@@ -42,25 +42,14 @@ import tv.dustypig.dustypig.ui.composables.PreviewBase
 
 @Composable
 fun SelectProfileScreen(vm: SelectProfileViewModel) {
-
     val uiState by vm.uiState.collectAsState()
-    SelectProfileScreenInternal(
-        popBackStack = vm::popBackStack,
-        hideError = vm::hideError,
-        signIn = vm::signIn,
-        uiState = uiState
-    )
+    SelectProfileScreenInternal(uiState = uiState)
 }
 
 
 
 @Composable
-private fun SelectProfileScreenInternal(
-    popBackStack: () -> Unit,
-    hideError: () -> Unit,
-    signIn: (Int, UShort?) -> Unit,
-    uiState: SelectProfileUIState
-    ) {
+private fun SelectProfileScreenInternal(uiState: SelectProfileUIState) {
 
     val listState = rememberLazyGridState()
     var pin by remember { mutableStateOf("") }
@@ -69,7 +58,7 @@ private fun SelectProfileScreenInternal(
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = popBackStack, text = stringResource(R.string.select_profile))
+            CommonTopAppBar(onClick = uiState.onPopBackStack, text = stringResource(R.string.select_profile))
         }
     ) { contentPadding ->
 
@@ -100,7 +89,7 @@ private fun SelectProfileScreenInternal(
                                     selectedProfileId = it.id
                                     showPinDialog = true
                                 } else {
-                                    signIn(it.id, null)
+                                    uiState.onSignIn(it.id, null)
                                 }
                             },
                             modifier = Modifier
@@ -119,7 +108,7 @@ private fun SelectProfileScreenInternal(
     }
 
     if(uiState.showError) {
-        ErrorDialog(onDismissRequest = hideError, message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
     }
 
     if(showPinDialog) {
@@ -140,7 +129,7 @@ private fun SelectProfileScreenInternal(
                     onSubmit = {
                         pin = it
                         showPinDialog = false
-                        signIn(selectedProfileId, pin.toUShortOrNull())
+                        uiState.onSignIn(selectedProfileId, pin.toUShortOrNull())
                     }
                 )
             },
@@ -149,7 +138,7 @@ private fun SelectProfileScreenInternal(
                     enabled = confirmEnabled,
                     onClick = {
                         showPinDialog = false
-                        signIn(selectedProfileId, pin.toUShortOrNull())
+                        uiState.onSignIn(selectedProfileId, pin.toUShortOrNull())
                     }
                 ) {
                     Text(stringResource(R.string.ok))
@@ -193,12 +182,7 @@ private fun SelectProfileScreenPreview() {
     )
 
     PreviewBase {
-        SelectProfileScreenInternal(
-            popBackStack = { },
-            hideError = { },
-            signIn = { _, _ -> },
-            uiState = uiState
-        )
+        SelectProfileScreenInternal(uiState = uiState)
     }
 }
 

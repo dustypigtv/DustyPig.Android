@@ -8,9 +8,8 @@ import android.util.Log
 import androidx.room.Room
 import com.google.gson.Gson
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -41,7 +40,6 @@ import kotlin.concurrent.schedule
 import android.app.DownloadManager as AndroidDownloadManager
 
 
-@OptIn(DelicateCoroutinesApi::class)
 @Singleton
 class DownloadManager @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -92,17 +90,17 @@ class DownloadManager @Inject constructor(
     init {
 
         _rootDir.mkdirs()
-        GlobalScope.launch {
+        CoroutineScope(Dispatchers.IO).launch {
             withContext(Dispatchers.IO) {
                 File(_rootDir, NO_MEDIA).createNewFile()
             }
         }
 
-        GlobalScope.launch {
+        CoroutineScope(Dispatchers.IO).launch {
             settingsManager.profileIdFlow.collectLatest { _profileId = it }
         }
 
-        GlobalScope.launch {
+        CoroutineScope(Dispatchers.IO).launch {
             settingsManager.downloadOverMobileFlow.collectLatest { _downloadOverMobile = it }
         }
 
@@ -165,13 +163,12 @@ class DownloadManager @Inject constructor(
         return this.secondsSince() / 60
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     private fun statusTimerTick() {
 
         if(_statusTimerBusy)
             return
         _statusTimerBusy = true
-        GlobalScope.launch {
+        CoroutineScope(Dispatchers.IO).launch {
             try {
                 statusTimerWork()
             } catch (ex: Exception) {
@@ -495,12 +492,11 @@ class DownloadManager @Inject constructor(
 
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     private fun updateTimerTick(){
         if(_updateTimerBusy)
             return
         _updateTimerBusy = true
-        GlobalScope.launch {
+        CoroutineScope(Dispatchers.IO).launch {
             try {
                 updateTimerWork()
             } catch (ex: Exception) {
@@ -902,7 +898,7 @@ class DownloadManager @Inject constructor(
 
         //Identify ids of items that should be downloaded
         var upNext = detailedPlaylist.items?.firstOrNull {
-            it.index == detailedPlaylist.currentIndex
+            it.index == detailedPlaylist.currentItemId
         }
         if(upNext == null)
             upNext = detailedPlaylist.items?.first()
@@ -1144,5 +1140,5 @@ class DownloadManager @Inject constructor(
 
 
     fun getLocalSubtitle(mediaId: Int, ext: String) =
-        getLocalFile("${mediaId}.$DISPOSITION_SUBTITLE")
+        getLocalFile("${mediaId}.$DISPOSITION_SUBTITLE$ext")
 }

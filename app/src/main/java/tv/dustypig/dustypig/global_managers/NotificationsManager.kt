@@ -1,10 +1,11 @@
 package tv.dustypig.dustypig.global_managers
 
 import android.util.Log
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.models.Notification
 import tv.dustypig.dustypig.api.repositories.NotificationsRepository
@@ -20,9 +21,9 @@ import kotlin.concurrent.schedule
 
 
 @Singleton
-@OptIn(DelicateCoroutinesApi::class)
 class NotificationsManager @Inject constructor(
-    private val notificationsRepository: NotificationsRepository
+    private val notificationsRepository: NotificationsRepository,
+    private val authManager: AuthManager
 ) {
     companion object {
 
@@ -49,6 +50,7 @@ class NotificationsManager @Inject constructor(
     private val _timer = Timer()
     private var _timerBusy = false
 
+    private var loggedIn = false
 
     init {
         _timer.schedule(
@@ -56,6 +58,12 @@ class NotificationsManager @Inject constructor(
             period = 1000
         ){
             loadData()
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            authManager.loginState.collectLatest {
+                loggedIn = it == AuthManager.LOGIN_STATE_LOGGED_IN
+            }
         }
     }
 
@@ -68,9 +76,12 @@ class NotificationsManager @Inject constructor(
         if(_timerBusy || Calendar.getInstance().time < _nextTimerTick)
             return
 
+        if(!loggedIn)
+            return
+
         _timerBusy = true
 
-        GlobalScope.launch {
+        CoroutineScope(Dispatchers.IO).launch {
             try {
                 val lst = notificationsRepository.list()
                 _notificationsFlow.tryEmit(lst)
@@ -84,7 +95,7 @@ class NotificationsManager @Inject constructor(
     }
 
     fun markAsRead(id: Int) {
-        GlobalScope.launch {
+        CoroutineScope(Dispatchers.IO).launch {
             try {
                 notificationsRepository.markAsRead(id)
                 triggerUpdate()
@@ -95,7 +106,7 @@ class NotificationsManager @Inject constructor(
     }
 
     fun delete(id: Int) {
-        GlobalScope.launch {
+        CoroutineScope(Dispatchers.IO).launch {
             try {
                 notificationsRepository.delete(id)
                 triggerUpdate()

@@ -154,4 +154,7 @@
     <string name="media_route_menu_title">Cast</string>
     <string name="new_episodes">New Episodes</string>
     <string name="new_episodes_message">Do you want to automatically add new episodes to this playlist as they become available?</string>
+    <string name="skip_intro">Skip Intro</string>
+    <string name="next">Next</string>
+    <string name="cast_app_id">DAFB42BA</string>
 </resources>

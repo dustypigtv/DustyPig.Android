@@ -48,25 +48,13 @@ import tv.dustypig.dustypig.ui.composables.TintedIcon
 
 @Composable
 fun SignUpScreen(vm: SignUpViewModel) {
-
     val uiState by vm.uiState.collectAsState()
-
-    SignUpScreenInternal(
-        signUp = vm::signUp,
-        hideError = vm::hideError,
-        navToSignIn = vm::navToSignIn,
-        uiState = uiState
-    )
+    SignUpScreenInternal(uiState = uiState)
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun SignUpScreenInternal(
-    signUp: (String, String, String) -> Unit,
-    hideError: () -> Unit,
-    navToSignIn: (String) -> Unit,
-    uiState: SignUpUIState
-) {
+private fun SignUpScreenInternal(uiState: SignUpUIState) {
 
     val localFocusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -112,7 +100,7 @@ private fun SignUpScreenInternal(
     fun signUp() {
         localFocusManager.clearFocus()
         keyboardController?.hide()
-        signUp(name, email, password)
+        uiState.onSignUp(name, email, password)
     }
 
     Box(
@@ -181,7 +169,7 @@ private fun SignUpScreenInternal(
 
             TextButton(
                 enabled = !uiState.busy,
-                onClick = { navToSignIn(email) }
+                onClick = { uiState.onNavToSignIn(email) }
             ) {
                 Text(text = stringResource(R.string.already_have_an_account_sign_in))
             }
@@ -195,11 +183,11 @@ private fun SignUpScreenInternal(
 
 
     if (uiState.showError) {
-        ErrorDialog(onDismissRequest = hideError, message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
     }
 
     if (uiState.showSuccess) {
-        OkDialog(onDismissRequest = { navToSignIn(email) }, title = stringResource(R.string.success), message = uiState.message)
+        OkDialog(onDismissRequest = { uiState.onNavToSignIn(email) }, title = stringResource(R.string.success), message = uiState.message)
     }
 }
 
@@ -207,18 +195,9 @@ private fun SignUpScreenInternal(
 @Preview
 @Composable
 private fun SignUpScreenPreview() {
-
-    val uiState = SignUpUIState(
-        busy = false
-    )
-
+    val uiState = SignUpUIState(busy = false)
     PreviewBase {
-        SignUpScreenInternal(
-            signUp = { _:String, _:String, _:String -> },
-            hideError = { },
-            navToSignIn = { },
-            uiState = uiState
-        )
+        SignUpScreenInternal(uiState = uiState)
     }
 }
 

@@ -32,7 +32,7 @@ import java.util.UUID
 @Composable
 fun BasicMediaView(
     basicMedia: BasicMedia,
-    routeNavigator: RouteNavigator,
+    routeNavigator: RouteNavigator? = null,
     enabled: Boolean = true,
     navigateOnClick: Boolean = true,
     clicked: ((Int) -> Unit)? = null
@@ -43,6 +43,8 @@ fun BasicMediaView(
         if(clicked != null)
             clicked(basicMedia.id)
 
+        if(routeNavigator == null)
+            return
 
         if(!navigateOnClick)
             return

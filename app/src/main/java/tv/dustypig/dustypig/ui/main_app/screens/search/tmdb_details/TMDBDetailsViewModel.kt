@@ -40,7 +40,14 @@ class TMDBDetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val _uiState = MutableStateFlow(TMDBDetailsUIState())
+    private val _uiState = MutableStateFlow(
+        TMDBDetailsUIState(
+            onPopBackStack = ::popBackStack,
+            onHideError = ::hideErrorDialog,
+            onCancelRequest = ::cancelRequest,
+            onRequestTitle = ::requestTitle
+        )
+    )
     val uiState = _uiState.asStateFlow()
 
     private val _cacheId: String = savedStateHandle.getOrThrow(TMDBDetailsNav.KEY_CACHE_ID)
@@ -150,7 +157,7 @@ class TMDBDetailsViewModel @Inject constructor(
         }
     }
 
-    fun hideErrorDialog() {
+    private fun hideErrorDialog() {
         if(_uiState.value.criticalError) {
             popBackStack()
         } else {
@@ -161,7 +168,7 @@ class TMDBDetailsViewModel @Inject constructor(
     }
 
 
-    fun requestTitle(id: Int?) {
+    private fun requestTitle(friendId: Int?) {
         _uiState.update {
             it.copy(
                 busy = true
@@ -170,7 +177,7 @@ class TMDBDetailsViewModel @Inject constructor(
 
         viewModelScope.launch {
             try{
-                tmdbRepository.requestTitle(titleRequest = TitleRequest(tmdbId = _tmdbId, friendId = id, mediaType = _detailedTMDB.mediaType))
+                tmdbRepository.requestTitle(titleRequest = TitleRequest(tmdbId = _tmdbId, friendId = friendId, mediaType = _detailedTMDB.mediaType))
                 _uiState.update {
                     it.copy(
                         busy = false,
@@ -183,7 +190,7 @@ class TMDBDetailsViewModel @Inject constructor(
         }
     }
 
-    fun cancelRequest() {
+    private fun cancelRequest() {
         _uiState.update {
             it.copy(busy = true)
         }

@@ -27,11 +27,17 @@ class SelectProfileViewModel @Inject constructor(
     private val profilesRepository: ProfilesRepository
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val _uiState = MutableStateFlow(SelectProfileUIState())
+    private val _uiState = MutableStateFlow(
+        SelectProfileUIState(
+            onPopBackStack = ::popBackStack,
+            onHideError = ::hideError,
+            onSignIn = ::signIn
+        )
+    )
     val uiState: StateFlow<SelectProfileUIState> = _uiState.asStateFlow()
 
-    private var criticalError = false
 
+    private var criticalError = false
 
     init {
         viewModelScope.launch {
@@ -44,7 +50,7 @@ class SelectProfileViewModel @Inject constructor(
         }
     }
 
-    fun setError(ex: Exception, isCritical: Boolean) {
+    private fun setError(ex: Exception, isCritical: Boolean) {
         criticalError = isCritical
         _uiState.update {
             it.copy(
@@ -56,14 +62,14 @@ class SelectProfileViewModel @Inject constructor(
         ex.logToCrashlytics()
     }
 
-    fun hideError() {
+    private fun hideError() {
         _uiState.update { it.copy(showError = false) }
         if(criticalError)
             popBackStack()
     }
 
 
-    fun signIn(profileId: Int, pin: UShort?) {
+    private fun signIn(profileId: Int, pin: UShort?) {
         _uiState.update {
             it.copy(
                 busy = true

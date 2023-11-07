@@ -4,6 +4,8 @@ import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.BasicTMDB
 
 data class SearchUIState (
+
+    //Data
     val busy: Boolean = false,
     val showErrorDialog: Boolean = false,
     val errorMessage: String? = null,
@@ -15,5 +17,11 @@ data class SearchUIState (
     val tmdbItems: List<BasicTMDB> = listOf(),
     val tabIndex: Int = 0,
     val query: String = "",
-    val history: List<String> = listOf()
+    val history: List<String> = listOf(),
+
+    //Events
+    val onHideError: () -> Unit = { },
+    val onSearch: () -> Unit = { },
+    val onUpdateQuery: (query: String) -> Unit = { },
+    val onUpdateTabIndex: (index: Int) -> Unit = { }
 )

@@ -30,6 +30,7 @@ import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -47,8 +48,6 @@ import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.BasicPlaylist
 import tv.dustypig.dustypig.api.models.MediaTypes
-import tv.dustypig.dustypig.nav.MyRouteNavigator
-import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.composables.BasicMediaView
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
@@ -57,28 +56,13 @@ import tv.dustypig.dustypig.ui.composables.YesNoDialog
 
 @Composable
 fun AddToPlaylistScreen(vm: AddToPlaylistViewModel) {
-
     val uiState: AddToPlaylistUIState by vm.uiState.collectAsState()
-    AddToPlaylistScreenInternal(
-        popBackStack = vm::popBackStack,
-        hideError = vm::hideError,
-        newPlaylist = vm::newPlaylist,
-        selectPlaylist = vm::selectPlaylist,
-        routeNavigator = vm,
-        uiState = uiState
-    )
+    AddToPlaylistScreenInternal(uiState = uiState)
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun AddToPlaylistScreenInternal(
-    popBackStack: () -> Unit,
-    hideError: () -> Unit,
-    newPlaylist: (String, Boolean) -> Unit,
-    selectPlaylist: (Int, Boolean) -> Unit,
-    routeNavigator: RouteNavigator,
-    uiState: AddToPlaylistUIState
-) {
+private fun AddToPlaylistScreenInternal(uiState: AddToPlaylistUIState) {
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val listState = rememberLazyListState()
@@ -86,11 +70,11 @@ private fun AddToPlaylistScreenInternal(
     val enableSaveButton = !uiState.busy && newName.isNotBlank()
     var showAutoEpisodesDialog by remember { mutableStateOf(false) }
     var newPlaylistMode by remember { mutableStateOf(false) }
-    var selectedId by remember { mutableStateOf(0) }
+    var selectedId by remember { mutableIntStateOf(0) }
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = popBackStack, text = stringResource(R.string.add_to_playlist))
+            CommonTopAppBar(onClick = uiState.onPopBackStack, text = stringResource(R.string.add_to_playlist))
         }
     ) { innerPadding ->
 
@@ -136,7 +120,7 @@ private fun AddToPlaylistScreenInternal(
                                     newPlaylistMode = true
                                     showAutoEpisodesDialog = true
                                 } else {
-                                    newPlaylist(newName, false)
+                                    uiState.onNewPlaylist(newName, false)
                                 }
                             },
                             enabled = enableSaveButton,
@@ -188,7 +172,7 @@ private fun AddToPlaylistScreenInternal(
                                         selectedId = id
                                         showAutoEpisodesDialog = true
                                     } else {
-                                        selectPlaylist(id, false)
+                                        uiState.onSelectPlaylist(id, false)
                                     }
                                 }
                             },
@@ -211,10 +195,7 @@ private fun AddToPlaylistScreenInternal(
                                     backdropUrl = "",
                                     title = it.name
                                 ),
-                                routeNavigator = routeNavigator,
-                                navigateOnClick = false,
                                 enabled = false,
-                                clicked = null
                             )
                         }
 
@@ -243,16 +224,16 @@ private fun AddToPlaylistScreenInternal(
         YesNoDialog(
             onNo = {
                 if (newPlaylistMode) {
-                    newPlaylist(newName, false)
+                    uiState.onNewPlaylist(newName, false)
                 } else {
-                    selectPlaylist(selectedId, false)
+                    uiState.onSelectPlaylist(selectedId, false)
                 }
             },
             onYes = {
                 if (newPlaylistMode) {
-                    newPlaylist(newName, true)
+                    uiState.onNewPlaylist(newName, true)
                 } else {
-                    selectPlaylist(selectedId, true)
+                    uiState.onSelectPlaylist(selectedId, true)
                 }
             },
             title = stringResource(R.string.new_episodes),
@@ -263,7 +244,7 @@ private fun AddToPlaylistScreenInternal(
 
     if(uiState.showErrorDialog) {
         ErrorDialog(
-            onDismissRequest = hideError,
+            onDismissRequest = uiState.onHideError,
             message = uiState.errorMessage
         )
     }
@@ -303,14 +284,7 @@ private fun AddToPlaylistScreenPreview() {
     )
 
     PreviewBase {
-        AddToPlaylistScreenInternal(
-            popBackStack = { },
-            hideError = { },
-            newPlaylist = { _, _ -> },
-            selectPlaylist = { _, _ -> },
-            routeNavigator = MyRouteNavigator(),
-            uiState = uiState
-        )
+        AddToPlaylistScreenInternal(uiState = uiState)
     }
 }
 

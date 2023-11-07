@@ -1,6 +1,5 @@
 package tv.dustypig.dustypig.ui.main_app.screens.settings.notification_settings
 
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -33,26 +32,16 @@ import tv.dustypig.dustypig.ui.composables.PreviewBase
 @Composable
 fun NotificationSettingsScreen(vm: NotificationSettingsViewModel) {
     val uiState by vm.uiState.collectAsState()
-    NotificationSettingsScreenInternal(
-        popBackStack = vm::popBackStack,
-        setAllowAlerts = vm::setAllowAlerts,
-        hideAlertsDialog = vm::hideAlertsDialog,
-        uiState = uiState
-    )
+    NotificationSettingsScreenInternal(uiState = uiState)
 }
 
 @Composable
-private fun NotificationSettingsScreenInternal(
-    popBackStack: () -> Unit,
-    setAllowAlerts: (Boolean) -> Unit,
-    hideAlertsDialog: (Context) -> Unit,
-    uiState: NotificationSettingsUIState
-) {
+private fun NotificationSettingsScreenInternal(uiState: NotificationSettingsUIState) {
     val context = LocalContext.current
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = popBackStack, text = stringResource(R.string.notification_settings))
+            CommonTopAppBar(onClick = uiState.onPopBackStack, text = stringResource(R.string.notification_settings))
         }
     ) { paddingValues ->
         Column(
@@ -78,7 +67,7 @@ private fun NotificationSettingsScreenInternal(
 
                 Switch(
                     checked = uiState.allowAlerts,
-                    onCheckedChange = setAllowAlerts,
+                    onCheckedChange = uiState.onSetAllowAlerts,
                     modifier = Modifier.padding(12.dp, 8.dp)
                 )
             }
@@ -92,7 +81,7 @@ private fun NotificationSettingsScreenInternal(
 
     if(uiState.showAlertsDialog) {
         OkDialog(
-            onDismissRequest = { hideAlertsDialog(context) },
+            onDismissRequest = { uiState.onHideAlertsDialog(context) },
             title = stringResource(R.string.action_required),
             message = stringResource(R.string.allow_system_notifications_instructions)
         )
@@ -102,15 +91,8 @@ private fun NotificationSettingsScreenInternal(
 @Preview
 @Composable
 private fun NotificationSettingsScreenPreview() {
-    val uiState = NotificationSettingsUIState (
-
-    )
+    val uiState = NotificationSettingsUIState ()
     PreviewBase {
-        NotificationSettingsScreenInternal(
-            popBackStack = { },
-            setAllowAlerts = { _ -> },
-            hideAlertsDialog = { },
-            uiState = uiState
-        )
+        NotificationSettingsScreenInternal(uiState = uiState)
     }
 }

@@ -19,7 +19,12 @@ class ThemeSettingsViewModel @Inject constructor(
     private val settingsManager: SettingsManager
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val _uiState = MutableStateFlow(ThemeSettingsUIState(currentTheme = Themes.Maggies))
+    private val _uiState = MutableStateFlow(
+        ThemeSettingsUIState(
+            onPopBackStack = ::popBackStack,
+            onSetTheme = ::setTheme
+        )
+    )
     val uiState = _uiState.asStateFlow()
 
     init {
@@ -34,7 +39,7 @@ class ThemeSettingsViewModel @Inject constructor(
         }
     }
 
-    fun setTheme(theme: Themes) {
+    private fun setTheme(theme: Themes) {
         viewModelScope.launch {
             settingsManager.setTheme(theme)
         }

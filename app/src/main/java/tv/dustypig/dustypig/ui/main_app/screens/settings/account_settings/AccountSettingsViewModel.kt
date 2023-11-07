@@ -21,7 +21,18 @@ class AccountSettingsViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val _uiState = MutableStateFlow(AccountSettingsUIState())
+    private val _uiState = MutableStateFlow(
+        AccountSettingsUIState(
+            onHideError = ::hideError,
+            onPopBackStack = ::popBackStack,
+            onChangePassword = ::changePassword,
+            onDeleteAccount = ::deleteAccount,
+            onHideChangePasswordDialog = ::hideChangePasswordDialogs,
+            onLoginToDevice = ::loginToDevice,
+            onSignOut = ::signOut,
+            onSignoutEverywhere = ::signOutEverywhere
+        )
+    )
     val uiState = _uiState.asStateFlow()
 
     init {
@@ -45,13 +56,13 @@ class AccountSettingsViewModel @Inject constructor(
         }
     }
 
-    fun hideError() {
+    private fun hideError() {
         _uiState.update {
             it.copy(showErrorDialog = false)
         }
     }
 
-    fun loginToDevice(code: String) {
+    private fun loginToDevice(code: String) {
        viewModelScope.launch {
             try{
                 authRepository.loginDeviceWithCode(code)
@@ -65,7 +76,7 @@ class AccountSettingsViewModel @Inject constructor(
     }
 
 
-    fun changePassword(newPassword: String) {
+    private fun changePassword(newPassword: String) {
         _uiState.update {
             it.copy(busy = true)
         }
@@ -84,7 +95,7 @@ class AccountSettingsViewModel @Inject constructor(
         }
     }
 
-    fun hideChangePasswordDialogs() {
+    private fun hideChangePasswordDialogs() {
         _uiState.update {
             it.copy(
                 showChangePasswordSuccessAlert = false
@@ -92,7 +103,7 @@ class AccountSettingsViewModel @Inject constructor(
         }
     }
 
-    fun signOut() {
+    private fun signOut() {
         _uiState.update {
             it.copy(busy = true)
         }
@@ -102,7 +113,7 @@ class AccountSettingsViewModel @Inject constructor(
         }
     }
 
-    fun signOutEverywhere() {
+    private fun signOutEverywhere() {
         _uiState.update {
             it.copy(busy = true)
         }
@@ -117,7 +128,7 @@ class AccountSettingsViewModel @Inject constructor(
     }
 
 
-    fun deleteAccount() {
+    private fun deleteAccount() {
         _uiState.update {
             it.copy(busy = true)
         }

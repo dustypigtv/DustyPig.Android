@@ -41,18 +41,10 @@ import tv.dustypig.dustypig.ui.composables.PreviewBase
 @Composable
 fun SwitchProfilesScreen(vm: SwitchProfilesViewModel) {
     val uiState by vm.uiState.collectAsState()
-    SwitchProfilesScreenInternal(
-        popBackStack = vm::popBackStack,
-        hideError = vm::hideError,
-        signIn = vm::signIn,
-        uiState = uiState
-    )}
+    SwitchProfilesScreenInternal(uiState = uiState)}
 
 @Composable
 private fun SwitchProfilesScreenInternal(
-    popBackStack: () -> Unit,
-    hideError: () -> Unit,
-    signIn: (BasicProfile, UShort?) -> Unit,
     uiState: SwitchProfilesUIState
 ) {
     val listState = rememberLazyGridState()
@@ -63,7 +55,7 @@ private fun SwitchProfilesScreenInternal(
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = popBackStack, text = stringResource(R.string.select_profile))
+            CommonTopAppBar(onClick = uiState.onPopBackStack, text = stringResource(R.string.select_profile))
         }
     ) { contentPadding ->
 
@@ -94,7 +86,7 @@ private fun SwitchProfilesScreenInternal(
                                     selectedProfile = it
                                     showPinDialog = true
                                 } else {
-                                    signIn(it, null)
+                                    uiState.onSignIn(it, null)
                                 }
                             },
                             modifier = Modifier
@@ -129,14 +121,14 @@ private fun SwitchProfilesScreenInternal(
                     valueChanged = { pin = it },
                     onSubmit = {
                         pin = it
-                        signIn(selectedProfile!!, pin.toUShortOrNull())
+                        uiState.onSignIn(selectedProfile!!, pin.toUShortOrNull())
                     }
                 )
             },
             confirmButton = {
                 TextButton(
                     enabled = confirmEnabled,
-                    onClick = { signIn(selectedProfile!!, pin.toUShortOrNull()) }
+                    onClick = { uiState.onSignIn(selectedProfile!!, pin.toUShortOrNull()) }
                 ) {
                     Text(stringResource(R.string.ok))
                 }
@@ -152,7 +144,7 @@ private fun SwitchProfilesScreenInternal(
     }
 
     if(uiState.showError) {
-        ErrorDialog(onDismissRequest = hideError, message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
     }
 }
 
@@ -180,11 +172,6 @@ private fun SwitchProfilesScreenPreview() {
         )
     )
     PreviewBase {
-        SwitchProfilesScreenInternal(
-            popBackStack = { },
-            hideError = { },
-            signIn = { _, _ -> },
-            uiState = uiState
-        )
+        SwitchProfilesScreenInternal(uiState = uiState)
     }
 }

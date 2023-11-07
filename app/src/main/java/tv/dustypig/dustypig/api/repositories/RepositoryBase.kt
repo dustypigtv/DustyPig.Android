@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig.api.repositories
 
+import android.util.Log
 import retrofit2.Response
 import tv.dustypig.dustypig.api.models.ResponseWrapper
 import tv.dustypig.dustypig.api.models.ResponseWrapperOf
@@ -10,6 +11,10 @@ import java.io.IOException
 abstract class RepositoryBase constructor(
     private val authManager: AuthManager
 ) {
+
+    companion object {
+        private const val TAG = "RepositoryBase"
+    }
 
     internal suspend fun wrapAPICall(call: suspend () -> (Response<ResponseWrapper>)) {
         try{
@@ -27,9 +32,11 @@ abstract class RepositoryBase constructor(
                 throw Exception(rw.error)
         }
         catch (ex: IOException) {
+            Log.e(TAG, ex.localizedMessage, ex)
             throw Exception("Not connected to the internet")
         }
         catch (ex: Exception) {
+            Log.e(TAG, ex.localizedMessage, ex)
             if(ex.localizedMessage.isNullOrBlank()) {
                 throw Exception("Unknown Error")
             }
@@ -56,9 +63,11 @@ abstract class RepositoryBase constructor(
             return response.body()!!.data!!
         }
         catch (ex: IOException) {
+            Log.e(TAG, ex.localizedMessage, ex)
             throw Exception("Not connected to the internet")
         }
         catch (ex: Exception) {
+            Log.e(TAG, ex.localizedMessage, ex)
             if (ex.localizedMessage.isNullOrBlank()) {
                 throw Exception("Unknown Error")
             }
@@ -85,9 +94,11 @@ abstract class RepositoryBase constructor(
             return response.body()!!.data!!.value
         }
         catch (ex: IOException) {
+            Log.e(TAG, ex.localizedMessage, ex)
             throw Exception("Not connected to the internet")
         }
         catch (ex: Exception) {
+            Log.e(TAG, ex.localizedMessage, ex)
             if (ex.localizedMessage.isNullOrBlank()) {
                 throw Exception("Unknown Error")
             }

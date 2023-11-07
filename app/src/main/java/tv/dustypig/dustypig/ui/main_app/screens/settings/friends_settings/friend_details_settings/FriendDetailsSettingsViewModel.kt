@@ -30,7 +30,15 @@ class FriendDetailsSettingsViewModel @Inject constructor(
     private val librariesRepository: LibrariesRepository
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val _uiState = MutableStateFlow(FriendDetailsSettingsUIState())
+    private val _uiState = MutableStateFlow(
+        FriendDetailsSettingsUIState(
+            onPopBackStack = ::popBackStack,
+            onHideError = ::hideError,
+            onChangeDisplayName = ::changeDisplayName,
+            onToggleLibraryShare = ::toggleLibraryShare,
+            onUnfriend = ::unfriend
+        )
+    )
     val uiState = _uiState.asStateFlow()
 
     private val _friendshipId: Int = savedStateHandle.getOrThrow(FriendDetailsSettingsNav.KEY_ID)
@@ -91,7 +99,7 @@ class FriendDetailsSettingsViewModel @Inject constructor(
         }
     }
 
-    fun hideError() {
+    private fun hideError() {
         if(_uiState.value.criticalError) {
             popBackStack()
         } else {
@@ -101,7 +109,7 @@ class FriendDetailsSettingsViewModel @Inject constructor(
         }
     }
 
-    fun changeDisplayName(newName: String) {
+    private fun changeDisplayName(newName: String) {
         _uiState.update {
             it.copy(busy = true)
         }
@@ -129,7 +137,7 @@ class FriendDetailsSettingsViewModel @Inject constructor(
         }
     }
 
-    fun toggleLibraryShare(libraryId: Int) {
+    private fun toggleLibraryShare(libraryId: Int) {
         _uiState.update {
             it.copy(
                 busy = true
@@ -177,7 +185,7 @@ class FriendDetailsSettingsViewModel @Inject constructor(
         }
     }
 
-    fun unfriend() {
+    private fun unfriend() {
         _uiState.update {
             it.copy(busy = true)
         }

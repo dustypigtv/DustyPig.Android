@@ -31,24 +31,16 @@ import tv.dustypig.dustypig.ui.composables.PreviewBase
 @Composable
 fun PlaybackSettingsScreen(vm: PlaybackSettingsViewModel) {
     val uiState by vm.uiState.collectAsState()
-    PlaybackSettingsScreenInternal(
-        popBackStack = vm::popBackStack,
-        setAutoSkipIntros = vm::setAutoSkipIntros,
-        setAutoSkipCredits = vm::setAutoSkipCredits,
-        uiState = uiState
-    )
+    PlaybackSettingsScreenInternal(uiState = uiState)
 }
 
 @Composable
 private fun PlaybackSettingsScreenInternal(
-    popBackStack: () -> Unit,
-    setAutoSkipIntros: (Boolean) -> Unit,
-    setAutoSkipCredits: (Boolean) -> Unit,
     uiState: PlaybackSettingsUIState
 ) {
     Scaffold (
         topBar = {
-            CommonTopAppBar(onClick = popBackStack, text = stringResource(R.string.playback_settings))
+            CommonTopAppBar(onClick = uiState.onPopBackStack, text = stringResource(R.string.playback_settings))
         }
     ) { paddingValues ->
         Column (
@@ -77,7 +69,7 @@ private fun PlaybackSettingsScreenInternal(
 
                 Switch(
                     checked = uiState.autoSkipIntros,
-                    onCheckedChange = setAutoSkipIntros,
+                    onCheckedChange = uiState.onSetAutoSkipIntros,
                     modifier = Modifier.padding(12.dp, 8.dp)
                 )
             }
@@ -98,7 +90,7 @@ private fun PlaybackSettingsScreenInternal(
 
                 Switch(
                     checked = uiState.autoSkipCredits,
-                    onCheckedChange = setAutoSkipCredits,
+                    onCheckedChange = uiState.onSetAutoSkipCredits,
                     modifier = Modifier.padding(12.dp, 8.dp)
                 )
             }
@@ -120,11 +112,6 @@ private fun PlaybackSettingsScreenPreview() {
         autoSkipCredits = true
     )
     PreviewBase {
-        PlaybackSettingsScreenInternal(
-            popBackStack = { },
-            setAutoSkipIntros = { _ -> },
-            setAutoSkipCredits = { _ -> },
-            uiState = uiState
-        )
+        PlaybackSettingsScreenInternal(uiState = uiState)
     }
 }

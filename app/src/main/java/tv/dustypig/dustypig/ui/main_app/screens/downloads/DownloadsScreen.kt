@@ -75,33 +75,13 @@ import tv.dustypig.dustypig.ui.composables.YesNoDialog
 
 @Composable
 fun DownloadsScreen(vm: DownloadsViewModel) {
-
     val uiState by vm.uiState.collectAsState()
-
-    DownloadsScreenInternal(
-        hideError = vm::hideError,
-        playNext = vm::playNext,
-        playItem = vm::playItem,
-        deleteDownload = vm::deleteDownload,
-        deleteAll = vm::deleteAll,
-        toggleExpansion = vm::toggleExpansion,
-        modifyDownload = vm::modifyDownload,
-        uiState = uiState
-    )
+    DownloadsScreenInternal(uiState = uiState)
 }
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
-private fun DownloadsScreenInternal(
-    hideError: () -> Unit,
-    playNext: (UIJob) -> Unit,
-    playItem: (UIJob, UIDownload) -> Unit,
-    deleteDownload: (UIJob) -> Unit,
-    deleteAll: () -> Unit,
-    toggleExpansion: (Int) -> Unit,
-    modifyDownload: (job: UIJob, newCount: Int) -> Unit,
-    uiState: DownloadsUIState
-) {
+private fun DownloadsScreenInternal(uiState: DownloadsUIState) {
 
     val delayTime = 300
 
@@ -118,8 +98,6 @@ private fun DownloadsScreenInternal(
     var showDeleteAllDownloads by remember {
         mutableStateOf(false)
     }
-
-
 
 
     if(uiState.jobs.isEmpty()) {
@@ -148,7 +126,7 @@ private fun DownloadsScreenInternal(
 
                         val modifier = when (job.mediaType) {
                             MediaTypes.Series, MediaTypes.Playlist -> Modifier.clickable {
-                                toggleExpansion(job.mediaId)
+                                uiState.onToggleExpansion(job.mediaId)
                             }
 
                             else -> Modifier
@@ -162,7 +140,7 @@ private fun DownloadsScreenInternal(
                                 when (it) {
                                     DismissValue.DismissedToStart -> {
                                         if(uiState.expandedMediaIds.contains(job.mediaId)) {
-                                            toggleExpansion(job.mediaId)
+                                            uiState.onToggleExpansion(job.mediaId)
                                         }
                                         show = false
                                     }
@@ -182,7 +160,7 @@ private fun DownloadsScreenInternal(
                         LaunchedEffect(show) {
                             if(!show) {
                                 delay(delayTime.toLong())
-                                deleteDownload(job)
+                                uiState.onDeleteDownload(job)
                             }
                         }
 
@@ -299,7 +277,7 @@ private fun DownloadsScreenInternal(
                                                         .size(36.dp)
                                                         .clip(shape = CircleShape)
                                                         .background(color = Color.Black.copy(alpha = 0.5f))
-                                                        .clickable { playNext(job) }
+                                                        .clickable { uiState.onPlayNext(job) }
                                                 )
                                             }
                                         }
@@ -457,7 +435,7 @@ private fun DownloadsScreenInternal(
                                                     .size(36.dp)
                                                     .clip(shape = CircleShape)
                                                     .background(color = Color.Black.copy(alpha = 0.5f))
-                                                    .clickable { playItem(job, dl) }
+                                                    .clickable { uiState.onPlayItem(job, dl) }
                                             )
                                         }
                                     }
@@ -608,7 +586,7 @@ private fun DownloadsScreenInternal(
         MultiDownloadDialog(
             onSave = { newCount ->
                 showEditDownloadDialog = false
-                modifyDownload(selectedJob!!, newCount)
+                uiState.onModifyDownload(selectedJob!!, newCount)
             },
             title = when(selectedJob!!.mediaType) {
                 MediaTypes.Series -> stringResource(R.string.download_series)
@@ -629,7 +607,7 @@ private fun DownloadsScreenInternal(
             onNo = { showDeleteAllDownloads = false },
             onYes = {
                 showDeleteAllDownloads = false
-                deleteAll()
+                uiState.onDeleteAll()
             },
             title = stringResource(R.string.please_confirm),
             message = stringResource(R.string.are_you_sure_you_want_to_delete_all_downloads)
@@ -637,15 +615,10 @@ private fun DownloadsScreenInternal(
     }
 
     if(uiState.showErrorDialog) {
-        ErrorDialog(onDismissRequest = hideError, message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
     }
 
 }
-
-
-
-
-
 
 
 
@@ -698,16 +671,7 @@ private fun DownloadScreenPreview() {
 
 
     PreviewBase {
-        DownloadsScreenInternal(
-            hideError = { },
-            playNext = { },
-            playItem = { _: UIJob, _: UIDownload -> },
-            deleteDownload = { },
-            deleteAll = { },
-            toggleExpansion = { },
-            modifyDownload = { _: UIJob, _: Int -> },
-            uiState = uiState
-        )
+        DownloadsScreenInternal(uiState = uiState)
     }
 }
 

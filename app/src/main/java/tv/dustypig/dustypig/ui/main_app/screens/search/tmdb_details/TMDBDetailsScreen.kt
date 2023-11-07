@@ -47,6 +47,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -75,10 +76,6 @@ fun TMDBDetailsScreen(vm: TMDBDetailsViewModel) {
 
     val uiState by vm.uiState.collectAsState()
     TMDBDetailsScreenInternal(
-        popBackStack = vm::popBackStack,
-        hideError =vm::hideErrorDialog,
-        requestTitle = vm::requestTitle,
-        cancelRequest = vm::cancelRequest,
         uiState = uiState,
         routeNavigator = vm
     )
@@ -86,10 +83,6 @@ fun TMDBDetailsScreen(vm: TMDBDetailsViewModel) {
 
 @Composable
 private fun TMDBDetailsScreenInternal(
-    popBackStack: () -> Unit,
-    hideError: () -> Unit,
-    requestTitle: (Int?) -> Unit,
-    cancelRequest: () -> Unit,
     uiState: TMDBDetailsUIState,
     routeNavigator: RouteNavigator
 ) {
@@ -108,7 +101,7 @@ private fun TMDBDetailsScreenInternal(
     Scaffold(
         topBar = {
             CommonTopAppBar(
-                onClick = popBackStack,
+                onClick = uiState.onPopBackStack,
                 text = if(uiState.isMovie) stringResource(R.string.movie_info) else stringResource(R.string.series_info)
             )
         }
@@ -117,7 +110,6 @@ private fun TMDBDetailsScreenInternal(
         OnDevice(
             onPhone = {
                 PhoneLayout(
-                    cancelRequest = cancelRequest,
                     uiState = uiState,
                     criticalError = criticalError,
                     routeNavigator = routeNavigator,
@@ -129,7 +121,6 @@ private fun TMDBDetailsScreenInternal(
                 OnOrientation(
                     onPortrait = {
                         PhoneLayout(
-                            cancelRequest = cancelRequest,
                             uiState = uiState,
                             criticalError = criticalError,
                             routeNavigator = routeNavigator,
@@ -139,7 +130,6 @@ private fun TMDBDetailsScreenInternal(
                     },
                     onLandscape = {
                         HorizontalTabletLayout(
-                            cancelRequest = cancelRequest,
                             uiState = uiState,
                             criticalError = criticalError,
                             routeNavigator = routeNavigator,
@@ -205,7 +195,7 @@ private fun TMDBDetailsScreenInternal(
                     enabled = friendId != -1,
                     onClick = {
                         showFriendsDialog.value = false
-                        requestTitle(friendId)
+                        uiState.onRequestTitle(friendId)
                     }
                 ) {
                     Text(stringResource(R.string.save))
@@ -220,7 +210,7 @@ private fun TMDBDetailsScreenInternal(
     }
 
     if(uiState.showErrorDialog) {
-        ErrorDialog(onDismissRequest = hideError, message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
     }
 }
 
@@ -228,7 +218,6 @@ private fun TMDBDetailsScreenInternal(
 
 @Composable
 private fun HorizontalTabletLayout(
-    cancelRequest: () -> Unit,
     uiState: TMDBDetailsUIState,
     criticalError: Boolean,
     routeNavigator: RouteNavigator,
@@ -277,7 +266,6 @@ private fun HorizontalTabletLayout(
             horizontalAlignment = columnAlignment
         ) {
             InfoLayout(
-                cancelRequest = cancelRequest,
                 uiState = uiState,
                 criticalError = criticalError,
                 showFriendsDialog = showFriendsDialog,
@@ -289,7 +277,6 @@ private fun HorizontalTabletLayout(
 
 @Composable
 private fun PhoneLayout(
-    cancelRequest: () -> Unit,
     uiState: TMDBDetailsUIState,
     criticalError: Boolean,
     routeNavigator: RouteNavigator,
@@ -351,7 +338,6 @@ private fun PhoneLayout(
         }
 
         InfoLayout(
-            cancelRequest = cancelRequest,
             uiState = uiState,
             criticalError = criticalError,
             showFriendsDialog = showFriendsDialog,
@@ -365,7 +351,6 @@ private fun PhoneLayout(
 
 @Composable
 fun InfoLayout(
-    cancelRequest: () -> Unit,
     uiState: TMDBDetailsUIState,
     criticalError: Boolean,
     showFriendsDialog: MutableState<Boolean>,
@@ -419,9 +404,9 @@ fun InfoLayout(
 
                 if(uiState.requestPermissions != TitleRequestPermissions.Disabled) {
 
-                    val configuration = LocalConfiguration.current
+                    val isTablet = LocalContext.current.isTablet()
                     val buttonModifier = remember {
-                        if(configuration.isTablet()) Modifier.width(320.dp) else Modifier.fillMaxWidth()
+                        if(isTablet) Modifier.width(320.dp) else Modifier.fillMaxWidth()
                     }
 
                     when(uiState.requestStatus) {
@@ -440,7 +425,7 @@ fun InfoLayout(
 
                         RequestStatus.RequestSentToMain, RequestStatus.RequestSentToAccount -> {
                             Button(
-                                onClick = cancelRequest,
+                                onClick = uiState.onCancelRequest,
                                 modifier = buttonModifier,
                                 enabled = !uiState.busy
                             ) {
@@ -525,10 +510,6 @@ private  fun TMDBDetailsScreenPreview() {
 
     PreviewBase {
         TMDBDetailsScreenInternal(
-            popBackStack = { },
-            hideError = { },
-            requestTitle = { _ -> },
-            cancelRequest = { },
             uiState = uiState,
             routeNavigator = MyRouteNavigator()
         )

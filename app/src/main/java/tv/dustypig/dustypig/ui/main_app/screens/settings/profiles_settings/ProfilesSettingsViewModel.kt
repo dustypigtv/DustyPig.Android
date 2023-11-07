@@ -32,7 +32,14 @@ class ProfilesSettingsViewModel @Inject constructor(
         }
     }
 
-    private val _uiState = MutableStateFlow((ProfilesSettingsUIState()))
+    private val _uiState = MutableStateFlow(
+        ProfilesSettingsUIState(
+            onPopBackStack = ::popBackStack,
+            onHideError = ::hideError,
+            onNavToAddProfile = ::navToAddProfile,
+            onNavToProfile = ::navToProfile
+        )
+    )
     val uiState = _uiState.asStateFlow()
 
     init {
@@ -75,11 +82,11 @@ class ProfilesSettingsViewModel @Inject constructor(
         }
     }
 
-    fun hideError() {
+    private fun hideError() {
         popBackStack()
     }
 
-    fun navToAddProfile() {
+    private fun navToAddProfile() {
         val color = listOf("blue", "gold", "green", "grey", "red").random()
         EditProfileViewModel.preloadAvatar = "https://s3.dustypig.tv/user-art/profile/${color}.png"
         EditProfileViewModel.selectedProfileId = 0
@@ -87,7 +94,7 @@ class ProfilesSettingsViewModel @Inject constructor(
     }
 
 
-    fun navToProfile(id: Int) {
+    private fun navToProfile(id: Int) {
         EditProfileViewModel.preloadAvatar = _uiState.value.profiles.first { it.id == id }.avatarUrl ?: ""
         EditProfileViewModel.selectedProfileId = id
         navigateToRoute(EditProfileNav.route)

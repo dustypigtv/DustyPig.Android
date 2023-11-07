@@ -1,6 +1,7 @@
 package tv.dustypig.dustypig.ui.main_app.screens.series_details
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,13 +18,14 @@ import tv.dustypig.dustypig.api.models.OverrideRequestStatus
 import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.api.repositories.SeriesRepository
 import tv.dustypig.dustypig.global_managers.PlayerStateManager
+import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
+import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
 import tv.dustypig.dustypig.global_managers.media_cache_manager.MediaCacheManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.composables.CreditsData
-import tv.dustypig.dustypig.ui.main_app.DetailsScreenBaseViewModel
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
@@ -36,20 +38,35 @@ import javax.inject.Inject
 class SeriesDetailsViewModel  @Inject constructor(
     private val mediaRepository: MediaRepository,
     private val seriesRepository: SeriesRepository,
+    private val downloadManager: DownloadManager,
     routeNavigator: RouteNavigator,
-    downloadManager: DownloadManager,
+    castManager: CastManager,
     savedStateHandle: SavedStateHandle
-): DetailsScreenBaseViewModel(routeNavigator, downloadManager, MediaTypes.Series) {
+): ViewModel(), RouteNavigator by routeNavigator {
 
-
-
-    private val _uiState = MutableStateFlow(SeriesDetailsUIState())
+    private val _uiState = MutableStateFlow(
+        SeriesDetailsUIState(
+            castManager = castManager,
+            onAddToPlaylist = ::addToPlaylist,
+            onRequestAccess = ::requestAccess,
+            onMarkWatched = ::markWatched,
+            onManagePermissions = ::managePermissions,
+            onPlay = ::playUpNext,
+            onPlayEpisode = ::playEpisode,
+            onToggleWatchList = ::toggleWatchList,
+            onUpdateDownload = ::updateDownloads,
+            onHideError = ::hideError,
+            onPopBackStack = ::popBackStack,
+            onNavToEpisodeInfo = ::navToEpisodeInfo,
+            onSelectSeason = ::selectSeason
+        )
+    )
     val uiState: StateFlow<SeriesDetailsUIState> = _uiState.asStateFlow()
 
     private val _basicCacheId: String = savedStateHandle.getOrThrow(SeriesDetailsNav.KEY_BASIC_CACHE_ID)
-    override val mediaId: Int = savedStateHandle.getOrThrow(SeriesDetailsNav.KEY_MEDIA_ID)
+    private val mediaId: Int = savedStateHandle.getOrThrow(SeriesDetailsNav.KEY_MEDIA_ID)
 
-    private lateinit var _detailedSeries: DetailedSeries
+    private var _detailedSeries = DetailedSeries()
     private val _detailCacheId = UUID.randomUUID().toString()
 
     init {
@@ -66,6 +83,29 @@ class SeriesDetailsViewModel  @Inject constructor(
                 updateData()
             }
         }
+
+        viewModelScope.launch {
+            downloadManager.downloads.collectLatest { jobLst ->
+                val job = jobLst.firstOrNull {
+                    it.mediaId == mediaId && it.mediaType == MediaTypes.Series
+                }
+                if(job == null) {
+                    _uiState.update {
+                        it.copy(
+                            downloadStatus = DownloadStatus.None,
+                            currentDownloadCount = 0
+                        )
+                    }
+                } else {
+                    _uiState.update {
+                        it.copy(
+                            downloadStatus = job.status,
+                            currentDownloadCount = job.count
+                        )
+                    }
+                }
+            }
+        }
     }
 
     override fun onCleared() {
@@ -74,84 +114,68 @@ class SeriesDetailsViewModel  @Inject constructor(
         MediaCacheManager.Series.remove(_detailCacheId)
     }
 
-    private fun updateData() {
-        baseTitleInfoUIState.update {
+    private suspend fun updateData() {
+        _uiState.update {
             it.copy(
-                title = MediaCacheManager.getBasicInfo(_basicCacheId).title,
-                mediaType = MediaTypes.Series,
-                playClick = ::playUpNext,
-                toggleWatchList = ::toggleWatchList,
-                updateDownload = ::updateDownloads,
-                addToPlaylist = ::addToPlaylist,
-                markSeriesWatched = ::markWatched,
-                requestAccess = ::requestAccess,
-                manageClick = ::manageParentalControls,
+                title = MediaCacheManager.getBasicInfo(_basicCacheId).title
             )
         }
 
-        viewModelScope.launch {
-            try {
-                _detailedSeries = seriesRepository.details(mediaId)
-                MediaCacheManager.Series[_detailCacheId] = _detailedSeries
+        try {
+            _detailedSeries = seriesRepository.details(mediaId)
+            MediaCacheManager.Series[_detailCacheId] = _detailedSeries
 
-                val episodes = _detailedSeries.episodes ?: listOf()
-                if(episodes.isEmpty()) {
-                    throw Exception("No episodes found.")
-                }
-
-                val allSeasons = ArrayList<UShort>()
-                for(ep in episodes) {
-                    if(!allSeasons.contains(ep.seasonNumber))
-                        allSeasons.add(ep.seasonNumber)
-                }
-
-                val upNext: DetailedEpisode = episodes.firstOrNull { it.upNext } ?: episodes.first()
-
-
-                val unPlayed = upNext.id == episodes.first().id && (upNext.played == null || upNext.played < 1)
-                val fullyPlayed = upNext.id == episodes.last().id && (upNext.played ?: 0.0) >= (upNext.creditStartTime ?: (upNext.length - 30.0))
-
-                _uiState.update {
-                    it.copy(
-                        loading = false,
-                        posterUrl = _detailedSeries.artworkUrl,
-                        backdropUrl = _detailedSeries.backdropUrl ?: "",
-                        seasons = allSeasons.toList(),
-                        upNextSeason = upNext.seasonNumber,
-                        selectedSeason = upNext.seasonNumber,
-                        episodes = episodes,
-                        creditsData = CreditsData(
-                            genres = Genres(_detailedSeries.genres).toList(),
-                            cast = _detailedSeries.cast ?: listOf(),
-                            directors = _detailedSeries.directors ?: listOf(),
-                            producers = _detailedSeries.producers ?: listOf(),
-                            writers = _detailedSeries.writers ?: listOf(),
-                            owner = _detailedSeries.owner ?: ""
-                        )
-                    )
-                }
-
-                baseTitleInfoUIState.update {
-                    it.copy(
-                        inWatchList = _detailedSeries.inWatchlist,
-                        title = _detailedSeries.title,
-                        canManage = _detailedSeries.canManage,
-                        canPlay = _detailedSeries.canPlay,
-                        rated = _detailedSeries.rated.toString(),
-                        overview = (if(unPlayed) _detailedSeries.description else upNext.description) ?: "",
-                        partiallyPlayed = !(unPlayed || fullyPlayed),
-                        upNextSeason = if(unPlayed) null else upNext.seasonNumber,
-                        upNextEpisode = if(unPlayed) null else upNext.episodeNumber,
-                        episodeTitle = if(unPlayed) "" else upNext.title,
-                        titleRequestPermissions = _detailedSeries.titleRequestPermissions,
-                        accessRequestStatus = _detailedSeries.accessRequestStatus,
-                        accessRequestBusy = false,
-                        mediaId = mediaId
-                    )
-                }
-            } catch (ex: Exception) {
-                setError(ex = ex, criticalError = true)
+            val episodes = _detailedSeries.episodes ?: listOf()
+            if(episodes.isEmpty()) {
+                throw Exception("No episodes found.")
             }
+
+            val allSeasons = ArrayList<UShort>()
+            for(ep in episodes) {
+                if(!allSeasons.contains(ep.seasonNumber))
+                    allSeasons.add(ep.seasonNumber)
+            }
+
+            val upNext: DetailedEpisode = episodes.firstOrNull { it.upNext } ?: episodes.first()
+
+
+            val unPlayed = upNext.id == episodes.first().id && (upNext.played == null || upNext.played < 1)
+            val fullyPlayed = upNext.id == episodes.last().id && (upNext.played ?: 0.0) >= (upNext.creditStartTime ?: (upNext.length - 30.0))
+
+            _uiState.update {
+                it.copy(
+                    loading = false,
+                    posterUrl = _detailedSeries.artworkUrl,
+                    backdropUrl = _detailedSeries.backdropUrl ?: "",
+                    seasons = allSeasons.toList(),
+                    selectedSeason = upNext.seasonNumber,
+                    episodes = episodes,
+                    creditsData = CreditsData(
+                        genres = Genres(_detailedSeries.genres).toList(),
+                        cast = _detailedSeries.cast ?: listOf(),
+                        directors = _detailedSeries.directors ?: listOf(),
+                        producers = _detailedSeries.producers ?: listOf(),
+                        writers = _detailedSeries.writers ?: listOf(),
+                        owner = _detailedSeries.owner ?: ""
+                    ),
+                    inWatchList = _detailedSeries.inWatchlist,
+                    title = _detailedSeries.title,
+                    canManage = _detailedSeries.canManage,
+                    canPlay = _detailedSeries.canPlay,
+                    rated = _detailedSeries.rated.toString(),
+                    overview = (if(unPlayed) _detailedSeries.description else upNext.description) ?: "",
+                    partiallyPlayed = !(unPlayed || fullyPlayed),
+                    upNextSeason = if(unPlayed) null else upNext.seasonNumber,
+                    upNextEpisode = if(unPlayed) null else upNext.episodeNumber,
+                    episodeTitle = if(unPlayed) "" else upNext.title,
+                    titleRequestPermissions = _detailedSeries.titleRequestPermissions,
+                    accessRequestStatus = _detailedSeries.accessRequestStatus,
+                    accessRequestBusy = false,
+                    subscribed = _detailedSeries.subscribed
+                )
+            }
+        } catch (ex: Exception) {
+            setError(ex = ex, criticalError = true)
         }
     }
 
@@ -162,11 +186,7 @@ class SeriesDetailsViewModel  @Inject constructor(
                 loading = false,
                 showErrorDialog = true,
                 errorMessage = ex.localizedMessage,
-                criticalError = criticalError
-            )
-        }
-        baseTitleInfoUIState.update {
-            it.copy(
+                criticalError = criticalError,
                 accessRequestBusy = false,
                 watchListBusy = false,
                 markWatchedBusy = false
@@ -174,7 +194,7 @@ class SeriesDetailsViewModel  @Inject constructor(
         }
     }
 
-    fun hideError() {
+    private fun hideError() {
         if(_uiState.value.criticalError) {
             popBackStack()
         }
@@ -185,24 +205,21 @@ class SeriesDetailsViewModel  @Inject constructor(
         }
     }
 
-
     private fun playUpNext() {
-        val episodes = _detailedSeries.episodes ?: listOf()
-        val upNext: DetailedEpisode = episodes.firstOrNull { it.upNext } ?: episodes.first()
         navigateToRoute(
             PlayerNav.getRoute(
-                cacheId = _detailCacheId,
-                sourceType = PlayerNav.SOURCE_TYPE_SERIES,
-                upNextId = upNext.id
+                mediaId = _detailedSeries.id,
+                sourceType = PlayerNav.MEDIA_TYPE_SERIES,
+                upNextId = -1
             )
         )
     }
 
-    fun playEpisode(id: Int) {
+    private fun playEpisode(id: Int) {
         navigateToRoute(
             PlayerNav.getRoute(
-                cacheId = _detailCacheId,
-                sourceType = PlayerNav.SOURCE_TYPE_SERIES,
+                mediaId = _detailedSeries.id,
+                sourceType = PlayerNav.MEDIA_TYPE_SERIES,
                 upNextId = id
             )
         )
@@ -217,16 +234,15 @@ class SeriesDetailsViewModel  @Inject constructor(
         }
     }
 
-
     private fun requestAccess() {
-        baseTitleInfoUIState.update {
+        _uiState.update {
             it.copy(accessRequestBusy = true)
         }
 
         viewModelScope.launch {
             try{
                 mediaRepository.requestAccessOverride(mediaId)
-                baseTitleInfoUIState.update {
+                _uiState.update {
                     it.copy(
                         accessRequestBusy = false,
                         accessRequestStatus = OverrideRequestStatus.Requested
@@ -239,7 +255,7 @@ class SeriesDetailsViewModel  @Inject constructor(
     }
 
     private fun toggleWatchList() {
-        baseTitleInfoUIState.update {
+        _uiState.update {
             it.copy(watchListBusy = true)
         }
 
@@ -247,16 +263,16 @@ class SeriesDetailsViewModel  @Inject constructor(
 
             try {
 
-                if(baseTitleInfoUIState.value.inWatchList) {
+                if(_uiState.value.inWatchList) {
                     mediaRepository.deleteFromWatchlist(mediaId)
                 } else {
                     mediaRepository.addToWatchlist(mediaId)
                 }
 
-                baseTitleInfoUIState.update {
+                _uiState.update {
                     it.copy(
                         watchListBusy = false,
-                        inWatchList = baseTitleInfoUIState.value.inWatchList.not()
+                        inWatchList = it.inWatchList.not()
                     )
                 }
 
@@ -268,7 +284,7 @@ class SeriesDetailsViewModel  @Inject constructor(
     }
 
     private fun markWatched(removeFromContinueWatching: Boolean) {
-        baseTitleInfoUIState.update {
+        _uiState.update {
             it.copy(markWatchedBusy = true)
         }
         viewModelScope.launch {
@@ -278,7 +294,7 @@ class SeriesDetailsViewModel  @Inject constructor(
                 } else {
                     seriesRepository.markWatched(mediaId)
                 }
-                baseTitleInfoUIState.update {
+                _uiState.update {
                     it.copy(
                         markWatchedBusy = false,
                         partiallyPlayed = false
@@ -296,11 +312,11 @@ class SeriesDetailsViewModel  @Inject constructor(
         navigateToRoute(AddToPlaylistNav.getRouteForId(mediaId, true))
     }
 
-    private fun manageParentalControls() {
+    private fun managePermissions() {
         navigateToRoute(ManageParentalControlsForTitleNav.getRouteForId(mediaId))
     }
 
-    fun navToEpisodeInfo(id: Int) {
+    private fun navToEpisodeInfo(id: Int) {
         val episode = _detailedSeries.episodes?.firstOrNull {
             it.id == id
         } ?: return
@@ -325,7 +341,7 @@ class SeriesDetailsViewModel  @Inject constructor(
     /**
      * Put this here to survive recomposition when returning from navigation
      */
-    fun selectSeason(seasonNumber: UShort) {
+    private fun selectSeason(seasonNumber: UShort) {
         _uiState.update {
             it.copy(
                 selectedSeason = seasonNumber

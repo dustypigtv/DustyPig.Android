@@ -45,19 +45,12 @@ import tv.dustypig.dustypig.ui.main_app.screens.settings.theme_settings.ThemeSet
 @Composable
 fun SettingsScreen(vm: SettingsViewModel) {
     val uiState by vm.uiState.collectAsState()
-
-    SettingsScreenInternal(
-        navToRoute = vm::navigateToRoute,
-        navToMyProfile = vm::navToMyProfile,
-        uiState = uiState
-    )
+    SettingsScreenInternal(uiState = uiState)
 }
 
 
 @Composable
 private fun SettingsScreenInternal(
-    navToRoute: (String) -> Unit,
-    navToMyProfile: () -> Unit,
     uiState: SettingsUIState
 ) {
 
@@ -74,19 +67,19 @@ private fun SettingsScreenInternal(
         Spacer(modifier = Modifier.height(1.dp))
 
 
-        LinkRow(text = stringResource(R.string.playback_settings), onClick = { navToRoute(PlaybackSettingsNav.route) })
-        LinkRow(text = stringResource(R.string.notification_settings), onClick = { navToRoute(NotificationSettingsNav.route) })
-        LinkRow(text = stringResource(R.string.download_settings), onClick = { navToRoute(DownloadSettingsNav.route) })
-        LinkRow(text = stringResource(R.string.theme), onClick = { navToRoute(ThemeSettingsNav.route) })
-        LinkRow(text = stringResource(R.string.switch_profiles), onClick = { navToRoute(SwitchProfilesNav.route) })
+        LinkRow(text = stringResource(R.string.playback_settings), onClick = { uiState.onNavToRoute(PlaybackSettingsNav.route) })
+        LinkRow(text = stringResource(R.string.notification_settings), onClick = { uiState.onNavToRoute(NotificationSettingsNav.route) })
+        LinkRow(text = stringResource(R.string.download_settings), onClick = { uiState.onNavToRoute(DownloadSettingsNav.route) })
+        LinkRow(text = stringResource(R.string.theme), onClick = { uiState.onNavToRoute(ThemeSettingsNav.route) })
+        LinkRow(text = stringResource(R.string.switch_profiles), onClick = { uiState.onNavToRoute(SwitchProfilesNav.route) })
 
-        LinkRow(text = stringResource(R.string.account_settings), onClick = { navToRoute(AccountSettingsNav.route)  })
+        LinkRow(text = stringResource(R.string.account_settings), onClick = { uiState.onNavToRoute(AccountSettingsNav.route)  })
 
         if(uiState.isMainProfile) {
-            LinkRow(text = stringResource(R.string.manage_profiles), onClick = { navToRoute(ProfilesSettingsNav.route) })
-            LinkRow(text = stringResource(R.string.manage_friends), onClick = { navToRoute(FriendsSettingsNav.route) })
+            LinkRow(text = stringResource(R.string.manage_profiles), onClick = { uiState.onNavToRoute(ProfilesSettingsNav.route) })
+            LinkRow(text = stringResource(R.string.manage_friends), onClick = { uiState.onNavToRoute(FriendsSettingsNav.route) })
         } else {
-            LinkRow(text = stringResource(R.string.my_profile), onClick = navToMyProfile)
+            LinkRow(text = stringResource(R.string.my_profile), onClick = uiState.onNavToMyProfile)
         }
 
     }
@@ -126,11 +119,7 @@ private fun SettingsScreenPreview() {
     PreviewBase {
         Scaffold {
             Box(modifier = Modifier.padding(it)) {
-                SettingsScreenInternal(
-                    navToRoute = { _ -> },
-                    navToMyProfile = { },
-                    uiState = uiState
-                )
+                SettingsScreenInternal(uiState = uiState)
             }
         }
     }

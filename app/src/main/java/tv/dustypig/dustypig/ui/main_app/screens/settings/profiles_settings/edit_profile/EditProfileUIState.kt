@@ -6,6 +6,8 @@ import tv.dustypig.dustypig.api.models.TVRatings
 import tv.dustypig.dustypig.api.models.TitleRequestPermissions
 
 data class EditProfileUIState(
+
+    //Data
     val busy: Boolean = true,
     val loadingComplete: Boolean = false,
     val showErrorDialog: Boolean = false,
@@ -21,5 +23,25 @@ data class EditProfileUIState(
     val selectedLibraryIds: List<Int> = listOf(),
     val maxMovieRating: MovieRatings = MovieRatings.G,
     val maxTVRating: TVRatings = TVRatings.Y,
-    val titleRequestPermissions: TitleRequestPermissions = TitleRequestPermissions.RequiresAuthorization
+    val titleRequestPermissions: TitleRequestPermissions = TitleRequestPermissions.RequiresAuthorization,
+
+    //Events
+    val onPopBackStack: () -> Unit = { },
+    val onSetError: (ex: Exception, criticalError: Boolean) -> Unit = { _, _ -> },
+    val onHideError: () -> Unit = { },
+    val onInfoLoaded: () -> Unit = { },
+    val onDeleteProfile: () -> Unit = { },
+
+    val onSaveProfile: (
+        name: String,
+        pin: String,
+        deletePin: Boolean,
+        maxMovieRating: MovieRatings,
+        maxTVRating: TVRatings,
+        titleRequestPermissions: TitleRequestPermissions,
+        lockedState: LockedState,
+        selectedLibs: List<Int>,
+        avatarFile: String
+    ) -> Unit = { _, _, _, _, _, _, _, _, _ -> },
+
 )

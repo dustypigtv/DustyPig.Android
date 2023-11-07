@@ -27,7 +27,14 @@ class AddToPlaylistViewModel  @Inject constructor(
     savedStateHandle: SavedStateHandle
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-    private val _uiState = MutableStateFlow(AddToPlaylistUIState())
+    private val _uiState = MutableStateFlow(
+        AddToPlaylistUIState(
+            onPopBackStack = ::popBackStack,
+            onHideError = ::hideError,
+            onNewPlaylist = ::newPlaylist,
+            onSelectPlaylist = ::selectPlaylist
+        )
+    )
     val uiState = _uiState.asStateFlow()
 
     private var _existingPlaylists: List<BasicPlaylist> = listOf()
@@ -64,7 +71,7 @@ class AddToPlaylistViewModel  @Inject constructor(
         }
     }
 
-    fun hideError() {
+    private fun hideError() {
         if(_uiState.value.criticalError) {
             popBackStack()
         } else {
@@ -76,7 +83,7 @@ class AddToPlaylistViewModel  @Inject constructor(
         }
     }
 
-    fun newPlaylist(name: String, autoAddEpisodes: Boolean) {
+    private fun newPlaylist(name: String, autoAddEpisodes: Boolean) {
         _uiState.update {
             it.copy(
                 busy = true
@@ -107,7 +114,7 @@ class AddToPlaylistViewModel  @Inject constructor(
         }
     }
 
-    fun selectPlaylist(id: Int, autoAddEpisodes: Boolean) {
+    private fun selectPlaylist(id: Int, autoAddEpisodes: Boolean) {
         _uiState.update {
             it.copy(
                 busy = true

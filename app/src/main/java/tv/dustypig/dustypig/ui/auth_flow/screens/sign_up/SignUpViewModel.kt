@@ -31,23 +31,26 @@ class SignUpViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(
         SignUpUIState(
-            email = SharedEmailModel.uiState.value.email
+            email = SharedEmailModel.uiState.value.email,
+            onHideError = ::hideError,
+            onSignUp = ::signUp,
+            onNavToSignIn = ::navToSignIn
         )
     )
     val uiState: StateFlow<SignUpUIState> = _uiState.asStateFlow()
 
-    fun hideError() {
+    private fun hideError() {
         _uiState.update {
             it.copy(showError = false)
         }
     }
 
-    fun navToSignIn(email: String) {
+    private fun navToSignIn(email: String) {
         SharedEmailModel.updateEmail(email)
         popBackStack()
     }
 
-    fun signUp(name: String, email: String, password: String) {
+    private fun signUp(name: String, email: String, password: String) {
 
         _uiState.update {
             it.copy(

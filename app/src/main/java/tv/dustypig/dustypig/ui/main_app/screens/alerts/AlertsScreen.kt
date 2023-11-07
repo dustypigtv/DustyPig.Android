@@ -54,20 +54,12 @@ import java.util.Date
 @Composable
 fun AlertsScreen(vm: AlertsViewModel) {
     val uiState by vm.uiState.collectAsState()
-    AlertsScreenInternal(
-        itemClicked = vm::itemClicked,
-        deleteItem = vm::deleteItem,
-        uiState = uiState
-    )
+    AlertsScreenInternal(uiState = uiState)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AlertsScreenInternal(
-    itemClicked: (Int) -> Unit,
-    deleteItem: (Int) -> Unit,
-    uiState: AlertsUIState
-) {
+private fun AlertsScreenInternal(uiState: AlertsUIState) {
 
     val delayTime = 300
 
@@ -104,7 +96,7 @@ private fun AlertsScreenInternal(
                     LaunchedEffect(show) {
                         if(!show) {
                             delay(delayTime.toLong())
-                            deleteItem(notification.id)
+                            uiState.onDeleteItem(notification.id)
                         }
                     }
 
@@ -149,7 +141,7 @@ private fun AlertsScreenInternal(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable {
-                                            itemClicked(notification.id)
+                                            uiState.onItemClicked(notification.id)
                                         }
                                         .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp), shape = RoundedCornerShape(4.dp))
                                         .clip(shape = RoundedCornerShape(4.dp))
@@ -230,11 +222,7 @@ private fun AlertsViewModelPreview() {
     PreviewBase {
         Scaffold {
             Box(modifier = Modifier.padding(it)) {
-                AlertsScreenInternal(
-                    itemClicked = { _ -> },
-                    deleteItem = { _ -> },
-                    uiState = uiState
-                )
+                AlertsScreenInternal(uiState = uiState)
             }
         }
     }

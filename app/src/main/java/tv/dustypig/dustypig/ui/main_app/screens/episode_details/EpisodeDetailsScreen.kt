@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -50,7 +51,7 @@ import compose.icons.fontawesomeicons.solid.Play
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
 import tv.dustypig.dustypig.ui.composables.ActionButton
-import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
+import tv.dustypig.dustypig.ui.composables.CastTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
 import tv.dustypig.dustypig.ui.composables.OnOrientation
@@ -60,33 +61,13 @@ import tv.dustypig.dustypig.ui.isTablet
 
 @Composable
 fun EpisodeDetailsScreen (vm: EpisodeDetailsViewModel) {
-
     val uiState: EpisodeDetailsUIState by vm.uiState.collectAsState()
-
-    EpisodeDetailsScreenInternal(
-        popBackStack = vm::popBackStack,
-        hideError = vm::hideError,
-        addDownload = vm::addDownload,
-        removeDownload = vm::removeDownload,
-        play = vm::play,
-        addToPlaylist = vm::addToPlaylist,
-        goToSeries = vm::goToSeries,
-        uiState = uiState
-    )
+    EpisodeDetailsScreenInternal(uiState = uiState)
 }
 
 
 @Composable
-private fun EpisodeDetailsScreenInternal (
-    popBackStack: () -> Unit,
-    hideError: () -> Unit,
-    addDownload: () -> Unit,
-    removeDownload: () -> Unit,
-    play: () -> Unit,
-    addToPlaylist: () -> Unit,
-    goToSeries: () -> Unit,
-    uiState: EpisodeDetailsUIState
-) {
+private fun EpisodeDetailsScreenInternal (uiState: EpisodeDetailsUIState) {
 
     val criticalError by remember {
         derivedStateOf {
@@ -100,7 +81,7 @@ private fun EpisodeDetailsScreenInternal (
 
     fun toggleDownload() {
         if(uiState.downloadStatus == DownloadStatus.None) {
-            addDownload()
+            uiState.onAddDownload()
         } else {
             showRemoveDownloadDialog.value = true
         }
@@ -109,19 +90,20 @@ private fun EpisodeDetailsScreenInternal (
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = popBackStack, text = stringResource(R.string.episode_info))
+            CastTopAppBar(
+                onClick = uiState.onPopBackStack,
+                text = stringResource(R.string.episode_info),
+                castManager = uiState.castManager
+            )
         }
     ) { innerPadding ->
 
         OnDevice(
             onPhone = {
                 PhoneLayout(
-                    play = play,
-                    addToPlaylist = addToPlaylist,
-                    goToSeries = goToSeries,
+                    toggleDownload = ::toggleDownload,
                     uiState = uiState,
                     criticalError = criticalError,
-                    toggleDownload = { toggleDownload() },
                     innerPadding = innerPadding
                 )
             },
@@ -129,23 +111,17 @@ private fun EpisodeDetailsScreenInternal (
                 OnOrientation(
                     onPortrait = {
                         PhoneLayout(
-                            play = play,
-                            addToPlaylist = addToPlaylist,
-                            goToSeries = goToSeries,
+                            toggleDownload = ::toggleDownload,
                             uiState = uiState,
                             criticalError = criticalError,
-                            toggleDownload = { toggleDownload() },
                             innerPadding = innerPadding
                         )
                     },
                     onLandscape = {
                         HorizontalTabletLayout(
-                            play = play,
-                            addToPlaylist = addToPlaylist,
-                            goToSeries = goToSeries,
+                            toggleDownload = ::toggleDownload,
                             uiState = uiState,
                             criticalError = criticalError,
-                            toggleDownload = { toggleDownload() },
                             innerPadding = innerPadding
                         )
                     })
@@ -158,7 +134,7 @@ private fun EpisodeDetailsScreenInternal (
             onNo = { showRemoveDownloadDialog.value = false },
             onYes = {
                 showRemoveDownloadDialog.value = false
-                removeDownload()
+                uiState.onRemoveDownload()
             },
             title = stringResource(R.string.confirm),
             message = stringResource(R.string.do_you_want_to_remove_the_download)
@@ -166,7 +142,7 @@ private fun EpisodeDetailsScreenInternal (
     }
 
     if(uiState.showErrorDialog) {
-        ErrorDialog(onDismissRequest = hideError, message = uiState.errorMessage)
+        ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
     }
 
 }
@@ -176,10 +152,7 @@ private fun EpisodeDetailsScreenInternal (
 
 @Composable
 private fun HorizontalTabletLayout(
-    play: () -> Unit,
-    addToPlaylist: () -> Unit,
     toggleDownload: () -> Unit,
-    goToSeries: () -> Unit,
     uiState: EpisodeDetailsUIState,
     criticalError: Boolean,
     innerPadding: PaddingValues
@@ -219,10 +192,7 @@ private fun HorizontalTabletLayout(
                 CircularProgressIndicator()
             } else if(!criticalError) {
                 InfoLayout(
-                    play = play,
-                    addToPlaylist = addToPlaylist,
                     toggleDownload = toggleDownload,
-                    goToSeries = goToSeries,
                     uiState = uiState
                 )
             }
@@ -234,10 +204,7 @@ private fun HorizontalTabletLayout(
 
 @Composable
 private fun PhoneLayout(
-    play: () -> Unit,
-    addToPlaylist: () -> Unit,
     toggleDownload: () -> Unit,
-    goToSeries: () -> Unit,
     uiState: EpisodeDetailsUIState,
     criticalError: Boolean,
     innerPadding: PaddingValues
@@ -286,10 +253,7 @@ private fun PhoneLayout(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 InfoLayout(
-                    play = play,
-                    addToPlaylist = addToPlaylist,
                     toggleDownload = toggleDownload,
-                    goToSeries = goToSeries,
                     uiState = uiState
                 )
             }
@@ -300,11 +264,8 @@ private fun PhoneLayout(
 
 @Composable
 private fun InfoLayout(
-    play: () -> Unit,
-    addToPlaylist: () -> Unit,
     toggleDownload: () -> Unit,
-    goToSeries: () -> Unit,
-    uiState: EpisodeDetailsUIState,
+    uiState: EpisodeDetailsUIState
 ) {
 
     Text(
@@ -323,8 +284,8 @@ private fun InfoLayout(
 
     if(uiState.canPlay) {
 
-        val configuration = LocalConfiguration.current
-        val buttonPadding = if(configuration.isTablet()) PaddingValues(0.dp, 0.dp) else PaddingValues(16.dp, 0.dp)
+        val isTablet = LocalContext.current.isTablet()
+        val buttonPadding = if(isTablet) PaddingValues(0.dp, 0.dp) else PaddingValues(16.dp, 0.dp)
 
         val downloadIcon = when(uiState.downloadStatus) {
             DownloadStatus.None -> Icons.Filled.Download
@@ -341,8 +302,8 @@ private fun InfoLayout(
 
 
         Button(
-                onClick = play,
-                modifier = (if(configuration.isTablet()) Modifier.width(320.dp) else Modifier.fillMaxWidth())
+                onClick = uiState.onPlay,
+                modifier = (if(isTablet) Modifier.width(320.dp) else Modifier.fillMaxWidth())
                     .padding(buttonPadding)
             ) {
             Icon(
@@ -370,7 +331,7 @@ private fun InfoLayout(
             Spacer(modifier = Modifier.width(24.dp))
 
             ActionButton(
-                onClick = { addToPlaylist() },
+                onClick = uiState.onAddToPlaylist,
                 caption = stringResource(R.string.add_to_playlist),
                 icon = Icons.Filled.PlaylistAdd
             )
@@ -383,7 +344,7 @@ private fun InfoLayout(
     
     if(uiState.showGoToSeries) {
         Spacer(modifier = Modifier.height(12.dp))
-        TextButton(onClick = goToSeries) {
+        TextButton(onClick = uiState.onGoToSeries) {
             Text(text = uiState.seriesTitle)
         }
     }
@@ -407,17 +368,7 @@ private fun EpisodeDetailsScreenPreview() {
         downloadStatus = DownloadStatus.Running
     )
 
-
     PreviewBase {
-        EpisodeDetailsScreenInternal(
-            popBackStack = { },
-            hideError = { },
-            addDownload = { },
-            removeDownload = { },
-            play = { },
-            addToPlaylist = { },
-            goToSeries = { },
-            uiState = uiState
-        )
+        EpisodeDetailsScreenInternal(uiState = uiState)
     }
 }

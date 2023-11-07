@@ -28,7 +28,14 @@ class SearchViewModel @Inject constructor(
         private const val TAG = "SearchViewModel"
     }
 
-    private val _uiState = MutableStateFlow(SearchUIState())
+    private val _uiState = MutableStateFlow(
+        SearchUIState(
+            onHideError = ::hideError,
+            onSearch = ::search,
+            onUpdateQuery = ::updateQuery,
+            onUpdateTabIndex = ::updateTabIndex
+        )
+    )
     val uiState: StateFlow<SearchUIState> = _uiState.asStateFlow()
 
     init {
@@ -41,7 +48,7 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    fun search() {
+    private fun search() {
 
         val query = _uiState.value.query.trim().lowercase()
 
@@ -100,13 +107,13 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    fun hideError() {
+    private fun hideError() {
         _uiState.update {
             it.copy(showErrorDialog = false)
         }
     }
 
-    fun updateQuery(query: String) {
+    private fun updateQuery(query: String) {
         _uiState.update {
             it.copy(query = query)
         }
@@ -115,7 +122,7 @@ class SearchViewModel @Inject constructor(
     /**
      * Set here to survive recomposition
      */
-    fun updateTabIndex(index: Int) {
+    private fun updateTabIndex(index: Int) {
         _uiState.update {
             it.copy(tabIndex = index)
         }

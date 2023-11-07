@@ -11,7 +11,6 @@ data class PlaylistItem (
     val title: String,
     val description: String,
     @SerializedName("artwork_url") val artworkUrl: String,
-    val played: Double?,
     val length: Double,
     @SerializedName("intro_start_time") val introStartTime: Double?,
     @SerializedName("intro_end_time") val introEndTime: Double?,

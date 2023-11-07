@@ -62,38 +62,12 @@ import tv.dustypig.dustypig.ui.composables.YesNoDialog
 @Composable
 fun EditProfileScreen(vm: EditProfileViewModel) {
     val uiState by vm.uiState.collectAsState()
-    EditProfileScreenInternal(
-        popBackStack = vm::popBackStack,
-        setError = vm::setError,
-        hideError = vm::hideError,
-        infoLoaded = vm::infoLoaded,
-        saveProfile = vm::saveProfile,
-        deleteProfile = vm::deleteProfile,
-        uiState = uiState
-    )
+    EditProfileScreenInternal(uiState = uiState)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun EditProfileScreenInternal(
-    popBackStack: () -> Unit,
-    setError: (Exception, Boolean) -> Unit,
-    hideError: () -> Unit,
-    infoLoaded: () -> Unit,
-    saveProfile: (
-        String,                     //name
-        String,                     //pin
-        Boolean,                    //deletePin
-        MovieRatings,
-        TVRatings,
-        TitleRequestPermissions,
-        LockedState,
-        List<Int>,                  //selectedLibraries
-        String                      //avatarFile
-    ) -> Unit,
-    deleteProfile: () -> Unit,
-    uiState: EditProfileUIState
-) {
+private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
 
     var newName by remember { mutableStateOf(uiState.name) }
     var nameError by remember { mutableStateOf(false) }
@@ -124,14 +98,14 @@ private fun EditProfileScreenInternal(
         for(id in uiState.selectedLibraryIds) {
             newSelectedLibraryIds.add(id)
         }
-        infoLoaded()
+        uiState.onInfoLoaded()
     }
 
 
 
     Scaffold (
         topBar = {
-            CommonTopAppBar(onClick = popBackStack, text = topBarText)
+            CommonTopAppBar(onClick = uiState.onPopBackStack, text = topBarText)
         }
     ) { paddingValues ->
 
@@ -373,7 +347,7 @@ private fun EditProfileScreenInternal(
                         onChanged = { newAvatar = it },
                         onException = {
                             if (it != null)
-                                setError(it, false)
+                                uiState.onSetError(it, false)
                         }
                     )
                 }
@@ -473,7 +447,7 @@ private fun EditProfileScreenInternal(
                                     }
                                 }
                             } else {
-                                saveProfile(
+                                uiState.onSaveProfile(
                                     newName,
                                     pin,
                                     deletePin,
@@ -522,7 +496,7 @@ private fun EditProfileScreenInternal(
                     onNo = { showDeleteDialog = false },
                     onYes = {
                         showDeleteDialog = false
-                        deleteProfile()
+                        uiState.onDeleteProfile()
                     },
                     title = "Confirm",
                     message = "Are you sure you want to delete this profile?"
@@ -530,7 +504,7 @@ private fun EditProfileScreenInternal(
             }
 
             if(uiState.showErrorDialog) {
-                ErrorDialog(onDismissRequest = hideError, message = uiState.errorMessage)
+                ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
             }
         }
     }
@@ -560,14 +534,6 @@ private fun EditProfileScreenPreview() {
     )
 
     PreviewBase {
-        EditProfileScreenInternal(
-            popBackStack = { },
-            setError = { _, _ -> },
-            hideError = { },
-            infoLoaded = { },
-            saveProfile = { _, _, _, _, _, _, _, _, _ -> },
-            deleteProfile = { },
-            uiState = uiState
-        )
+        EditProfileScreenInternal(uiState = uiState)
     }
 }

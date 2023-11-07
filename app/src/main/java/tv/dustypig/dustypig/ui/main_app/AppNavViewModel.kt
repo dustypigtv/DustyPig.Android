@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.global_managers.NotificationsManager
 import tv.dustypig.dustypig.global_managers.PlayerStateManager
+import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 import javax.inject.Inject
 
 
@@ -21,6 +22,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AppNavViewModel @Inject constructor(
     private val notificationsManager: NotificationsManager,
+    val castManager: CastManager,
     private val app: Application
 ): ViewModel() {
 
