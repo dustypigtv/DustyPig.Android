@@ -6,8 +6,13 @@ import com.google.android.gms.cast.framework.OptionsProvider
 import com.google.android.gms.cast.framework.SessionProvider
 import tv.dustypig.dustypig.R
 
-@SuppressWarnings("unused")
+
 class CastOptionsProvider : OptionsProvider {
+
+    companion object {
+        fun receiverApplicationId(context: Context) = context.getString(R.string.cast_app_id)
+    }
+
     override fun getCastOptions(context: Context): CastOptions {
         return CastOptions.Builder()
             .setReceiverApplicationId(context.getString(R.string.cast_app_id))

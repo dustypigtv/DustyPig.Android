@@ -1,6 +1,7 @@
 package tv.dustypig.dustypig.ui.main_app
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,6 +27,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -48,32 +50,33 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
-import com.google.android.gms.cast.framework.media.widget.MiniControllerFragment
 import kotlinx.coroutines.flow.collectLatest
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.global_managers.PlayerStateManager
+import tv.dustypig.dustypig.global_managers.cast_manager.CastConnectionState
+import tv.dustypig.dustypig.global_managers.cast_manager.CastPlaybackStatus
 import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
+import tv.dustypig.dustypig.ui.main_app.screens.alerts.AlertsNav
 import tv.dustypig.dustypig.ui.main_app.screens.downloads.DownloadsNav
 import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeNav
+import tv.dustypig.dustypig.ui.main_app.screens.home.show_more.ShowMoreNav
 import tv.dustypig.dustypig.ui.main_app.screens.manage_parental_controls_for_title.ManageParentalControlsForTitleNav
 import tv.dustypig.dustypig.ui.main_app.screens.movie_details.MovieDetailsNav
+import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
 import tv.dustypig.dustypig.ui.main_app.screens.playlist_details.PlaylistDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.search.SearchNav
+import tv.dustypig.dustypig.ui.main_app.screens.search.tmdb_details.TMDBDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.SettingsNav
-import tv.dustypig.dustypig.ui.main_app.screens.settings.theme_settings.ThemeSettingsNav
-import tv.dustypig.dustypig.ui.main_app.screens.home.show_more.ShowMoreNav
-import tv.dustypig.dustypig.ui.main_app.screens.alerts.AlertsNav
-import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.account_settings.AccountSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.download_settings.DownloadSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.friends_settings.FriendsSettingsNav
@@ -83,7 +86,8 @@ import tv.dustypig.dustypig.ui.main_app.screens.settings.playback_settings.Playb
 import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.ProfilesSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.edit_profile.EditProfileNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.switch_profiles.SwitchProfilesNav
-import tv.dustypig.dustypig.ui.main_app.screens.search.tmdb_details.TMDBDetailsNav
+import tv.dustypig.dustypig.ui.main_app.screens.settings.theme_settings.ThemeSettingsNav
+import androidx.annotation.OptIn as CastOptIn
 
 
 private data class RootScreenMap(
@@ -95,6 +99,7 @@ private data class RootScreenMap(
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
+@CastOptIn(UnstableApi::class)
 @Composable
 fun AppNav(vm: AppNavViewModel = hiltViewModel()){
 
@@ -103,17 +108,26 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val playerVisible by PlayerStateManager.playerScreenVisible.collectAsState()
-    val castState by vm.castManager.state.collectAsState()
+    val castState by vm.castManager.castState.collectAsState()
+    val castButtonState by vm.castManager.castButtonState.collectAsState()
+
+    //Prevent flicker
+    var castArtworkUrl by remember {
+        mutableStateOf(castState.artworkUrl)
+    }
+    if(castArtworkUrl != castState.artworkUrl) {
+        castArtworkUrl = castState.artworkUrl
+    }
 
     //Because there are multiple paths to the same route, using
     //  selected = currentDestination?.hierarchy?.any { it.route == screen.key } == true
-    //doesn't work well here. So instead just rememebr the new 'root tab route' when it changes
+    //doesn't work well here. So instead just remember the new 'root tab route' when it changes
     var curRootRoute by remember {
         mutableStateOf(HomeNav.route)
     }
 
 
-    val items = listOf<RootScreenMap>(
+    val items = listOf(
         RootScreenMap(
             name = stringResource(id = R.string.home),
             route = HomeNav.route,
@@ -158,18 +172,19 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
                         .fillMaxWidth()
                 ) {
 
-                    if(castState.connected && castState.playingContent && castState.hasInfo) {
+                    if(castButtonState == CastConnectionState.Connected &&
+                        castState.playbackStatus != CastPlaybackStatus.Stopped) {
 
                         Row (
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(56.dp)
+                                .height(60.dp)
                                 .background(
-                                    color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+                                    color = MaterialTheme.colorScheme.surfaceColorAtElevation(0.dp)
                                 )
                         ){
                             AsyncImage(
-                                model = castState.artworkUrl,
+                                model = castArtworkUrl,
                                 contentDescription = null,
                                 contentScale = ContentScale.FillHeight,
                                 modifier = Modifier.padding(4.dp),
@@ -186,12 +201,20 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Column(
-                                        modifier = Modifier.weight(1f)
+                                        modifier = Modifier.weight(1f),
+                                        verticalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text(
                                             text = castState.title ?: "",
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis
+                                        )
+                                        Text(
+                                            text = "Playing on ${castState.selectedRoute?.name}",
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            color = LocalContentColor.current.copy(alpha = 0.5f),
+                                            style = MaterialTheme.typography.labelSmall
                                         )
                                     }
 
@@ -200,7 +223,7 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
                                     ) {
                                         TintedIcon(
                                             imageVector =
-                                                if(castState.paused)
+                                                if(castState.playbackStatus == CastPlaybackStatus.Paused)
                                                     Icons.Filled.PlayArrow
                                                 else
                                                     Icons.Filled.Pause
@@ -214,9 +237,8 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
                                     progress = castState.progress,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(end = 4.dp)
+                                        .padding(top = 4.dp, end = 4.dp)
                                 )
-
                             }
 
                         }
@@ -267,10 +289,10 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
                                                 saveState = true
                                             }
                                             // Avoid multiple copies of the same destination when
-                                            // reselecting the same item
+                                            // re-selecting the same item
                                             launchSingleTop = true
 
-                                            // Restore state when reselecting a previously selected item
+                                            // Restore state when re-selecting a previously selected item
                                             restoreState = true
                                         }
                                     }
@@ -325,7 +347,7 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
 
     LaunchedEffect(true) {
         vm.deepLinkFlow.collectLatest { deepLink ->
-            if(!deepLink.isNullOrBlank()) {
+            if(deepLink.isNotBlank()) {
                vm.navToDeepLink(
                    deepLink = deepLink,
                    navController = navController

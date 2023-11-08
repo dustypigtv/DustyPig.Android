@@ -46,7 +46,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -56,6 +56,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -68,6 +69,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.R
+import tv.dustypig.dustypig.global_managers.cast_manager.CastPlaybackStatus
 import tv.dustypig.dustypig.ui.composables.CastButton
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.hideSystemUi
@@ -120,6 +122,7 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
     ) {
 
         if(uiState.isCastPlayer) {
+            LocalContext.current.showSystemUi()
             Box(
                 modifier = Modifier.fillMaxSize()
             ) {
@@ -135,9 +138,9 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
                                 if(uiState.castHasPrevious)
                                     uiState.castManager.playPrevious()
                                 else
-                                    uiState.castManager.seekTo(0f)
+                                    uiState.castManager.seekTo(0)
                             } else {
-                                uiState.castManager.seekTo(0f)
+                                uiState.castManager.seekTo(0)
                             }
                         },
                         enabled = true,
@@ -145,7 +148,7 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
                     )
 
                     PlaybackButton(
-                        onClick = { uiState.castManager.seekBy(-10f) },
+                        onClick = { uiState.castManager.seekBy(-10_000) },
                         enabled = true,
                         imageVector = Icons.Outlined.Replay10
                     )
@@ -155,12 +158,13 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
                             onClick = uiState.castManager::togglePlayPause,
                             enabled = true,
                             imageVector =
-                                if (uiState.castPaused)
+                                if (uiState.castPlaybackStatus == CastPlaybackStatus.Paused ||
+                                    uiState.castPlaybackStatus == CastPlaybackStatus.Stopped)
                                     Icons.Filled.PlayCircle
                                 else
                                     Icons.Filled.PauseCircle
                         )
-                        if(uiState.castBuffering || uiState.busy) {
+                        if(uiState.castPlaybackStatus == CastPlaybackStatus.Buffering || uiState.busy) {
                             CircularProgressIndicator(
                                 modifier = Modifier
                                     .size(40.dp)
@@ -170,7 +174,7 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
                     }
 
                     PlaybackButton(
-                        onClick = { uiState.castManager.seekBy(30f) },
+                        onClick = { uiState.castManager.seekBy(30_000) },
                         enabled = true,
                         imageVector = Icons.Outlined.Forward30
                     )
@@ -190,7 +194,7 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
                         .align(Alignment.BottomCenter)
                 ) {
 
-                    var sliderRawValue by remember { mutableFloatStateOf(uiState.castPosition) }
+                    var sliderRawValue by remember { mutableLongStateOf(uiState.castPosition) }
                     val interactionSource = remember { MutableInteractionSource() }
                     val isPressed by interactionSource.collectIsPressedAsState()
                     val isDragged by interactionSource.collectIsDraggedAsState()
@@ -208,14 +212,14 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
                         modifier = Modifier
                             .padding(12.dp, 0.dp)
                             .fillMaxWidth(),
-                        valueRange = 0f..uiState.castDuration,
-                        value = sliderValue,
+                        valueRange = 0f..uiState.castDuration.toFloat(),
+                        value = sliderValue.toFloat(),
                         colors = SliderDefaults.colors(
                             thumbColor = Color.White,
                             activeTrackColor = Color.White,
                             inactiveTickColor = disabledWhite
                         ),
-                        onValueChange = { sliderRawValue = it },
+                        onValueChange = { sliderRawValue = it.toLong() },
                         onValueChangeFinished = { uiState.castManager.seekTo(sliderValue) },
                         interactionSource = interactionSource
                     )
@@ -432,8 +436,8 @@ private fun PlaybackButton(
 }
 
 
-private fun formatTime(seconds: Float): String {
-    var s = seconds.toInt()
+private fun formatTime(milliseconds: Long): String {
+    var s = milliseconds / 1000
     val h = s / 3600
     val m = (s % 3600) / 60
     s %= 60

@@ -2,6 +2,7 @@ package tv.dustypig.dustypig.ui.main_app.screens.player
 
 import androidx.media3.common.Player
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
+import tv.dustypig.dustypig.global_managers.cast_manager.CastPlaybackStatus
 
 data class PlayerUIState (
 
@@ -15,12 +16,11 @@ data class PlayerUIState (
     val currentItemTitle: String? = null,
     val isCastPlayer: Boolean = false,
     val castManager: CastManager,
-    val castPaused: Boolean = false,
-    val castBuffering: Boolean = false,
+    val castPlaybackStatus: CastPlaybackStatus = CastPlaybackStatus.Stopped,
     val castHasPrevious: Boolean = false,
     val castHasNext: Boolean = false,
-    val castPosition: Float = 0f,
-    val castDuration: Float = 0f,
+    val castPosition: Long = 0L,
+    val castDuration: Long = 0L,
 
     //Events
     val onPopBackStack: () -> Unit = { },
