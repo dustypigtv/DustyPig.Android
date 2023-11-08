@@ -11,55 +11,34 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsDraggedAsState
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.PauseCircle
-import androidx.compose.material.icons.filled.PlayCircle
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material.icons.outlined.Forward30
-import androidx.compose.material.icons.outlined.Replay10
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -69,14 +48,13 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.R
-import tv.dustypig.dustypig.global_managers.cast_manager.CastPlaybackStatus
 import tv.dustypig.dustypig.ui.composables.CastButton
+import tv.dustypig.dustypig.ui.composables.CastControls
+import tv.dustypig.dustypig.ui.composables.CastSlider
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.hideSystemUi
 import tv.dustypig.dustypig.ui.showSystemUi
 
-
-private val disabledWhite = Color.White.copy(alpha = 0.38f)
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -132,111 +110,16 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
                         .align(Alignment.Center),
                     horizontalArrangement = Arrangement.Center
                 ){
-                    PlaybackButton(
-                        onClick = {
-                            if (uiState.castPosition <= 10) {
-                                if(uiState.castHasPrevious)
-                                    uiState.castManager.playPrevious()
-                                else
-                                    uiState.castManager.seekTo(0)
-                            } else {
-                                uiState.castManager.seekTo(0)
-                            }
-                        },
-                        enabled = true,
-                        imageVector = Icons.Filled.SkipPrevious
-                    )
-
-                    PlaybackButton(
-                        onClick = { uiState.castManager.seekBy(-10_000) },
-                        enabled = true,
-                        imageVector = Icons.Outlined.Replay10
-                    )
-
-                    Box {
-                        PlaybackButton(
-                            onClick = uiState.castManager::togglePlayPause,
-                            enabled = true,
-                            imageVector =
-                                if (uiState.castPlaybackStatus == CastPlaybackStatus.Paused ||
-                                    uiState.castPlaybackStatus == CastPlaybackStatus.Stopped)
-                                    Icons.Filled.PlayCircle
-                                else
-                                    Icons.Filled.PauseCircle
-                        )
-                        if(uiState.castPlaybackStatus == CastPlaybackStatus.Buffering || uiState.busy) {
-                            CircularProgressIndicator(
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .align(Alignment.Center)
-                            )
-                        }
-                    }
-
-                    PlaybackButton(
-                        onClick = { uiState.castManager.seekBy(30_000) },
-                        enabled = true,
-                        imageVector = Icons.Outlined.Forward30
-                    )
-
-                    PlaybackButton(
-                        onClick = uiState.castManager::playNext,
-                        enabled = uiState.castHasNext,
-                        imageVector = Icons.Filled.SkipNext
-                    )
-
-
+                    CastControls(castManager = uiState.castManager, sizeMultiple = 2, showBusy = uiState.busy)
                 }
 
-                Column (
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.BottomCenter)
-                ) {
-
-                    var sliderRawValue by remember { mutableLongStateOf(uiState.castPosition) }
-                    val interactionSource = remember { MutableInteractionSource() }
-                    val isPressed by interactionSource.collectIsPressedAsState()
-                    val isDragged by interactionSource.collectIsDraggedAsState()
-                    val isInteracting = isPressed || isDragged
-
-                    val sliderValue = if(isInteracting)
-                        sliderRawValue
-                    else
-                        uiState.castPosition
-
-                    if(!isInteracting)
-                        sliderRawValue = sliderValue
-
-                    Slider(
-                        modifier = Modifier
-                            .padding(12.dp, 0.dp)
-                            .fillMaxWidth(),
-                        valueRange = 0f..uiState.castDuration.toFloat(),
-                        value = sliderValue.toFloat(),
-                        colors = SliderDefaults.colors(
-                            thumbColor = Color.White,
-                            activeTrackColor = Color.White,
-                            inactiveTickColor = disabledWhite
-                        ),
-                        onValueChange = { sliderRawValue = it.toLong() },
-                        onValueChangeFinished = { uiState.castManager.seekTo(sliderValue) },
-                        interactionSource = interactionSource
-                    )
-
-                    Row (
-                        modifier = Modifier
-                            .padding(12.dp)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ){
-                        Text(
-                            text = formatTime(sliderValue) + " • " + formatTime(uiState.castDuration),
-                            color = Color.White
-                        )
-                    }
-                }
+                CastSlider(
+                    castManager = uiState.castManager,
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                    displayOnly = false,
+                    showTime = true,
+                    useTheme = false
+                )
             }
 
         } else {
@@ -395,56 +278,6 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
             message = uiState.errorMessage
         )
     }
-}
-
-
-@Composable
-private fun PlaybackButton(
-    onClick: () -> Unit,
-    enabled: Boolean,
-    imageVector: ImageVector
-) {
-    Box(
-        modifier = Modifier
-            .size(80.dp)
-            .clip(CircleShape)
-            .background(color = Color.Transparent)
-            .clickable(
-                onClick = onClick,
-                enabled = enabled,
-                role = Role.Button,
-                interactionSource = remember { MutableInteractionSource() },
-                indication = rememberRipple(
-                    bounded = false,
-                    radius = 40.dp
-                )
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            modifier = Modifier.size(48.dp),
-            imageVector = imageVector,
-            contentDescription = null,
-            tint =
-                if(enabled)
-                    Color.White
-                else
-                    disabledWhite
-        )
-
-    }
-}
-
-
-private fun formatTime(milliseconds: Long): String {
-    var s = milliseconds / 1000
-    val h = s / 3600
-    val m = (s % 3600) / 60
-    s %= 60
-    return if(h > 0)
-        "%1d:%02d:%02d".format(h, m, s)
-    else
-        "%02d:%02d".format(m, s)
 }
 
 

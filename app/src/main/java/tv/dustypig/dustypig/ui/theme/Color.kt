@@ -19,3 +19,5 @@ val HuluGreen = Color(0xFF1ce783)
 val DisneyBlue = Color(0xFF355ACA)
 
 val BurntOrange = Color(0xFFCC5500)
+
+val DisabledWhite = Color.White.copy(alpha = 0.38f)

@@ -50,9 +50,9 @@ class CastManager @Inject constructor(
         updatePlaybackInfo = ::updatePlaybackInfo
     )
 
-
     private val _castState = MutableStateFlow(CastState())
     val castState = _castState.asStateFlow()
+
     private val connectionStateListeners = ArrayList<CastConnectionStateListener>()
     private val _castButtonState = MutableStateFlow(CastConnectionState.Unavailable)
     /**
@@ -234,6 +234,8 @@ class CastManager @Inject constructor(
         newRemoteMediaClient: RemoteMediaClient?,
         castConnectionState: CastConnectionState
     ) {
+        updateProgress(0, 0)
+
         /*
             When a session is connected, call setRemoteMediaClient before updating the state,
             so state listeners can immediately use it.
@@ -248,6 +250,7 @@ class CastManager @Inject constructor(
             setRemoteMediaClient(newRemoteMediaClient)
         }
 
+        updatePlaybackInfo()
     }
 
     private fun setRemoteMediaClient(newRemoteMediaClient: RemoteMediaClient?) {
@@ -284,8 +287,8 @@ class CastManager @Inject constructor(
 
     private fun updateProgress(position: Long, duration: Long) {
         val forceZero = remoteMediaClient == null
-        val coercedDuration = (if(forceZero) 0L else duration).coerceAtLeast(minimumValue = 0L)
-        val coercedPosition = (if(forceZero) 0L else position).coerceIn(
+        val coercedDuration = (if (forceZero) 0L else duration).coerceAtLeast(minimumValue = 0L)
+        val coercedPosition = (if (forceZero) 0L else position).coerceIn(
             minimumValue = 0L,
             maximumValue = coercedDuration
         )
@@ -295,13 +298,14 @@ class CastManager @Inject constructor(
                 duration = coercedDuration,
                 position = coercedPosition,
                 progress =
-                    if(coercedDuration > 0L)
-                        coercedPosition.toFloat() / coercedDuration.toFloat()
-                    else
-                        0f
+                if (coercedDuration > 0L)
+                    coercedPosition.toFloat() / coercedDuration.toFloat()
+                else
+                    0f
             )
         }
     }
+
 
     private fun updatePlaybackInfo() {
         try {
@@ -316,10 +320,10 @@ class CastManager @Inject constructor(
                 status = CastPlaybackStatus.Playing
             }
 
-            val itemIds = remoteMediaClient?.mediaQueue?.itemIds ?: IntArray(0)
-            val currentItemId = remoteMediaClient?.mediaStatus?.currentItemId ?: 0
-            val hasNext = itemIds.size > 1 && itemIds.indexOf(currentItemId) < itemIds.size - 1
-            val hasPrev = itemIds.size > 1 && itemIds.indexOf(currentItemId) > 0
+            val itemIds = remoteMediaClient?.mediaStatus?.queueItems?.map { it.itemId } ?: listOf()
+            val currentItemIndex = itemIds.indexOf(remoteMediaClient?.mediaStatus?.currentItemId ?: 0)
+            val hasNext = itemIds.size > 1 && currentItemIndex < itemIds.size - 1
+            val hasPrev = itemIds.size > 1 && currentItemIndex > 0
 
             var title: String? = null
             var artworkUrl: String? = null

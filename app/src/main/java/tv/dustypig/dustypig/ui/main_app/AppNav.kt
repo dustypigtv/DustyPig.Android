@@ -1,6 +1,7 @@
 package tv.dustypig.dustypig.ui.main_app
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,7 +27,6 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -62,6 +62,8 @@ import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.global_managers.cast_manager.CastConnectionState
 import tv.dustypig.dustypig.global_managers.cast_manager.CastPlaybackStatus
+import tv.dustypig.dustypig.ui.composables.CastDialog
+import tv.dustypig.dustypig.ui.composables.CastSlider
 import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.alerts.AlertsNav
@@ -87,6 +89,7 @@ import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.Profi
 import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.edit_profile.EditProfileNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.switch_profiles.SwitchProfilesNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.theme_settings.ThemeSettingsNav
+import kotlin.OptIn
 import androidx.annotation.OptIn as CastOptIn
 
 
@@ -175,6 +178,8 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
                     if(castButtonState == CastConnectionState.Connected &&
                         castState.playbackStatus != CastPlaybackStatus.Stopped) {
 
+                        var showDialog by remember { mutableStateOf(false) }
+
                         Row (
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -182,12 +187,15 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
                                 .background(
                                     color = MaterialTheme.colorScheme.surfaceColorAtElevation(0.dp)
                                 )
+                                .clickable {
+                                    showDialog = true
+                                }
                         ){
                             AsyncImage(
                                 model = castArtworkUrl,
                                 contentDescription = null,
                                 contentScale = ContentScale.FillHeight,
-                                modifier = Modifier.padding(4.dp),
+                                modifier = Modifier.background(color = Color.DarkGray),
                                 alignment = Alignment.CenterStart
                             )
 
@@ -233,15 +241,22 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
                                         TintedIcon(imageVector = Icons.Filled.Close)
                                     }
                                 }
-                                LinearProgressIndicator(
-                                    progress = castState.progress,
+                                CastSlider(
+                                    castManager = vm.castManager,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(top = 4.dp, end = 4.dp)
+                                        .padding(top = 4.dp, end = 4.dp),
+                                    displayOnly = true,
+                                    useTheme = true
                                 )
                             }
 
                         }
+
+                        if(showDialog) {
+                            CastDialog(closeDialog = { showDialog = false }, castManager = vm.castManager)
+                        }
+
                     }
 
 
