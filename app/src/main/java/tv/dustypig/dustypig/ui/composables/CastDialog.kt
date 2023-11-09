@@ -49,12 +49,9 @@ fun CastDialog(
     castManager: CastManager
 ) {
 
-    val castButtonState by castManager.castButtonState.collectAsState()
-    if (castButtonState == CastConnectionState.Unavailable)
-        return
-
     val castState by castManager.castState.collectAsState()
-
+    if(!castState.castPossible())
+        return
 
     AlertDialog(
         shape = RoundedCornerShape(8.dp),
@@ -63,14 +60,14 @@ fun CastDialog(
             closeDialog()
         },
         title = {
-            if(castButtonState == CastConnectionState.Connected) {
+            if(castState.castConnectionState == CastConnectionState.Connected) {
                 Text(text = "Casting to ${castState.selectedRoute?.name}")
             } else {
                 Text(text = "Cast to")
             }
         },
         text = {
-            if (castButtonState == CastConnectionState.Connected) {
+            if (castState.castConnectionState == CastConnectionState.Connected) {
                 if(castState.playbackStatus == CastPlaybackStatus.Stopped) {
                     Text(text = "Nothing Playing")
                 } else {
@@ -180,7 +177,7 @@ fun CastDialog(
             }
         },
         confirmButton = {
-            if(castButtonState == CastConnectionState.Connected) {
+            if(castState.castConnectionState == CastConnectionState.Connected) {
                 TextButton(
                     onClick = {
                         castManager.setPassiveScanning()

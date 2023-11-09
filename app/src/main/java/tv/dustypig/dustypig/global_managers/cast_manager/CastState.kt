@@ -3,6 +3,8 @@ package tv.dustypig.dustypig.global_managers.cast_manager
 import androidx.mediarouter.media.MediaRouter.RouteInfo
 
 data class CastState(
+    val isConnectedToNetwork: Boolean = false,
+    val castConnectionState: CastConnectionState = CastConnectionState.Unavailable,
     val availableRoutes: List<RouteInfo> = listOf(),
     val selectedRoute: RouteInfo? = null,
     val title: String? = null,
@@ -13,4 +15,7 @@ data class CastState(
     val position: Long = 0L,
     val duration: Long = 0L,
     val progress: Float = 0F
-)
+) {
+    fun castPossible() = isConnectedToNetwork
+            && castConnectionState != CastConnectionState.Unavailable
+}

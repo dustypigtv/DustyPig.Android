@@ -112,7 +112,6 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
     val currentDestination = navBackStackEntry?.destination
     val playerVisible by PlayerStateManager.playerScreenVisible.collectAsState()
     val castState by vm.castManager.castState.collectAsState()
-    val castButtonState by vm.castManager.castButtonState.collectAsState()
 
     //Prevent flicker
     var castArtworkUrl by remember {
@@ -175,7 +174,8 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
                         .fillMaxWidth()
                 ) {
 
-                    if(castButtonState == CastConnectionState.Connected &&
+                    if(castState.castPossible() &&
+                        castState.castConnectionState == CastConnectionState.Connected &&
                         castState.playbackStatus != CastPlaybackStatus.Stopped) {
 
                         var showDialog by remember { mutableStateOf(false) }
@@ -258,7 +258,6 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
                         }
 
                     }
-
 
                     NavigationBar {
                         items.forEach { screen ->

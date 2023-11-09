@@ -12,6 +12,7 @@ object PlayerNav : NavRoute<PlayerViewModel> {
     const val MEDIA_TYPE_MOVIE = 1
     const val MEDIA_TYPE_SERIES = 2
     const val MEDIA_TYPE_PLAYLIST = 3
+    const val MEDIA_TYPE_EPISODE = 4
 
 
     const val KEY_MEDIA_ID = "KEY_MEDIA_ID"

@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.models.HomeScreenList
 import tv.dustypig.dustypig.api.repositories.MediaRepository
+import tv.dustypig.dustypig.global_managers.NetworkManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.main_app.screens.home.show_more.ShowMoreNav
@@ -23,7 +24,8 @@ import kotlin.concurrent.schedule
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val routeNavigator: RouteNavigator,
-    private val mediaRepository: MediaRepository
+    private val mediaRepository: MediaRepository,
+    private val  networkManager: NetworkManager,
 ): ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
@@ -53,7 +55,6 @@ class HomeViewModel @Inject constructor(
     }
 
     init {
-        triggerUpdate()
         _timer.schedule(
             delay = 0,
             period = 1000
@@ -64,7 +65,32 @@ class HomeViewModel @Inject constructor(
 
     private fun loadData() {
 
-        if(_timerBusy || Calendar.getInstance().time < _nextTimerTick)
+        if(_uiState.value.sections.isEmpty())
+            triggerUpdate()
+
+
+        if(networkManager.isConnected()) {
+            _uiState.update {
+                it.copy(
+                    hasNetworkConnection = true,
+                    isRefreshing = if(it.sections.isEmpty()) true else it.isRefreshing
+                )
+            }
+        } else {
+            _uiState.update {
+                it.copy (
+                    hasNetworkConnection = false,
+                    isRefreshing = false,
+                    sections = listOf()
+                )
+            }
+            return
+        }
+
+        if(Calendar.getInstance().time < _nextTimerTick)
+            return
+
+        if(_timerBusy)
             return
 
         _timerBusy = true

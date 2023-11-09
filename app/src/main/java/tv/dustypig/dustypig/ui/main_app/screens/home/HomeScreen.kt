@@ -84,7 +84,11 @@ private fun HomeScreenInternal(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if(showEmpty) {
-                    Text(text = stringResource(R.string.no_media_available))
+                    if(uiState.hasNetworkConnection) {
+                        Text(text = stringResource(R.string.no_media_available))
+                    } else {
+                        Text(text = stringResource(R.string.no_internet_detected))
+                    }
                 } else {
                     Text(text = stringResource(R.string.loading))
                 }

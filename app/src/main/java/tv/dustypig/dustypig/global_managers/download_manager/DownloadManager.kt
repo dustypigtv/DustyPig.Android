@@ -27,6 +27,7 @@ import tv.dustypig.dustypig.api.repositories.EpisodesRepository
 import tv.dustypig.dustypig.api.repositories.MoviesRepository
 import tv.dustypig.dustypig.api.repositories.PlaylistRepository
 import tv.dustypig.dustypig.api.repositories.SeriesRepository
+import tv.dustypig.dustypig.global_managers.NetworkManager
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.logToCrashlytics
 import java.io.File
@@ -44,6 +45,7 @@ import android.app.DownloadManager as AndroidDownloadManager
 class DownloadManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val settingsManager: SettingsManager,
+    private val networkManager: NetworkManager,
     private val moviesRepository: MoviesRepository,
     private val seriesRepository: SeriesRepository,
     private val episodesRepository: EpisodesRepository,
@@ -61,7 +63,7 @@ class DownloadManager @Inject constructor(
         private const val DISPOSITION_SUBTITLE = "subtitle"
         private const val NO_MEDIA = ".nomedia"
     }
-    
+
     private val _androidDownloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as AndroidDownloadManager
     private val _okHttpClient = OkHttpClient()
     private val _rootDir = File(context.getExternalFilesDir(null)!!, "downloads")
@@ -87,6 +89,10 @@ class DownloadManager @Inject constructor(
         .downloadDao()
 
 
+    private val displayMetrics = Resources.getSystem().displayMetrics
+    private val urlParameters = "displayWidth=${displayMetrics.widthPixels}&displayHeight=${displayMetrics.heightPixels}"
+
+
     init {
 
         _rootDir.mkdirs()
@@ -106,14 +112,14 @@ class DownloadManager @Inject constructor(
 
         _statusTimer.schedule(
             delay = 1000,
-            period = 100
+            period = 250
         ) {
             statusTimerTick()
         }
 
         _updateTimer.schedule(
             delay = 10000,
-            period = 1000
+            period = 10000
         ) {
             updateTimerTick()
         }
@@ -188,8 +194,9 @@ class DownloadManager @Inject constructor(
         if(_profileId == 0)
             return
 
+        if(!networkManager.isConnected())
+            return
 
-        //Get active downloads
         var downloads = _db.getDownloads()
         val cursor = _androidDownloadManager.query(AndroidDownloadManager.Query())
         while (cursor.moveToNext()) {
@@ -322,15 +329,12 @@ class DownloadManager @Inject constructor(
                 }
             }
 
-            if(!valid)
+            if (!valid)
                 file.delete()
         }
 
 
-        val displayMetrics = Resources.getSystem().displayMetrics
-        val urlParameters = "displayWidth=${displayMetrics.widthPixels}&displayHeight=${displayMetrics.heightPixels}"
-
-        //Add any downloads that are not started (max of 3)
+        //Add any support files that are not started (max of 3)
         val runningSupportFiles = downloads.filter {
             it.androidId != 0L && it.disposition != DISPOSITION_VIDEO && !it.complete
         }
@@ -513,6 +517,8 @@ class DownloadManager @Inject constructor(
         if(_profileId == 0)
             return
 
+        if(!networkManager.isConnected())
+            return
 
         //Cleanup orphaned downloads
         val jobs = _db.getJobs(_profileId)
@@ -1141,4 +1147,7 @@ class DownloadManager @Inject constructor(
 
     fun getLocalSubtitle(mediaId: Int, ext: String) =
         getLocalFile("${mediaId}.$DISPOSITION_SUBTITLE$ext")
+
+    fun getLocalPoster(mediaId: Int, ext: String) =
+        getLocalFile("${mediaId}.$DISPOSITION_POSTER$ext")
 }

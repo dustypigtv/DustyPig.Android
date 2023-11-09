@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.R
+import tv.dustypig.dustypig.global_managers.NetworkManager
 import tv.dustypig.dustypig.global_managers.NotificationsManager
 import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager

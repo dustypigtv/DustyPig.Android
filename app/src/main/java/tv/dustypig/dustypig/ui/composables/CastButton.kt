@@ -27,18 +27,18 @@ import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 @OptIn(UnstableApi::class)
 fun CastButton(castManager: CastManager?) {
 
-    if (castManager == null)
+    if(castManager == null)
         return
 
-    val castButtonState by castManager.castButtonState.collectAsState()
-    if (castButtonState == CastConnectionState.Unavailable)
+    val castState by castManager.castState.collectAsState()
+    if(!castState.castPossible())
         return
 
     var showPicker by remember {
         mutableStateOf(false)
     }
 
-    if (castButtonState == CastConnectionState.Busy) {
+    if (castState.castConnectionState == CastConnectionState.Busy) {
         CircularProgressIndicator(
             modifier = Modifier
                 .size(40.dp)
@@ -54,7 +54,7 @@ fun CastButton(castManager: CastManager?) {
         ) {
             Icon(
                 imageVector =
-                    if(castButtonState == CastConnectionState.Connected)
+                    if(castState.castConnectionState == CastConnectionState.Connected)
                         Icons.Filled.CastConnected
                     else
                         Icons.Filled.Cast,

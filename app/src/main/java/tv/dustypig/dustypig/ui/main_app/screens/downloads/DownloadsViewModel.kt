@@ -14,6 +14,7 @@ import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
 import tv.dustypig.dustypig.global_managers.download_manager.UIDownload
 import tv.dustypig.dustypig.global_managers.download_manager.UIJob
 import tv.dustypig.dustypig.nav.RouteNavigator
+import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
 import javax.inject.Inject
 
 @HiltViewModel
@@ -82,11 +83,61 @@ class DownloadsViewModel @Inject constructor(
     }
 
     private fun playNext(job: UIJob) {
-        TODO()
+        when(job.mediaType) {
+            MediaTypes.Movie -> navigateToRoute(
+                PlayerNav.getRoute(
+                    mediaId = job.mediaId,
+                    sourceType = PlayerNav.MEDIA_TYPE_MOVIE,
+                    upNextId = -1
+                )
+            )
+
+            MediaTypes.Series -> navigateToRoute(
+                PlayerNav.getRoute(
+                    mediaId = job.mediaId,
+                    sourceType = PlayerNav.MEDIA_TYPE_SERIES,
+                    upNextId = job.downloads.firstOrNull()?.mediaId ?: -1
+                )
+            )
+
+            MediaTypes.Playlist -> navigateToRoute(
+                PlayerNav.getRoute(
+                    mediaId = job.mediaId,
+                    sourceType = PlayerNav.MEDIA_TYPE_PLAYLIST,
+                    upNextId = job.downloads.firstOrNull()?.mediaId ?: -1
+                )
+            )
+
+            MediaTypes.Episode -> navigateToRoute(
+                PlayerNav.getRoute(
+                    mediaId = job.mediaId,
+                    sourceType = PlayerNav.MEDIA_TYPE_EPISODE,
+                    upNextId = -1
+                )
+            )
+        }
     }
 
     private fun playItem(job: UIJob, download: UIDownload) {
-        TODO()
+        when(job.mediaType) {
+            MediaTypes.Series -> navigateToRoute(
+                PlayerNav.getRoute(
+                    mediaId = job.mediaId,
+                    sourceType = PlayerNav.MEDIA_TYPE_SERIES,
+                    upNextId = download.mediaId
+                )
+            )
+
+            MediaTypes.Playlist -> navigateToRoute(
+                PlayerNav.getRoute(
+                    mediaId = job.mediaId,
+                    sourceType = PlayerNav.MEDIA_TYPE_PLAYLIST,
+                    upNextId = download.mediaId
+                )
+            )
+
+            else -> { }
+        }
     }
 
 

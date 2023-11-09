@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import tv.dustypig.dustypig.global_managers.AuthManager
+import tv.dustypig.dustypig.global_managers.NetworkManager
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -29,7 +30,8 @@ import javax.inject.Singleton
 @Singleton
 class CastManager @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val authManager: AuthManager
+    private val authManager: AuthManager,
+    private val networkManager: NetworkManager
 ) {
 
     private val tag = "CastManager"
@@ -54,11 +56,11 @@ class CastManager @Inject constructor(
     val castState = _castState.asStateFlow()
 
     private val connectionStateListeners = ArrayList<CastConnectionStateListener>()
-    private val _castButtonState = MutableStateFlow(CastConnectionState.Unavailable)
-    /**
-     * Only used for cast button. Use CastConnectionStateListener in ViewModel
-     */
-    val castButtonState = _castButtonState.asStateFlow()
+//    private val _castButtonState = MutableStateFlow(CastConnectionState.Unavailable)
+//    /**
+//     * Only used for cast button. Use CastConnectionStateListener in ViewModel
+//     */
+//    val castButtonState = _castButtonState.asStateFlow()
 
 
 
@@ -71,7 +73,12 @@ class CastManager @Inject constructor(
             castContext.sessionManager.also {
                 it.addSessionManagerListener(sessionListener, CastSession::class.java)
             }
-            _castButtonState.update { CastConnectionState.Disconnected }
+
+            _castState.update {
+                it.copy(
+                    castConnectionState = CastConnectionState.Disconnected
+                )
+            }
             Log.i(tag, "Cast available")
             Log.i(tag, CastOptionsProvider.receiverApplicationId(context))
         } catch (ex: Exception) {
@@ -80,6 +87,7 @@ class CastManager @Inject constructor(
         }
     }
 
+    fun isNetworkConnected() = networkManager.isConnected()
 
     /**
      * Call this before showing picker dialogs
@@ -275,7 +283,11 @@ class CastManager @Inject constructor(
 
     private fun informConnectionState(castConnectionState: CastConnectionState) {
         Log.d(tag, "informConnectionState: castConnectionState=$castConnectionState")
-        _castButtonState.update { castConnectionState }
+        _castState.update {
+            it.copy(
+                castConnectionState = castConnectionState
+            )
+        }
         connectionStateListeners.forEach { listener ->
             try {
                 listener.onConnectionStateChanged(castConnectionState)

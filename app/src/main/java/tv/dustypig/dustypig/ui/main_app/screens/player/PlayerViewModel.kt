@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import tv.dustypig.dustypig.api.models.ExternalSubtitle
 import tv.dustypig.dustypig.api.models.PlaybackProgress
 import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.api.repositories.MoviesRepository
@@ -28,6 +29,7 @@ import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.global_managers.cast_manager.CastConnectionState
 import tv.dustypig.dustypig.global_managers.cast_manager.CastConnectionStateListener
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
+import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
@@ -49,7 +51,7 @@ class PlayerViewModel @Inject constructor(
     private val moviesRepository: MoviesRepository,
     private val seriesRepository: SeriesRepository,
     private val playlistRepository: PlaylistRepository,
-    //private val downloadManager: DownloadManager,
+    private val downloadManager: DownloadManager,
     private val castManager: CastManager,
     app: Application,
     settingsManager: SettingsManager,
@@ -118,7 +120,7 @@ class PlayerViewModel @Inject constructor(
         }
 
         castManager.addListener(this)
-        onConnectionStateChanged(castManager.castButtonState.value)
+        onConnectionStateChanged(castManager.castState.value.castConnectionState)
 
         viewModelScope.launch {
             castManager.castState.collectLatest { castState ->
@@ -323,16 +325,17 @@ class PlayerViewModel @Inject constructor(
             )
         )
 
-        // Store TOKEN in mediaItem.mediaMetadata.description
+
         _mediaQueue.add(
             MediaItem
                 .Builder()
                 .setMediaId(detailedMovie.id.toString())
-                .setUri(detailedMovie.videoUrl!!)
+                .setUri(tryGetLocalVideo(detailedMovie.id, detailedMovie.videoUrl!!))
+                .addSubs(detailedMovie.id, detailedMovie.externalSubtitles)
                 .setMediaMetadata(
                     MediaMetadata
                         .Builder()
-                        .setArtworkUri(detailedMovie.artworkUrl.toUri())
+                        .setArtworkUri(tryGetLocalPoster(detailedMovie.id, detailedMovie.artworkUrl).toUri())
                         .setMediaType(MediaMetadata.MEDIA_TYPE_MOVIE)
                         .setTitle(detailedMovie.title)
                         .setReleaseYear(calendar.get(Calendar.YEAR))
@@ -375,11 +378,12 @@ class PlayerViewModel @Inject constructor(
                 MediaItem
                     .Builder()
                     .setMediaId(ep.id.toString())
-                    .setUri(ep.videoUrl)
+                    .setUri(tryGetLocalVideo(ep.id,  ep.videoUrl))
+                    .addSubs(ep.id, ep.externalSubtitles)
                     .setMediaMetadata(
                         MediaMetadata
                             .Builder()
-                            .setArtworkUri(detailedSeries.artworkUrl.toUri())
+                            .setArtworkUri(tryGetLocalPoster(detailedSeries.id, detailedSeries.artworkUrl).toUri())
                             .setMediaType(MediaMetadata.MEDIA_TYPE_TV_SHOW)
                             .setTitle(ep.title)
                             .setSubtitle(ep.seriesTitle)
@@ -428,12 +432,13 @@ class PlayerViewModel @Inject constructor(
             _mediaQueue.add(
                 MediaItem
                     .Builder()
-                    .setMediaId(pli.id.toString())
+                    .setMediaId(tryGetLocalVideo(pli.id, pli.id.toString()))
                     .setUri(pli.videoUrl)
+                    .addSubs(pli.id, pli.externalSubtitles)
                     .setMediaMetadata(
                         MediaMetadata
                             .Builder()
-                            .setArtworkUri(detailedPlaylist.artworkUrl.toUri())
+                            .setArtworkUri(tryGetLocalPoster(detailedPlaylist.id, detailedPlaylist.artworkUrl).toUri())
                             .setMediaType(MediaMetadata.MEDIA_TYPE_VIDEO)
                             .setTitle(pli.title)
                             .setSubtitle(detailedPlaylist.name)
@@ -450,64 +455,40 @@ class PlayerViewModel @Inject constructor(
     }
 
 
+    private fun tryGetLocalVideo(id: Int, videoUrl: String): String {
+        var ext = videoUrl.split("?")[0]
+        ext = ext.substring(ext.lastIndexOf("."))
+        return downloadManager.getLocalVideo(id, ext) ?: videoUrl
+    }
 
-//
-//    private fun addMediaItem(
-//        id: Int,
-//        displayTitle: String?,
-//        videoUrl: String,
-//        subTitles: List<ExternalSubtitle>?,
-//        introStartTime: Double?,
-//        introEndTime: Double?,
-//        creditsStartTime: Double?,
-//        isMovie: Boolean
-//    ) {
-//
-//        val builder = MediaItem
-//            .Builder()
-//            .setMediaId(id.toString())
-//            .setMediaMetadata(
-//                MediaMetadata
-//                    .Builder()
-//                    .setMediaType(MediaMetadata.MEDIA_TYPE_MOVIE)
-//                    .setTitle(displayTitle)
-//                    .build()
-//            )
-//
-//        var videoExt = videoUrl.split("?")[0]
-//        videoExt = videoExt.substring(videoExt.lastIndexOf("."))
-//        var localUrl = downloadManager.getLocalVideo(id, videoExt) ?: videoUrl
-//        builder.setUri(videoUrl)
-//
-//        if(!subTitles.isNullOrEmpty()) {
-//            val subtitleConfigurations = arrayListOf<MediaItem.SubtitleConfiguration>()
-//            for (sub in subTitles) {
-//
-//                var subExt = sub.url.split("?")[0]
-//                subExt = subExt.substring(subExt.lastIndexOf("."))
-//                localUrl = downloadManager.getLocalSubtitle(id, subExt) ?: sub.url
-//
-//                subtitleConfigurations.add(
-//                    MediaItem.SubtitleConfiguration
-//                        .Builder(localUrl.toUri())
-//                        .setLabel(sub.name)
-//                        .build()
-//                )
-//            }
-//            builder.setSubtitleConfigurations(subtitleConfigurations)
-//        }
-//        _mediaQueue.add(builder.build())
-//
-//        _videoTimings.add(
-//            VideoTiming(
-//                mediaId = id.toString(),
-//                introStartTime = introStartTime,
-//                introEndTime = introEndTime,
-//                creditsStartTime = creditsStartTime,
-//                isMovie = isMovie
-//            )
-//        )
-//    }
+    private fun tryGetLocalPoster(id: Int, posterUrl: String): String {
+        var ext = posterUrl.split("?")[0]
+        ext = ext.substring(ext.lastIndexOf("."))
+        return downloadManager.getLocalPoster(id, ext) ?: posterUrl
+    }
+
+
+    private fun MediaItem.Builder.addSubs(id: Int, subTitles: List<ExternalSubtitle>?): MediaItem.Builder {
+        if(!subTitles.isNullOrEmpty()) {
+            val subtitleConfigurations = arrayListOf<MediaItem.SubtitleConfiguration>()
+            for (sub in subTitles) {
+
+                var subExt = sub.url.split("?")[0]
+                subExt = subExt.substring(subExt.lastIndexOf("."))
+                subExt = "$sub.name.$subExt"
+                val url = downloadManager.getLocalSubtitle(id, subExt) ?: sub.url
+
+                subtitleConfigurations.add(
+                    MediaItem.SubtitleConfiguration
+                        .Builder(url.toUri())
+                        .setLabel(sub.name)
+                        .build()
+                )
+            }
+            this.setSubtitleConfigurations(subtitleConfigurations)
+        }
+        return this
+    }
 
     private fun convertPlayedToMs(played: Double?) = max(((played ?: 0.0) * 1000).toLong(), 0)
 
