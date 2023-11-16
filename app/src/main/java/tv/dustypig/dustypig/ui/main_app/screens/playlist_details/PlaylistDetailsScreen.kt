@@ -228,6 +228,7 @@ private fun PlaylistDetailsScreenInternal(uiState: PlaylistDetailsUIState) {
                 showDownloadDialog.value = false
                 uiState.onUpdateDownloads(it)
             },
+            onDismiss = { showDownloadDialog.value = false },
             title = stringResource(R.string.download_playlist),
             text = stringResource(R.string.how_many_unwatched_items_do_you_want_to_keep_downloaded),
             currentDownloadCount = uiState.currentDownloadCount

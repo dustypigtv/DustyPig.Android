@@ -548,6 +548,7 @@ private fun SeriesTitleLayout(uiState: SeriesDetailsUIState) {
                 showChangeDownloadCount = false
                 uiState.onUpdateDownload(it)
             },
+            onDismiss = { showChangeDownloadCount = false },
             title = stringResource(R.string.download_series),
             text = stringResource(R.string.how_many_unwatched_episodes_do_you_want_to_keep_downloaded),
             currentDownloadCount = uiState.currentDownloadCount

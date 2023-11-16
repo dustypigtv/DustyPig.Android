@@ -6,17 +6,17 @@ import android.database.Cursor
 import android.os.StatFs
 import android.util.Log
 import androidx.room.Room
-import com.google.gson.Gson
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.api.models.DetailedMovie
 import tv.dustypig.dustypig.api.models.DetailedPlaylist
@@ -28,10 +28,10 @@ import tv.dustypig.dustypig.api.repositories.MoviesRepository
 import tv.dustypig.dustypig.api.repositories.PlaylistRepository
 import tv.dustypig.dustypig.api.repositories.SeriesRepository
 import tv.dustypig.dustypig.global_managers.NetworkManager
+import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.logToCrashlytics
 import java.io.File
-import java.io.IOException
 import java.util.Calendar
 import java.util.Date
 import java.util.Timer
@@ -59,13 +59,12 @@ class DownloadManager @Inject constructor(
         private const val DISPOSITION_POSTER = "poster"
         private const val DISPOSITION_SCREENSHOT = "screenshot"
         private const val DISPOSITION_BACKDROP = "backdrop"
-        private const val DISPOSITION_BIF = "bif"
+//        private const val DISPOSITION_BIF = "bif"
         private const val DISPOSITION_SUBTITLE = "subtitle"
         private const val NO_MEDIA = ".nomedia"
     }
 
     private val _androidDownloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as AndroidDownloadManager
-    private val _okHttpClient = OkHttpClient()
     private val _rootDir = File(context.getExternalFilesDir(null)!!, "downloads")
     private var _profileId = 0
     private var _downloadOverMobile = false
@@ -88,6 +87,10 @@ class DownloadManager @Inject constructor(
         .build()
         .downloadDao()
 
+    private val _scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val _mutex = Mutex(false)
+    private var _forceScan = true
+    private var _playerScreenVisible = false
 
     private val displayMetrics = Resources.getSystem().displayMetrics
     private val urlParameters = "displayWidth=${displayMetrics.widthPixels}&displayHeight=${displayMetrics.heightPixels}"
@@ -96,18 +99,22 @@ class DownloadManager @Inject constructor(
     init {
 
         _rootDir.mkdirs()
-        CoroutineScope(Dispatchers.IO).launch {
+        _scope.launch {
             withContext(Dispatchers.IO) {
                 File(_rootDir, NO_MEDIA).createNewFile()
             }
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
+        _scope.launch {
             settingsManager.profileIdFlow.collectLatest { _profileId = it }
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
+        _scope.launch {
             settingsManager.downloadOverMobileFlow.collectLatest { _downloadOverMobile = it }
+        }
+
+        _scope.launch {
+            PlayerStateManager.playerScreenVisible.collectLatest { _playerScreenVisible = it  }
         }
 
         _statusTimer.schedule(
@@ -119,37 +126,16 @@ class DownloadManager @Inject constructor(
 
         _updateTimer.schedule(
             delay = 10000,
-            period = 10000
+            period = 1000
         ) {
             updateTimerTick()
         }
     }
 
-
     fun start() {
         Log.d(TAG, "Started")
     }
 
-    private fun MediaTypes.asString(): String = when(this) {
-        MediaTypes.Movie -> "movie"
-        MediaTypes.Series -> "series"
-        MediaTypes.Episode -> "episode"
-        MediaTypes.Playlist -> "playlist"
-    }
-
-    private fun getSize(url: String): Long {
-        val request = Request.Builder()
-            .url(url)
-            .head()
-            .build()
-
-        return _okHttpClient.newCall(request).execute().use { response ->
-            if (!response.isSuccessful)
-                throw IOException("Unexpected code $response")
-            response.header("Content-Length")?.toLong() ?: -1
-        }
-    }
-    
     private fun getLong(cursor: Cursor, column: String): Long {
         val index = cursor.getColumnIndex(column)
         return cursor.getLong(index)
@@ -174,12 +160,14 @@ class DownloadManager @Inject constructor(
         if(_statusTimerBusy)
             return
         _statusTimerBusy = true
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                statusTimerWork()
-            } catch (ex: Exception) {
-                Log.e(TAG, ex.localizedMessage ?: "Unknown Error", ex)
-                ex.logToCrashlytics()
+        _scope.launch {
+            _mutex.withLock {
+                try {
+                    statusTimerWork()
+                } catch (ex: Exception) {
+                    Log.e(TAG, ex.localizedMessage ?: "Unknown Error", ex)
+                    ex.logToCrashlytics()
+                }
             }
             _statusTimerBusy = false
         }
@@ -197,9 +185,17 @@ class DownloadManager @Inject constructor(
         if(!networkManager.isConnected())
             return
 
+        if(!_forceScan)
+            return
+
         var downloads = _db.getDownloads()
+        if(downloads.isEmpty() && !_forceScan)
+            return
+
+        var admHasDownloads = false
         val cursor = _androidDownloadManager.query(AndroidDownloadManager.Query())
         while (cursor.moveToNext()) {
+            admHasDownloads = true
 
             val androidId = getLong(cursor, AndroidDownloadManager.COLUMN_ID)
             val download = downloads.firstOrNull { it.androidId == androidId }
@@ -207,12 +203,12 @@ class DownloadManager @Inject constructor(
                 //No longer valid: Remove
                 _androidDownloadManager.remove(androidId)
             } else {
-
+                var saveChanges = false
                 val totalBytes = getLong(cursor, AndroidDownloadManager.COLUMN_TOTAL_SIZE_BYTES)
                 if (totalBytes > 0) {
                     download.totalBytes = totalBytes
                     download.downloadedBytes = getLong(cursor, AndroidDownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
-                    _db.update(download)
+                    saveChanges = true
                 }
 
                 val statusCode = getInt(cursor, AndroidDownloadManager.COLUMN_STATUS)
@@ -225,7 +221,7 @@ class DownloadManager @Inject constructor(
                         val finFile = File(_rootDir.absolutePath + "/${download.fileName}")
                         tmpFile.renameTo(finFile)
                         download.complete = true
-                        _db.update(download)
+                        saveChanges = true
                         _androidDownloadManager.remove(androidId)
                     } catch (ex: Exception) {
                         ex.printStackTrace()
@@ -246,7 +242,7 @@ class DownloadManager @Inject constructor(
                     if (download.status != DownloadStatus.Error || download.statusDetails != statusDetails) {
                         download.status = DownloadStatus.Error
                         download.statusDetails = statusDetails
-                        _db.update(download)
+                        saveChanges = true
                     }
 
                     if(statusReasonCode == AndroidDownloadManager.ERROR_INSUFFICIENT_SPACE && download.totalBytes > 0) {
@@ -256,7 +252,7 @@ class DownloadManager @Inject constructor(
                             _androidDownloadManager.remove(androidId)
                             download.androidId = 0
                             download.lastRetry = Date()
-                            _db.update(download)
+                            saveChanges = true
                         }
                     } else {
                         //Retry once every 10 seconds
@@ -264,7 +260,7 @@ class DownloadManager @Inject constructor(
                             _androidDownloadManager.remove(androidId)
                             download.androidId = 0
                             download.lastRetry = Date()
-                            _db.update(download)
+                            saveChanges = true
                         }
                     }
 
@@ -282,7 +278,7 @@ class DownloadManager @Inject constructor(
 
                     if (download.status != status) {
                         download.status = status
-                        _db.update(download)
+                        saveChanges = true
                     }
 
                     if (status == DownloadStatus.Paused) {
@@ -295,44 +291,40 @@ class DownloadManager @Inject constructor(
 
                         if (download.statusDetails != reason) {
                             download.statusDetails = reason
-                            _db.update(download)
+                            saveChanges = true
                         }
                     }
+                }
+
+                if(saveChanges) {
+                    _db.update(download)
                 }
             }
         }
         cursor.close()
 
-        //Remove any files that are invalid
+        _forceScan = admHasDownloads || downloads.any { !it.complete }
+
+
+        //Remove any files that are invalid (but not during playback)
         val jobs = _db.getJobs(_profileId)
-        for (file in _rootDir.listFiles()!!) {
-
-            var valid = file.name == NO_MEDIA
-
-            //Jobs store info in json files
-            if(!valid) {
-                for (j in jobs) {
-                    if (file.name == "${j.mediaId}.${j.mediaType.asString()}.json") {
-                        valid = true
-                        break
+        if(!_playerScreenVisible) {
+            for (filename in _rootDir.list() ?: arrayOf()) {
+                var valid = filename == NO_MEDIA
+                if (!valid) {
+                    for (d in downloads) {
+                        if (filename == d.fileName || filename == "${d.fileName}.tmp") {
+                            valid = true
+                            break
+                        }
                     }
                 }
-            }
 
-            //Downloads have unique filenames
-            if (!valid) {
-                for (d in downloads) {
-                    if (file.name == d.fileName || file.name == "${d.fileName}.tmp") {
-                        valid = true
-                        break
-                    }
+                if (!valid) {
+                    File(_rootDir, filename).delete()
                 }
             }
-
-            if (!valid)
-                file.delete()
         }
-
 
         //Add any support files that are not started (max of 3)
         val runningSupportFiles = downloads.filter {
@@ -500,12 +492,14 @@ class DownloadManager @Inject constructor(
         if(_updateTimerBusy)
             return
         _updateTimerBusy = true
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                updateTimerWork()
-            } catch (ex: Exception) {
-                Log.e(TAG, ex.localizedMessage ?: "Unknown Error", ex)
-                ex.logToCrashlytics()
+        _scope.launch {
+            _mutex.withLock {
+                try {
+                    updateTimerWork()
+                } catch (ex: Exception) {
+                    Log.e(TAG, ex.localizedMessage ?: "Unknown Error", ex)
+                    ex.logToCrashlytics()
+                }
             }
             _updateTimerBusy = false
         }
@@ -525,8 +519,10 @@ class DownloadManager @Inject constructor(
         var jobFileSetMTMs = _db.getJobFileSetMTMs()
         for(jobFileSetMTM in jobFileSetMTMs) {
             val valid = jobs.any{it.mediaId == jobFileSetMTM.jobMediaId && it.mediaType == jobFileSetMTM.jobMediaType }
-            if(!valid)
+            if(!valid) {
                 _db.delete(jobFileSetMTM)
+                _forceScan = true
+            }
         }
 
 
@@ -536,8 +532,10 @@ class DownloadManager @Inject constructor(
             val valid = jobFileSetMTMs.any {
                 it.fileSetMediaId == fileSet.mediaId
             }
-            if(!valid)
+            if(!valid) {
                 _db.delete(fileSet)
+                _forceScan = true
+            }
         }
 
 
@@ -555,7 +553,7 @@ class DownloadManager @Inject constructor(
                         MediaTypes.Playlist -> updatePlaylist(job)
                         MediaTypes.Episode -> updateEpisode(job)
                     }
-
+                    _forceScan = true
                 }
             } catch (ex: Exception) {
                 ex.logToCrashlytics()
@@ -565,14 +563,12 @@ class DownloadManager @Inject constructor(
 
     }
 
-    private fun saveFile(fileName: String, data: Any) {
-        val file = File(_rootDir, fileName)
-        if(file.exists())
-            file.delete()
-        file.writeText(Gson().toJson(data))
-    }
-
-    private suspend fun addOrUpdateDownload(fileSetWithDownloads: FileSetWithDownloads, url: String?, disposition: String) {
+    private suspend fun addOrUpdateDownload(
+        fileSetWithDownloads: FileSetWithDownloads,
+        url: String?,
+        disposition: String,
+        size: Long
+    ) {
 
         if(url.isNullOrBlank())
             return
@@ -590,8 +586,6 @@ class DownloadManager @Inject constructor(
         }
 
         if(dl == null) {
-
-            val size = getSize(url)
             dl = Download(
                 url = url,
                 totalBytes = size,
@@ -607,12 +601,10 @@ class DownloadManager @Inject constructor(
         } else {
 
             if (dl.fileName != fileName || dl.url != url) {
-                val size = getSize(url)
-
                 dl.url = url
                 dl.fileName = fileName
                 dl.complete = false
-                dl.totalBytes = size
+                dl.totalBytes = -size
                 dl.complete = false
                 dl.androidId = 0
                 dl.downloadedBytes = 0
@@ -620,13 +612,15 @@ class DownloadManager @Inject constructor(
                 dl.statusDetails = ""
 
                 _db.update(download = dl)
-
             }
 
         }
     }
 
-    private suspend fun addOrUpdateSubtitleDownload(fileSetWithDownloads: FileSetWithDownloads, sub: ExternalSubtitle) {
+    private suspend fun addOrUpdateSubtitleDownload(
+        fileSetWithDownloads: FileSetWithDownloads,
+        sub: ExternalSubtitle
+    ) {
 
         if(sub.url.isBlank())
             return
@@ -642,28 +636,26 @@ class DownloadManager @Inject constructor(
             it.fileName == fileName
         }
         if(dl == null) {
-            val size = getSize(sub.url)
             dl = Download(
                 url = sub.url,
-                totalBytes = size,
+                totalBytes = sub.fileSize.toLong(),
                 fileName = fileName,
                 mediaId = fileSetWithDownloads.fileSet.mediaId,
-                status = if(size > 0) DownloadStatus.None else DownloadStatus.Pending,
+                status = if(sub.fileSize > 0u) DownloadStatus.None else DownloadStatus.Pending,
                 statusDetails = "",
                 disposition = DISPOSITION_SUBTITLE
             )
             _db.insert(download = dl)
         } else {
             if (dl.fileName != fileName || dl.url != sub.url) {
-                val size = getSize(sub.url)
                 dl.url = sub.url
                 dl.fileName = fileName
                 dl.complete = false
-                dl.totalBytes = size
+                dl.totalBytes = sub.fileSize.toLong()
                 dl.complete = false
                 dl.androidId = 0
                 dl.downloadedBytes = 0
-                dl.status = if(size > 0) DownloadStatus.None else DownloadStatus.Pending
+                dl.status = if(sub.fileSize > 0u) DownloadStatus.None else DownloadStatus.Pending
                 dl.statusDetails = ""
                 _db.update(download = dl)
             }
@@ -674,7 +666,6 @@ class DownloadManager @Inject constructor(
     private suspend fun updateMovie(job: Job) {
 
         val detailedMovie = moviesRepository.details(id = job.mediaId)
-        saveFile(fileName = "${detailedMovie.id}.${job.mediaType.asString()}.json", data = detailedMovie)
 
         var fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId)
         if(fileSetWithDownloads == null) {
@@ -698,9 +689,26 @@ class DownloadManager @Inject constructor(
         }
 
 
-        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedMovie.artworkUrl, disposition = DISPOSITION_POSTER)
-        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedMovie.backdropUrl, disposition = DISPOSITION_BACKDROP)
-        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedMovie.bifUrl, disposition = DISPOSITION_BIF)
+        addOrUpdateDownload(
+            fileSetWithDownloads = fileSetWithDownloads,
+            url = detailedMovie.artworkUrl,
+            disposition = DISPOSITION_POSTER,
+            size = detailedMovie.artworkSize.toLong()
+        )
+
+        addOrUpdateDownload(
+            fileSetWithDownloads = fileSetWithDownloads,
+            url = detailedMovie.backdropUrl,
+            disposition = DISPOSITION_BACKDROP,
+            size = detailedMovie.backdropSize.toLong()
+        )
+
+//        addOrUpdateDownload(
+//            fileSetWithDownloads = fileSetWithDownloads,
+//            url = detailedMovie.bifUrl,
+//            disposition = DISPOSITION_BIF,
+//            size = detailedMovie.bifSize.toLong()
+//        )
 
         if(detailedMovie.externalSubtitles?.isNotEmpty() == true) {
             for(sub in detailedMovie.externalSubtitles) {
@@ -708,7 +716,12 @@ class DownloadManager @Inject constructor(
             }
         }
 
-        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedMovie.videoUrl, disposition = DISPOSITION_VIDEO)
+        addOrUpdateDownload(
+            fileSetWithDownloads = fileSetWithDownloads,
+            url = detailedMovie.videoUrl,
+            disposition = DISPOSITION_VIDEO,
+            size = detailedMovie.videoSize.toLong()
+        )
 
         job.pending = false
         job.lastUpdate = Date()
@@ -718,7 +731,6 @@ class DownloadManager @Inject constructor(
     private suspend fun updateSeries(job: Job) {
 
         val detailedSeries = seriesRepository.details(job.mediaId)
-        saveFile(fileName = "${detailedSeries.id}.${job.mediaType.asString()}.json", data = detailedSeries)
 
         var fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId)
         if(fileSetWithDownloads == null) {
@@ -742,8 +754,19 @@ class DownloadManager @Inject constructor(
             )
         }
 
-        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedSeries.artworkUrl, disposition = DISPOSITION_POSTER)
-        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedSeries.backdropUrl, disposition = DISPOSITION_BACKDROP)
+        addOrUpdateDownload(
+            fileSetWithDownloads = fileSetWithDownloads,
+            url = detailedSeries.artworkUrl,
+            disposition = DISPOSITION_POSTER,
+            size = detailedSeries.artworkSize.toLong()
+        )
+
+        addOrUpdateDownload(
+            fileSetWithDownloads = fileSetWithDownloads,
+            url = detailedSeries.backdropUrl,
+            disposition = DISPOSITION_BACKDROP,
+            size = detailedSeries.backdropSize.toLong()
+        )
 
 
         //Identify ids of episodes that should be downloaded
@@ -810,15 +833,31 @@ class DownloadManager @Inject constructor(
                     )
                 }
 
-                addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = episode.artworkUrl, disposition = DISPOSITION_SCREENSHOT)
-                addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = episode.bifUrl, disposition = DISPOSITION_BIF)
+                addOrUpdateDownload(
+                    fileSetWithDownloads = fileSetWithDownloads,
+                    url = episode.artworkUrl,
+                    disposition = DISPOSITION_SCREENSHOT,
+                    size = episode.artworkSize.toLong()
+                )
+
+//                addOrUpdateDownload(
+//                    fileSetWithDownloads = fileSetWithDownloads,
+//                    url = episode.bifUrl,
+//                    disposition = DISPOSITION_BIF,
+//                    size = episode.bifSize.toLong()
+//                )
 
                 if (episode.externalSubtitles != null) {
                     for (sub in episode.externalSubtitles)
                         addOrUpdateSubtitleDownload(fileSetWithDownloads = fileSetWithDownloads, sub = sub)
                 }
 
-                addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = episode.videoUrl, disposition = DISPOSITION_VIDEO)
+                addOrUpdateDownload(
+                    fileSetWithDownloads = fileSetWithDownloads,
+                    url = episode.videoUrl,
+                    disposition = DISPOSITION_VIDEO,
+                    size = episode.videoSize.toLong()
+                )
 
             }
         }
@@ -831,7 +870,6 @@ class DownloadManager @Inject constructor(
     private suspend fun updateEpisode(job: Job) {
 
         val detailedEpisode = episodesRepository.details(id = job.mediaId)
-        saveFile(fileName = "${detailedEpisode.id}.${job.mediaType.asString()}.json", data = detailedEpisode)
 
         var fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId)
         if(fileSetWithDownloads == null) {
@@ -855,8 +893,19 @@ class DownloadManager @Inject constructor(
         }
 
 
-        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedEpisode.artworkUrl, disposition = DISPOSITION_SCREENSHOT)
-        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedEpisode.bifUrl, disposition = DISPOSITION_BIF)
+        addOrUpdateDownload(
+            fileSetWithDownloads = fileSetWithDownloads,
+            url = detailedEpisode.artworkUrl,
+            disposition = DISPOSITION_SCREENSHOT,
+            size = detailedEpisode.artworkSize.toLong()
+        )
+
+//        addOrUpdateDownload(
+//            fileSetWithDownloads = fileSetWithDownloads,
+//            url = detailedEpisode.bifUrl,
+//            disposition = DISPOSITION_BIF,
+//            size = detailedEpisode.bifSize.toLong()
+//        )
 
         if(detailedEpisode.externalSubtitles?.isNotEmpty() == true) {
             for(sub in detailedEpisode.externalSubtitles) {
@@ -864,7 +913,12 @@ class DownloadManager @Inject constructor(
             }
         }
 
-        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedEpisode.videoUrl, disposition = DISPOSITION_VIDEO)
+        addOrUpdateDownload(
+            fileSetWithDownloads = fileSetWithDownloads,
+            url = detailedEpisode.videoUrl,
+            disposition = DISPOSITION_VIDEO,
+            size = detailedEpisode.videoSize.toLong()
+        )
 
         job.pending = false
         job.lastUpdate = Date()
@@ -875,7 +929,6 @@ class DownloadManager @Inject constructor(
     private suspend fun updatePlaylist(job: Job) {
 
         val detailedPlaylist = playlistRepository.details(job.mediaId)
-        saveFile(fileName = "${detailedPlaylist.id}.${job.mediaType.asString()}.json", data = detailedPlaylist)
 
         var fileSetWithDownloads = _db.getFileSet(mediaId = job.mediaId)
         if(fileSetWithDownloads == null) {
@@ -899,7 +952,12 @@ class DownloadManager @Inject constructor(
             )
         }
 
-        addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = detailedPlaylist.artworkUrl, disposition = DISPOSITION_POSTER)
+        addOrUpdateDownload(
+            fileSetWithDownloads = fileSetWithDownloads,
+            url = detailedPlaylist.artworkUrl,
+            disposition = DISPOSITION_POSTER,
+            size = detailedPlaylist.artworkSize.toLong()
+        )
 
 
         //Identify ids of items that should be downloaded
@@ -967,15 +1025,31 @@ class DownloadManager @Inject constructor(
                     )
                 }
 
-                addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = playlistItem.artworkUrl, disposition = DISPOSITION_SCREENSHOT)
-                addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = playlistItem.bifUrl, disposition = DISPOSITION_BIF)
+                addOrUpdateDownload(
+                    fileSetWithDownloads = fileSetWithDownloads,
+                    url = playlistItem.artworkUrl,
+                    disposition = DISPOSITION_SCREENSHOT,
+                    size = playlistItem.artworkSize.toLong()
+                )
+
+//                addOrUpdateDownload(
+//                    fileSetWithDownloads = fileSetWithDownloads,
+//                    url = playlistItem.bifUrl,
+//                    disposition = DISPOSITION_BIF,
+//                    size = playlistItem.bifSize.toLong()
+//                )
 
                 if (playlistItem.externalSubtitles != null) {
                     for (sub in playlistItem.externalSubtitles)
                         addOrUpdateSubtitleDownload(fileSetWithDownloads = fileSetWithDownloads, sub = sub)
                 }
 
-                addOrUpdateDownload(fileSetWithDownloads = fileSetWithDownloads, url = playlistItem.videoUrl, disposition = DISPOSITION_VIDEO)
+                addOrUpdateDownload(
+                    fileSetWithDownloads = fileSetWithDownloads,
+                    url = playlistItem.videoUrl,
+                    disposition = DISPOSITION_VIDEO,
+                    size = playlistItem.videoSize.toLong()
+                )
 
             }
         }
@@ -1031,7 +1105,6 @@ class DownloadManager @Inject constructor(
         } else if(job.count != count) {
             job.pending = true
             job.count = count
-            job.lastUpdate = lastUpdate.time
             _db.update(job)
         }
 
@@ -1047,7 +1120,7 @@ class DownloadManager @Inject constructor(
                 _db.delete(job)
             } else if(job.count != newCount) {
                 job.count = newCount
-                job.lastUpdate = lastUpdate.time
+                job.pending = true
                 _db.update(job)
             }
         }
@@ -1090,9 +1163,8 @@ class DownloadManager @Inject constructor(
                 )
             )
         } else if(job.count != count) {
-            job.pending = true
             job.count = count
-            job.lastUpdate = lastUpdate.time
+            job.pending = true
             _db.update(job)
         }
     }
@@ -1107,7 +1179,7 @@ class DownloadManager @Inject constructor(
                 _db.delete(job)
             } else if(job.count != newCount) {
                 job.count = newCount
-                job.lastUpdate = lastUpdate.time
+                job.pending = true
                 _db.update(job)
             }
         }
@@ -1119,19 +1191,14 @@ class DownloadManager @Inject constructor(
             _db.delete(job)
     }
 
-    suspend fun deleteAll() {
+    fun deleteAll() {
 
         /**
-         * No idea why, but this throws a main ui thread exception
+         * No idea why, but this throws a main ui thread exception, so scope it
          */
-//        _db.deleteAllJobs(_profileId)
-
-        /**
-         * So do it the dumb-ass way, it works
-         */
-        val jobs = _db.getJobs(_profileId)
-        for(job in jobs)
-            _db.delete(job)
+        _scope.launch {
+            _db.deleteAllJobs(_profileId)
+        }
     }
 
     private fun getLocalFile(filename: String): String? {
@@ -1143,7 +1210,6 @@ class DownloadManager @Inject constructor(
 
     fun getLocalVideo(mediaId: Int, ext: String) =
         getLocalFile("${mediaId}.$DISPOSITION_VIDEO$ext")
-
 
     fun getLocalSubtitle(mediaId: Int, ext: String) =
         getLocalFile("${mediaId}.$DISPOSITION_SUBTITLE$ext")

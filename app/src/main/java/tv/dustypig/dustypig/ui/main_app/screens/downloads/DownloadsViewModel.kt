@@ -167,13 +167,7 @@ class DownloadsViewModel @Inject constructor(
     }
 
     private fun deleteAll() {
-        viewModelScope.launch {
-            try{
-                downloadManager.deleteAll()
-            } catch (ex: Exception) {
-                setError(ex)
-            }
-        }
+        downloadManager.deleteAll()
     }
 
 }

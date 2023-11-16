@@ -2,6 +2,7 @@ package tv.dustypig.dustypig.ui.main_app.screens.player
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -58,6 +59,10 @@ class PlayerViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ): ViewModel(), RouteNavigator by routeNavigator, Player.Listener, CastConnectionStateListener {
 
+    companion object {
+        private const val TAG = "PlayerViewModel"
+    }
+
     private data class StartInfo(
         val index:Int,
         val milliSeconds:Long
@@ -66,7 +71,7 @@ class PlayerViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(
         PlayerUIState(
             castManager = castManager,
-            onPopBackStack = ::navBack,
+            onPopBackStack = ::popBackStack,
             onPlayNext = ::playNext,
             onSkipIntro = ::skipIntro
         )
@@ -139,6 +144,18 @@ class PlayerViewModel @Inject constructor(
     }
 
 
+    override fun popBackStack() {
+        _timer.cancel()
+        _localPlayer.stop()
+        _localPlayer.release()
+        _mediaQueue.clear()
+        castManager.removeListener(this)
+        PlayerStateManager.playerDisposed()
+        HomeViewModel.triggerUpdate()
+        routeNavigator.popBackStack()
+    }
+
+
 
     // CastConnectionStateListener
 
@@ -184,6 +201,7 @@ class PlayerViewModel @Inject constructor(
             } else {
 
                 _currentMediaItemId = mediaItem.mediaId
+
                 val videoTiming = _videoTimings.first {
                     it.mediaId == _currentMediaItemId
                 }
@@ -195,7 +213,9 @@ class PlayerViewModel @Inject constructor(
                     )
                 }
             }
-        } catch (_: Exception) {
+            Log.d(TAG, "onMediaItemTransition: _currentMediaItemId=$_currentMediaItemId")
+        } catch (ex: Exception) {
+            Log.e(TAG, "onMediaItemTransition", ex)
         }
     }
 
@@ -206,16 +226,16 @@ class PlayerViewModel @Inject constructor(
 
     //Internal functions
 
-    private fun navBack() {
-        _timer.cancel()
-        _localPlayer.stop()
-        _localPlayer.release()
-        _mediaQueue.clear()
-        castManager.removeListener(this)
-        PlayerStateManager.playerDisposed()
-        HomeViewModel.triggerUpdate()
-        popBackStack()
-    }
+//    private fun navBack() {
+//        _timer.cancel()
+//        _localPlayer.stop()
+//        _localPlayer.release()
+//        _mediaQueue.clear()
+//        castManager.removeListener(this)
+//        PlayerStateManager.playerDisposed()
+//        HomeViewModel.triggerUpdate()
+//        popBackStack()
+//    }
 
     private fun skipIntro() {
         try {
@@ -366,7 +386,7 @@ class PlayerViewModel @Inject constructor(
 
             _videoTimings.add(
                 VideoTiming(
-                    mediaId = _mediaId.toString(),
+                    mediaId = ep.id.toString(),
                     introStartTime = ep.introStartTime,
                     introEndTime = ep.introEndTime,
                     creditsStartTime = ep.creditStartTime,
@@ -421,7 +441,7 @@ class PlayerViewModel @Inject constructor(
 
             _videoTimings.add(
                 VideoTiming(
-                    mediaId = _mediaId.toString(),
+                    mediaId = pli.id.toString(),
                     introStartTime = pli.introStartTime,
                     introEndTime = pli.introEndTime,
                     creditsStartTime = pli.creditStartTime,
@@ -466,7 +486,6 @@ class PlayerViewModel @Inject constructor(
         ext = ext.substring(ext.lastIndexOf("."))
         return downloadManager.getLocalPoster(id, ext) ?: posterUrl
     }
-
 
     private fun MediaItem.Builder.addSubs(id: Int, subTitles: List<ExternalSubtitle>?): MediaItem.Builder {
         if(!subTitles.isNullOrEmpty()) {
@@ -515,6 +534,7 @@ class PlayerViewModel @Inject constructor(
                         it.mediaId == _currentMediaItemId!!
                     }
 
+
                     if(videoTiming.introClicked) {
                         if(_uiState.value.currentPositionWithinIntro) {
                             _uiState.update {
@@ -538,30 +558,33 @@ class PlayerViewModel @Inject constructor(
                         }
                     }
 
-                    if(videoTiming.creditsClicked) {
-                        if(_uiState.value.currentPositionWithinCredits) {
-                            _uiState.update {
-                                it.copy(
-                                    currentPositionWithinCredits = true
-                                )
-                            }
-                        }
-                    } else {
-                        val length = _localPlayer.contentDuration.toDouble() / 1000
-                        val positionWithinCredits = videoTiming.positionWithinCredits(seconds, length)
-                        if (positionWithinCredits && _autoSkipCredits) {
-                            playNext()
-                        } else {
-                            if (_uiState.value.currentPositionWithinCredits != positionWithinCredits) {
+                    val endOfPlaylist = _videoTimings.indexOf(videoTiming) == _videoTimings.size - 1
+                    if(!endOfPlaylist) {
+                        if (videoTiming.creditsClicked) {
+                            if (_uiState.value.currentPositionWithinCredits) {
                                 _uiState.update {
                                     it.copy(
-                                        currentPositionWithinCredits = positionWithinCredits
+                                        currentPositionWithinCredits = false
                                     )
+                                }
+                            }
+                        } else {
+                            val length = _localPlayer.contentDuration.toDouble() / 1000
+                            val positionWithinCredits =
+                                videoTiming.positionWithinCredits(seconds, length)
+                            if (positionWithinCredits && _autoSkipCredits) {
+                                playNext()
+                            } else {
+                                if (_uiState.value.currentPositionWithinCredits != positionWithinCredits) {
+                                    _uiState.update {
+                                        it.copy(
+                                            currentPositionWithinCredits = positionWithinCredits
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
-
 
 
                     if(_currentMediaItemId != null && seconds > 1.0 && abs(_previousSeconds - seconds) >= 1.0) {
@@ -576,13 +599,13 @@ class PlayerViewModel @Inject constructor(
                             PlayerNav.MEDIA_TYPE_SERIES ->
                                 mediaRepository.updatePlaybackProgress(pp)
 
-
                             PlayerNav.MEDIA_TYPE_PLAYLIST ->
                                 playlistRepository.setPlaylistProgress(pp)
                         }
                     }
                 }
-            } catch (_: Exception) {
+            } catch (ex: Exception) {
+                //Log.e(TAG, "timerTick", ex)
             }
 
             _timerBusy = false

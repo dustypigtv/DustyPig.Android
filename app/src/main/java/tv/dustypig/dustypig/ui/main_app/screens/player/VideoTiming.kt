@@ -29,11 +29,10 @@ data class VideoTiming(
         if(creditsClicked)
             return false
 
-        val calcTime = creditsStartTime ?:
-            if(isMovie)
-                length * 0.9
-            else
-                (length - 30.0)
+        if(isMovie && creditsStartTime == null)
+            return false
+
+        val calcTime = creditsStartTime ?: (length - 30.0)
 
         if(calcTime < 1.0)
             return false

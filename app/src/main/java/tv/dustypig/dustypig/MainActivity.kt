@@ -81,7 +81,6 @@ class MainActivity: ComponentActivity() {
         authManager.init()
         FCMManager.init()
         analytics = Firebase.analytics
-        downloadManager.start()
 
 
         setContent {

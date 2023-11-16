@@ -588,6 +588,7 @@ private fun DownloadsScreenInternal(uiState: DownloadsUIState) {
                 showEditDownloadDialog = false
                 uiState.onModifyDownload(selectedJob!!, newCount)
             },
+            onDismiss = { showEditDownloadDialog = false },
             title = when(selectedJob!!.mediaType) {
                 MediaTypes.Series -> stringResource(R.string.download_series)
                 MediaTypes.Playlist -> stringResource(R.string.download_playlist)
@@ -598,7 +599,10 @@ private fun DownloadsScreenInternal(uiState: DownloadsUIState) {
                 MediaTypes.Playlist -> stringResource(R.string.how_many_unwatched_items_do_you_want_to_keep_downloaded)
                 else -> ""
             },
-            currentDownloadCount = selectedJob!!.count
+
+            //selectedJob is remembered, which does not update the count property
+            //easy fix
+            currentDownloadCount = uiState.jobs.first { it.mediaId == selectedJob!!.mediaId }.count
         )
     }
 

@@ -56,7 +56,13 @@ private fun CountRow(count: Int, newDownloadCount: MutableIntState) {
 }
 
 @Composable
-fun MultiDownloadDialog(onSave: (Int) -> Unit, title:String, text: String, currentDownloadCount: Int) {
+fun MultiDownloadDialog(
+    onSave: (Int) -> Unit,
+    onDismiss: () -> Unit,
+    title:String,
+    text: String,
+    currentDownloadCount: Int
+) {
 
     val newDownloadCount = remember {
         mutableIntStateOf(currentDownloadCount)
@@ -79,7 +85,7 @@ fun MultiDownloadDialog(onSave: (Int) -> Unit, title:String, text: String, curre
 
     AlertDialog(
         shape = RoundedCornerShape(8.dp),
-        onDismissRequest = { onSave(currentDownloadCount) },
+        onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
             Column {
@@ -105,7 +111,7 @@ fun MultiDownloadDialog(onSave: (Int) -> Unit, title:String, text: String, curre
             }
         },
         dismissButton = {
-            TextButton(onClick = { onSave(currentDownloadCount) }) {
+            TextButton(onClick = onDismiss) {
                 Text(stringResource(R.string.cancel))
             }
         }
@@ -120,6 +126,7 @@ private fun MultiDownloadDialogPreview() {
     PreviewBase {
         MultiDownloadDialog(
             onSave = { },
+            onDismiss = { },
             title = "Download",
             text = "How many items do you want to download?",
             currentDownloadCount = 3
