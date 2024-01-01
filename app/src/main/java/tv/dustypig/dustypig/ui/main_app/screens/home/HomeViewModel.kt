@@ -68,23 +68,11 @@ class HomeViewModel @Inject constructor(
         if(_uiState.value.sections.isEmpty())
             triggerUpdate()
 
-
-        if(networkManager.isConnected()) {
-            _uiState.update {
-                it.copy(
-                    hasNetworkConnection = true,
-                    isRefreshing = if(it.sections.isEmpty()) true else it.isRefreshing
-                )
-            }
-        } else {
-            _uiState.update {
-                it.copy (
-                    hasNetworkConnection = false,
-                    isRefreshing = false,
-                    sections = listOf()
-                )
-            }
-            return
+        _uiState.update {
+            it.copy(
+                hasNetworkConnection = networkManager.isConnected(),
+                isRefreshing = if (it.sections.isEmpty()) true else it.isRefreshing
+            )
         }
 
         if(Calendar.getInstance().time < _nextTimerTick)

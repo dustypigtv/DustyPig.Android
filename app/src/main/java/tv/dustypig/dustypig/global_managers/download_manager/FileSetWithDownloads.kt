@@ -6,8 +6,8 @@ import androidx.room.Relation
 data class FileSetWithDownloads (
     @Embedded val fileSet: FileSet,
     @Relation(
-        parentColumn = "mediaId",
-        entityColumn = "mediaId"
+        parentColumn = "id",
+        entityColumn = "fileSetId"
     )
     val downloads: List<Download>
 )

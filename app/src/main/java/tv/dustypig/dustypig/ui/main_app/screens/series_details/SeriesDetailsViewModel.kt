@@ -64,7 +64,7 @@ class SeriesDetailsViewModel  @Inject constructor(
     val uiState: StateFlow<SeriesDetailsUIState> = _uiState.asStateFlow()
 
     private val _basicCacheId: String = savedStateHandle.getOrThrow(SeriesDetailsNav.KEY_BASIC_CACHE_ID)
-    private val mediaId: Int = savedStateHandle.getOrThrow(SeriesDetailsNav.KEY_MEDIA_ID)
+    private val _mediaId: Int = savedStateHandle.getOrThrow(SeriesDetailsNav.KEY_MEDIA_ID)
 
     private var _detailedSeries = DetailedSeries()
     private val _detailCacheId = UUID.randomUUID().toString()
@@ -87,7 +87,7 @@ class SeriesDetailsViewModel  @Inject constructor(
         viewModelScope.launch {
             downloadManager.downloads.collectLatest { jobLst ->
                 val job = jobLst.firstOrNull {
-                    it.mediaId == mediaId && it.mediaType == MediaTypes.Series
+                    it.mediaId == _mediaId && it.mediaType == MediaTypes.Series
                 }
                 if(job == null) {
                     _uiState.update {
@@ -122,7 +122,7 @@ class SeriesDetailsViewModel  @Inject constructor(
         }
 
         try {
-            _detailedSeries = seriesRepository.details(mediaId)
+            _detailedSeries = seriesRepository.details(_mediaId)
             MediaCacheManager.Series[_detailCacheId] = _detailedSeries
 
             val episodes = _detailedSeries.episodes ?: listOf()
@@ -140,7 +140,7 @@ class SeriesDetailsViewModel  @Inject constructor(
 
 
             val unPlayed = upNext.id == episodes.first().id && (upNext.played == null || upNext.played < 1)
-            val fullyPlayed = upNext.id == episodes.last().id && (upNext.played ?: 0.0) >= (upNext.creditStartTime ?: (upNext.length - 30.0))
+            val fullyPlayed = upNext.id == episodes.last().id && (upNext.played ?: 0.0) >= (upNext.creditsStartTime ?: (upNext.length - 30.0))
 
             _uiState.update {
                 it.copy(
@@ -227,10 +227,7 @@ class SeriesDetailsViewModel  @Inject constructor(
 
     private fun updateDownloads(newCount: Int) {
        viewModelScope.launch {
-            if (newCount == 0)
-                downloadManager.delete(_detailedSeries.id, MediaTypes.Series)
-            else
-                downloadManager.addOrUpdateSeries(_detailedSeries, newCount)
+            downloadManager.addOrUpdateSeries(_detailedSeries, newCount)
         }
     }
 
@@ -241,7 +238,7 @@ class SeriesDetailsViewModel  @Inject constructor(
 
         viewModelScope.launch {
             try{
-                mediaRepository.requestAccessOverride(mediaId)
+                mediaRepository.requestAccessOverride(_mediaId)
                 _uiState.update {
                     it.copy(
                         accessRequestBusy = false,
@@ -264,9 +261,9 @@ class SeriesDetailsViewModel  @Inject constructor(
             try {
 
                 if(_uiState.value.inWatchList) {
-                    mediaRepository.deleteFromWatchlist(mediaId)
+                    mediaRepository.deleteFromWatchlist(_mediaId)
                 } else {
-                    mediaRepository.addToWatchlist(mediaId)
+                    mediaRepository.addToWatchlist(_mediaId)
                 }
 
                 _uiState.update {
@@ -290,9 +287,9 @@ class SeriesDetailsViewModel  @Inject constructor(
         viewModelScope.launch {
             try{
                 if(removeFromContinueWatching) {
-                    seriesRepository.removeFromContinueWatching(mediaId)
+                    seriesRepository.removeFromContinueWatching(_mediaId)
                 } else {
-                    seriesRepository.markWatched(mediaId)
+                    seriesRepository.markWatched(_mediaId)
                 }
                 _uiState.update {
                     it.copy(
@@ -309,11 +306,11 @@ class SeriesDetailsViewModel  @Inject constructor(
 
 
     private fun addToPlaylist() {
-        navigateToRoute(AddToPlaylistNav.getRouteForId(mediaId, true))
+        navigateToRoute(AddToPlaylistNav.getRouteForId(_mediaId, true))
     }
 
     private fun managePermissions() {
-        navigateToRoute(ManageParentalControlsForTitleNav.getRouteForId(mediaId))
+        navigateToRoute(ManageParentalControlsForTitleNav.getRouteForId(_mediaId))
     }
 
     private fun navToEpisodeInfo(id: Int) {

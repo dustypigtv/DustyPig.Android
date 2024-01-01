@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -244,13 +245,21 @@ private fun AvailableLayout(
         contentPadding = PaddingValues(12.dp)
     ) {
 
-        items(
-            uiState.availableItems.count()
-        ) { index ->
+//        items(
+//            uiState.availableItems.count()
+//        ) { index ->
+//            BasicMediaView(
+//                basicMedia = uiState.availableItems[index],
+//                routeNavigator = routeNavigator,
+//                clicked = { keyboardController?.hide() }
+//            )
+//        }
+
+        items(uiState.availableItems, key = {it.id} ){
             BasicMediaView(
-                basicMedia = uiState.availableItems[index],
+                basicMedia = it,
                 routeNavigator = routeNavigator,
-                clicked = { keyboardController?.hide() }
+                clicked = {keyboardController?.hide() }
             )
         }
 
@@ -276,13 +285,21 @@ private fun TMDBLayout(
         contentPadding = PaddingValues(12.dp)
     ) {
 
-        items(
-            uiState.tmdbItems.count()
-        ) { index ->
+//        items(
+//            uiState.tmdbItems.count()
+//        ) { index ->
+//            TMDBMediaView(
+//                basicTMDB = uiState.tmdbItems[index],
+//                routeNavigator = routeNavigator,
+//                clicked = { keyboardController?.hide() }
+//            )
+//        }
+
+        items(uiState.tmdbItems, key = {it.tmdbId} ){
             TMDBMediaView(
-                basicTMDB = uiState.tmdbItems[index],
+                basicTMDB = it,
                 routeNavigator = routeNavigator,
-                clicked = { keyboardController?.hide() }
+                clicked = {keyboardController?.hide() }
             )
         }
 

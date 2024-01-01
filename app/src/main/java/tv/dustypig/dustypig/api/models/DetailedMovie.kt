@@ -33,7 +33,7 @@ data class DetailedMovie (
     val length: Double = 0.0,
     @SerializedName("intro_start_time") val introStartTime: Double? = null,
     @SerializedName("intro_end_time") val introEndTime: Double? = null,
-    @SerializedName("credit_start_time") val creditStartTime: Double? = null,
+    @SerializedName("credit_start_time") val creditsStartTime: Double? = null,
     @SerializedName("srt_subtitles") val externalSubtitles: List<ExternalSubtitle>? = null,
     @SerializedName("title_request_permission") val titleRequestPermissions: TitleRequestPermissions = TitleRequestPermissions.Disabled,
     @SerializedName("access_request_status") val accessRequestStatus: OverrideRequestStatus = OverrideRequestStatus.NotRequested,

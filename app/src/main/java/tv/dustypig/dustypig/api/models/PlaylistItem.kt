@@ -15,7 +15,7 @@ data class PlaylistItem (
     val length: Double,
     @SerializedName("intro_start_time") val introStartTime: Double?,
     @SerializedName("intro_end_time") val introEndTime: Double?,
-    @SerializedName("credit_start_time") val creditStartTime: Double?,
+    @SerializedName("credit_start_time") val creditsStartTime: Double?,
     @SerializedName("bif_url") val bifUrl: String,
     @SerializedName("bif_size") val bifSize: ULong = 0U,
     @SerializedName("video_url") val videoUrl: String,

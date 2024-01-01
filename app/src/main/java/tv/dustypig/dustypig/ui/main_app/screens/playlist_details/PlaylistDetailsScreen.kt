@@ -804,7 +804,7 @@ private fun PlaylistDetailsScreenPreview() {
                 length = 5000.0,
                 introStartTime = null,
                 introEndTime = null,
-                creditStartTime = null,
+                creditsStartTime = null,
                 bifUrl = "",
                 videoUrl = "",
                 externalSubtitles = listOf()

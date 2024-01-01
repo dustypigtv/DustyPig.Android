@@ -12,16 +12,17 @@ import java.util.Date
     foreignKeys = [
         ForeignKey(
             entity = FileSet::class,
-            parentColumns = arrayOf("mediaId"),
-            childColumns = arrayOf("mediaId"),
+            parentColumns = arrayOf("id"),
+            childColumns = arrayOf("fileSetId"),
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index(value = ["fileName"], unique = true)]
+    indices = [Index(value = ["fileSetId"])]
 )
 @TypeConverters(DateConverter::class)
 data class Download(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    var fileSetId: Int,
     var androidId: Long = 0,
     var url: String,
     var totalBytes: Long = -1,
@@ -32,6 +33,6 @@ data class Download(
     var statusDetails: String = "",
     val mediaId: Int,
     val disposition: String,
-    var added: Date = Date(),
-    var lastRetry: Date = Date()
+    var lastRetry: Date = Date(),
+    val profileId: Int
 )

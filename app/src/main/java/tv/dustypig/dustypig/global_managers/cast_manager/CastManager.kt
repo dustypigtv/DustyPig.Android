@@ -76,18 +76,19 @@ class CastManager @Inject constructor(
 
             _castState.update {
                 it.copy(
-                    castConnectionState = CastConnectionState.Disconnected
+                    castConnectionState = CastConnectionState.Disconnected,
+                    isConnectedToNetwork = networkManager.isConnected()
                 )
             }
+
             Log.i(tag, "Cast available")
             Log.i(tag, CastOptionsProvider.receiverApplicationId(context))
         } catch (ex: Exception) {
             Log.e(tag, "init", ex)
             Log.i(tag, "Cast not available")
         }
-    }
 
-    fun isNetworkConnected() = networkManager.isConnected()
+    }
 
     /**
      * Call this before showing picker dialogs
@@ -192,6 +193,11 @@ class CastManager @Inject constructor(
         playMedia("dustypig://playlist/$playlistId/$upNextId")
     }
 
+    fun playEpisode(episodeId: Int) {
+        Log.d(tag, "playEpisode: movieId=$episodeId")
+        playMedia("dustypig://episode/$episodeId")
+    }
+
     private fun playMedia(url: String) {
         remoteMediaClient?.load(
             MediaLoadRequestData
@@ -285,7 +291,8 @@ class CastManager @Inject constructor(
         Log.d(tag, "informConnectionState: castConnectionState=$castConnectionState")
         _castState.update {
             it.copy(
-                castConnectionState = castConnectionState
+                castConnectionState = castConnectionState,
+                isConnectedToNetwork = networkManager.isConnected()
             )
         }
         connectionStateListeners.forEach { listener ->

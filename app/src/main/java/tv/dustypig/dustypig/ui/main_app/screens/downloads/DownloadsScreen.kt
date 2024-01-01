@@ -122,7 +122,7 @@ private fun DownloadsScreenInternal(uiState: DownloadsUIState) {
 
                 for (job in uiState.jobs) {
 
-                    item(key = job.mediaId) {
+                    item(key = job.key) {
 
                         val modifier = when (job.mediaType) {
                             MediaTypes.Series, MediaTypes.Playlist -> Modifier.clickable {
@@ -382,7 +382,7 @@ private fun DownloadsScreenInternal(uiState: DownloadsUIState) {
                     if (uiState.expandedMediaIds.contains(job.mediaId)) {
 
                         for (dl in job.downloads.filter { it.mediaId != job.mediaId }) {
-                            item(key = dl.mediaId) {
+                            item(key = dl.key) {
 
 
 
@@ -637,6 +637,7 @@ private fun DownloadScreenPreview() {
     val uiState = DownloadsUIState(
         jobs = listOf(
             UIJob(
+                key = "1",
                 mediaId = 1,
                 count = 1,
                 mediaType = MediaTypes.Movie,
@@ -649,6 +650,7 @@ private fun DownloadScreenPreview() {
                 downloads = listOf()
             ),
             UIJob(
+                key = "2",
                 mediaId = 2,
                 count = 1,
                 mediaType = MediaTypes.Series,
@@ -660,6 +662,7 @@ private fun DownloadScreenPreview() {
                 statusDetails = "",
                 downloads = listOf(
                     UIDownload(
+                        key = "2.3",
                         mediaId = 3,
                         title = "s01e01 - Llama Drama",
                         artworkUrl = "https://s3.dustypig.tv/demo-media/TV%20Shows/Caminandes/Season%2001/Caminandes%20-%20s01e01%20-%20Llama%20Drama.jpg",

@@ -3,6 +3,7 @@ package tv.dustypig.dustypig.global_managers.download_manager
 import tv.dustypig.dustypig.api.models.MediaTypes
 
 data class UIJob (
+    val key: String,
     val mediaId: Int,
     val count: Int,
     val mediaType: MediaTypes,

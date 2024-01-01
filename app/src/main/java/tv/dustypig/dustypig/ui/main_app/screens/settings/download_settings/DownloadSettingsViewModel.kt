@@ -19,7 +19,8 @@ class DownloadSettingsViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(
         DownloadSettingsUIState(
-            onSetDownloadOverMobile = ::setDownloadOverMobile
+            onSetDownloadOverMobile = ::setDownloadOverMobile,
+            onPopBackStack = ::popBackStack
         )
     )
     val uiState = _uiState.asStateFlow()

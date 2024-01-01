@@ -24,6 +24,12 @@ android {
         vectorDrawables {
             useSupportLibrary true
         }
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
+            }
+        }
     }
 
     buildTypes {
@@ -55,14 +61,14 @@ android {
 }
 
 ext {
-    media3_version = '1.1.1'
+    media3_version = '1.2.0'
     room_version = '2.5.2'
     androidx_lifecycle_version = '2.6.2'
     hilt_version = '2.45'
 }
 dependencies {
     implementation platform('org.jetbrains.kotlin:kotlin-bom:1.8.0')
-    implementation("androidx.activity:activity-compose:1.8.0")
+    implementation("androidx.activity:activity-compose:1.8.1")
 
     implementation("androidx.core:core-ktx:1.12.0")
 
@@ -78,7 +84,7 @@ dependencies {
 
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation('com.squareup.retrofit2:converter-gson:2.9.0')
-    implementation("androidx.navigation:navigation-compose:2.7.4")
+    implementation("androidx.navigation:navigation-compose:2.7.5")
     implementation "androidx.paging:paging-compose:3.2.1"
     implementation("br.com.devsrsouza.compose.icons:font-awesome:1.1.0")
 
@@ -93,7 +99,7 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.6.2'
     implementation 'com.google.android.material:material:1.10.0'
-    implementation 'androidx.window:window:1.1.0'
+    implementation 'androidx.window:window:1.2.0'
     kapt("com.google.dagger:hilt-android-compiler:$hilt_version")
 
 

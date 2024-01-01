@@ -18,29 +18,24 @@ interface DownloadDao {
     @Query("SELECT * FROM jobs WHERE mediaId = :mediaId AND mediaType = :mediaType AND profileId = :profileId")
     suspend fun getJob(mediaId: Int, mediaType: MediaTypes, profileId: Int) : Job?
 
-    @Query("SELECT * FROM fileSets ORDER BY added")
-    suspend fun getFileSets(): List<FileSet>
+    @Query("SELECT * FROM fileSets WHERE jobId = :jobId")
+    suspend fun getFileSets(jobId: Int): List<FileSet>
+
+    @Query("SELECT * FROM fileSets WHERE profileId = :profileId ORDER BY jobId, playOrder")
+    suspend fun getAllFileSets(profileId: Int): List<FileSet>
+
 
     @Transaction
-    @Query("SELECT * FROM fileSets ORDER BY added")
-    suspend fun getFileSetsAndDownloads(): List<FileSetWithDownloads>
+    @Query("SELECT * FROM fileSets WHERE jobId = :jobId AND mediaId = :mediaId")
+    suspend fun getFileSetAndDownloadsByMediaId(jobId: Int, mediaId: Int): FileSetWithDownloads?
 
     @Transaction
-    @Query("SELECT * FROM fileSets WHERE mediaId = :mediaId")
-    suspend fun getFileSet(mediaId: Int) : FileSetWithDownloads?
-
-    @Query("SELECT * FROM job_fileset_mtm")
-    suspend fun getJobFileSetMTMs(): List<JobFileSetMTM>
-
-    @Query("SELECT * FROM job_fileset_mtm WHERE jobMediaId = :jobMediaId AND jobMediaType = :jobMediaType")
-    suspend fun getJobFileSetMTMs(jobMediaId: Int, jobMediaType: MediaTypes) : List<JobFileSetMTM>
-
-    @Query("SELECT * FROM job_fileset_mtm WHERE jobMediaId = :jobMediaId AND jobMediaType = :jobMediaType AND fileSetMediaId = :fileSetMediaId")
-    suspend fun getJobFileSetMTM(jobMediaId: Int, jobMediaType: MediaTypes, fileSetMediaId: Int) : JobFileSetMTM?
+    @Query("SELECT * FROM fileSets WHERE jobId = :jobId AND playlistItemId = :playlistItemId")
+    suspend fun getFileSetAndDownloadsByPlaylistItemId(jobId: Int, playlistItemId: Int): FileSetWithDownloads?
 
 
-    @Query("SELECT * FROM downloads ORDER BY added")
-    suspend fun getDownloads() : List<Download>
+    @Query("SELECT * FROM downloads WHERE profileId = :profileId ")
+    suspend fun getDownloads(profileId: Int) : List<Download>
 
 
 
@@ -52,9 +47,6 @@ interface DownloadDao {
 
     @Insert
     suspend fun insert(download: Download)
-
-    @Insert
-    suspend fun insert(jobFileSetMTM: JobFileSetMTM)
 
     @Update
     suspend fun update(job: Job)
@@ -73,9 +65,6 @@ interface DownloadDao {
 
     @Delete
     suspend fun delete(download: Download)
-
-    @Delete
-    suspend fun delete(jobFileSetMTM: JobFileSetMTM)
 
     @Query("DELETE FROM jobs WHERE profileId = :profileId")
     fun deleteAllJobs(profileId: Int)

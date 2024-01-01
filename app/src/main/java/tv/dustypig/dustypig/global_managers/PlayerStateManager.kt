@@ -13,6 +13,8 @@ object PlayerStateManager {
     private val _playbackEnded = MutableStateFlow(UUID.randomUUID())
     val playbackEnded = _playbackEnded.asStateFlow()
 
+    private val _playbackId = MutableStateFlow(0)
+    val playbackId = _playbackId.asStateFlow()
 
     fun playerCreated() {
         _playerScreenVisible.update {
@@ -20,12 +22,13 @@ object PlayerStateManager {
         }
     }
 
+    fun setPlaybackId(id: Int) {
+        _playbackId.update { id }
+    }
+
     fun playerDisposed() {
-        _playerScreenVisible.update {
-            false
-        }
-        _playbackEnded.update {
-            UUID.randomUUID()
-        }
+        _playerScreenVisible.update { false }
+        _playbackEnded.update { UUID.randomUUID() }
+        _playbackId.update { 0 }
     }
 }

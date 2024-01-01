@@ -19,6 +19,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.ui.composables.BasicMediaView
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
+import tv.dustypig.dustypig.ui.itemsExt
 
 
 @Composable
@@ -26,7 +27,6 @@ fun ShowMoreScreen(vm: ShowMoreViewModel) {
 
     val uiState by vm.uiState.collectAsState()
     val mediaItems: LazyPagingItems<BasicMedia> = vm.itemData.collectAsLazyPagingItems()
-
 
     val listState = rememberLazyGridState()
 
@@ -52,13 +52,17 @@ fun ShowMoreScreen(vm: ShowMoreViewModel) {
                 state = listState
             ) {
 
-                items(
-                    mediaItems.itemCount
-                ) { index ->
-                    BasicMediaView(
-                        basicMedia = mediaItems[index]!!,
-                        routeNavigator = vm
-                    )
+//                items(
+//                    mediaItems.itemCount
+//                ) { index ->
+//                    BasicMediaView(
+//                        basicMedia = mediaItems[index]!!,
+//                        routeNavigator = vm
+//                    )
+//                }
+
+                itemsExt(mediaItems, key = { it.id }){
+                    BasicMediaView(basicMedia = it!!)
                 }
 
             }

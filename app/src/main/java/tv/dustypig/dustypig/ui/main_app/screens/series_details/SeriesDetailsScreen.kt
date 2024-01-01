@@ -724,7 +724,7 @@ private fun SeriesDetailsScreenPreview() {
                     length = 1000.0,
                     introStartTime = null,
                     introEndTime = null,
-                    creditStartTime = null,
+                    creditsStartTime = null,
                     seasonNumber = season.toUShort(),
                     episodeNumber = episode.toUShort(),
                     seriesId = 1,

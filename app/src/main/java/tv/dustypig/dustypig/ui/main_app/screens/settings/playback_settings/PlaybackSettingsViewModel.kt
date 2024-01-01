@@ -21,7 +21,8 @@ class PlaybackSettingsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(
         PlaybackSettingsUIState(
             onSetAutoSkipCredits = ::setAutoSkipCredits,
-            onSetAutoSkipIntros = ::setAutoSkipIntros
+            onSetAutoSkipIntros = ::setAutoSkipIntros,
+            onPopBackStack = ::popBackStack
         )
     )
     val uiState = _uiState.asStateFlow()

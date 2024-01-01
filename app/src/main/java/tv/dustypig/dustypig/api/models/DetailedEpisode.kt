@@ -18,7 +18,7 @@ data class DetailedEpisode(
     val length: Double = 0.0,
     @SerializedName("intro_start_time") val introStartTime: Double? = null,
     @SerializedName("intro_end_time") val introEndTime: Double? = null,
-    @SerializedName("credit_start_time") val creditStartTime: Double? = null,
+    @SerializedName("credit_start_time") val creditsStartTime: Double? = null,
     @SerializedName("season_number") val seasonNumber: UShort = 0u,
     @SerializedName("episode_number") val episodeNumber: UShort= 0u,
     @SerializedName("series_id") val seriesId: Int = 0,
