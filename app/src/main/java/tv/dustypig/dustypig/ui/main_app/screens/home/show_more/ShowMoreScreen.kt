@@ -62,7 +62,10 @@ fun ShowMoreScreen(vm: ShowMoreViewModel) {
 //                }
 
                 itemsExt(mediaItems, key = { it.id }){
-                    BasicMediaView(basicMedia = it!!)
+                    BasicMediaView(
+                        basicMedia = it!!,
+                        routeNavigator = vm
+                    )
                 }
 
             }

@@ -369,13 +369,6 @@ private fun SeriesTitleLayout(uiState: SeriesDetailsUIState) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if(uiState.year.isNotBlank()) {
-                    Text(
-                        text = uiState.year,
-                        style = MaterialTheme.typography.titleSmall
-                    )
-                }
-
                 if (uiState.rated.isNotBlank()) {
                     Text(
                         text = uiState.rated,

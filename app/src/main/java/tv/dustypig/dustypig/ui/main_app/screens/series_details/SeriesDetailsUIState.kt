@@ -22,7 +22,6 @@ data class SeriesDetailsUIState(
     val episodes: List<DetailedEpisode> = listOf(),
     val castManager: CastManager? = null,
     val title: String = "",
-    val year: String = "",
     val rated: String = "",
     val overview: String = "",
     val canManage: Boolean = false,
