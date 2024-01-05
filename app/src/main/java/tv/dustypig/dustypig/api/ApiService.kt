@@ -263,6 +263,13 @@ interface ApiService {
     @GET("Series/RemoveFromContinueWatching/{id}")
     suspend fun removeFromContinueWatching(@Path("id") id: Int): Response<ResponseWrapper>
 
+    @GET("Series/Subscribe/{id}")
+    suspend fun subscribeToSeries(@Path("id") id: Int): Response<ResponseWrapper>
+
+    @DELETE("Series/Unsubscribe/{id}")
+    suspend fun unsubscribeFromSeries(@Path("id") id: Int): Response<ResponseWrapper>
+
+
 
 
     // ***** TMDB *****

@@ -158,4 +158,6 @@
     <string name="next">Next</string>
     <string name="cast_app_id">DAFB42BA</string>
     <string name="no_internet_detected">NO INTERNET DETECTED</string>
+    <string name="unsubscribe">Unsubscribe</string>
+    <string name="subscribe">Subscribe</string>
 </resources>

@@ -30,6 +30,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.DownloadDone
 import androidx.compose.material.icons.filled.Downloading
+import androidx.compose.material.icons.filled.NotificationAdd
+import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.PlayCircleOutline
 import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.RemoveRedEye
@@ -339,6 +341,16 @@ private fun SeriesTitleLayout(uiState: SeriesDetailsUIState) {
         else -> stringResource(R.string.downloading)
     }
 
+    val subscribeIcon = if(uiState.subscribed)
+        Icons.Filled.NotificationsOff
+    else
+        Icons.Filled.NotificationAdd
+
+    val subscribeText = if(uiState.subscribed)
+        stringResource(R.string.unsubscribe)
+    else
+        stringResource(R.string.subscribe)
+
     var showChangeDownloadCount by remember {
         mutableStateOf(false)
     }
@@ -488,6 +500,12 @@ private fun SeriesTitleLayout(uiState: SeriesDetailsUIState) {
                         )
                     }
                 }
+
+                ActionButton(
+                    onClick = uiState.onToggleSubscribe,
+                    caption = subscribeText,
+                    icon = subscribeIcon
+                )
             }
         }
 

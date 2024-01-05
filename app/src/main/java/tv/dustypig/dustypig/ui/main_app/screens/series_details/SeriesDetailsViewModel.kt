@@ -58,7 +58,8 @@ class SeriesDetailsViewModel  @Inject constructor(
             onHideError = ::hideError,
             onPopBackStack = ::popBackStack,
             onNavToEpisodeInfo = ::navToEpisodeInfo,
-            onSelectSeason = ::selectSeason
+            onSelectSeason = ::selectSeason,
+            onToggleSubscribe = ::toggleSubscribe
         )
     )
     val uiState: StateFlow<SeriesDetailsUIState> = _uiState.asStateFlow()
@@ -189,7 +190,8 @@ class SeriesDetailsViewModel  @Inject constructor(
                 criticalError = criticalError,
                 accessRequestBusy = false,
                 watchListBusy = false,
-                markWatchedBusy = false
+                markWatchedBusy = false,
+                subscribeBusy = false
             )
         }
     }
@@ -333,6 +335,38 @@ class SeriesDetailsViewModel  @Inject constructor(
                 playlistUpNextIndex = 0
             )
         )
+    }
+
+    private fun toggleSubscribe() {
+        _uiState.update {
+            it.copy(
+                subscribeBusy = true
+            )
+        }
+
+        viewModelScope.launch {
+            try{
+                if(_uiState.value.subscribed) {
+                    seriesRepository.unsubscribe(_mediaId)
+                    _uiState.update {
+                        it.copy(
+                            subscribeBusy = false,
+                            subscribed = false
+                        )
+                    }
+                } else {
+                    seriesRepository.subscribe(_mediaId)
+                    _uiState.update {
+                        it.copy(
+                            subscribeBusy = false,
+                            subscribed = true
+                        )
+                    }
+                }
+            } catch (ex:Exception){
+                setError(ex, false)
+            }
+        }
     }
 
     /**

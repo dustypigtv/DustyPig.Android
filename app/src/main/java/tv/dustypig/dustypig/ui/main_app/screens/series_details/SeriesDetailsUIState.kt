@@ -39,6 +39,7 @@ data class SeriesDetailsUIState(
     val downloadStatus: DownloadStatus = DownloadStatus.None,
     val currentDownloadCount: Int = 0,
     val subscribed: Boolean = false,
+    val subscribeBusy: Boolean = false,
 
     //Events
     val onPopBackStack: () -> Unit = { },
@@ -52,7 +53,8 @@ data class SeriesDetailsUIState(
     val onAddToPlaylist: () -> Unit = { },
     val onMarkWatched: (removeFromContinueWatching: Boolean) -> Unit = { },
     val onRequestAccess:() -> Unit = { },
-    val onManagePermissions: () -> Unit = { }
+    val onManagePermissions: () -> Unit = { },
+    val onToggleSubscribe: () -> Unit = { }
 )
 
 

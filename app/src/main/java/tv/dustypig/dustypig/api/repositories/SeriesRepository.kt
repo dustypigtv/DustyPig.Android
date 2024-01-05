@@ -18,4 +18,8 @@ class SeriesRepository @Inject constructor(
 
     suspend fun removeFromContinueWatching(id: Int) = wrapAPICall { apiService.removeFromContinueWatching(id) }
 
+    suspend fun subscribe(id: Int) = wrapAPICall { apiService.subscribeToSeries(id) }
+
+    suspend fun unsubscribe(id: Int) = wrapAPICall { apiService.unsubscribeFromSeries(id) }
+
 }
