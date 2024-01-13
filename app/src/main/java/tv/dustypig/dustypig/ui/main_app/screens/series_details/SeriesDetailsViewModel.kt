@@ -299,6 +299,7 @@ class SeriesDetailsViewModel  @Inject constructor(
                         partiallyPlayed = false
                     )
                 }
+                updateData()
                 HomeViewModel.triggerUpdate()
             } catch (ex: Exception) {
                 setError(ex = ex, criticalError = false)
