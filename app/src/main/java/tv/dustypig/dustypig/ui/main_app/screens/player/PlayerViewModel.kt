@@ -75,7 +75,9 @@ class PlayerViewModel @Inject constructor(
             castManager = castManager,
             onPopBackStack = ::popBackStack,
             onPlayNext = ::playNext,
-            onSkipIntro = ::skipIntro
+            onSkipIntro = ::skipIntro,
+            onSkipForward = ::skipForward,
+            onSkipBack = ::skipBack
         )
     )
     val uiState: StateFlow<PlayerUIState> = _uiState.asStateFlow()
@@ -90,6 +92,7 @@ class PlayerViewModel @Inject constructor(
         .build().also {
             it.addListener(this)
             it.playWhenReady = true
+            it.setHandleAudioBecomingNoisy(true)
         }
 
     private val _timer = Timer()
@@ -104,6 +107,7 @@ class PlayerViewModel @Inject constructor(
     private val _idMap = mutableMapOf<String, Int>()
 
     init {
+
         PlayerStateManager.playerCreated()
 
         viewModelScope.launch {
@@ -231,7 +235,6 @@ class PlayerViewModel @Inject constructor(
 
 
 
-
     //Internal functions
 
     private fun skipIntro() {
@@ -276,6 +279,23 @@ class PlayerViewModel @Inject constructor(
             }
         }
     }
+
+    private fun skipForward() {
+        _localPlayer.seekTo((_localPlayer.currentPosition + 30_000))
+    }
+
+    private fun skipBack() {
+        if(_localPlayer.currentPosition <= 10_000) {
+            if(_localPlayer.hasPreviousMediaItem()) {
+                _localPlayer.seekToPreviousMediaItem()
+            } else {
+                _localPlayer.seekTo(0)
+            }
+        } else {
+            _localPlayer.seekTo(0)
+        }
+    }
+
 
     private fun switchPlayer() {
         _uiState.update {
@@ -588,7 +608,7 @@ class PlayerViewModel @Inject constructor(
                     popBackStack()
                 } else {
 
-                    val seconds = _localPlayer.currentPosition.toDouble() / 1000
+                    val seconds = _localPlayer.currentPosition.coerceAtLeast(0).toDouble() / 1000
                     val videoTiming = _videoTimings.first {
                         it.mediaId == _currentMediaItemId!!
                     }

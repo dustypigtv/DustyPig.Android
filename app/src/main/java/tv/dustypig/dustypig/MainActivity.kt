@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig
 
+import android.app.PictureInPictureParams
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
@@ -44,6 +45,7 @@ import tv.dustypig.dustypig.global_managers.fcm_manager.FCMManager
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.auth_flow.AuthNav
+import tv.dustypig.dustypig.ui.hideSystemUi
 import tv.dustypig.dustypig.ui.isTablet
 import tv.dustypig.dustypig.ui.main_app.AppNav
 import tv.dustypig.dustypig.ui.main_app.AppNavViewModel
@@ -82,6 +84,15 @@ class MainActivity: ComponentActivity() {
         FCMManager.init()
         analytics = Firebase.analytics
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            setPictureInPictureParams(
+                PictureInPictureParams.Builder()
+                    //.setAspectRatio(aspectRatio)
+                    //.setSourceRectHint(sourceRectHint)
+                    .setAutoEnterEnabled(true)
+                    .build()
+            )
+        }
 
         setContent {
 
@@ -166,8 +177,11 @@ class MainActivity: ComponentActivity() {
         if (loginState == AuthManager.LOGIN_STATE_LOGGED_IN) {
 
             val playerScreenVisible by PlayerStateManager.playerScreenVisible.collectAsState()
-            if(!playerScreenVisible)
+            if(playerScreenVisible)
+                hideSystemUi()
+            else
                 showSystemUi()
+
 
             requestedOrientation = if(playerScreenVisible) {
                 ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE

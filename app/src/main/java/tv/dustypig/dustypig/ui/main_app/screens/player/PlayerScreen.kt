@@ -1,6 +1,7 @@
+//https://github.com/androidx/media/blob/release/libraries/ui/src/main
+
 package tv.dustypig.dustypig.ui.main_app.screens.player
 
-import android.view.View
 import android.widget.ProgressBar
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
@@ -36,7 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -47,13 +47,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.PlayerView
-import androidx.media3.ui.R
 import tv.dustypig.dustypig.ui.composables.CastButton
 import tv.dustypig.dustypig.ui.composables.CastControls
 import tv.dustypig.dustypig.ui.composables.CastSlider
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
-import tv.dustypig.dustypig.ui.hideSystemUi
-import tv.dustypig.dustypig.ui.showSystemUi
 
 
 @OptIn(UnstableApi::class)
@@ -88,19 +85,18 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
         }
     }
 
-    val delayTime = 250
-    var showExtendedControls by remember { mutableStateOf(false) }
 
 
 
-    //val castTimeText: String = "0:00 • 0:00",
+    var showControls by remember { mutableStateOf(false) }
 
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
     ) {
 
         if(uiState.isCastPlayer) {
-            LocalContext.current.showSystemUi()
+
+            // Cast Controls
             Box(
                 modifier = Modifier.fillMaxSize()
             ) {
@@ -124,6 +120,7 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
 
         } else {
 
+            // Exoplayer
             val primaryColor = MaterialTheme.colorScheme.primary.toArgb()
 
             AndroidView(
@@ -131,30 +128,21 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
                     PlayerView(context).also { playerView ->
                         playerView.player = uiState.player
                         playerView.keepScreenOn = true
+                        playerView.useController = true
+
+                        playerView.player = uiState.player
+                        playerView.keepScreenOn = true
                         playerView.setShowSubtitleButton(true)
                         playerView.setControllerVisibilityListener(
                             PlayerView.ControllerVisibilityListener { visible ->
-                                showExtendedControls = visible == PlayerView.VISIBLE
+                                showControls = visible == PlayerView.VISIBLE
                             }
                         )
                         playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS)
-                        playerView.setFullscreenButtonClickListener {
-                            if (it)
-                                context.hideSystemUi()
-                            else
-                                context.showSystemUi()
-                        }
-
-                        try {
-                            //Start in full screen but also make sure correct mode is set
-                            playerView.findViewById<View>(R.id.exo_fullscreen).performClick()
-                        } catch (_: Throwable) {
-                        }
 
                         // Default is a dark green spinner - fix that
                         try {
-                            val progressBar =
-                                playerView.findViewById<ProgressBar>(R.id.exo_buffering)
+                            val progressBar = playerView.findViewById<ProgressBar>(androidx.media3.ui.R.id.exo_buffering)
                             DrawableCompat.setTint(
                                 progressBar.indeterminateDrawable,
                                 primaryColor
@@ -165,10 +153,12 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
                 },
                 update = {
                     when (lifecycle) {
-                        Lifecycle.Event.ON_PAUSE -> {
-                            it.onPause()
-                            it.player?.pause()
-                        }
+
+//                        * This disables PiP
+//                        Lifecycle.Event.ON_PAUSE -> {
+//                            it.onPause()
+//                            it.player?.pause()
+//                        }
 
                         Lifecycle.Event.ON_RESUME -> {
                             it.onResume()
@@ -177,17 +167,19 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
                         else -> Unit
                     }
                 },
-                modifier = Modifier
-                    .fillMaxSize()
+                modifier = Modifier.fillMaxSize()
             )
         }
 
 
+        // Top Bar
+        val delayTime = 250
 
-
+        //<color name="exo_bottom_bar_background">#b0000000</color>
+        val barBackgroundColor = Color(red = 0, green = 0, blue = 0, alpha = 0xb0)
 
         AnimatedVisibility(
-            visible = showExtendedControls || uiState.isCastPlayer,
+            visible = showControls || uiState.isCastPlayer,
             enter = expandVertically(
                 animationSpec = tween(
                     durationMillis = delayTime,
@@ -203,7 +195,7 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
             Row (
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(color = Color.Transparent),
+                    .background(color = barBackgroundColor),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
@@ -230,6 +222,9 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
             }
         }
 
+
+
+        // Skip Credits
         AnimatedVisibility(
             visible = uiState.currentPositionWithinIntro,
             enter = fadeIn(),
@@ -249,6 +244,7 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
             }
         }
 
+        // Play Next
         AnimatedVisibility(
             visible = uiState.currentPositionWithinCredits,
             enter = fadeIn(),
@@ -279,35 +275,3 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
         )
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

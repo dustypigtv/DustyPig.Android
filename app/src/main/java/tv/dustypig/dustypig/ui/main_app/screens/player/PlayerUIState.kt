@@ -22,8 +22,11 @@ data class PlayerUIState (
     val castPosition: Long = 0L,
     val castDuration: Long = 0L,
 
+
     //Events
     val onPopBackStack: () -> Unit = { },
     val onSkipIntro: () -> Unit = { },
-    val onPlayNext: () -> Unit = { }
+    val onPlayNext: () -> Unit = { },
+    val onSkipForward: () -> Unit = { },
+    val onSkipBack: () -> Unit = { },
 )
