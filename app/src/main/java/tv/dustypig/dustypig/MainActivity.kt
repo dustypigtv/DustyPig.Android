@@ -154,6 +154,7 @@ class MainActivity: ComponentActivity() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 enterPictureInPictureMode(PictureInPictureParams.Builder().build())
             } else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                @Suppress("DEPRECATION")
                 enterPictureInPictureMode()
             }
         }

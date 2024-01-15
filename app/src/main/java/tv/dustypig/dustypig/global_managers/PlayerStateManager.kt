@@ -1,6 +1,5 @@
 package tv.dustypig.dustypig.global_managers
 
-import android.util.Size
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
