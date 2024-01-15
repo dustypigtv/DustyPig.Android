@@ -86,13 +86,13 @@ class MainActivity: ComponentActivity() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             setPictureInPictureParams(
-                PictureInPictureParams.Builder()
-                    //.setAspectRatio(aspectRatio)
-                    //.setSourceRectHint(sourceRectHint)
+                PictureInPictureParams
+                    .Builder()
                     .setAutoEnterEnabled(true)
                     .build()
             )
         }
+
 
         setContent {
 
@@ -144,6 +144,20 @@ class MainActivity: ComponentActivity() {
         castManager.destroy()
     }
 
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+
+        if(!PlayerStateManager.playerScreenVisible.value)
+            return
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                enterPictureInPictureMode(PictureInPictureParams.Builder().build())
+            } else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                enterPictureInPictureMode()
+            }
+        }
+    }
 
     private fun checkIntent(intent: Intent?) {
         try {

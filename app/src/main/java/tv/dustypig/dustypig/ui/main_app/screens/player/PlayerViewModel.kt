@@ -75,9 +75,7 @@ class PlayerViewModel @Inject constructor(
             castManager = castManager,
             onPopBackStack = ::popBackStack,
             onPlayNext = ::playNext,
-            onSkipIntro = ::skipIntro,
-            onSkipForward = ::skipForward,
-            onSkipBack = ::skipBack
+            onSkipIntro = ::skipIntro
         )
     )
     val uiState: StateFlow<PlayerUIState> = _uiState.asStateFlow()
@@ -232,9 +230,6 @@ class PlayerViewModel @Inject constructor(
     }
 
 
-
-
-
     //Internal functions
 
     private fun skipIntro() {
@@ -277,22 +272,6 @@ class PlayerViewModel @Inject constructor(
                     errorMessage = ex.localizedMessage
                 )
             }
-        }
-    }
-
-    private fun skipForward() {
-        _localPlayer.seekTo((_localPlayer.currentPosition + 30_000))
-    }
-
-    private fun skipBack() {
-        if(_localPlayer.currentPosition <= 10_000) {
-            if(_localPlayer.hasPreviousMediaItem()) {
-                _localPlayer.seekToPreviousMediaItem()
-            } else {
-                _localPlayer.seekTo(0)
-            }
-        } else {
-            _localPlayer.seekTo(0)
         }
     }
 

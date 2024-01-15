@@ -154,11 +154,9 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
                 update = {
                     when (lifecycle) {
 
-//                        * This disables PiP
-//                        Lifecycle.Event.ON_PAUSE -> {
-//                            it.onPause()
-//                            it.player?.pause()
-//                        }
+                        Lifecycle.Event.ON_STOP -> {
+                            it.onPause()
+                        }
 
                         Lifecycle.Event.ON_RESUME -> {
                             it.onResume()
