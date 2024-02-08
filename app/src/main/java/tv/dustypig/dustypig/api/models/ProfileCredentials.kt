@@ -1,7 +1,5 @@
 package tv.dustypig.dustypig.api.models
 
-import com.google.gson.annotations.SerializedName
-
 data class ProfileCredentials(
     val id: Int,
 
@@ -10,5 +8,5 @@ data class ProfileCredentials(
      */
     val pin: Int? = null,
 
-    @SerializedName("fcm_token") val fcmToken: String? = null
+    val fcmToken: String? = null
 )

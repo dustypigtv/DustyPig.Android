@@ -2,7 +2,6 @@ package tv.dustypig.dustypig.api.repositories
 
 import tv.dustypig.dustypig.api.ApiService
 import tv.dustypig.dustypig.api.models.CreateAccount
-import tv.dustypig.dustypig.api.models.SimpleValue
 import tv.dustypig.dustypig.di.AuthenticatedAPIService
 import tv.dustypig.dustypig.di.UnAuthenticatedAPIService
 import tv.dustypig.dustypig.global_managers.AuthManager
@@ -18,7 +17,7 @@ class AccountRepository @Inject constructor(
 
     suspend fun create(createAccount: CreateAccount) = wrapAPICallWithReturnData { unAuthenticatedApiService.createAccount(createAccount) }
 
-    suspend fun changePassword(newPassword: String) = wrapAPICall { apiService.changePassword(SimpleValue(newPassword)) }
+    suspend fun changePassword(newPassword: String) = wrapAPICall { apiService.changePassword(newPassword) }
 
     suspend fun delete() = wrapAPICall { apiService.deleteAccount() }
 }

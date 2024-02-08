@@ -24,7 +24,7 @@ class ProfilesRepository @Inject constructor(
 
     suspend fun delete(id: Int) = wrapAPICall { apiService.deleteProfile(id) }
 
-    suspend fun create(createProfile: CreateProfile) = wrapAPICallWithReturnSimpleValue { apiService.createProfile(createProfile) }
+    suspend fun create(createProfile: CreateProfile) = wrapAPICallWithReturnData { apiService.createProfile(createProfile) }
 
     suspend fun update(updateProfile: UpdateProfile) = wrapAPICall { apiService.updateProfile(updateProfile) }
 
@@ -32,7 +32,7 @@ class ProfilesRepository @Inject constructor(
 
     suspend fun unLinkFromLibrary(profileLibraryLink: ProfileLibraryLink) = wrapAPICall { apiService.unLinkProfileLibrary(profileLibraryLink) }
 
-    suspend fun setAvatar(id: Int, requestBody: RequestBody) = wrapAPICallWithReturnSimpleValue {
+    suspend fun setAvatar(id: Int, requestBody: RequestBody) = wrapAPICallWithReturnData {
         apiService.setProfileAvatar(
             id = id,
             image = MultipartBody.Part.createFormData(

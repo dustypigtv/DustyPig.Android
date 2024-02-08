@@ -726,7 +726,7 @@ private fun SeriesDetailsScreenPreview() {
                     id = idx++,
                     bifUrl = null,
                     videoUrl = "",
-                    externalSubtitles = null,
+                    srtSubtitles = null,
                     played = 0.0,
                     upNext = season == 2 && episode == 2,
                     title = "Episode $episode",

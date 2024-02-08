@@ -63,7 +63,7 @@ class FriendDetailsSettingsViewModel @Inject constructor(
                             id = lib.id,
                             name = lib.name,
                             isTV = lib.isTV,
-                            shared = _detailedFriend.libsSharedWithFriend.any {
+                            shared = _detailedFriend.sharedWithFriend.any {
                                 it.id == lib.id
                             }
                         )
@@ -75,7 +75,7 @@ class FriendDetailsSettingsViewModel @Inject constructor(
                         busy = false,
                         displayName = _detailedFriend.displayName,
                         avatarUrl = _detailedFriend.avatarUrl,
-                        libsSharedWithMe = _detailedFriend.libsSharedWithMe,
+                        libsSharedWithMe = _detailedFriend.sharedWithMe,
                         myLibs = transformedList
                     )
                 }

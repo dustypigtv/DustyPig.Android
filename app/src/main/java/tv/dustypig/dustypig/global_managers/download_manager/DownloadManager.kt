@@ -20,7 +20,7 @@ import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.api.models.DetailedMovie
 import tv.dustypig.dustypig.api.models.DetailedPlaylist
 import tv.dustypig.dustypig.api.models.DetailedSeries
-import tv.dustypig.dustypig.api.models.ExternalSubtitle
+import tv.dustypig.dustypig.api.models.SRTSubtitles
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.repositories.EpisodesRepository
 import tv.dustypig.dustypig.api.repositories.MoviesRepository
@@ -686,7 +686,7 @@ class DownloadManager @Inject constructor(
 
     private suspend fun addOrUpdateSubtitleDownload(
         fileSetWithDownloads: FileSetWithDownloads,
-        sub: ExternalSubtitle
+        sub: SRTSubtitles
     ) {
 
         if(sub.url.isBlank())
@@ -778,8 +778,8 @@ class DownloadManager @Inject constructor(
 //            size = detailedMovie.bifSize.toLong()
 //        )
 
-        if(detailedMovie.externalSubtitles?.isNotEmpty() == true) {
-            for(sub in detailedMovie.externalSubtitles) {
+        if(detailedMovie.srtSubtitles?.isNotEmpty() == true) {
+            for(sub in detailedMovie.srtSubtitles) {
                 addOrUpdateSubtitleDownload(fileSetWithDownloads = fileSetWithDownloads, sub = sub)
             }
         }
@@ -906,8 +906,8 @@ class DownloadManager @Inject constructor(
 //                    size = episode.bifSize.toLong()
 //                )
 
-                if (episode.externalSubtitles != null) {
-                    for (sub in episode.externalSubtitles)
+                if (episode.srtSubtitles != null) {
+                    for (sub in episode.srtSubtitles)
                         addOrUpdateSubtitleDownload(fileSetWithDownloads = fileSet, sub = sub)
                 }
 
@@ -959,8 +959,8 @@ class DownloadManager @Inject constructor(
 //            size = detailedEpisode.bifSize.toLong()
 //        )
 
-        if(detailedEpisode.externalSubtitles?.isNotEmpty() == true) {
-            for(sub in detailedEpisode.externalSubtitles) {
+        if(detailedEpisode.srtSubtitles?.isNotEmpty() == true) {
+            for(sub in detailedEpisode.srtSubtitles) {
                 addOrUpdateSubtitleDownload(fileSetWithDownloads = fileSetWithDownloads, sub = sub)
             }
         }
@@ -1081,8 +1081,8 @@ class DownloadManager @Inject constructor(
 //                    size = playlistItem.bifSize.toLong()
 //                )
 
-                if (playlistItem.externalSubtitles != null) {
-                    for (sub in playlistItem.externalSubtitles)
+                if (playlistItem.srtSubtitles != null) {
+                    for (sub in playlistItem.srtSubtitles)
                         addOrUpdateSubtitleDownload(fileSetWithDownloads = fileSet, sub = sub)
                 }
 

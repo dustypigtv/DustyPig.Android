@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.api.models.ExternalSubtitle
+import tv.dustypig.dustypig.api.models.SRTSubtitles
 import tv.dustypig.dustypig.api.models.PlaybackProgress
 import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.api.repositories.MoviesRepository
@@ -358,7 +358,7 @@ class PlayerViewModel @Inject constructor(
                 .Builder()
                 .setMediaId(detailedMovie.id.toString())
                 .setUri(tryGetLocalVideo(detailedMovie.id, detailedMovie.videoUrl!!))
-                .addSubs(detailedMovie.id, detailedMovie.externalSubtitles)
+                .addSubs(detailedMovie.id, detailedMovie.srtSubtitles)
                 .setMediaMetadata(
                     MediaMetadata
                         .Builder()
@@ -414,7 +414,7 @@ class PlayerViewModel @Inject constructor(
                     .Builder()
                     .setMediaId(ep.id.toString())
                     .setUri(tryGetLocalVideo(ep.id,  ep.videoUrl))
-                    .addSubs(ep.id, ep.externalSubtitles)
+                    .addSubs(ep.id, ep.srtSubtitles)
                     .setMediaMetadata(
                         MediaMetadata
                             .Builder()
@@ -474,7 +474,7 @@ class PlayerViewModel @Inject constructor(
                     .Builder()
                     .setMediaId(pli.id.toString())
                     .setUri(tryGetLocalVideo(pli.mediaId, pli.videoUrl))
-                    .addSubs(pli.id, pli.externalSubtitles)
+                    .addSubs(pli.id, pli.srtSubtitles)
                     .setMediaMetadata(
                         MediaMetadata
                             .Builder()
@@ -516,7 +516,7 @@ class PlayerViewModel @Inject constructor(
                 .Builder()
                 .setMediaId(detailedEpisode.id.toString())
                 .setUri(tryGetLocalVideo(detailedEpisode.id, detailedEpisode.videoUrl))
-                .addSubs(detailedEpisode.id, detailedEpisode.externalSubtitles)
+                .addSubs(detailedEpisode.id, detailedEpisode.srtSubtitles)
                 .setMediaMetadata(
                     MediaMetadata
                         .Builder()
@@ -545,7 +545,7 @@ class PlayerViewModel @Inject constructor(
     }
 
 
-    private fun MediaItem.Builder.addSubs(id: Int, subTitles: List<ExternalSubtitle>?): MediaItem.Builder {
+    private fun MediaItem.Builder.addSubs(id: Int, subTitles: List<SRTSubtitles>?): MediaItem.Builder {
         if(!subTitles.isNullOrEmpty()) {
             val subtitleConfigurations = arrayListOf<MediaItem.SubtitleConfiguration>()
             for (sub in subTitles) {

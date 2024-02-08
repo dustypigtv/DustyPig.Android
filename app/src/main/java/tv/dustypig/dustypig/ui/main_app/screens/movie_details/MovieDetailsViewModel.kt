@@ -159,8 +159,8 @@ class MovieDetailsViewModel @Inject constructor(
                     length = _detailedMovie.length.toTimeString(),
                     partiallyPlayed = (_detailedMovie.played ?: 0.0) > 0.0,
                     overview = _detailedMovie.description ?: "",
-                    titleRequestPermissions = _detailedMovie.titleRequestPermissions,
-                    accessRequestStatus = _detailedMovie.accessRequestStatus,
+                    titleRequestPermissions = _detailedMovie.titleRequestPermission,
+                    accessRequestStatus = _detailedMovie.accessRequestedStatus,
                     accessRequestBusy = false,
                 )
             }

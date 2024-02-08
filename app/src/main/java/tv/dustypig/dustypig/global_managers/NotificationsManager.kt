@@ -11,7 +11,9 @@ import tv.dustypig.dustypig.api.models.Notification
 import tv.dustypig.dustypig.api.repositories.NotificationsRepository
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.ui.main_app.screens.movie_details.MovieDetailsNav
+import tv.dustypig.dustypig.ui.main_app.screens.search.tmdb_details.TMDBDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
+import tv.dustypig.dustypig.ui.main_app.screens.settings.friends_settings.friend_details_settings.FriendDetailsSettingsNav
 import java.util.Calendar
 import java.util.Date
 import java.util.Timer
@@ -121,28 +123,22 @@ class NotificationsManager @Inject constructor(
 
             val parts = deepLink.split('/')
             val type = parts[0]
-            val linkId = parts[1].toInt()
+            val linkId = parts.last().toInt()
 
             when(type) {
-                "movie" -> {
-                    return MovieDetailsNav.getRoute(
-                        mediaId = linkId,
-                        basicCacheId = "",
-                        detailedPlaylistCacheId = "",
-                        fromPlaylist = false,
-                        playlistUpNextIndex = 0
-                    )
+                "movie", "series" -> {
+                    return getMediaRoute(type, linkId)
                 }
 
-                "series" -> {
-                    return SeriesDetailsNav.getRoute(
-                        mediaId = linkId,
-                        basicCacheId = ""
-                    )
+                "requests" -> {
+                    val subType = parts[1]
+                    return TMDBDetailsNav.getRoute(mediaId = linkId, cacheId = "", subType == "movie")
                 }
 
-                "friendship" -> { }
-                "requests" -> { }
+                "friendship" -> {
+                    return FriendDetailsSettingsNav.getRouteForId(linkId)
+                }
+
             }
 
 
@@ -154,38 +150,28 @@ class NotificationsManager @Inject constructor(
         return ""
     }
 
+    private fun getMediaRoute(type: String, id: Int): String {
+        when(type) {
+            "movie" -> {
+                return MovieDetailsNav.getRoute(
+                    mediaId = id,
+                    basicCacheId = "",
+                    detailedPlaylistCacheId = "",
+                    fromPlaylist = false,
+                    playlistUpNextIndex = 0
+                )
+            }
 
-//    fun navToDeepLink(deepLink: String, routeNavigator: RouteNavigator) {
-//        try {
-//
-//            val parts = deepLink.split('/')
-//            val type = parts[0]
-//            val linkId = parts[1].toInt()
-//
-//            when(type) {
-//                "movie" -> {
-//                    routeNavigator.navigateToRoute(
-//                        MovieDetailsNav.getRoute(mediaId = linkId)
-//                    )
-//                }
-//
-//                "series" ->
-//                {
-//                    routeNavigator.navigateToRoute(
-//                        SeriesDetailsNav.getRoute(mediaId = linkId)
-//                    )
-//                }
-//
-//                "friendship" -> { }
-//                "requests" -> { }
-//            }
-//
-//
-//        } catch(ex: Exception) {
-//            Log.e(TAG, "navToDeepLink", ex)
-//            ex.logToCrashlytics()
-//        }
-//
-//    }
+            "series" -> {
+                return SeriesDetailsNav.getRoute(
+                    mediaId = id,
+                    basicCacheId = ""
+                )
+            }
+        }
+
+        return ""
+    }
+
 
 }

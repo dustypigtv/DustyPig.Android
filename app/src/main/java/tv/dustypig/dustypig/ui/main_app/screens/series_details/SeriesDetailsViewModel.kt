@@ -169,8 +169,8 @@ class SeriesDetailsViewModel  @Inject constructor(
                     upNextSeason = if(unPlayed) null else upNext.seasonNumber,
                     upNextEpisode = if(unPlayed) null else upNext.episodeNumber,
                     episodeTitle = if(unPlayed) "" else upNext.title,
-                    titleRequestPermissions = _detailedSeries.titleRequestPermissions,
-                    accessRequestStatus = _detailedSeries.accessRequestStatus,
+                    titleRequestPermissions = _detailedSeries.titleRequestPermission,
+                    accessRequestStatus = _detailedSeries.accessRequestedStatus,
                     accessRequestBusy = false,
                     subscribed = _detailedSeries.subscribed
                 )

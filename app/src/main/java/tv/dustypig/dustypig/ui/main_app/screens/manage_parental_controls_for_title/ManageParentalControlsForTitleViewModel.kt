@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.models.OverrideState
-import tv.dustypig.dustypig.api.models.SetTitlePermissionInfo
-import tv.dustypig.dustypig.api.models.TitlePermissionInfo
+import tv.dustypig.dustypig.api.models.SetTitlePermission
+import tv.dustypig.dustypig.api.models.TitlePermissions
 import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
@@ -39,7 +39,7 @@ class ManageParentalControlsForTitleViewModel  @Inject constructor(
 
     private val _origValues: MutableMap<Int, Boolean> = mutableMapOf()
 
-    private lateinit var _data: TitlePermissionInfo
+    private lateinit var _data: TitlePermissions
 
 
     init {
@@ -107,7 +107,7 @@ class ManageParentalControlsForTitleViewModel  @Inject constructor(
                 profile.overrideState = if(profile.overrideState == OverrideState.Allow) OverrideState.Block else OverrideState.Allow
 
                 mediaRepository.setTitlePermissions(
-                    setTitlePermissionInfo = SetTitlePermissionInfo(
+                    setTitlePermissionInfo = SetTitlePermission(
                         mediaId = _mediaId,
                         profileId = profileId,
                         overrideState = profile.overrideState

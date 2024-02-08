@@ -76,7 +76,7 @@ class TMDBDetailsViewModel @Inject constructor(
 
 
                 val friendsForRequests = arrayListOf<TMDBDetailsRequestFriend>()
-                if(_detailedTMDB.requestPermissions == TitleRequestPermissions.Enabled) {
+                if(_detailedTMDB.requestPermission == TitleRequestPermissions.Enabled) {
                     val calls = arrayListOf<Deferred<*>>()
                     calls.add(async { friendsRepository.list() })
                     if (!authManager.currentProfileIsMain) {
@@ -128,7 +128,7 @@ class TMDBDetailsViewModel @Inject constructor(
                         rated = _detailedTMDB.rated ?: "",
                         year = if(_detailedTMDB.year > 1900) _detailedTMDB.year.toString() else "",
                         available = _detailedTMDB.available,
-                        requestPermissions = _detailedTMDB.requestPermissions,
+                        requestPermissions = _detailedTMDB.requestPermission,
                         requestStatus = _detailedTMDB.requestStatus,
                         friends = friendsForRequests
                     )

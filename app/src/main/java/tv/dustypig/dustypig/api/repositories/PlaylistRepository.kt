@@ -18,11 +18,11 @@ class PlaylistRepository @Inject constructor(
     authManager: AuthManager
 ): RepositoryBase(authManager) {
 
-    suspend fun addItem(addPlaylistItem: AddPlaylistItem) = wrapAPICallWithReturnSimpleValue { apiService.addItemToPlaylist(addPlaylistItem) }
+    suspend fun addItem(addPlaylistItem: AddPlaylistItem) = wrapAPICallWithReturnData { apiService.addItemToPlaylist(addPlaylistItem) }
 
     suspend fun addSeries(addSeriesToPlaylistInfo: AddSeriesToPlaylistInfo) = wrapAPICall { apiService.addSeriesToPlaylist(addSeriesToPlaylistInfo) }
 
-    suspend fun create(createPlaylist: CreatePlaylist) = wrapAPICallWithReturnSimpleValue { apiService.createPlaylist(createPlaylist) }
+    suspend fun create(createPlaylist: CreatePlaylist) = wrapAPICallWithReturnData { apiService.createPlaylist(createPlaylist) }
 
     suspend fun deletePlaylist(id: Int) = wrapAPICall { apiService.deletePlaylist(id) }
 

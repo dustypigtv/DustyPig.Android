@@ -4,7 +4,7 @@ import tv.dustypig.dustypig.api.ApiService
 import tv.dustypig.dustypig.api.models.LoadMoreHomeScreenItemsRequest
 import tv.dustypig.dustypig.api.models.PlaybackProgress
 import tv.dustypig.dustypig.api.models.SearchRequest
-import tv.dustypig.dustypig.api.models.SetTitlePermissionInfo
+import tv.dustypig.dustypig.api.models.SetTitlePermission
 import tv.dustypig.dustypig.di.AuthenticatedAPIService
 import tv.dustypig.dustypig.global_managers.AuthManager
 import javax.inject.Inject
@@ -32,7 +32,7 @@ class MediaRepository @Inject constructor(
 
     suspend fun search(searchRequest: SearchRequest)= wrapAPICallWithReturnData { apiService.search(searchRequest) }
 
-    suspend fun setTitlePermissions(setTitlePermissionInfo: SetTitlePermissionInfo) = wrapAPICall { apiService.setTitlePermissions(setTitlePermissionInfo) }
+    suspend fun setTitlePermissions(setTitlePermissionInfo: SetTitlePermission) = wrapAPICall { apiService.setTitlePermissions(setTitlePermissionInfo) }
 
     suspend fun updatePlaybackProgress(playbackProgress: PlaybackProgress) = wrapAPICall { apiService.updatePlaybackProgress(playbackProgress) }
 }

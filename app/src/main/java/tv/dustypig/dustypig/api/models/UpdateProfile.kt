@@ -1,7 +1,5 @@
 package tv.dustypig.dustypig.api.models
 
-import com.google.gson.annotations.SerializedName
-
 data class UpdateProfile(
     val id: Int,
     val name: String,
@@ -12,9 +10,9 @@ data class UpdateProfile(
      */
     val pin: Int? = null,
 
-    @SerializedName("clear_pin") val clearPin: Boolean = false,
-    @SerializedName("avatar_url") val avatarUrl: String?,
-    @SerializedName("max_movie_rating") val maxMovieRating: MovieRatings,
-    @SerializedName("max_tv_rating") val maxTVRating: TVRatings,
-    @SerializedName("title_request_permissions") val titleRequestPermissions: TitleRequestPermissions
+    val clearPin: Boolean = false,
+    val avatarUrl: String?,
+    val maxMovieRating: MovieRatings,
+    val maxTVRating: TVRatings,
+    val titleRequestPermissions: TitleRequestPermissions
 )

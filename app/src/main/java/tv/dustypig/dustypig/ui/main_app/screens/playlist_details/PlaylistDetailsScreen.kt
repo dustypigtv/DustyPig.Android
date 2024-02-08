@@ -807,7 +807,7 @@ private fun PlaylistDetailsScreenPreview() {
                 creditsStartTime = null,
                 bifUrl = "",
                 videoUrl = "",
-                externalSubtitles = listOf()
+                srtSubtitles = listOf()
             )
         )
     }
