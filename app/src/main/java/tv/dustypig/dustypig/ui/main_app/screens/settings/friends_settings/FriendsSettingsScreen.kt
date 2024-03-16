@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -106,13 +105,16 @@ private fun FriendsSettingsScreenInternal(uiState: FriendsSettingsUIState) {
                             .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp))
                             .clickable { uiState.onNavToFriendDetails(it.id) }
                     ) {
-                        Avatar(
-                            imageUrl = it.avatarUrl,
-                            modifier = Modifier
-                                .padding(12.dp)
-                                .size(48.dp),
-                            clickable = false
-                        )
+
+                        Box(
+                            modifier = Modifier.padding(12.dp)
+                        ) {
+                            Avatar(
+                                imageUrl = it.avatarUrl,
+                                size = 48,
+                                clickable = false
+                            )
+                        }
 
                         Text(
                             text = it.displayName,
@@ -256,16 +258,19 @@ private fun FriendSettingsScreenPreview() {
             BasicFriend(
                 id = 0,
                 displayName = "John Doe 1",
+                initials = "J1",
                 avatarUrl = ""
             ),
             BasicFriend(
                 id = 1,
                 displayName = "John Doe 2",
+                initials = "J2",
                 avatarUrl = ""
             ),
             BasicFriend(
                 id = 2,
                 displayName = "John Doe 3",
+                initials = "J3",
                 avatarUrl = ""
             )
         )

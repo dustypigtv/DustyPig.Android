@@ -5,86 +5,96 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import tv.dustypig.dustypig.R
+import tv.dustypig.dustypig.api.models.CreditRoles
+import tv.dustypig.dustypig.api.models.Genre
+import tv.dustypig.dustypig.api.models.GenrePair
+import tv.dustypig.dustypig.api.models.Person
 
 
-private val spacerHeight = 12.dp
+private val spacerHeight = 24.dp
 
 
 data class CreditsData(
-    val genres: List<String> = listOf(),
-    val cast: List<String> = listOf(),
-    val directors: List<String> = listOf(),
-    val producers: List<String> = listOf(),
-    val writers: List<String> = listOf(),
+    val genres: List<GenrePair> = listOf(),
+    val genreNav: (genrePair: GenrePair) -> Unit = { },
+    val castAndCrew: List<Person> = listOf(),
+    val personNav: (id: Int) -> Unit = { },
     val owner: String = ""
 )
 
 
 @Composable
-private fun CreditsRow(header: String, maxHeaderWidth: MutableState<Dp>, items: List<String>) {
+private fun CreditsRow(creditsData: CreditsData, role: CreditRoles, singleHeader: String, pluralHeader: String) {
 
-    //Draw twice:
-    //First, draw the header rows, and get the max width.
-    //Then redraw with both fields, setting the header width
-    //Yes it sucks. I can't find another way
+    val peopleInRole = remember {
+        creditsData.castAndCrew.filter {
+            it.role == role
+        }.sortedBy {
+            it.order
+        }.toMutableList()
+    }
 
-    if(items.isNotEmpty()) {
+    if(peopleInRole.isNotEmpty()) {
+        val txt by remember {
+            mutableStateOf(if(peopleInRole.size > 1) pluralHeader else singleHeader)
+        }
+        Text(
+            modifier = Modifier.padding(12.dp, 12.dp, 12.dp, 6.dp),
+            text = txt,
+            color = MaterialTheme.colorScheme.primary,
+            textDecoration = TextDecoration.Underline
+        )
 
-        val density = LocalDensity.current
-        var measured by remember {mutableStateOf(false)}
-
-        Spacer(modifier = Modifier.height(spacerHeight))
-        Row (
-            modifier = Modifier
-                .padding(12.dp, 0.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.padding(12.dp, 0.dp),
+            state = rememberLazyListState()
         ) {
-            if(measured) {
-                Text(
-                    text = header,
-                    modifier = Modifier.width(maxHeaderWidth.value),
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
-                )
-                Text(
-                    text = items.joinToString(", "),
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
-                )
-            } else {
-                Text(
-                    text = header,
-                    modifier = Modifier
-                        .onGloballyPositioned {
-                            val width = with(density) { it.size.width.toDp() }
-                            if (width > maxHeaderWidth.value)
-                                maxHeaderWidth.value = width
-                            measured = true
-                        },
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
-                )
+            items(peopleInRole) { person ->
+                Column(
+                    modifier = Modifier.width(84.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Avatar(
+                        imageUrl = person.avatarUrl,
+                        initials = person.initials,
+                        size = 72
+                    )
+                    Text(
+                        modifier = Modifier.width((84.dp)),
+                        text = person.name,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
             }
         }
+        Spacer(modifier = Modifier.height(spacerHeight))
     }
 }
 
@@ -92,24 +102,80 @@ private fun CreditsRow(header: String, maxHeaderWidth: MutableState<Dp>, items: 
 @Composable
 fun Credits(creditsData: CreditsData) {
 
-    val genresHeader = if(creditsData.genres.count() > 1) stringResource(R.string.genres) else stringResource(R.string.genre)
-    val directorsHeader = if(creditsData.directors.count() > 1) stringResource(R.string.directors) else stringResource(R.string.director)
-    val producersHeader = if(creditsData.producers.count() > 1) stringResource(R.string.producers) else stringResource(R.string.producer)
-    val writersHeader = if(creditsData.writers.count() > 1) stringResource(R.string.writers) else stringResource(R.string.writer)
+    Spacer(modifier = Modifier.height(spacerHeight))
+
+    if(creditsData.genres.isNotEmpty()) {
+       LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.padding(12.dp, 0.dp),
+            state = rememberLazyListState()
+        ) {
+            items(creditsData.genres) {genrePair ->
+                Button(onClick = { creditsData.genreNav(genrePair) }) {
+                    Text(text = genrePair.text)
+                }
+            }
+        }
+    }
+
+    if(creditsData.castAndCrew.isNotEmpty()){
+
+        Spacer(modifier = Modifier.height(spacerHeight))
+
+        CreditsRow(
+            creditsData = creditsData,
+            role = CreditRoles.Cast,
+            singleHeader = stringResource(R.string.cast),
+            pluralHeader = stringResource(R.string.cast)
+        )
+
+        CreditsRow(
+            creditsData = creditsData,
+            role = CreditRoles.Director,
+            singleHeader = stringResource(R.string.director),
+            pluralHeader = stringResource(R.string.directors)
+        )
+
+        CreditsRow(
+            creditsData = creditsData,
+            role = CreditRoles.ExecutiveProducer,
+            singleHeader = stringResource(R.string.executive_producer),
+            pluralHeader = stringResource(R.string.executive_producers)
+        )
+
+
+        CreditsRow(
+            creditsData = creditsData,
+            role = CreditRoles.Producer,
+            singleHeader = stringResource(R.string.producer),
+            pluralHeader = stringResource(R.string.producers)
+        )
+
+        CreditsRow(
+            creditsData = creditsData,
+            role = CreditRoles.Writer,
+            singleHeader = stringResource(R.string.writer),
+            pluralHeader = stringResource(R.string.writers)
+        )
+    }
+
+    if(creditsData.owner.isNotBlank()) {
+        Row (
+            modifier = Modifier.padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+
+            Text(
+                text = stringResource(id = R.string.owner),
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            Text(text = creditsData.owner)
+        }
+    }
 
     Spacer(modifier = Modifier.height(spacerHeight))
 
-    val maxHeaderWidth = remember { mutableStateOf(0.dp) }
-
-    CreditsRow(header = genresHeader, maxHeaderWidth = maxHeaderWidth, items = creditsData.genres)
-    CreditsRow(header = stringResource(R.string.cast), maxHeaderWidth = maxHeaderWidth, items = creditsData.cast)
-    CreditsRow(header = directorsHeader, maxHeaderWidth = maxHeaderWidth, items = creditsData.directors)
-    CreditsRow(header = producersHeader, maxHeaderWidth = maxHeaderWidth, items = creditsData.producers)
-    CreditsRow(header = writersHeader, maxHeaderWidth = maxHeaderWidth, items = creditsData.writers)
-    if(creditsData.owner.isNotBlank())
-        CreditsRow(header = stringResource(R.string.owner), maxHeaderWidth = maxHeaderWidth, items = listOf(creditsData.owner))
-
-    Spacer(modifier = Modifier.height(spacerHeight))
 }
 
 
@@ -118,11 +184,93 @@ fun Credits(creditsData: CreditsData) {
 @Composable
 private fun CreditsPreview() {
     val creditsData = CreditsData(
-        genres = listOf("Genre 1", "Genre 2"),
-        cast = listOf("Actress 1", "Actor 2", "Actress 3", "Actor 4", "Actress 5", "Actor 6"),
-        directors = listOf("Director 1", "Director 2"),
-        producers = listOf("Producer"),
-        writers = listOf("Writer 1", "Writer 2")
+        genres = listOf(
+            GenrePair.fromGenre(Genre.Action),
+            GenrePair.fromGenre(Genre.Adventure)
+        ),
+        castAndCrew = listOf(
+            Person(
+                id = 1,
+                name = "Actress 1",
+                initials = "A1",
+                avatarUrl = "https://s3.dustypig.tv/user-art/profile/green.png",
+                order = 1,
+                role = CreditRoles.Cast
+            ),
+            Person(
+                id = 2,
+                name = "Actor 2",
+                initials = "A2",
+                avatarUrl = null,
+                order = 2,
+                role = CreditRoles.Cast
+            ),
+            Person(
+                id = 3,
+                name = "Actress 3",
+                initials = "A3",
+                avatarUrl = "https://s3.dustypig.tv/user-art/profile/red.png",
+                order = 3,
+                role = CreditRoles.Cast
+            ),
+            Person(
+                id = 4,
+                name = "Actor 4",
+                initials = "A4",
+                avatarUrl = "https://s3.dustypig.tv/user-art/profile/gold.png",
+                order = 4,
+                role = CreditRoles.Cast
+            ),
+            Person(
+                id = 5,
+                name = "Actress 5",
+                initials = "A5",
+                avatarUrl = "https://s3.dustypig.tv/user-art/profile/grey.png",
+                order = 5,
+                role = CreditRoles.Cast
+            ),
+            Person(
+                id = 6,
+                name = "Actor 6",
+                initials = "A6",
+                avatarUrl = "https://s3.dustypig.tv/user-art/profile/green.png",
+                order = 6,
+                role = CreditRoles.Cast
+            ),
+            Person(
+                id = 7,
+                name = "Director 7",
+                initials = "D7",
+                avatarUrl = "https://s3.dustypig.tv/user-art/profile/blue.png",
+                order = 1,
+                role = CreditRoles.Director
+            ),
+            Person(
+                id = 8,
+                name = "Director 8",
+                initials = "A8",
+                avatarUrl = "https://s3.dustypig.tv/user-art/profile/red.png",
+                order = 2,
+                role = CreditRoles.Director
+            ),
+            Person(
+                id = 9,
+                name = "Producer 9",
+                initials = "P9",
+                avatarUrl = "https://s3.dustypig.tv/user-art/profile/gold.png",
+                order = 1,
+                role = CreditRoles.Producer
+            ),
+            Person(
+                id = 10,
+                name = "Writer 10",
+                initials = "W1",
+                avatarUrl = "https://s3.dustypig.tv/user-art/profile/grey.png",
+                order = 1,
+                role = CreditRoles.Writer
+            )
+        ),
+        owner = "Jason"
     )
 
     PreviewBase {

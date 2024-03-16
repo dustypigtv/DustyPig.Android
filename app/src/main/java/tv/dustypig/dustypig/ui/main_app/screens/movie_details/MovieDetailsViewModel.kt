@@ -1,9 +1,11 @@
 package tv.dustypig.dustypig.ui.main_app.screens.movie_details
 
 import android.annotation.SuppressLint
+import androidx.annotation.OptIn
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.util.UnstableApi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,6 +14,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.models.DetailedMovie
+import tv.dustypig.dustypig.api.models.GenrePair
 import tv.dustypig.dustypig.api.models.Genres
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.OverrideRequestStatus
@@ -32,13 +35,14 @@ import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
 import tv.dustypig.dustypig.ui.main_app.screens.manage_parental_controls_for_title.ManageParentalControlsForTitleNav
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
+import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
 import java.util.Calendar
 import java.util.UUID
 import javax.inject.Inject
 
 @SuppressLint("SimpleDateFormat")
 @HiltViewModel
-class MovieDetailsViewModel @Inject constructor(
+class MovieDetailsViewModel @OptIn(UnstableApi::class) @Inject constructor(
     routeNavigator: RouteNavigator,
     savedStateHandle: SavedStateHandle,
     castManager: CastManager,
@@ -126,10 +130,9 @@ class MovieDetailsViewModel @Inject constructor(
                     loading = false,
                     creditsData = CreditsData(
                         genres = Genres(_detailedMovie.genres).toList(),
-                        cast = _detailedMovie.cast ?: listOf(),
-                        directors = _detailedMovie.directors ?: listOf(),
-                        producers = _detailedMovie.producers ?: listOf(),
-                        writers = _detailedMovie.writers ?: listOf(),
+                        genreNav = ::genreNav,
+                        castAndCrew = _detailedMovie.credits ?: listOf(),
+                        personNav = ::personNav,
                         owner = _detailedMovie.owner ?: ""
                     )
                 )
@@ -314,4 +317,32 @@ class MovieDetailsViewModel @Inject constructor(
     private fun managePermissions() {
         navigateToRoute(ManageParentalControlsForTitleNav.getRouteForId(mediaId))
     }
+
+    private fun genreNav(genrePair: GenrePair) {
+        navigateToRoute(ShowMoreNav.getRoute(genrePair.genre.value, genrePair.text))
+    }
+
+    private fun personNav(id: Int){
+
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

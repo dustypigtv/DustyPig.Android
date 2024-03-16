@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.models.BasicFriend
 import tv.dustypig.dustypig.api.models.DetailedProfile
 import tv.dustypig.dustypig.api.models.DetailedTMDB
+import tv.dustypig.dustypig.api.models.GenrePair
 import tv.dustypig.dustypig.api.models.Genres
 import tv.dustypig.dustypig.api.models.RequestStatus
 import tv.dustypig.dustypig.api.models.TMDBMediaTypes
@@ -28,6 +29,7 @@ import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.composables.CreditsData
+import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
 import javax.inject.Inject
 
 @HiltViewModel
@@ -120,14 +122,13 @@ class TMDBDetailsViewModel @Inject constructor(
                         overview = _detailedTMDB.description ?: "",
                         creditsData = CreditsData(
                             genres = Genres(_detailedTMDB.genres).toList(),
-                            cast = _detailedTMDB.cast,
-                            directors = _detailedTMDB.directors,
-                            producers = _detailedTMDB.producers,
-                            writers = _detailedTMDB.writers
+                            genreNav = ::genreNav,
+                            castAndCrew = _detailedTMDB.credits ?: listOf(),
+                            personNav = ::personNav
                         ),
                         rated = _detailedTMDB.rated ?: "",
                         year = if(_detailedTMDB.year > 1900) _detailedTMDB.year.toString() else "",
-                        available = _detailedTMDB.available,
+                        available = _detailedTMDB.available ?: listOf(),
                         requestPermissions = _detailedTMDB.requestPermission,
                         requestStatus = _detailedTMDB.requestStatus,
                         friends = friendsForRequests
@@ -207,5 +208,13 @@ class TMDBDetailsViewModel @Inject constructor(
                 setError(ex = ex, criticalError = false)
             }
         }
+    }
+
+    private fun genreNav(genrePair: GenrePair) {
+        navigateToRoute(ShowMoreNav.getRoute(genrePair.genre.value, genrePair.text))
+    }
+
+    private fun personNav(id: Int){
+
     }
 }

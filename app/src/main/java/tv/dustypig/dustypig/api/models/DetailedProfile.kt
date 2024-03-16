@@ -3,6 +3,7 @@ package tv.dustypig.dustypig.api.models
 data class DetailedProfile(
     val id: Int,
     val name: String,
+    val initials: String,
     val locked: Boolean,
     val hasPin: Boolean,
     val avatarUrl: String,

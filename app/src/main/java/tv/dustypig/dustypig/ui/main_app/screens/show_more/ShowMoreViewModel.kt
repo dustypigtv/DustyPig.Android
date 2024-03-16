@@ -1,5 +1,6 @@
-package tv.dustypig.dustypig.ui.main_app.screens.home.show_more
+package tv.dustypig.dustypig.ui.main_app.screens.show_more
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
@@ -15,19 +16,21 @@ import kotlinx.coroutines.flow.update
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.nav.RouteNavigator
+import tv.dustypig.dustypig.nav.getOrThrow
 import javax.inject.Inject
 
 @HiltViewModel
 class ShowMoreViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val routeNavigator: RouteNavigator,
     private val mediaRepository: MediaRepository
 ): ViewModel(), RouteNavigator by routeNavigator {
 
-
     private val _uiState = MutableStateFlow(ShowMoreUIState())
     val uiState: StateFlow<ShowMoreUIState> = _uiState.asStateFlow()
 
-    private var _listId: Long = 0
+    private val _listId: Long = savedStateHandle.getOrThrow(ShowMoreNav.KEY_LIST_ID)
+    private val _listTitle: String = savedStateHandle.getOrThrow(ShowMoreNav.KEY_LIST_TITLE)
 
     val itemData: Flow<PagingData<BasicMedia>> = Pager(
         config = PagingConfig(pageSize = 25),
@@ -36,9 +39,6 @@ class ShowMoreViewModel @Inject constructor(
     ).flow.cachedIn(viewModelScope)
 
     init {
-        _listId = ShowMorePagingSource.showMoreData.listId
-        _uiState.update { it.copy(title = ShowMorePagingSource.showMoreData.title) }
+        _uiState.update { it.copy(title = _listTitle) }
     }
-
-
 }

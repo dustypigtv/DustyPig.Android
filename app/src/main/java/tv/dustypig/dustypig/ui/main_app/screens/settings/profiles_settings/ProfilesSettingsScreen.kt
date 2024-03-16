@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -84,13 +83,16 @@ private fun ProfilesSettingsScreenInternal(
                             .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp))
                             .clickable { uiState.onNavToProfile(it.id) }
                     ) {
-                        Avatar(
-                            imageUrl = it.avatarUrl ?: "",
-                            modifier = Modifier
-                                .padding(12.dp)
-                                .size(48.dp),
-                            clickable = false
-                        )
+
+                        Box(
+                            modifier = Modifier.padding(12.dp)
+                        ) {
+                            Avatar(
+                                imageUrl = it.avatarUrl ?: "",
+                                size = 48,
+                                clickable = false
+                            )
+                        }
 
                         Text(
                             text = it.name,
@@ -137,11 +139,13 @@ private fun ProfilesSettingsScreenPreview() {
         profiles = listOf(
             BasicProfile(
                 id = 0,
-                name = "Profile 1"
+                name = "Profile 1",
+                initials = "P1",
             ),
             BasicProfile(
                 id = 1,
-                name = "Profile 2"
+                name = "Profile 2",
+                initials = "P2"
             )
         )
     )

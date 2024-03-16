@@ -175,9 +175,7 @@ private fun TMDBDetailsScreenInternal(
                             ) {
                                 Avatar(
                                     imageUrl = friend.avatarUrl,
-                                    modifier = Modifier
-                                        .width(48.dp)
-                                        .height(48.dp),
+                                    size=48,
                                     clickable = false
                                 )
                                 Text(

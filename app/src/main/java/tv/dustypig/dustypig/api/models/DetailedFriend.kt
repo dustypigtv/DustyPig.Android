@@ -5,6 +5,7 @@ import java.util.Date
 data class DetailedFriend(
     val id: Int,
     val displayName: String,
+    val initials: String,
     val avatarUrl: String,
     val accepted: Boolean,
     val timestamp: Date,

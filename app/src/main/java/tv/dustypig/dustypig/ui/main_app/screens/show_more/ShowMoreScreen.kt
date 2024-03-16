@@ -1,4 +1,4 @@
-package tv.dustypig.dustypig.ui.main_app.screens.home.show_more
+package tv.dustypig.dustypig.ui.main_app.screens.show_more
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box

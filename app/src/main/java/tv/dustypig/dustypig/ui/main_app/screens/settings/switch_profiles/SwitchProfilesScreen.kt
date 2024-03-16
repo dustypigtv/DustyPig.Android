@@ -5,9 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -89,9 +87,7 @@ private fun SwitchProfilesScreenInternal(
                                     uiState.onSignIn(it, null)
                                 }
                             },
-                            modifier = Modifier
-                                .width(48.dp)
-                                .height(48.dp)
+                            size = 48
                         )
                         Text(text = it.name)
                     }
@@ -158,6 +154,7 @@ private fun SwitchProfilesScreenPreview() {
             BasicProfile(
                 id = 1,
                 name = "Test 1",
+                initials = "T1",
                 avatarUrl = "https://s3.dustypig.tv/user-art-defaults/profile/blue.png",
                 isMain = true,
                 hasPin = true
@@ -165,6 +162,7 @@ private fun SwitchProfilesScreenPreview() {
             BasicProfile(
                 id = 2,
                 name = "Test 2",
+                initials = "T2",
                 avatarUrl = "https://s3.dustypig.tv/user-art-defaults/profile/gold.png",
                 isMain = false,
                 hasPin = false

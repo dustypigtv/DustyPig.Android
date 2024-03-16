@@ -70,6 +70,79 @@ enum class Genre(val value: Long) {
     Sports(0x40000000)
 }
 
+data class GenrePair(
+    val genre: Genre,
+    val text: String
+) {
+    companion object {
+        fun fromGenre(genre: Genre): GenrePair {
+            if (genre == Genre.Action) return GenrePair(genre = Genre.Action, text = "Action")
+            if (genre == Genre.Adventure) return GenrePair(
+                genre = Genre.Adventure,
+                text = "Adventure"
+            )
+            if (genre == Genre.Animation) return GenrePair(
+                genre = Genre.Animation,
+                text = "Animation"
+            )
+            if (genre == Genre.Anime) return GenrePair(genre = Genre.Anime, text = "Anime")
+            if (genre == Genre.AwardsShow) return GenrePair(
+                genre = Genre.AwardsShow,
+                text = "AwardsShow"
+            )
+            if (genre == Genre.Children) return GenrePair(genre = Genre.Children, text = "Children")
+            if (genre == Genre.Comedy) return GenrePair(genre = Genre.Comedy, text = "Comedy")
+            if (genre == Genre.Crime) return GenrePair(genre = Genre.Crime, text = "Crime")
+            if (genre == Genre.Documentary) return GenrePair(
+                genre = Genre.Documentary,
+                text = "Documentary"
+            )
+            if (genre == Genre.Drama) return GenrePair(genre = Genre.Drama, text = "Drama")
+            if (genre == Genre.Family) return GenrePair(genre = Genre.Family, text = "Family")
+            if (genre == Genre.Fantasy) return GenrePair(genre = Genre.Fantasy, text = "Fantasy")
+            if (genre == Genre.Food) return GenrePair(genre = Genre.Food, text = "Food")
+            if (genre == Genre.GameShow) return GenrePair(
+                genre = Genre.GameShow,
+                text = "Game Show"
+            )
+            if (genre == Genre.History) return GenrePair(genre = Genre.History, text = "History")
+            if (genre == Genre.HomeAndGarden) return GenrePair(
+                genre = Genre.HomeAndGarden,
+                text = "Home And Garden"
+            )
+            if (genre == Genre.Horror) return GenrePair(genre = Genre.Horror, text = "Horror")
+            if (genre == Genre.Indie) return GenrePair(genre = Genre.Indie, text = "Indie")
+            if (genre == Genre.MartialArts) return GenrePair(
+                genre = Genre.MartialArts,
+                text = "Martial Arts"
+            )
+            if (genre == Genre.MiniSeries) return GenrePair(
+                genre = Genre.MiniSeries,
+                text = "Mini Series"
+            )
+            if (genre == Genre.Music) return GenrePair(genre = Genre.Music, text = "Music")
+            if (genre == Genre.Musical) return GenrePair(genre = Genre.Musical, text = "Musical")
+            if (genre == Genre.Mystery) return GenrePair(genre = Genre.Mystery, text = "Mystery")
+            if (genre == Genre.News) return GenrePair(genre = Genre.News, text = "News")
+            if (genre == Genre.Podcast) return GenrePair(genre = Genre.Podcast, text = "Podcast")
+            if (genre == Genre.Political) return GenrePair(
+                genre = Genre.Political,
+                text = "Political"
+            )
+            if (genre == Genre.Reality) return GenrePair(genre = Genre.Reality, text = "Reality")
+            if (genre == Genre.Romance) return GenrePair(genre = Genre.Romance, text = "Romance")
+            if (genre == Genre.ScienceFiction) return GenrePair(
+                genre = Genre.ScienceFiction,
+                text = "Science Fiction"
+            )
+            if (genre == Genre.Soap) return GenrePair(genre = Genre.Soap, text = "Soap")
+            if (genre == Genre.Sports) return GenrePair(genre = Genre.Sports, text = "Sports")
+
+            return GenrePair(genre = Genre.Unknown, text = "Unknown")
+        }
+    }
+}
+
 class Genres constructor() {
 
     constructor(fromVal: Long) : this() {
@@ -91,40 +164,40 @@ class Genres constructor() {
         value.and(genre.value) == genre.value
 
 
-    fun toList(): List<String> {
-        val ret = ArrayList<String>()
+    fun toList(): List<GenrePair> {
+        val ret = ArrayList<GenrePair>()
 
-        if(has(Genre.Action)) ret.add("Action")
-        if(has(Genre.Adventure)) ret.add("Adventure")
-        if(has(Genre.Animation)) ret.add("Animation")
-        if(has(Genre.Anime)) ret.add("Anime")
-        if(has(Genre.AwardsShow)) ret.add("Awards Show")
-        if(has(Genre.Children)) ret.add("Children")
-        if(has(Genre.Comedy)) ret.add("Comedy")
-        if(has(Genre.Crime)) ret.add("Crime")
-        if(has(Genre.Documentary)) ret.add("Documentary")
-        if(has(Genre.Drama)) ret.add("Drama")
-        if(has(Genre.Family)) ret.add("Family")
-        if(has(Genre.Fantasy)) ret.add("Fantasy")
-        if(has(Genre.Food)) ret.add("Food")
-        if(has(Genre.GameShow)) ret.add("Game Show")
-        if(has(Genre.History)) ret.add("History")
-        if(has(Genre.HomeAndGarden)) ret.add("Home and Garden")
-        if(has(Genre.Horror)) ret.add("Horror")
-        if(has(Genre.Indie)) ret.add("Indie")
-        if(has(Genre.MartialArts)) ret.add("Martial Arts")
-        if(has(Genre.MiniSeries)) ret.add("Mini Series")
-        if(has(Genre.Music)) ret.add("Music")
-        if(has(Genre.Musical)) ret.add("Musical")
-        if(has(Genre.Mystery)) ret.add("Mystery")
-        if(has(Genre.News)) ret.add("News")
-        if(has(Genre.Podcast)) ret.add("Podcast")
-        if(has(Genre.Political)) ret.add("Political")
-        if(has(Genre.Reality)) ret.add("Reality")
-        if(has(Genre.Romance)) ret.add("Romance")
-        if(has(Genre.ScienceFiction)) ret.add("Science Fiction")
-        if(has(Genre.Soap)) ret.add("Soap")
-        if(has(Genre.Sports)) ret.add("Sports")
+        if(has(Genre.Action)) ret.add(GenrePair.fromGenre(Genre.Action))
+        if(has(Genre.Adventure)) ret.add(GenrePair.fromGenre(Genre.Adventure))
+        if(has(Genre.Animation)) ret.add(GenrePair.fromGenre(Genre.Animation))
+        if(has(Genre.Anime)) ret.add(GenrePair.fromGenre(Genre.Anime))
+        if(has(Genre.AwardsShow)) ret.add(GenrePair.fromGenre(Genre.AwardsShow))
+        if(has(Genre.Children)) ret.add(GenrePair.fromGenre(Genre.Children))
+        if(has(Genre.Comedy)) ret.add(GenrePair.fromGenre(Genre.Comedy))
+        if(has(Genre.Crime)) ret.add(GenrePair.fromGenre(Genre.Crime))
+        if(has(Genre.Documentary)) ret.add(GenrePair.fromGenre(Genre.Documentary))
+        if(has(Genre.Drama)) ret.add(GenrePair.fromGenre(Genre.Drama))
+        if(has(Genre.Family)) ret.add(GenrePair.fromGenre(Genre.Family))
+        if(has(Genre.Fantasy)) ret.add(GenrePair.fromGenre(Genre.Fantasy))
+        if(has(Genre.Food)) ret.add(GenrePair.fromGenre(Genre.Food))
+        if(has(Genre.GameShow)) ret.add(GenrePair.fromGenre(Genre.GameShow))
+        if(has(Genre.History)) ret.add(GenrePair.fromGenre(Genre.History))
+        if(has(Genre.HomeAndGarden)) ret.add(GenrePair.fromGenre(Genre.HomeAndGarden))
+        if(has(Genre.Horror)) ret.add(GenrePair.fromGenre(Genre.Horror))
+        if(has(Genre.Indie)) ret.add(GenrePair.fromGenre(Genre.Indie))
+        if(has(Genre.MartialArts)) ret.add(GenrePair.fromGenre(Genre.MartialArts))
+        if(has(Genre.MiniSeries)) ret.add(GenrePair.fromGenre(Genre.MiniSeries))
+        if(has(Genre.Music)) ret.add(GenrePair.fromGenre(Genre.Music))
+        if(has(Genre.Musical)) ret.add(GenrePair.fromGenre(Genre.Musical))
+        if(has(Genre.Mystery)) ret.add(GenrePair.fromGenre(Genre.Mystery))
+        if(has(Genre.News)) ret.add(GenrePair.fromGenre(Genre.News))
+        if(has(Genre.Podcast)) ret.add(GenrePair.fromGenre(Genre.Podcast))
+        if(has(Genre.Political)) ret.add(GenrePair.fromGenre(Genre.Political))
+        if(has(Genre.Reality)) ret.add(GenrePair.fromGenre(Genre.Reality))
+        if(has(Genre.Romance)) ret.add(GenrePair.fromGenre(Genre.Romance))
+        if(has(Genre.ScienceFiction)) ret.add(GenrePair.fromGenre(Genre.ScienceFiction))
+        if(has(Genre.Soap)) ret.add(GenrePair.fromGenre(Genre.Soap))
+        if(has(Genre.Sports)) ret.add(GenrePair.fromGenre(Genre.Sports))
 
         return ret.toList()
     }

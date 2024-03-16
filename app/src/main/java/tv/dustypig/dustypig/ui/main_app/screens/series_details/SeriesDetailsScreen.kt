@@ -76,11 +76,14 @@ import compose.icons.fontawesomeicons.solid.Play
 import compose.icons.fontawesomeicons.solid.UserLock
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.DetailedEpisode
+import tv.dustypig.dustypig.api.models.Genre
+import tv.dustypig.dustypig.api.models.GenrePair
 import tv.dustypig.dustypig.api.models.OverrideRequestStatus
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
 import tv.dustypig.dustypig.ui.composables.ActionButton
 import tv.dustypig.dustypig.ui.composables.CastTopAppBar
 import tv.dustypig.dustypig.ui.composables.Credits
+import tv.dustypig.dustypig.ui.composables.CreditsData
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.MultiDownloadDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
@@ -756,7 +759,13 @@ private fun SeriesDetailsScreenPreview() {
         canManage = true,
         canPlay = true,
         partiallyPlayed = true,
-        inWatchList = true
+        inWatchList = true,
+        creditsData = CreditsData(
+            genres = listOf(
+                GenrePair.fromGenre(Genre.Comedy)
+            ),
+            owner = "Jason"
+        )
     )
 
     PreviewBase {

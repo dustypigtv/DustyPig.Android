@@ -1,8 +1,10 @@
 package tv.dustypig.dustypig.ui.main_app.screens.series_details
 
+import androidx.annotation.OptIn
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.util.UnstableApi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,6 +14,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.api.models.DetailedSeries
+import tv.dustypig.dustypig.api.models.GenrePair
 import tv.dustypig.dustypig.api.models.Genres
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.OverrideRequestStatus
@@ -31,11 +34,12 @@ import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNa
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
 import tv.dustypig.dustypig.ui.main_app.screens.manage_parental_controls_for_title.ManageParentalControlsForTitleNav
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
+import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
 import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
-class SeriesDetailsViewModel  @Inject constructor(
+class SeriesDetailsViewModel  @OptIn(UnstableApi::class) @Inject constructor(
     private val mediaRepository: MediaRepository,
     private val seriesRepository: SeriesRepository,
     private val downloadManager: DownloadManager,
@@ -153,10 +157,9 @@ class SeriesDetailsViewModel  @Inject constructor(
                     episodes = episodes,
                     creditsData = CreditsData(
                         genres = Genres(_detailedSeries.genres).toList(),
-                        cast = _detailedSeries.cast ?: listOf(),
-                        directors = _detailedSeries.directors ?: listOf(),
-                        producers = _detailedSeries.producers ?: listOf(),
-                        writers = _detailedSeries.writers ?: listOf(),
+                        genreNav = ::genreNav,
+                        castAndCrew = _detailedSeries.credits ?: listOf(),
+                        personNav = ::personNav,
                         owner = _detailedSeries.owner ?: ""
                     ),
                     inWatchList = _detailedSeries.inWatchlist,
@@ -379,5 +382,13 @@ class SeriesDetailsViewModel  @Inject constructor(
                 selectedSeason = seasonNumber
             )
         }
+    }
+
+    private fun genreNav(genrePair: GenrePair) {
+        navigateToRoute(ShowMoreNav.getRoute(genrePair.genre.value, genrePair.text))
+    }
+
+    private fun personNav(id: Int){
+
     }
 }

@@ -103,7 +103,8 @@ private fun SearchScreenInternal(
             },
             active = active,
             onActiveChange = { active = it },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
+                .padding(12.dp,0.dp),
             leadingIcon = {
                 TintedIcon(imageVector = Icons.Filled.Search)
             },

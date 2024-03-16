@@ -10,11 +10,8 @@ data class DetailedTMDB (
     val rated: String?,
     val description: String?,
     val genres: Long = 0,
-    val cast: List<String> = listOf(),
-    val directors: List<String> = listOf(),
-    val producers: List<String> = listOf(),
-    val writers: List<String> = listOf(),
-    val available: List<BasicMedia> = listOf(),
+    val credits: List<Person>? = null,
+    val available: List<BasicMedia>? = null,
     val requestPermission: TitleRequestPermissions = TitleRequestPermissions.Enabled,
     val requestStatus: RequestStatus = RequestStatus.NotRequested
 )

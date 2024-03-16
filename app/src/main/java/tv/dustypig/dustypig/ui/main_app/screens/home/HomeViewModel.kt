@@ -13,8 +13,7 @@ import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.global_managers.NetworkManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
-import tv.dustypig.dustypig.ui.main_app.screens.home.show_more.ShowMoreNav
-import tv.dustypig.dustypig.ui.main_app.screens.home.show_more.ShowMorePagingSource
+import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
 import java.util.Calendar
 import java.util.Date
 import java.util.Timer
@@ -121,7 +120,6 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun navToShowMore(hsl: HomeScreenList) {
-        ShowMorePagingSource.showMoreData = hsl
-        navigateToRoute(ShowMoreNav.route)
+        navigateToRoute(ShowMoreNav.getRoute(hsl.listId, hsl.title))
     }
 }

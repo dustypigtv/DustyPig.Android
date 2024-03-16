@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -113,13 +112,15 @@ private fun FriendDetailsSettingsScreenInternal(uiState: FriendDetailsSettingsUI
                         verticalAlignment = Alignment.CenterVertically
                     ){
 
-                        Avatar(
-                            imageUrl = uiState.avatarUrl,
-                            modifier = Modifier
-                                .padding(12.dp)
-                                .size(48.dp),
-                            clickable = false
-                        )
+                        Box(
+                            modifier = Modifier.padding(12.dp, 0.dp, 0.dp, 0.dp)
+                        ) {
+                            Avatar(
+                                imageUrl = uiState.avatarUrl,
+                                size = 48,
+                                clickable = false
+                            )
+                        }
 
                         Text(
                             text = uiState.displayName,

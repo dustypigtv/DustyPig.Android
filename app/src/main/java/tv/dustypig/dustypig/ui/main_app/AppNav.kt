@@ -70,7 +70,7 @@ import tv.dustypig.dustypig.ui.main_app.screens.alerts.AlertsNav
 import tv.dustypig.dustypig.ui.main_app.screens.downloads.DownloadsNav
 import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeNav
-import tv.dustypig.dustypig.ui.main_app.screens.home.show_more.ShowMoreNav
+import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
 import tv.dustypig.dustypig.ui.main_app.screens.manage_parental_controls_for_title.ManageParentalControlsForTitleNav
 import tv.dustypig.dustypig.ui.main_app.screens.movie_details.MovieDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
