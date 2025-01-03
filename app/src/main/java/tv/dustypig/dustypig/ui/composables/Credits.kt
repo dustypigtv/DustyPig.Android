@@ -82,9 +82,7 @@ private fun CreditsRow(creditsData: CreditsData, role: CreditRoles, singleHeader
             items(peopleInRole) { person ->
                 Column(
                     modifier = Modifier
-                        .width(100.dp)
-                        .height(150.dp)
-                        .clip(RoundedCornerShape(4.dp)),
+                        .width(100.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
@@ -93,10 +91,14 @@ private fun CreditsRow(creditsData: CreditsData, role: CreditRoles, singleHeader
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         placeholder = debugPlaceholder(R.drawable.grey_profile),
-                        error = painterResource(id = R.drawable.grey_profile)
+                        error = painterResource(id = R.drawable.grey_profile),
+                        modifier = Modifier
+                            .width(100.dp)
+                            .height(150.dp)
+                            .clip(RoundedCornerShape(4.dp))
                     )
                     Text(
-                        modifier = Modifier.width((84.dp)),
+                        modifier = Modifier.width(100.dp),
                         text = person.name,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
