@@ -8,5 +8,6 @@ data class ProfileCredentials(
      */
     val pin: Int? = null,
 
-    val fcmToken: String? = null
+    val fcmToken: String? = null,
+    val deviceId: String? = null
 )

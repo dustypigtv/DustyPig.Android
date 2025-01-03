@@ -14,6 +14,7 @@ import tv.dustypig.dustypig.api.repositories.AuthRepository
 import tv.dustypig.dustypig.api.repositories.ProfilesRepository
 import tv.dustypig.dustypig.global_managers.AuthManager
 import tv.dustypig.dustypig.global_managers.fcm_manager.FCMManager
+import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import javax.inject.Inject
@@ -24,7 +25,8 @@ class SelectProfileViewModel @Inject constructor(
     private val routeNavigator: RouteNavigator,
     private val authRepository: AuthRepository,
     private val authManager: AuthManager,
-    private val profilesRepository: ProfilesRepository
+    private val profilesRepository: ProfilesRepository,
+    private val settingsManager: SettingsManager
 ): ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
@@ -77,8 +79,19 @@ class SelectProfileViewModel @Inject constructor(
         }
         viewModelScope.launch {
             try{
-                val data = authRepository.profileLogin(ProfileCredentials(profileId, pin?.toInt(), FCMManager.currentToken))
-                authManager.setAuthState(data.profileToken!!, data.profileId!!, data.loginType == LoginTypes.MainProfile)
+                val data = authRepository.profileLogin(
+                    ProfileCredentials(
+                        profileId,
+                        pin?.toInt(),
+                        FCMManager.currentToken,
+                        settingsManager.getDeviceId()
+                    )
+                )
+                authManager.setAuthState(
+                    data.profileToken!!,
+                    data.profileId!!,
+                    data.loginType == LoginTypes.MainProfile
+                )
             } catch (ex: Exception) {
                 setError(ex = ex, isCritical = false)
             }
