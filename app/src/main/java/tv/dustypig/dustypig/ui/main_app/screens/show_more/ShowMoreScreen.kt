@@ -45,7 +45,7 @@ fun ShowMoreScreen(vm: ShowMoreViewModel) {
                 modifier = Modifier
                     .padding(innerPadding)
                     .fillMaxSize(),
-                columns = GridCells.Adaptive(minSize = 100.dp),
+                columns = GridCells.Adaptive(minSize = 116.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 contentPadding = PaddingValues(12.dp),

@@ -240,22 +240,11 @@ private fun AvailableLayout(
     LazyVerticalGrid(
         modifier = Modifier.fillMaxSize(),
         state = listState,
-        columns = GridCells.Adaptive(minSize = 100.dp),
+        columns = GridCells.Adaptive(minSize = 116.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         contentPadding = PaddingValues(12.dp)
     ) {
-
-//        items(
-//            uiState.availableItems.count()
-//        ) { index ->
-//            BasicMediaView(
-//                basicMedia = uiState.availableItems[index],
-//                routeNavigator = routeNavigator,
-//                clicked = { keyboardController?.hide() }
-//            )
-//        }
-
         items(uiState.availableItems, key = {it.id} ){
             BasicMediaView(
                 basicMedia = it,
@@ -280,22 +269,11 @@ private fun TMDBLayout(
     LazyVerticalGrid(
         modifier = Modifier.fillMaxSize(),
         state = listState,
-        columns = GridCells.Adaptive(minSize = 100.dp),
+        columns = GridCells.Adaptive(minSize = 116.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         contentPadding = PaddingValues(12.dp)
     ) {
-
-//        items(
-//            uiState.tmdbItems.count()
-//        ) { index ->
-//            TMDBMediaView(
-//                basicTMDB = uiState.tmdbItems[index],
-//                routeNavigator = routeNavigator,
-//                clicked = { keyboardController?.hide() }
-//            )
-//        }
-
         items(uiState.tmdbItems, key = {it.tmdbId} ){
             TMDBMediaView(
                 basicTMDB = it,
@@ -303,7 +281,6 @@ private fun TMDBLayout(
                 clicked = {keyboardController?.hide() }
             )
         }
-
     }
 }
 
