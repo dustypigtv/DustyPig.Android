@@ -78,7 +78,7 @@ class SelectProfileViewModel @Inject constructor(
         viewModelScope.launch {
             try{
                 val data = authRepository.profileLogin(ProfileCredentials(profileId, pin?.toInt(), FCMManager.currentToken))
-                authManager.setAuthState(data.token!!, data.profileId!!, data.loginType == LoginTypes.MainProfile)
+                authManager.setAuthState(data.profileToken!!, data.profileId!!, data.loginType == LoginTypes.MainProfile)
             } catch (ex: Exception) {
                 setError(ex = ex, isCritical = false)
             }

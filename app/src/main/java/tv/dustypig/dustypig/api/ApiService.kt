@@ -54,7 +54,7 @@ interface ApiService {
 
     // ***** Account *****
     @POST("Account/Create")
-    suspend fun createAccount(@Body createAccount: CreateAccount): Response<ResultOf<AccountCreated>>
+    suspend fun createAccount(@Body createAccount: CreateAccount): Response<Result>
 
     @POST("Account/ChangePassword")
     suspend fun changePassword(@Body newPassword: String): Response<Result>

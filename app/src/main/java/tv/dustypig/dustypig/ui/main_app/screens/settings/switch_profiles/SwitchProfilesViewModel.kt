@@ -88,7 +88,7 @@ class SwitchProfilesViewModel @Inject constructor(
                     )
                 )
                 authManager.switchProfileBegin(
-                    token = data.token!!,
+                    token = data.profileToken!!,
                     profileId = data.profileId!!,
                     isMain = data.loginType == LoginTypes.MainProfile
                 )

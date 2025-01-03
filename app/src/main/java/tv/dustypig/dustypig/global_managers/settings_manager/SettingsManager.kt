@@ -14,6 +14,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import org.json.JSONArray
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,11 +38,14 @@ class SettingsManager @Inject constructor (
         private const val THEME_KEY = "theme"
         private const val ALLOW_NOTIFICATIONS_KEY = "allow_notifications"
         private const val SEARCH_HISTORY_KEY = "search_history"
+        private const val DEVICE_ID_KEY = "device_id"
+
 
         // For global settings
         private val authTokenPreferencesKey = stringPreferencesKey(AUTH_TOKEN_KEY)
         private val profileIdPreferencesKey = intPreferencesKey(PROFILE_ID_KEY)
         private val isMainProfilePreferencesKey = booleanPreferencesKey(IS_MAIN_PROFILE_KEY)
+        private val deviceIdKey = stringPreferencesKey(DEVICE_ID_KEY)
     }
 
 
@@ -67,6 +71,18 @@ class SettingsManager @Inject constructor (
     suspend fun getIsMainProfile() = context.dataStore.data.map { it[isMainProfilePreferencesKey] ?: false }.first()
     suspend fun setIsMainProfile(value: Boolean) = context.dataStore.edit { it[isMainProfilePreferencesKey] = value }
     val profileIsMainFlow = context.dataStore.data.map { it[isMainProfilePreferencesKey] ?: false }
+
+    //suspend fun getDeviceId() = context.dataStore.data.map { it[deviceIdKey] ?: "" }.first()
+    suspend fun getDeviceId(): String {
+        var ret = context.dataStore.data.map { it[deviceIdKey] ?: "" }.first()
+        if(ret.isBlank()) {
+            ret = UUID.randomUUID().toString().replace("-", "")
+            context.dataStore.edit { it[deviceIdKey] = ret }
+        }
+        return ret
+    }
+
+
 
     // ***** Profile Settings *****
 

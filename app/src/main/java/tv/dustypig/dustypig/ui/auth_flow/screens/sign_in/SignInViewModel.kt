@@ -13,6 +13,7 @@ import tv.dustypig.dustypig.api.models.PasswordCredentials
 import tv.dustypig.dustypig.api.repositories.AuthRepository
 import tv.dustypig.dustypig.global_managers.AuthManager
 import tv.dustypig.dustypig.global_managers.fcm_manager.FCMManager
+import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.auth_flow.SharedEmailModel
@@ -25,7 +26,8 @@ import javax.inject.Inject
 class SignInViewModel @Inject constructor(
     private val routeNavigator: RouteNavigator,
     private val authManager: AuthManager,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val settingsManager: SettingsManager
 ): ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
@@ -78,18 +80,19 @@ class SignInViewModel @Inject constructor(
                     PasswordCredentials(
                         fixedEmail,
                         password,
-                        FCMManager.currentToken
+                        FCMManager.currentToken,
+                        settingsManager.getDeviceId()
                     )
                 )
                 if (data.loginType == LoginTypes.Account) {
-                    authManager.setTempAuthToken(data.token!!)
+                    authManager.setTempAuthToken(data.accountToken!!)
                     navigateToRoute(SelectProfileNav.route)
                     _uiState.update {
                         it.copy(busy = false)
                     }
                 } else {
                     authManager.setAuthState(
-                        token = data.token!!,
+                        token = data.profileToken!!,
                         profileId = data.profileId!!,
                         isMain = data.loginType == LoginTypes.MainProfile
                     )

@@ -15,7 +15,7 @@ class AccountRepository @Inject constructor(
     authManager: AuthManager
 ): RepositoryBase(authManager) {
 
-    suspend fun create(createAccount: CreateAccount) = wrapAPICallWithReturnData { unAuthenticatedApiService.createAccount(createAccount) }
+    suspend fun create(createAccount: CreateAccount) = wrapAPICall { unAuthenticatedApiService.createAccount(createAccount) }
 
     suspend fun changePassword(newPassword: String) = wrapAPICall { apiService.changePassword(newPassword) }
 

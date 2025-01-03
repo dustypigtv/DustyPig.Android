@@ -15,6 +15,7 @@ import tv.dustypig.dustypig.api.repositories.AccountRepository
 import tv.dustypig.dustypig.api.repositories.AuthRepository
 import tv.dustypig.dustypig.global_managers.AuthManager
 import tv.dustypig.dustypig.global_managers.fcm_manager.FCMManager
+import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.auth_flow.SharedEmailModel
@@ -26,7 +27,8 @@ class SignUpViewModel @Inject constructor(
     private val routeNavigator: RouteNavigator,
     private val accountRepository: AccountRepository,
     private val authManager: AuthManager,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val settingsManager: SettingsManager
 ): ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
@@ -62,39 +64,45 @@ class SignUpViewModel @Inject constructor(
         SharedEmailModel.updateEmail(email)
 
         viewModelScope.launch {
+
             try {
-                val data = accountRepository.create(CreateAccount(email, password, name, null, FCMManager.currentToken))
+                accountRepository.create(
+                    CreateAccount(email, password, name)
+                )
 
-                if(data.emailVerificationRequired == true) {
-                    _uiState.update { it.copy(busy = false, showSuccess = true, message = "Please check your email to complete sign up") }
-                } else {
-
-                    //Email has been verified before, try to sign in
-                    try{
-                        val data2 = authRepository.passwordLogin(PasswordCredentials(email, password, FCMManager.currentToken))
-                        if (data2.loginType == LoginTypes.Account) {
-                            authManager.setTempAuthToken(data2.token!!)
-                            navigateToRoute(SelectProfileNav.route)
-                            _uiState.update {
-                                it.copy(busy = false)
-                            }
-                        } else {
-                            authManager.setAuthState(
-                                token = data2.token!!,
-                                profileId = data2.profileId!!,
-                                isMain = data2.loginType == LoginTypes.MainProfile
-                            )
-                        }
-                    } catch (ex: Exception) {
-
-                        ex.logToCrashlytics()
-                        //Login failed (wrong password), so just inform that they can sign in and go to the login screen
+                //Success - login
+                try {
+                    val data2 = authRepository.passwordLogin(
+                        PasswordCredentials(
+                            email,
+                            password,
+                            FCMManager.currentToken,
+                            settingsManager.getDeviceId()
+                        )
+                    )
+                    if (data2.loginType == LoginTypes.Account) {
+                        authManager.setTempAuthToken(data2.profileToken!!)
+                        navigateToRoute(SelectProfileNav.route)
                         _uiState.update {
-                            it.copy(
-                                busy = false,
-                                showSuccess = true,
-                                message = "You may now sign in")
+                            it.copy(busy = false)
                         }
+                    } else {
+                        authManager.setAuthState(
+                            token = data2.profileToken!!,
+                            profileId = data2.profileId!!,
+                            isMain = data2.loginType == LoginTypes.MainProfile
+                        )
+                    }
+                } catch (ex: Exception) {
+
+                    ex.logToCrashlytics()
+                    //Login failed (for reason other than wrong password)
+                    _uiState.update {
+                        it.copy(
+                            busy = false,
+                            showError = true,
+                            errorMessage = ex.localizedMessage
+                        )
                     }
                 }
             } catch (ex: Exception) {
