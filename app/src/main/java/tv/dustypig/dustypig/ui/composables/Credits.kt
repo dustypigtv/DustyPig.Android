@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig.ui.composables
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,12 +22,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.CreditRoles
 import tv.dustypig.dustypig.api.models.Genre
@@ -74,14 +81,19 @@ private fun CreditsRow(creditsData: CreditsData, role: CreditRoles, singleHeader
         ) {
             items(peopleInRole) { person ->
                 Column(
-                    modifier = Modifier.width(84.dp),
+                    modifier = Modifier
+                        .width(100.dp)
+                        .height(150.dp)
+                        .clip(RoundedCornerShape(4.dp)),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Avatar(
-                        imageUrl = person.avatarUrl,
-                        initials = person.initials,
-                        size = 72
+                    AsyncImage(
+                        model = person.avatarUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        placeholder = debugPlaceholder(R.drawable.grey_profile),
+                        error = painterResource(id = R.drawable.grey_profile)
                     )
                     Text(
                         modifier = Modifier.width((84.dp)),
@@ -288,7 +300,13 @@ private fun CreditsPreview() {
 
 
 
-
+@Composable
+private fun debugPlaceholder(@DrawableRes debugPreview: Int) =
+    if (LocalInspectionMode.current) {
+        painterResource(id = debugPreview)
+    } else {
+        null
+    }
 
 
 
