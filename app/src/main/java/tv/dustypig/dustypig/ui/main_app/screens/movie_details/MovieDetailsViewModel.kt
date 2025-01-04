@@ -34,6 +34,7 @@ import tv.dustypig.dustypig.ui.composables.CreditsData
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
 import tv.dustypig.dustypig.ui.main_app.screens.manage_parental_controls_for_title.ManageParentalControlsForTitleNav
+import tv.dustypig.dustypig.ui.main_app.screens.person_details.PersonDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
 import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
 import java.util.Calendar
@@ -42,7 +43,8 @@ import javax.inject.Inject
 
 @SuppressLint("SimpleDateFormat")
 @HiltViewModel
-class MovieDetailsViewModel @OptIn(UnstableApi::class) @Inject constructor(
+@OptIn(UnstableApi::class)
+class MovieDetailsViewModel @Inject constructor(
     routeNavigator: RouteNavigator,
     savedStateHandle: SavedStateHandle,
     castManager: CastManager,
@@ -322,8 +324,8 @@ class MovieDetailsViewModel @OptIn(UnstableApi::class) @Inject constructor(
         navigateToRoute(ShowMoreNav.getRoute(genrePair.genre.value, genrePair.text))
     }
 
-    private fun personNav(id: Int){
-
+    private fun personNav(tmdbId: Int, cacheId: String){
+        navigateToRoute(PersonDetailsNav.getRoute(tmdbId, cacheId))
     }
 }
 

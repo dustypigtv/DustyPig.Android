@@ -13,7 +13,7 @@ data class DetailedMovie (
     val artworkSize: ULong = 0U,
     val backdropUrl: String? = null,
     val backdropSize: ULong = 0U,
-    val credits: List<Person>? = null,
+    val credits: List<BasicPerson>? = null,
     val owner: String? = null,
     val played: Double? = null,
     val rated: MovieRatings = MovieRatings.None,

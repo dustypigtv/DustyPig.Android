@@ -62,7 +62,7 @@ import tv.dustypig.dustypig.api.models.CreditRoles
 import tv.dustypig.dustypig.api.models.Genre
 import tv.dustypig.dustypig.api.models.GenrePair
 import tv.dustypig.dustypig.api.models.OverrideRequestStatus
-import tv.dustypig.dustypig.api.models.Person
+import tv.dustypig.dustypig.api.models.BasicPerson
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
 import tv.dustypig.dustypig.ui.composables.ActionButton
 import tv.dustypig.dustypig.ui.composables.CastTopAppBar
@@ -535,128 +535,128 @@ private fun MovieDetailsScreenPreview() {
                 GenrePair.fromGenre(Genre.ScienceFiction)
             ),
             castAndCrew = listOf(
-                Person(
-                    id=3223,
+                BasicPerson(
+                    tmdbId=3223,
                     name="Robert Downey Jr.",
                     initials = "RJ",
                     avatarUrl = "https://image.tmdb.org/t/p/original/im9SAqJPZKEbVZGmjXuLI4O7RvM.jpg",
                     order = 1,
                     role = CreditRoles.Cast
                 ),
-                Person(
-                    id=16828,
+                BasicPerson(
+                    tmdbId=16828,
                     name="Chris Evans",
                     initials = "CE",
                     avatarUrl = "https://image.tmdb.org/t/p/original/3bOGNsHlrswhyW79uvIHH1V43JI.jpg",
                     order = 2,
                     role = CreditRoles.Cast
                 ),
-                Person(
-                    id=103,
+                BasicPerson(
+                    tmdbId=103,
                     name="Mark Ruffalo",
                     initials = "MR",
                     avatarUrl = "https://image.tmdb.org/t/p/original/5GilHMOt5PAQh6rlUKZzGmaKEI7.jpg",
                     order = 3,
                     role = CreditRoles.Cast
                 ),
-                Person(
-                    id=74568,
+                BasicPerson(
+                    tmdbId=74568,
                     name="Chris Hemsworth",
                     initials = "CH",
                     avatarUrl = "https://image.tmdb.org/t/p/original/xkHHiJXraaMFXgRYspN6KVrFn17.jpg",
                     order = 4,
                     role = CreditRoles.Cast
                 ),
-                Person(
-                    id=1245,
+                BasicPerson(
+                    tmdbId=1245,
                     name="Scarlett Johansson",
                     initials = "SJ",
                     avatarUrl = "https://image.tmdb.org/t/p/original/6NsMbJXRlDZuDzatN2akFdGuTvx.jpg",
                     order = 5,
                     role = CreditRoles.Cast
                 ),
-                Person(
-                    id=17604,
+                BasicPerson(
+                    tmdbId=17604,
                     name="Jeremy Renner",
                     initials = "JR",
                     avatarUrl = "https://image.tmdb.org/t/p/original/yB84D1neTYXfWBaV0QOE9RF2VCu.jpg",
                     order = 6,
                     role = CreditRoles.Cast
                 ),
-                Person(
-                    id=91606,
+                BasicPerson(
+                    tmdbId=91606,
                     name="Tom Hiddleston",
                     initials = "TH",
                     avatarUrl = "https://image.tmdb.org/t/p/original/mclHxMm8aPlCPKptP67257F5GPo.jpg",
                     order = 7,
                     role = CreditRoles.Cast
                 ),
-                Person(
-                    id=2231,
+                BasicPerson(
+                    tmdbId=2231,
                     name="Samuel L. Jackson",
                     initials = "SJ",
                     avatarUrl = "https://image.tmdb.org/t/p/original/nCJJ3NVksYNxIzEHcyC1XziwPVj.jpg",
                     order = 8,
                     role = CreditRoles.Cast
                 ),
-                Person(
-                    id=71189,
+                BasicPerson(
+                    tmdbId=71189,
                     name="Cobie Smulders",
                     initials = "CS",
                     avatarUrl = "https://image.tmdb.org/t/p/original/2CSgHUIrEi57pwtzdAY3HAxrp31.jpg",
                     order = 9,
                     role = CreditRoles.Cast
                 ),
-                Person(
-                    id=9048,
+                BasicPerson(
+                    tmdbId=9048,
                     name="Clark Gregg",
                     initials = "CG",
                     avatarUrl = "https://image.tmdb.org/t/p/original/nbxFbr2SaF4Sdc6HdsF193GInvJ.jpg",
                     order = 10,
                     role = CreditRoles.Cast
                 ),
-                Person(
-                    id=1640,
+                BasicPerson(
+                    tmdbId=1640,
                     name="Stellan Skarsgård",
                     initials = "SS",
                     avatarUrl = "https://image.tmdb.org/t/p/original/x78BtYHElirO7Iw8bL4m8CnzRDc.jpg",
                     order = 11,
                     role = CreditRoles.Cast
                 ),
-                Person(
-                    id=12052,
+                BasicPerson(
+                    tmdbId=12052,
                     name="Gwyneth Paltrow",
                     initials = "GP",
                     avatarUrl = "https://image.tmdb.org/t/p/original/slPWN0VvYJtNOEuxlFSsXSNQMaF.jpg",
                     order = 12,
                     role = CreditRoles.Cast
                 ),
-                Person(
-                    id=6162,
+                BasicPerson(
+                    tmdbId=6162,
                     name="Paul Bettany",
                     initials = "PB",
                     avatarUrl = "https://image.tmdb.org/t/p/original/vcAVrAOZrpqmi37qjFdztRAv1u9.jpg",
                     order = 13,
                     role = CreditRoles.Cast
                 ),
-                Person(
-                    id=12891,
+                BasicPerson(
+                    tmdbId=12891,
                     name="Joss Wheadon",
                     initials = "JW",
                     avatarUrl = "https://image.tmdb.org/t/p/original/mVvpZnKYKSCtkOQixQnOonV5kv3.jpg",
                     order = 1,
                     role = CreditRoles.Director
                 ),
-                Person(
-                    id=10850,
+                BasicPerson(
+                    tmdbId=10850,
                     name="Kevin Feige",
                     initials = "KF",
                     avatarUrl = "https://image.tmdb.org/t/p/original/kCBqXZ5PT5udYGEj2wfTSFbLMvT.jpg",
                     order = 1,
                     role = CreditRoles.Producer
                 ),
-                Person(
-                    id=12891,
+                BasicPerson(
+                    tmdbId=12891,
                     name="Joss Wheadon",
                     initials = "JW",
                     avatarUrl = "https://image.tmdb.org/t/p/original/mVvpZnKYKSCtkOQixQnOonV5kv3.jpg",

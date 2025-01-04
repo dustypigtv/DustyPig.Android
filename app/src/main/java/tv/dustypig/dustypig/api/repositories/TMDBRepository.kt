@@ -20,4 +20,6 @@ class TMDBRepository @Inject constructor(
     suspend fun requestTitle(titleRequest: TitleRequest) = wrapAPICall { apiService.requestTMDBTitle(titleRequest) }
 
     suspend fun cancelTitleRequest(titleRequest: TitleRequest) = wrapAPICall { apiService.cancelTMDBTitleRequest(titleRequest) }
+
+    suspend fun getPerson(id: Int) = wrapAPICallWithReturnData { apiService.getTMDBPerson(id) }
 }

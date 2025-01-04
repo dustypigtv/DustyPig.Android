@@ -1,6 +1,7 @@
 package tv.dustypig.dustypig.ui.composables
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,7 +38,8 @@ import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.CreditRoles
 import tv.dustypig.dustypig.api.models.Genre
 import tv.dustypig.dustypig.api.models.GenrePair
-import tv.dustypig.dustypig.api.models.Person
+import tv.dustypig.dustypig.api.models.BasicPerson
+import tv.dustypig.dustypig.global_managers.media_cache_manager.MediaCacheManager
 
 
 private val spacerHeight = 24.dp
@@ -46,10 +48,11 @@ private val spacerHeight = 24.dp
 data class CreditsData(
     val genres: List<GenrePair> = listOf(),
     val genreNav: (genrePair: GenrePair) -> Unit = { },
-    val castAndCrew: List<Person> = listOf(),
-    val personNav: (id: Int) -> Unit = { },
+    val castAndCrew: List<BasicPerson> = listOf(),
+    val personNav: (tmdbId: Int, cacheId: String) -> Unit = { i: Int, s: String -> },
     val owner: String = ""
 )
+
 
 
 @Composable
@@ -96,6 +99,15 @@ private fun CreditsRow(creditsData: CreditsData, role: CreditRoles, singleHeader
                             .width(100.dp)
                             .height(150.dp)
                             .clip(RoundedCornerShape(4.dp))
+                            .clickable {
+                                val cacheId = MediaCacheManager.add(
+                                    person.name,
+                                    posterUrl = person.avatarUrl ?: "",
+                                    backdropUrl = null
+                                )
+                                creditsData.personNav(person.tmdbId, cacheId)
+                            }
+
                     )
                     Text(
                         modifier = Modifier.width(100.dp),
@@ -203,80 +215,80 @@ private fun CreditsPreview() {
             GenrePair.fromGenre(Genre.Adventure)
         ),
         castAndCrew = listOf(
-            Person(
-                id = 1,
+            BasicPerson(
+                tmdbId = 1,
                 name = "Actress 1",
                 initials = "A1",
                 avatarUrl = "https://s3.dustypig.tv/user-art/profile/green.png",
                 order = 1,
                 role = CreditRoles.Cast
             ),
-            Person(
-                id = 2,
+            BasicPerson(
+                tmdbId = 2,
                 name = "Actor 2",
                 initials = "A2",
                 avatarUrl = null,
                 order = 2,
                 role = CreditRoles.Cast
             ),
-            Person(
-                id = 3,
+            BasicPerson(
+                tmdbId = 3,
                 name = "Actress 3",
                 initials = "A3",
                 avatarUrl = "https://s3.dustypig.tv/user-art/profile/red.png",
                 order = 3,
                 role = CreditRoles.Cast
             ),
-            Person(
-                id = 4,
+            BasicPerson(
+                tmdbId = 4,
                 name = "Actor 4",
                 initials = "A4",
                 avatarUrl = "https://s3.dustypig.tv/user-art/profile/gold.png",
                 order = 4,
                 role = CreditRoles.Cast
             ),
-            Person(
-                id = 5,
+            BasicPerson(
+                tmdbId = 5,
                 name = "Actress 5",
                 initials = "A5",
                 avatarUrl = "https://s3.dustypig.tv/user-art/profile/grey.png",
                 order = 5,
                 role = CreditRoles.Cast
             ),
-            Person(
-                id = 6,
+            BasicPerson(
+                tmdbId = 6,
                 name = "Actor 6",
                 initials = "A6",
                 avatarUrl = "https://s3.dustypig.tv/user-art/profile/green.png",
                 order = 6,
                 role = CreditRoles.Cast
             ),
-            Person(
-                id = 7,
+            BasicPerson(
+                tmdbId = 7,
                 name = "Director 7",
                 initials = "D7",
                 avatarUrl = "https://s3.dustypig.tv/user-art/profile/blue.png",
                 order = 1,
                 role = CreditRoles.Director
             ),
-            Person(
-                id = 8,
+            BasicPerson(
+                tmdbId = 8,
                 name = "Director 8",
                 initials = "A8",
                 avatarUrl = "https://s3.dustypig.tv/user-art/profile/red.png",
                 order = 2,
                 role = CreditRoles.Director
             ),
-            Person(
-                id = 9,
+            BasicPerson(
+                tmdbId = 9,
                 name = "Producer 9",
                 initials = "P9",
                 avatarUrl = "https://s3.dustypig.tv/user-art/profile/gold.png",
                 order = 1,
                 role = CreditRoles.Producer
             ),
-            Person(
-                id = 10,
+            BasicPerson(
+                tmdbId = 10,
                 name = "Writer 10",
                 initials = "W1",
                 avatarUrl = "https://s3.dustypig.tv/user-art/profile/grey.png",

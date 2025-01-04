@@ -29,6 +29,7 @@ import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.composables.CreditsData
+import tv.dustypig.dustypig.ui.main_app.screens.person_details.PersonDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
 import javax.inject.Inject
 
@@ -214,7 +215,7 @@ class TMDBDetailsViewModel @Inject constructor(
         navigateToRoute(ShowMoreNav.getRoute(genrePair.genre.value, genrePair.text))
     }
 
-    private fun personNav(id: Int){
-
+    private fun personNav(tmdbId: Int, cacheId: String){
+        navigateToRoute(PersonDetailsNav.getRoute(tmdbId, cacheId))
     }
 }

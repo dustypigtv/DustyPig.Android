@@ -162,4 +162,12 @@
     <string name="no_internet_detected">NO INTERNET DETECTED</string>
     <string name="unsubscribe">Unsubscribe</string>
     <string name="subscribe">Subscribe</string>
+    <string name="person_details">Details</string>
+    <string name="person_name">Name: %1$s</string>
+    <string name="person_born">Born: %1$s</string>
+    <string name="person_died">Died: %1$s</string>
+    <string name="born_in">Born in: %1$s</string>
+    <string name="person_known_for">Known For: %1$s</string>
+    <string name="person_available_titles">Available Titles</string>
+    <string name="person_other_titles">Other Titles</string>
 </resources>

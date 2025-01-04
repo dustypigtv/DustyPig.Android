@@ -10,7 +10,6 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
-import tv.dustypig.dustypig.api.models.AccountCreated
 import tv.dustypig.dustypig.api.models.AddPlaylistItem
 import tv.dustypig.dustypig.api.models.AddSeriesToPlaylistInfo
 import tv.dustypig.dustypig.api.models.BasicFriend
@@ -44,6 +43,7 @@ import tv.dustypig.dustypig.api.models.ResultOf
 import tv.dustypig.dustypig.api.models.SearchRequest
 import tv.dustypig.dustypig.api.models.SearchResults
 import tv.dustypig.dustypig.api.models.SetTitlePermission
+import tv.dustypig.dustypig.api.models.TMDB_Person
 import tv.dustypig.dustypig.api.models.TitlePermissions
 import tv.dustypig.dustypig.api.models.TitleRequest
 import tv.dustypig.dustypig.api.models.UpdateFriend
@@ -187,6 +187,7 @@ interface ApiService {
 
 
 
+
     // ***** Playlists *****
     @POST("Playlists/AddItem")
     suspend fun addItemToPlaylist(@Body addPlaylistItem: AddPlaylistItem): Response<ResultOf<Int>>
@@ -283,4 +284,7 @@ interface ApiService {
 
     @POST("TMDB/CancelTitleRequest")
     suspend fun cancelTMDBTitleRequest(@Body titleRequest: TitleRequest): Response<Result>
+
+    @GET("TMDB/GetPerson/{id}")
+    suspend fun getTMDBPerson(@Path("id") id: Int): Response<ResultOf<TMDB_Person>>
 }

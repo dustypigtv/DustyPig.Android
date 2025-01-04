@@ -8,7 +8,7 @@ data class DetailedSeries (
     val artworkSize: ULong = 0U,
     val backdropUrl: String? = null,
     val backdropSize: ULong = 0U,
-    val credits: List<Person>? = null,
+    val credits: List<BasicPerson>? = null,
     val owner: String? = null,
     val rated: TVRatings = TVRatings.None,
     val genres: Long = 0,
