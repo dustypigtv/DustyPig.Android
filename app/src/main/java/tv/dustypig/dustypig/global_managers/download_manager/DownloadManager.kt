@@ -58,7 +58,6 @@ class DownloadManager @Inject constructor(
         private const val DISPOSITION_POSTER = "poster"
         private const val DISPOSITION_SCREENSHOT = "screenshot"
         private const val DISPOSITION_BACKDROP = "backdrop"
-//        private const val DISPOSITION_BIF = "bif"
         private const val DISPOSITION_SUBTITLE = "subtitle"
         private const val DISPOSITION_INFO = "info"
         private const val NO_MEDIA = ".nomedia"
@@ -771,13 +770,6 @@ class DownloadManager @Inject constructor(
             size = detailedMovie.backdropSize.toLong()
         )
 
-//        addOrUpdateDownload(
-//            fileSetWithDownloads = fileSetWithDownloads,
-//            url = detailedMovie.bifUrl,
-//            disposition = DISPOSITION_BIF,
-//            size = detailedMovie.bifSize.toLong()
-//        )
-
         if(detailedMovie.srtSubtitles?.isNotEmpty() == true) {
             for(sub in detailedMovie.srtSubtitles) {
                 addOrUpdateSubtitleDownload(fileSetWithDownloads = fileSetWithDownloads, sub = sub)
@@ -899,13 +891,6 @@ class DownloadManager @Inject constructor(
                     size = episode.artworkSize.toLong()
                 )
 
-//                addOrUpdateDownload(
-//                    fileSetWithDownloads = fileSet,
-//                    url = episode.bifUrl,
-//                    disposition = DISPOSITION_BIF,
-//                    size = episode.bifSize.toLong()
-//                )
-
                 if (episode.srtSubtitles != null) {
                     for (sub in episode.srtSubtitles)
                         addOrUpdateSubtitleDownload(fileSetWithDownloads = fileSet, sub = sub)
@@ -952,12 +937,6 @@ class DownloadManager @Inject constructor(
             size = detailedEpisode.artworkSize.toLong()
         )
 
-//        addOrUpdateDownload(
-//            fileSetWithDownloads = fileSetWithDownloads,
-//            url = detailedEpisode.bifUrl,
-//            disposition = DISPOSITION_BIF,
-//            size = detailedEpisode.bifSize.toLong()
-//        )
 
         if(detailedEpisode.srtSubtitles?.isNotEmpty() == true) {
             for(sub in detailedEpisode.srtSubtitles) {
@@ -1074,12 +1053,6 @@ class DownloadManager @Inject constructor(
                     size = playlistItem.artworkSize.toLong()
                 )
 
-//                addOrUpdateDownload(
-//                    fileSetWithDownloads = fileSet,
-//                    url = playlistItem.bifUrl,
-//                    disposition = DISPOSITION_BIF,
-//                    size = playlistItem.bifSize.toLong()
-//                )
 
                 if (playlistItem.srtSubtitles != null) {
                     for (sub in playlistItem.srtSubtitles)
