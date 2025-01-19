@@ -7,7 +7,10 @@ data class Notification (
     val profileId: Int,
     val title: String,
     val message: String,
-    val deepLink: String?,
+    val notificationType: NotificationTypes,
+    val mediaId: Int?,
+    val mediaType: MediaTypes?,
+    val friendshipId: Int?,
     var seen: Boolean,
     val timestamp: Date
 )

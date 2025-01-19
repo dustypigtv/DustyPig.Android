@@ -70,7 +70,6 @@ import tv.dustypig.dustypig.ui.main_app.screens.alerts.AlertsNav
 import tv.dustypig.dustypig.ui.main_app.screens.downloads.DownloadsNav
 import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeNav
-import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
 import tv.dustypig.dustypig.ui.main_app.screens.manage_parental_controls_for_title.ManageParentalControlsForTitleNav
 import tv.dustypig.dustypig.ui.main_app.screens.movie_details.MovieDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.person_details.PersonDetailsNav
@@ -90,6 +89,7 @@ import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.Profi
 import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.edit_profile.EditProfileNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.switch_profiles.SwitchProfilesNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.theme_settings.ThemeSettingsNav
+import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
 import kotlin.OptIn
 import androidx.annotation.OptIn as CastOptIn
 
@@ -105,10 +105,10 @@ private data class RootScreenMap(
 @OptIn(ExperimentalMaterial3Api::class)
 @CastOptIn(UnstableApi::class)
 @Composable
-fun AppNav(vm: AppNavViewModel = hiltViewModel()){
+fun AppNav(vm: AppNavViewModel = hiltViewModel()) {
 
     val navController = rememberNavController()
-    val unseenNotifications by vm.unseenNotifications.collectAsState()
+    val unseenNotifications by vm.notificationCount.collectAsState(null)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val playerVisible by PlayerStateManager.playerScreenVisible.collectAsState()
@@ -118,7 +118,7 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
     var castArtworkUrl by remember {
         mutableStateOf(castState.artworkUrl)
     }
-    if(castArtworkUrl != castState.artworkUrl) {
+    if (castArtworkUrl != castState.artworkUrl) {
         castArtworkUrl = castState.artworkUrl
     }
 
@@ -168,20 +168,21 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
     Scaffold(
         bottomBar = {
 
-            if(!playerVisible) {
+            if (!playerVisible) {
 
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                 ) {
 
-                    if(castState.castPossible() &&
+                    if (castState.castPossible() &&
                         castState.castConnectionState == CastConnectionState.Connected &&
-                        castState.playbackStatus != CastPlaybackStatus.Stopped) {
+                        castState.playbackStatus != CastPlaybackStatus.Stopped
+                    ) {
 
                         var showDialog by remember { mutableStateOf(false) }
 
-                        Row (
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(60.dp)
@@ -191,7 +192,7 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
                                 .clickable {
                                     showDialog = true
                                 }
-                        ){
+                        ) {
                             AsyncImage(
                                 model = castArtworkUrl,
                                 contentDescription = null,
@@ -232,10 +233,10 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
                                     ) {
                                         TintedIcon(
                                             imageVector =
-                                                if(castState.playbackStatus == CastPlaybackStatus.Paused)
-                                                    Icons.Filled.PlayArrow
-                                                else
-                                                    Icons.Filled.Pause
+                                            if (castState.playbackStatus == CastPlaybackStatus.Paused)
+                                                Icons.Filled.PlayArrow
+                                            else
+                                                Icons.Filled.Pause
                                         )
                                     }
                                     IconButton(onClick = { vm.castManager.disconnect() }) {
@@ -254,8 +255,11 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
 
                         }
 
-                        if(showDialog) {
-                            CastDialog(closeDialog = { showDialog = false }, castManager = vm.castManager)
+                        if (showDialog) {
+                            CastDialog(
+                                closeDialog = { showDialog = false },
+                                castManager = vm.castManager
+                            )
                         }
 
                     }
@@ -274,10 +278,12 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
                                 icon = {
                                     BadgedBox(
                                         badge = {
-                                            if (screen.notifications && unseenNotifications) {
+                                            if (screen.notifications && unseenNotifications != null) {
                                                 Badge(
                                                     containerColor = Color.Red
-                                                )
+                                                ){
+                                                    Text(unseenNotifications!!)
+                                                }
                                             }
                                         }
                                     ) {
@@ -360,13 +366,15 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()){
         }
     }
 
+    //The nav controller doesn't exist yet when the viewModel is created,
+    //So have to do this here
     LaunchedEffect(true) {
-        vm.deepLinkFlow.collectLatest { deepLink ->
-            if(deepLink.isNotBlank()) {
-               vm.navToDeepLink(
-                   deepLink = deepLink,
-                   navController = navController
-               )
+        vm.notificationsManager.navRouteFlow.collectLatest {
+            try {
+                navController.navigate(it)
+            }
+            catch (ex: Exception){
+                ex.printStackTrace()
             }
         }
     }

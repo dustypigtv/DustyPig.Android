@@ -50,8 +50,8 @@ object MediaCacheManager {
     }
 
     fun getBasicInfo(cacheId: String) = BasicInfo.firstOrNull {
-            it.cacheId == cacheId
-        } ?: CachedBasicInfo()
+        it.cacheId == cacheId
+    } ?: CachedBasicInfo()
 
     fun add(detailedMovie: DetailedMovie): String {
         val id = UUID.randomUUID().toString()

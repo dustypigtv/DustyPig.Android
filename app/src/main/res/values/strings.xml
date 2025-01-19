@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Dusty Pig</string>
 
-    <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
+    <string name="default_notification_channel_id" translatable="false">dp_default</string>
 
     <string name="nomedia_filename">.nomedia</string>
     <string name="select_profile">Select Profile</string>

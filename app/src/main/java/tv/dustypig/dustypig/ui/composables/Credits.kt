@@ -49,7 +49,7 @@ data class CreditsData(
     val genres: List<GenrePair> = listOf(),
     val genreNav: (genrePair: GenrePair) -> Unit = { },
     val castAndCrew: List<BasicPerson> = listOf(),
-    val personNav: (tmdbId: Int, cacheId: String) -> Unit = { i: Int, s: String -> },
+    val personNav: (tmdbId: Int, cacheId: String) -> Unit = { _: Int, _: String -> },
     val owner: String = ""
 )
 

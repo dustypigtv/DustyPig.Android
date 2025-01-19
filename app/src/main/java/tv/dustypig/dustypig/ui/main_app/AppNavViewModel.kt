@@ -1,95 +1,47 @@
 package tv.dustypig.dustypig.ui.main_app
 
-import android.app.Application
-import android.media.MediaPlayer
+import androidx.annotation.OptIn
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
+import androidx.media3.common.util.UnstableApi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.R
-import tv.dustypig.dustypig.global_managers.NetworkManager
 import tv.dustypig.dustypig.global_managers.NotificationsManager
-import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 import javax.inject.Inject
 
 
-
 @HiltViewModel
+@OptIn(UnstableApi::class)
 class AppNavViewModel @Inject constructor(
-    private val notificationsManager: NotificationsManager,
     val castManager: CastManager,
-    private val app: Application
+    val notificationsManager: NotificationsManager
 ): ViewModel() {
 
-    companion object {
+    private val _notificationCountState = MutableStateFlow<String?>(null)
+    val notificationCount: StateFlow<String?> = _notificationCountState.asStateFlow()
 
-        //Logic: Static flow that can be updated from MainActivity
-        //Flow updates the main scaffold, which will then call navigate
-        private val _mutableDeepLinkFlow = MutableStateFlow("")
-
-        fun queueDeepLink(deepLink: String) = _mutableDeepLinkFlow.update {
-            deepLink
-        }
-    }
-
-    val deepLinkFlow = _mutableDeepLinkFlow.asStateFlow()
-
-    private val _unseenNotifications = MutableStateFlow(false)
-    val unseenNotifications = _unseenNotifications.asStateFlow()
 
     init {
-        var playerIsVisible = false
         viewModelScope.launch {
-            PlayerStateManager.playerScreenVisible.collectLatest {
-                playerIsVisible = it
-            }
+            notificationsManager.notifications.collectLatest { it ->
+                val cnt = it.count { !it.seen }
+                val s: String? =
+                    if(cnt == 0)
+                        null
+                    else if (cnt > 99)
+                        "99+"
+                    else
+                        cnt.toString()
 
-        }
-        viewModelScope.launch {
-            notificationsManager.notifications.collectLatest { list ->
-                val hasUnseen = list.any { !it.seen }
-                _unseenNotifications.update { hasUnseen }
-                if(hasUnseen && !playerIsVisible) {
-                    val mp = MediaPlayer.create(app, R.raw.oink)
-                    mp.start()
-                }
+                _notificationCountState.tryEmit(s)
             }
         }
-    }
 
 
-    fun navToDeepLink(deepLink: String, navController: NavController) {
-        val route = notificationsManager.getNavRoute(deepLink)
-        navController.navigate(route)
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

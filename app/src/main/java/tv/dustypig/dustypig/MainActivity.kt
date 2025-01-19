@@ -41,19 +41,18 @@ import tv.dustypig.dustypig.global_managers.NotificationsManager
 import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
-import tv.dustypig.dustypig.global_managers.fcm_manager.FCMManager
+import tv.dustypig.dustypig.global_managers.FCMManager
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.auth_flow.AuthNav
 import tv.dustypig.dustypig.ui.hideSystemUi
 import tv.dustypig.dustypig.ui.isTablet
 import tv.dustypig.dustypig.ui.main_app.AppNav
-import tv.dustypig.dustypig.ui.main_app.AppNavViewModel
 import tv.dustypig.dustypig.ui.showSystemUi
 import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 import javax.inject.Inject
 
-@AndroidEntryPoint
+@UnstableApi @AndroidEntryPoint
 class MainActivity: ComponentActivity() {
 
     companion object {
@@ -67,13 +66,13 @@ class MainActivity: ComponentActivity() {
     lateinit var downloadManager: DownloadManager
 
     @Inject
-    lateinit var notificationsManager: NotificationsManager
-
-    @Inject
     lateinit var settingsManager: SettingsManager
 
     @Inject
     lateinit var castManager: CastManager
+
+    @Inject
+    lateinit var notificationsManager: NotificationsManager
 
     private lateinit var analytics: FirebaseAnalytics
 
@@ -127,14 +126,12 @@ class MainActivity: ComponentActivity() {
     @androidx.annotation.OptIn(UnstableApi::class)
     override fun onResume() {
         super.onResume()
-        FCMManager.activityResumed()
         castManager.setPassiveScanning()
     }
 
     @androidx.annotation.OptIn(UnstableApi::class)
     override fun onPause() {
         super.onPause()
-        FCMManager.activityPaused()
         castManager.stopScanning()
     }
 
@@ -161,26 +158,11 @@ class MainActivity: ComponentActivity() {
     }
 
     private fun checkIntent(intent: Intent?) {
-        try {
-            if(intent == null)
-                return
+        if (intent == null)
+            return
 
-            val id = intent.getIntExtra(FCMManager.INTENT_DATA_ID, -1)
-            if(id < 0)
-                return
-
-            notificationsManager.markAsRead(id)
-
-            val deepLink = intent.getStringExtra(FCMManager.INTENT_DATA_DEEP_LINK)
-            if(!deepLink.isNullOrEmpty()) {
-                AppNavViewModel.queueDeepLink(deepLink)
-            }
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-        }
+        NotificationsManager.handleNotificationTapped(intent)
     }
-
-
 
 
 

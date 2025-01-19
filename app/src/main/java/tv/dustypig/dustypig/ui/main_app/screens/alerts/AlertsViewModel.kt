@@ -16,7 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AlertsViewModel @Inject constructor(
     routeNavigator: RouteNavigator,
-    private val notificationsManager: NotificationsManager,
+    private val notificationsManager: NotificationsManager
 ): ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
@@ -28,6 +28,7 @@ class AlertsViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     init {
+
         viewModelScope.launch {
             notificationsManager.notifications.collectLatest { list ->
                 _uiState.update {
@@ -43,24 +44,23 @@ class AlertsViewModel @Inject constructor(
 
     private fun itemClicked(id: Int) {
 
+        NotificationsManager.triggerMarkAsRead(id)
+
         val notification = _uiState.value.notifications.firstOrNull {
             it.id == id
         } ?: return
 
-        if(!notification.seen) {
-            notificationsManager.markAsRead(id)
-        }
+        val route = NotificationsManager.getNavRoute(
+            notificationType = notification.notificationType,
+            mediaId = notification.mediaId,
+            mediaType = notification.mediaType,
+            friendshipId = notification.friendshipId
+        ) ?: return
 
-        if(!notification.deepLink.isNullOrEmpty()) {
-            val route = notificationsManager.getNavRoute(notification.deepLink)
-            navigateToRoute(route)
-        }
+        navigateToRoute(route)
     }
 
     private fun deleteItem(id: Int) {
-        _uiState.update {
-            it.copy(busy = true)
-        }
-        notificationsManager.delete(id)
+        NotificationsManager.triggerDelete(id)
     }
 }

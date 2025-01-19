@@ -5,4 +5,5 @@ import com.google.firebase.ktx.Firebase
 
 fun Throwable.logToCrashlytics() {
     Firebase.crashlytics.recordException(this)
+    this.printStackTrace()
 }

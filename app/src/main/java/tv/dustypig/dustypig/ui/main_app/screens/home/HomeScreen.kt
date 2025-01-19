@@ -25,9 +25,6 @@ import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.pullrefresh.PullRefreshIndicator
-import androidx.compose.material3.pullrefresh.pullRefresh
-import androidx.compose.material3.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -65,11 +62,6 @@ private fun HomeScreenInternal(
     routeNavigator: RouteNavigator
 ) {
 
-    val ptrState = rememberPullRefreshState(
-        refreshing = uiState.isRefreshing,
-        onRefresh = uiState.onRefresh
-    )
-
     val showLoading = uiState.isRefreshing && uiState.sections.isEmpty()
     val showEmpty = uiState.sections.isEmpty() && !uiState.isRefreshing
     val showLoadingOrEmpty = showLoading || showEmpty
@@ -80,7 +72,6 @@ private fun HomeScreenInternal(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .pullRefresh(ptrState)
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -102,9 +93,7 @@ private fun HomeScreenInternal(
             LazyColumn(
                 state = lazyColumnState,
                 verticalArrangement = Arrangement.spacedBy(32.dp),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .pullRefresh(ptrState)
+                modifier = Modifier.fillMaxSize()
             ) {
 
                 items(uiState.sections, key = { section -> section.listId }) { section ->
@@ -186,13 +175,6 @@ private fun HomeScreenInternal(
                 }
             }
         }
-
-        PullRefreshIndicator(
-            uiState.isRefreshing,
-            ptrState,
-            Modifier.align(Alignment.TopCenter)
-        )
-
     }
 }
 

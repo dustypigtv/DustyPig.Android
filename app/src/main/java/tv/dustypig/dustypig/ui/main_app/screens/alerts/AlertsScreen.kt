@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.Notification
+import tv.dustypig.dustypig.api.models.NotificationTypes
 import tv.dustypig.dustypig.ui.composables.PreviewBase
 import java.util.Date
 
@@ -203,18 +204,24 @@ private fun AlertsViewModelPreview() {
                 profileId = 1,
                 title = "Hello",
                 message = "World",
-                deepLink = null,
                 seen = true,
-                timestamp = Date()
+                timestamp = Date(),
+                notificationType = NotificationTypes.NewMediaPending,
+                mediaId = null,
+                mediaType = null,
+                friendshipId = null
             ),
             Notification(
                 id = 2,
                 profileId = 1,
                 title = "Hello",
                 message = "Again",
-                deepLink = null,
                 seen = false,
-                timestamp = Date()
+                timestamp = Date(),
+                notificationType = NotificationTypes.FriendshipInvited,
+                mediaId = null,
+                mediaType = null,
+                friendshipId = null
             )
         )
     )

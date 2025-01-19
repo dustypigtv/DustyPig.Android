@@ -45,7 +45,7 @@
             android:theme="@style/Base.Theme.AppCompat" />
 
         <service
-            android:name=".global_managers.fcm_manager.FCMManager"
+            android:name=".global_managers.FCMManager"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />

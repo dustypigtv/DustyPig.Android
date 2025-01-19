@@ -38,7 +38,6 @@ import tv.dustypig.dustypig.ui.main_app.screens.person_details.PersonDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
 import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
 import java.util.Calendar
-import java.util.UUID
 import javax.inject.Inject
 
 @SuppressLint("SimpleDateFormat")
@@ -77,7 +76,6 @@ class MovieDetailsViewModel @Inject constructor(
     private val _playlistUpNextIndex: Int = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_PLAYLIST_UPNEXT_INDEX_ID)
 
     private var _detailedMovie = DetailedMovie()
-    private val _detailCacheId = UUID.randomUUID().toString()
 
 
     init {
@@ -85,7 +83,8 @@ class MovieDetailsViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 posterUrl = cachedInfo.posterUrl,
-                backdropUrl = cachedInfo.backdropUrl ?: ""
+                backdropUrl = cachedInfo.backdropUrl ?: "",
+                title = cachedInfo.title
             )
         }
 
@@ -109,23 +108,11 @@ class MovieDetailsViewModel @Inject constructor(
         }
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        MediaCacheManager.BasicInfo.removeAll { it.cacheId == _basicCacheId }
-        MediaCacheManager.Movies.remove(_detailCacheId)
-    }
 
     private suspend fun updateData() {
-        val cachedInfo = MediaCacheManager.getBasicInfo(_basicCacheId)
-        _uiState.update {
-            it.copy(
-                title = cachedInfo.title
-            )
-        }
-
         try {
             _detailedMovie = moviesRepository.details(mediaId)
-            MediaCacheManager.Movies[_detailCacheId] = _detailedMovie
+            MediaCacheManager.add(_detailedMovie)
 
             _uiState.update {
                 it.copy(
@@ -228,7 +215,7 @@ class MovieDetailsViewModel @Inject constructor(
                     if(_fromPlaylistDetails)
                         MediaCacheManager.Playlists[_detailedPlaylistCacheId]!!.id
                     else
-                        MediaCacheManager.Movies[_detailCacheId]!!.id,
+                        _detailedMovie.id,
                 sourceType =
                     if(_fromPlaylistDetails)
                         PlayerNav.MEDIA_TYPE_PLAYLIST
