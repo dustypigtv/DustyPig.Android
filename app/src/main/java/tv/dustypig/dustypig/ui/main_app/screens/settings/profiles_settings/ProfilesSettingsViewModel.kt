@@ -72,7 +72,6 @@ class ProfilesSettingsViewModel @Inject constructor(
     }
 
     private fun setError(ex: Exception) {
-        ex.printStackTrace()
         Log.d(TAG, ex.localizedMessage, ex)
         _uiState.update {
             it.copy(

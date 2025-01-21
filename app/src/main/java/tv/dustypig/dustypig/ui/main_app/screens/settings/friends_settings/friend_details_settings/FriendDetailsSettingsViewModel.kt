@@ -88,7 +88,6 @@ class FriendDetailsSettingsViewModel @Inject constructor(
 
     private fun setError(ex: Exception, critical: Boolean) {
         ex.logToCrashlytics()
-        ex.printStackTrace()
         _uiState.update {
             it.copy(
                 busy = false,

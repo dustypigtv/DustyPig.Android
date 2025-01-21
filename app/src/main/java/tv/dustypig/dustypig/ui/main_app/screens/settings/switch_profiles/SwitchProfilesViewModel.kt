@@ -56,7 +56,6 @@ class SwitchProfilesViewModel @Inject constructor(
 
     private fun setError(ex: Exception) {
         ex.logToCrashlytics()
-        ex.printStackTrace()
         _uiState.update {
             it.copy(
                 busy = false,

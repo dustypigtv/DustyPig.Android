@@ -158,7 +158,6 @@ class EditProfileViewModel @Inject constructor(
 
     private fun setError(ex: Exception, criticalError: Boolean) {
         ex.logToCrashlytics()
-        ex.printStackTrace()
         _uiState.update {
             it.copy(
                 busy = false,
