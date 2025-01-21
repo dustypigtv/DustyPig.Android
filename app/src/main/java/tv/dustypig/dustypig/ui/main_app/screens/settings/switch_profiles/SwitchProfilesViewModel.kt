@@ -15,6 +15,7 @@ import tv.dustypig.dustypig.api.repositories.ProfilesRepository
 import tv.dustypig.dustypig.global_managers.AlertsManager
 import tv.dustypig.dustypig.global_managers.AuthManager
 import tv.dustypig.dustypig.global_managers.FCMManager
+import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeNav
@@ -26,7 +27,8 @@ class SwitchProfilesViewModel @Inject constructor(
     routeNavigator: RouteNavigator,
     private val profilesRepository: ProfilesRepository,
     private val authRepository: AuthRepository,
-    private val authManager: AuthManager
+    private val authManager: AuthManager,
+    private val settingsManager: SettingsManager
 ): ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
@@ -80,21 +82,35 @@ class SwitchProfilesViewModel @Inject constructor(
         }
         viewModelScope.launch {
             try {
+                val allowNotifications = settingsManager.getAllowNotifications(profile.id)
+
+                val fcmToken: String? =
+                    if(allowNotifications)
+                        FCMManager.currentToken
+                    else
+                        null
+
                 val data = authRepository.profileLogin(
                     ProfileCredentials(
                         profile.id,
                         pin?.toInt(),
-                        FCMManager.currentToken
+                        fcmToken
                     )
                 )
+
                 authManager.login(
                     data.profileToken!!,
                     data.profileId!!,
                     data.loginType == LoginTypes.MainProfile
                 )
+
+                if(!allowNotifications)
+                    FCMManager.resetToken()
+
                 HomeViewModel.triggerUpdate()
                 AlertsManager.triggerUpdate()
                 popToRoute(HomeNav.route)
+
             } catch (ex: Exception) {
                 criticalError = false
                 setError(ex)
