@@ -49,7 +49,6 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.job
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.global_managers.AuthManager
-import tv.dustypig.dustypig.ui.auth_flow.SharedEmailModel
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OkDialog
 import tv.dustypig.dustypig.ui.composables.PreviewBase
@@ -68,7 +67,7 @@ private fun SignInScreenInternal(uiState: SignInUIState) {
     val localFocusManager = LocalFocusManager.current
     var passwordVisible by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
-    var email by remember { mutableStateOf(SharedEmailModel.uiState.value.email) }
+    var email by remember { mutableStateOf(uiState.emailAddress) }
     var password by remember { mutableStateOf("") }
     var showForgotPassword by remember { mutableStateOf(false) }
 

@@ -20,7 +20,7 @@ abstract class RepositoryBase constructor(
             val response = call.invoke()
             if(!response.isSuccessful) {
                 if(response.code() == 401) {
-                    authManager.setAuthState("", 0, false)
+                    authManager.logout()
                     return
                 } else {
                     throw Exception(response.message())

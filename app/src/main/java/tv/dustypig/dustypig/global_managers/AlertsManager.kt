@@ -6,14 +6,19 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.launch
+import tv.dustypig.dustypig.api.models.FCMToken
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.Notification
 import tv.dustypig.dustypig.api.models.NotificationTypes
+import tv.dustypig.dustypig.api.repositories.AuthRepository
 import tv.dustypig.dustypig.api.repositories.NotificationsRepository
+import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.movie_details.MovieDetailsNav
@@ -34,9 +39,11 @@ private data class FCMAlertData (
 )
 
 @Singleton
-class NotificationsManager @Inject constructor(
+class AlertsManager @Inject constructor(
     private val notificationsRepository: NotificationsRepository,
-    private val authManager: AuthManager
+    private val authManager: AuthManager,
+    private val settingsManager: SettingsManager,
+    private val authRepository: AuthRepository
 ) {
     companion object {
 
@@ -55,10 +62,13 @@ class NotificationsManager @Inject constructor(
         private val _mutableAlertFlow = MutableSharedFlow<FCMAlertData?>(replay = 1)
         private val _mutableMarkReadFlow = MutableSharedFlow<Int>(replay = 1)
         private val _mutableDeleteFlow = MutableSharedFlow<Int>(replay = 1)
-
         private val _mutableNavRouteFlow = MutableSharedFlow<String>(replay = 1)
-
         private val _notificationsFlow = MutableSharedFlow<List<Notification>>(replay = 1)
+        private val _updateFCMTokenFlow = MutableSharedFlow<String>(replay = 1)
+
+        fun triggerUpdateFCMToken() {
+            _updateFCMTokenFlow.tryEmit(UUID.randomUUID().toString())
+        }
 
         fun triggerMarkAsRead(id: Int) {
             _mutableMarkReadFlow.tryEmit(id)
@@ -202,50 +212,80 @@ class NotificationsManager @Inject constructor(
     val navRouteFlow = _mutableNavRouteFlow.asSharedFlow()
     val notifications = _notificationsFlow.asSharedFlow()
 
+    private val updateFCMTokenFlow = _updateFCMTokenFlow.asSharedFlow()
+
     private var listenerRegistration: ListenerRegistration? = null
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     init {
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch {
             _mutableAlertFlow.collect {
                 alertTapped(it)
             }
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch {
             _mutableMarkReadFlow.collect {
                 markAsRead(it)
             }
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch {
             _mutableDeleteFlow.collect {
                 delete(it)
             }
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch {
             _mutableUpdateFlow.collectLatest {
                 loadData()
             }
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
-            authManager.loginState.collectLatest {
+        scope.launch {
+            authManager.loginState.collectLatest { loggedIn ->
                 listenerRegistration?.remove()
-                listenerRegistration = Firebase.firestore
-                    .collection(FIRESTORE_ALERTS_COLLECTION_PATH)
-                    .document(authManager.currentProfileId.toString())
-                    .addSnapshotListener{ _, _ ->
-                        _mutableUpdateFlow.tryEmit(UUID.randomUUID().toString())
-                    }
+                if(loggedIn == true) {
+                    listenerRegistration = Firebase.firestore
+                        .collection(FIRESTORE_ALERTS_COLLECTION_PATH)
+                        .document(authManager.currentProfileId.toString())
+                        .addSnapshotListener { _, _ ->
+                            _mutableUpdateFlow.tryEmit(UUID.randomUUID().toString())
+                        }
+                }
+            }
+        }
+
+        scope.launch {
+            updateFCMTokenFlow.collect {
+                updateFCMToken()
             }
         }
     }
 
 
+    //Update FCM token on server
+    private suspend fun updateFCMToken() {
+        try {
+            if(authManager.currentProfileId < 1)
+                return
+
+            val newFCMToken =
+                if (settingsManager.getAllowNotifications())
+                    FCMManager.currentToken
+                else
+                    null
+
+            val newAuthToken = authRepository.updateFCMToken(FCMToken(newFCMToken))
+            authManager.setAuthToken(newAuthToken)
+        } catch (ex: Exception) {
+            ex.logToCrashlytics()
+        }
+    }
+
 
     private suspend fun loadData() {
-        if (authManager.loginState.value != AuthManager.LOGIN_STATE_LOGGED_IN) {
+        if(authManager.currentProfileId < 1) {
             _notificationsFlow.tryEmit(listOf())
             return
         }
@@ -262,7 +302,7 @@ class NotificationsManager @Inject constructor(
         if (alert == null)
             return
 
-        if (authManager.loginState.value != AuthManager.LOGIN_STATE_LOGGED_IN)
+        if(authManager.currentProfileId < 1)
             return
 
         if (authManager.currentProfileId != alert.profileId)
@@ -282,10 +322,15 @@ class NotificationsManager @Inject constructor(
 
     private suspend fun markAsRead(id: Int) {
         try {
-            val lst: ArrayList<Notification> =
-                _notificationsFlow.replayCache.firstOrNull()?.let { ArrayList(it) } ?: return
-            if(lst.removeAll { it.id == id })
-                _notificationsFlow.tryEmit(lst.toList())
+            val lst: ArrayList<Notification>? = _notificationsFlow.lastOrNull()
+                ?.let { ArrayList(it) }
+            if (lst != null) {
+                val n = lst.firstOrNull { it.id == id }
+                if(n != null) {
+                    n.seen = true
+                    _notificationsFlow.tryEmit(lst.toList())
+                }
+            }
             notificationsRepository.markAsRead(id)
         } catch (ex: Exception) {
             ex.logToCrashlytics()
@@ -294,10 +339,12 @@ class NotificationsManager @Inject constructor(
 
     private suspend fun delete(id: Int) {
         try {
-            val lst: ArrayList<Notification> =
-                _notificationsFlow.replayCache.firstOrNull()?.let { ArrayList(it) } ?: return
-            if(lst.removeAll { it.id == id })
-                _notificationsFlow.tryEmit(lst.toList())
+            val lst: ArrayList<Notification>? = _notificationsFlow.lastOrNull()
+                ?.let { ArrayList(it) }
+            if (lst != null) {
+                if(lst.removeAll { it.id == id })
+                    _notificationsFlow.tryEmit(lst.toList())
+            }
             notificationsRepository.delete(id)
         } catch (ex: Exception) {
             ex.logToCrashlytics()

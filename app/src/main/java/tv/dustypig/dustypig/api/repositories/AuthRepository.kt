@@ -3,6 +3,7 @@ package tv.dustypig.dustypig.api.repositories
 import tv.dustypig.dustypig.api.ApiService
 import tv.dustypig.dustypig.api.models.PasswordCredentials
 import tv.dustypig.dustypig.api.models.ProfileCredentials
+import tv.dustypig.dustypig.api.models.FCMToken
 import tv.dustypig.dustypig.di.AuthenticatedAPIService
 import tv.dustypig.dustypig.global_managers.AuthManager
 import javax.inject.Inject
@@ -25,4 +26,6 @@ class AuthRepository @Inject constructor(
     suspend fun signout() = wrapAPICall { apiService.signout() }
 
     suspend fun signoutEverywhere() = wrapAPICall { apiService.signoutEverywhere() }
+
+    suspend fun updateFCMToken(fcmToken: FCMToken) = wrapAPICallWithReturnData { apiService.updateFCMToken(fcmToken) }
 }

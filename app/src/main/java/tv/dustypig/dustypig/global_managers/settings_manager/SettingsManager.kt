@@ -39,6 +39,7 @@ class SettingsManager @Inject constructor (
         private const val ALLOW_NOTIFICATIONS_KEY = "allow_notifications"
         private const val SEARCH_HISTORY_KEY = "search_history"
         private const val DEVICE_ID_KEY = "device_id"
+        private const val LAST_LOGIN_EMAIL_KEY = "last_login_email"
 
 
         // For global settings
@@ -46,6 +47,7 @@ class SettingsManager @Inject constructor (
         private val profileIdPreferencesKey = intPreferencesKey(PROFILE_ID_KEY)
         private val isMainProfilePreferencesKey = booleanPreferencesKey(IS_MAIN_PROFILE_KEY)
         private val deviceIdKey = stringPreferencesKey(DEVICE_ID_KEY)
+        private val lastLoginEmailKey = stringPreferencesKey(LAST_LOGIN_EMAIL_KEY)
     }
 
 
@@ -61,6 +63,10 @@ class SettingsManager @Inject constructor (
     }
 
 
+    //suspend fun getLastLoginEmail() = context.dataStore.data.map { it[lastLoginEmailKey] ?: "" }.first()
+    suspend fun setLastLoginEmail(value: String) = context.dataStore.edit { it[lastLoginEmailKey] = value }
+    val lastLoginEmailFlow = context.dataStore.data.map { it[lastLoginEmailKey] ?: "" }
+
     suspend fun getToken() = context.dataStore.data.map { it[authTokenPreferencesKey] ?: "" }.first()
     suspend fun setToken(value: String) = context.dataStore.edit { it[authTokenPreferencesKey] = value }
 
@@ -72,7 +78,6 @@ class SettingsManager @Inject constructor (
     suspend fun setIsMainProfile(value: Boolean) = context.dataStore.edit { it[isMainProfilePreferencesKey] = value }
     val profileIsMainFlow = context.dataStore.data.map { it[isMainProfilePreferencesKey] ?: false }
 
-    //suspend fun getDeviceId() = context.dataStore.data.map { it[deviceIdKey] ?: "" }.first()
     suspend fun getDeviceId(): String {
         var ret = context.dataStore.data.map { it[deviceIdKey] ?: "" }.first()
         if(ret.isBlank()) {
@@ -84,9 +89,13 @@ class SettingsManager @Inject constructor (
 
 
 
+
+
+
     // ***** Profile Settings *****
 
-    private suspend fun profileKey(key: String) = "${key}_${getProfileId()}"
+    private fun profileKey(key: String, profileId: Int) = "${key}_${profileId}"
+    private suspend fun profileKey(key: String) = profileKey(key, getProfileId())
 
     private suspend fun downloadOverMobilePreferencesKey() = booleanPreferencesKey(profileKey(DOWNLOAD_OVER_CELLULAR_KEY))
     suspend fun getDownloadOverMobile() = context.dataStore.data.map { it[downloadOverMobilePreferencesKey()] ?: false }.first()
@@ -128,19 +137,25 @@ class SettingsManager @Inject constructor (
 
 
     private suspend fun allowNotificationsKey() = booleanPreferencesKey(profileKey(ALLOW_NOTIFICATIONS_KEY))
+    private fun allowNotificationsKey(id: Int) = booleanPreferencesKey(profileKey(ALLOW_NOTIFICATIONS_KEY, id))
     suspend fun setAllowNotifications(value: Boolean) = context.dataStore.edit { it[allowNotificationsKey()] = value }
 
-    //This works most of the time, but dataStore actively tries to stop it.
-    //Since the notifications aren't mission critical, it's ok if a few get missed...
-    //But when dataStore 1.1.0 is ready, update this!!
     suspend fun getAllowNotifications(): Boolean {
         return try {
+            getSystemLevelAllowNotifications() &&
             context.dataStore.data.map { it[allowNotificationsKey()] ?: true }.first()
         } catch (_: Exception) {
             false
         }
     }
 
-
+    suspend fun getAllowNotifications(id: Int): Boolean {
+        return try {
+            getSystemLevelAllowNotifications() &&
+            context.dataStore.data.map { it[allowNotificationsKey(id)] ?: true }.first()
+        } catch (_: Exception) {
+            false
+        }
+    }
 
 }

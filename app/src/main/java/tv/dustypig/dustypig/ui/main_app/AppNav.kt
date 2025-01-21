@@ -369,7 +369,7 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()) {
     //The nav controller doesn't exist yet when the viewModel is created,
     //So have to do this here
     LaunchedEffect(true) {
-        vm.notificationsManager.navRouteFlow.collectLatest {
+        vm.alertsManager.navRouteFlow.collectLatest {
             try {
                 navController.navigate(it)
             }

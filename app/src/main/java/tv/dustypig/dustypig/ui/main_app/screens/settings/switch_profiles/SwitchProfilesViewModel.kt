@@ -12,8 +12,8 @@ import tv.dustypig.dustypig.api.models.LoginTypes
 import tv.dustypig.dustypig.api.models.ProfileCredentials
 import tv.dustypig.dustypig.api.repositories.AuthRepository
 import tv.dustypig.dustypig.api.repositories.ProfilesRepository
+import tv.dustypig.dustypig.global_managers.AlertsManager
 import tv.dustypig.dustypig.global_managers.AuthManager
-import tv.dustypig.dustypig.global_managers.NotificationsManager
 import tv.dustypig.dustypig.global_managers.FCMManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
@@ -87,13 +87,13 @@ class SwitchProfilesViewModel @Inject constructor(
                         FCMManager.currentToken
                     )
                 )
-                authManager.switchProfileBegin(
-                    token = data.profileToken!!,
-                    profileId = data.profileId!!,
-                    isMain = data.loginType == LoginTypes.MainProfile
+                authManager.login(
+                    data.profileToken!!,
+                    data.profileId!!,
+                    data.loginType == LoginTypes.MainProfile
                 )
                 HomeViewModel.triggerUpdate()
-                NotificationsManager.triggerUpdate()
+                AlertsManager.triggerUpdate()
                 popToRoute(HomeNav.route)
             } catch (ex: Exception) {
                 criticalError = false

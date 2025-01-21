@@ -43,12 +43,26 @@ class FCMManager: FirebaseMessagingService() {
                 Log.d(TAG, "Current token: $currentToken")
             })
         }
+
+        fun resetToken() {
+            Log.d(TAG, "Current token before reset $currentToken")
+            FirebaseMessaging.getInstance().deleteToken().addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Log.d(TAG, "Deleting FCM Token succeeded")
+                    init()
+                } else {
+                    Log.w(TAG, "Deleting FCM Token failed", task.exception)
+                }
+            }
+        }
     }
+
 
 
     override fun onNewToken(token: String) {
         Log.d(TAG, "Refreshed token: $token")
         currentToken = token
+        AlertsManager.triggerUpdateFCMToken()
     }
 
     @OptIn(UnstableApi::class)
@@ -64,7 +78,7 @@ class FCMManager: FirebaseMessagingService() {
             if (currentProfileId == 0)
                 return
 
-            val targetProfileId = remoteMessage.data[NotificationsManager.DATA_PROFILE_ID]!!.toInt()
+            val targetProfileId = remoteMessage.data[AlertsManager.DATA_PROFILE_ID]!!.toInt()
             if (targetProfileId != currentProfileId)
                 return
 
@@ -120,13 +134,12 @@ class FCMManager: FirebaseMessagingService() {
                     notificationManager.createNotificationChannel(notificationChannel)
                 }
                 notificationManager.notify(
-                    remoteMessage.data[NotificationsManager.DATA_ID]!!.toInt(),
+                    remoteMessage.data[AlertsManager.DATA_ID]!!.toInt(),
                     notificationBuilder.build()
                 )
             }
         } catch (ex: Exception) {
             ex.logToCrashlytics()
-            ex.printStackTrace()
         }
     }
 }

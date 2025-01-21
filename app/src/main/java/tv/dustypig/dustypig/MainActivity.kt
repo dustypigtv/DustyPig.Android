@@ -37,7 +37,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.global_managers.AuthManager
-import tv.dustypig.dustypig.global_managers.NotificationsManager
+import tv.dustypig.dustypig.global_managers.AlertsManager
 import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
@@ -72,7 +72,7 @@ class MainActivity: ComponentActivity() {
     lateinit var castManager: CastManager
 
     @Inject
-    lateinit var notificationsManager: NotificationsManager
+    lateinit var alertsManager: AlertsManager
 
     private lateinit var analytics: FirebaseAnalytics
 
@@ -161,7 +161,7 @@ class MainActivity: ComponentActivity() {
         if (intent == null)
             return
 
-        NotificationsManager.handleNotificationTapped(intent)
+        AlertsManager.handleNotificationTapped(intent)
     }
 
 
@@ -169,45 +169,52 @@ class MainActivity: ComponentActivity() {
     @Composable
     fun AppStateSwitcher() {
 
-        val loginState by authManager.loginState.collectAsState()
+        val loggedIn by authManager.loginState.collectAsState()
 
-        if (loginState == AuthManager.LOGIN_STATE_LOGGED_IN) {
+        when (loggedIn) {
+            true -> {
 
-            val playerScreenVisible by PlayerStateManager.playerScreenVisible.collectAsState()
-            if(playerScreenVisible)
-                hideSystemUi()
-            else
-                showSystemUi()
+                val playerScreenVisible by PlayerStateManager.playerScreenVisible.collectAsState()
+                if (playerScreenVisible)
+                    hideSystemUi()
+                else
+                    showSystemUi()
 
 
-            requestedOrientation = if(playerScreenVisible) {
-                ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-            } else if (isTablet()) {
-                ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-            } else {
-                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-            }
-
-            AskNotificationPermission()
-            AppNav()
-        } else if (loginState == AuthManager.LOGIN_STATE_LOGGED_OUT) {
-            showSystemUi()
-            AuthNav()
-        } else {
-            showSystemUi()
-            Scaffold { paddingValues ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
+                requestedOrientation = if (playerScreenVisible) {
+                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                } else if (isTablet()) {
+                    ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                } else {
+                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                 }
+
+                AskNotificationPermission()
+                AppNav()
+
             }
-            if (loginState == AuthManager.LOGIN_STATE_SWITCHING_PROFILES) {
-                LaunchedEffect(true) {
-                    authManager.switchProfileEnd()
+            false -> {
+                showSystemUi()
+                requestedOrientation = if (isTablet()) {
+                    ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                } else {
+                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                }
+                AuthNav()
+            }
+
+            else -> {
+                //Unknown state
+                showSystemUi()
+                Scaffold { paddingValues ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
             }
         }
@@ -222,8 +229,6 @@ class MainActivity: ComponentActivity() {
                 PackageManager.PERMISSION_GRANTED
             ) {
                 Log.d(TAG, "Notification permission granted: true")
-//            } else if (shouldShowRequestPermissionRationale(android.Manifest.permission.POST_NOTIFICATIONS)) {
-//                requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
             } else {
                 requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
             }
@@ -239,6 +244,8 @@ class MainActivity: ComponentActivity() {
         Log.d(TAG, "Notification permission granted: $isGranted")
         GlobalScope.launch {
             settingsManager.setAllowNotifications(isGranted)
+            if(isGranted)
+                AlertsManager.triggerUpdateFCMToken()
         }
     }
 }

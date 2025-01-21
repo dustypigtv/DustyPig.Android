@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.global_managers.NotificationsManager
+import tv.dustypig.dustypig.global_managers.AlertsManager
 import tv.dustypig.dustypig.nav.RouteNavigator
 import javax.inject.Inject
 
@@ -16,7 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AlertsViewModel @Inject constructor(
     routeNavigator: RouteNavigator,
-    private val notificationsManager: NotificationsManager
+    private val alertsManager: AlertsManager
 ): ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
@@ -30,7 +30,7 @@ class AlertsViewModel @Inject constructor(
     init {
 
         viewModelScope.launch {
-            notificationsManager.notifications.collectLatest { list ->
+            alertsManager.notifications.collectLatest { list ->
                 _uiState.update {
                     it.copy(
                         busy = false,
@@ -44,13 +44,13 @@ class AlertsViewModel @Inject constructor(
 
     private fun itemClicked(id: Int) {
 
-        NotificationsManager.triggerMarkAsRead(id)
+        AlertsManager.triggerMarkAsRead(id)
 
         val notification = _uiState.value.notifications.firstOrNull {
             it.id == id
         } ?: return
 
-        val route = NotificationsManager.getNavRoute(
+        val route = AlertsManager.getNavRoute(
             notificationType = notification.notificationType,
             mediaId = notification.mediaId,
             mediaType = notification.mediaType,
@@ -61,6 +61,6 @@ class AlertsViewModel @Inject constructor(
     }
 
     private fun deleteItem(id: Int) {
-        NotificationsManager.triggerDelete(id)
+        AlertsManager.triggerDelete(id)
     }
 }

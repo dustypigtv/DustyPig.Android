@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import tv.dustypig.dustypig.global_managers.AlertsManager
+import tv.dustypig.dustypig.global_managers.FCMManager
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.nav.RouteNavigator
 import javax.inject.Inject
@@ -66,7 +68,26 @@ class NotificationSettingsViewModel @Inject constructor(
                     )
                 }
             } else {
+
+                //Update settings FIRST
                 settingsManager.setAllowNotifications(value)
+
+                if(value) {
+                    //There should be a fcm token, so just tell dusty pig to
+                    //associate it with this profile
+                    AlertsManager.triggerUpdateFCMToken()
+                } else {
+                    //Since the device can receive messages in background mode,
+                    //and it does not use the FCMManager to push alerts, we
+                    //have to stop messages at the library level. Deleting the token
+                    //will make it no longer work to receive messages from FCM.
+                    //Calling FCMManager.resetToken generates a new token, and IF
+                    //alerts are allowed it will call the onNewToken function, which will
+                    //in turn call AlertsManager.updateFCMToken automatically in the background.
+                    //That call will delete the now dead token from dusty pig's server
+                    FCMManager.resetToken()
+                }
+
                 _uiState.update {
                     it.copy(
                         allowAlerts = value

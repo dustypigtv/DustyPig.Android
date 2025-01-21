@@ -4,6 +4,7 @@ package tv.dustypig.dustypig.ui.auth_flow.screens.sign_in
 data class SignInUIState(
 
     //Data
+    val emailAddress: String = "",
     val busy: Boolean = false,
     val showError: Boolean = false,
     val errorMessage: String? = null,

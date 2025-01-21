@@ -43,6 +43,7 @@ import tv.dustypig.dustypig.api.models.ResultOf
 import tv.dustypig.dustypig.api.models.SearchRequest
 import tv.dustypig.dustypig.api.models.SearchResults
 import tv.dustypig.dustypig.api.models.SetTitlePermission
+import tv.dustypig.dustypig.api.models.FCMToken
 import tv.dustypig.dustypig.api.models.TMDB_Person
 import tv.dustypig.dustypig.api.models.TitlePermissions
 import tv.dustypig.dustypig.api.models.TitleRequest
@@ -84,6 +85,8 @@ interface ApiService {
     @GET("Auth/SignoutEverywhere")
     suspend fun signoutEverywhere(): Response<Result>
 
+    @POST("Auth/UpdateFCMToken")
+    suspend fun updateFCMToken(@Body fcmToken: FCMToken): Response<ResultOf<String>>
 
 
 

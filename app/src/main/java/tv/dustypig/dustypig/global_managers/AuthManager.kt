@@ -1,6 +1,5 @@
 package tv.dustypig.dustypig.global_managers
 
-import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -15,21 +14,16 @@ import javax.inject.Singleton
 
 
 @Singleton
-class AuthManager @Inject constructor(private val settingsManager: SettingsManager) {
+class AuthManager @Inject constructor(
+    private val settingsManager: SettingsManager
+) {
 
     companion object {
-        private const val TAG = "AuthManager"
-
-        const val LOGIN_STATE_UNKNOWN: Int = 0
-        const val LOGIN_STATE_LOGGED_IN: Int = 1
-        const val LOGIN_STATE_LOGGED_OUT: Int = 2
-        const val LOGIN_STATE_SWITCHING_PROFILES: Int = 3
-
         const val TEST_USER: String = "testuser@dustypig.tv"
         const val TEST_PASSWORD: String = "test password"
     }
 
-    private val _loginState = MutableStateFlow(LOGIN_STATE_UNKNOWN)
+    private val _loginState = MutableStateFlow<Boolean?>(null)
     val loginState = _loginState.asStateFlow()
 
     var currentToken: String = ""
@@ -51,7 +45,7 @@ class AuthManager @Inject constructor(private val settingsManager: SettingsManag
         }
     }
 
-    fun setAuthState(token: String, profileId: Int, isMain: Boolean) {
+    fun login(token: String, profileId: Int, isMain: Boolean) {
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             settingsManager.setToken(token)
             settingsManager.setProfileId(profileId)
@@ -60,41 +54,23 @@ class AuthManager @Inject constructor(private val settingsManager: SettingsManag
         }
     }
 
-    fun switchProfileBegin(token: String, profileId: Int, isMain: Boolean) {
+    suspend fun logout() {
+        settingsManager.setProfileId(-1)
+        settingsManager.setIsMainProfile(false)
+        settingsManager.setToken("")
         MediaCacheManager.reset()
-        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-            settingsManager.setToken(token)
-            settingsManager.setProfileId(profileId)
-            settingsManager.setIsMainProfile(isMain)
-            _loginState.update {
-                LOGIN_STATE_SWITCHING_PROFILES
-            }
-        }
+        setState(token = "", profileId = 0, isMain = false)
+        FCMManager.resetToken()
     }
 
-    fun switchProfileEnd() {
-        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-            setState(
-                token = settingsManager.getToken(),
-                profileId = settingsManager.getProfileId(),
-                isMain = settingsManager.getIsMainProfile()
-            )
-        }
-    }
-
-
-    fun logout() {
-        MediaCacheManager.reset()
-        setAuthState(token = "", profileId = 0, isMain = false)
-    }
-
-    //Use this to set a temp auth token between logging int and selecting the profile
     fun setTempAuthToken(token:String) {
         currentToken = token
-        currentProfileId = 0
-        currentProfileIsMain = false
     }
 
+    suspend fun setAuthToken(token: String) {
+        currentToken = token
+        settingsManager.setToken(token)
+    }
 
     private fun setState(token: String, profileId: Int, isMain: Boolean) {
         currentToken = token
@@ -102,12 +78,7 @@ class AuthManager @Inject constructor(private val settingsManager: SettingsManag
         currentProfileIsMain = isMain
 
         _loginState.update {
-            if(currentToken != "" && currentProfileId > 0)
-                LOGIN_STATE_LOGGED_IN
-            else
-                LOGIN_STATE_LOGGED_OUT
+            currentToken != "" && currentProfileId > 0
         }
-
-        Log.d(TAG, token)
     }
 }

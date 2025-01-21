@@ -6,9 +6,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.models.CreateAccount
+import tv.dustypig.dustypig.api.models.FCMToken
 import tv.dustypig.dustypig.api.models.LoginTypes
 import tv.dustypig.dustypig.api.models.PasswordCredentials
 import tv.dustypig.dustypig.api.repositories.AccountRepository
@@ -18,7 +20,6 @@ import tv.dustypig.dustypig.global_managers.FCMManager
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
-import tv.dustypig.dustypig.ui.auth_flow.SharedEmailModel
 import tv.dustypig.dustypig.ui.auth_flow.screens.select_profile.SelectProfileNav
 import javax.inject.Inject
 
@@ -33,13 +34,22 @@ class SignUpViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(
         SignUpUIState(
-            email = SharedEmailModel.uiState.value.email,
             onHideError = ::hideError,
             onSignUp = ::signUp,
             onNavToSignIn = ::navToSignIn
         )
     )
     val uiState: StateFlow<SignUpUIState> = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            settingsManager.lastLoginEmailFlow.collectLatest { email ->
+                _uiState.update {
+                    it.copy(email = email)
+                }
+            }
+        }
+    }
 
     private fun hideError() {
         _uiState.update {
@@ -48,8 +58,10 @@ class SignUpViewModel @Inject constructor(
     }
 
     private fun navToSignIn(email: String) {
-        SharedEmailModel.updateEmail(email)
-        popBackStack()
+        viewModelScope.launch {
+            settingsManager.setLastLoginEmail(email)
+            popBackStack()
+        }
     }
 
     private fun signUp(name: String, email: String, password: String) {
@@ -61,9 +73,9 @@ class SignUpViewModel @Inject constructor(
             )
         }
 
-        SharedEmailModel.updateEmail(email)
-
         viewModelScope.launch {
+
+            settingsManager.setLastLoginEmail(email)
 
             try {
                 accountRepository.create(
@@ -76,7 +88,7 @@ class SignUpViewModel @Inject constructor(
                         PasswordCredentials(
                             email,
                             password,
-                            FCMManager.currentToken,
+                            null,
                             settingsManager.getDeviceId()
                         )
                     )
@@ -87,9 +99,16 @@ class SignUpViewModel @Inject constructor(
                             it.copy(busy = false)
                         }
                     } else {
-                        authManager.setAuthState(
-                            token = data2.profileToken!!,
-                            profileId = data2.profileId!!,
+
+                        var profileToken = data2.profileToken!!
+                        if(settingsManager.getAllowNotifications(data2.profileId!!)) {
+                            authManager.setTempAuthToken(profileToken)
+                            profileToken = authRepository.updateFCMToken(FCMToken(FCMManager.currentToken))
+                        }
+
+                        authManager.login(
+                            token = profileToken,
+                            profileId = data2.profileId,
                             isMain = data2.loginType == LoginTypes.MainProfile
                         )
                     }

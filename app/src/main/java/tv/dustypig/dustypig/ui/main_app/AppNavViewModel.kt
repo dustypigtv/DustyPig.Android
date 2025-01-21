@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.global_managers.NotificationsManager
+import tv.dustypig.dustypig.global_managers.AlertsManager
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 import javax.inject.Inject
 
@@ -19,7 +19,7 @@ import javax.inject.Inject
 @OptIn(UnstableApi::class)
 class AppNavViewModel @Inject constructor(
     val castManager: CastManager,
-    val notificationsManager: NotificationsManager
+    val alertsManager: AlertsManager
 ): ViewModel() {
 
     private val _notificationCountState = MutableStateFlow<String?>(null)
@@ -28,7 +28,7 @@ class AppNavViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            notificationsManager.notifications.collectLatest { it ->
+            alertsManager.notifications.collectLatest { it ->
                 val cnt = it.count { !it.seen }
                 val s: String? =
                     if(cnt == 0)

@@ -6,8 +6,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import tv.dustypig.dustypig.api.models.FCMToken
 import tv.dustypig.dustypig.api.models.LoginTypes
 import tv.dustypig.dustypig.api.models.PasswordCredentials
 import tv.dustypig.dustypig.api.repositories.AuthRepository
@@ -16,7 +18,6 @@ import tv.dustypig.dustypig.global_managers.FCMManager
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
-import tv.dustypig.dustypig.ui.auth_flow.SharedEmailModel
 import tv.dustypig.dustypig.ui.auth_flow.screens.select_profile.SelectProfileNav
 import tv.dustypig.dustypig.ui.auth_flow.screens.sign_up.SignUpNav
 import javax.inject.Inject
@@ -41,6 +42,18 @@ class SignInViewModel @Inject constructor(
         )
     )
     val uiState: StateFlow<SignInUIState> = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            settingsManager.lastLoginEmailFlow.collectLatest { email ->
+                _uiState.update {
+                    it.copy(
+                        emailAddress = email
+                    )
+                }
+            }
+        }
+    }
 
     private fun hideError() {
         _uiState.update {
@@ -71,16 +84,16 @@ class SignInViewModel @Inject constructor(
         }
 
         val fixedEmail = email.trim().lowercase()
-        SharedEmailModel.updateEmail(fixedEmail)
 
         viewModelScope.launch {
             try {
+                settingsManager.setLastLoginEmail(fixedEmail)
 
                 val data = authRepository.passwordLogin(
                     PasswordCredentials(
                         fixedEmail,
                         password,
-                        FCMManager.currentToken,
+                        null,
                         settingsManager.getDeviceId()
                     )
                 )
@@ -91,9 +104,16 @@ class SignInViewModel @Inject constructor(
                         it.copy(busy = false)
                     }
                 } else {
-                    authManager.setAuthState(
-                        token = data.profileToken!!,
-                        profileId = data.profileId!!,
+
+                    var profileToken = data.profileToken!!
+                    if(settingsManager.getAllowNotifications(data.profileId!!)) {
+                        authManager.setTempAuthToken(profileToken)
+                        profileToken = authRepository.updateFCMToken(FCMToken(FCMManager.currentToken))
+                    }
+
+                   authManager.login(
+                        token = profileToken,
+                        profileId = data.profileId,
                         isMain = data.loginType == LoginTypes.MainProfile
                     )
                 }
@@ -121,9 +141,10 @@ class SignInViewModel @Inject constructor(
         }
 
         val fixedEmail = email.trim().lowercase()
-        SharedEmailModel.updateEmail(fixedEmail)
 
         viewModelScope.launch {
+            settingsManager.setLastLoginEmail(fixedEmail)
+
             try {
                 authRepository.sendPasswordResetEmail(fixedEmail)
                 _uiState.update {
@@ -148,7 +169,9 @@ class SignInViewModel @Inject constructor(
     }
 
     private fun navToSignUp(email: String) {
-        SharedEmailModel.updateEmail(email)
-        navigateToRoute(SignUpNav.route)
+        viewModelScope.launch {
+            settingsManager.setLastLoginEmail(email)
+            navigateToRoute(SignUpNav.route)
+        }
     }
 }

@@ -79,15 +79,22 @@ class SelectProfileViewModel @Inject constructor(
         }
         viewModelScope.launch {
             try{
+                val fcmToken =
+                    if(settingsManager.getAllowNotifications(profileId))
+                       FCMManager.currentToken
+                    else
+                        null
+
                 val data = authRepository.profileLogin(
                     ProfileCredentials(
                         profileId,
                         pin?.toInt(),
-                        FCMManager.currentToken,
+                        fcmToken,
                         settingsManager.getDeviceId()
                     )
                 )
-                authManager.setAuthState(
+
+                authManager.login(
                     data.profileToken!!,
                     data.profileId!!,
                     data.loginType == LoginTypes.MainProfile
