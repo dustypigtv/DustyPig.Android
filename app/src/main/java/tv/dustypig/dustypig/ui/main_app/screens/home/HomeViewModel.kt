@@ -92,6 +92,7 @@ class HomeViewModel @Inject constructor(
                         )
                     }
                 }
+            } catch(_: IllegalStateException) {
             } catch (ex: Exception) {
                 ex.logToCrashlytics()
 

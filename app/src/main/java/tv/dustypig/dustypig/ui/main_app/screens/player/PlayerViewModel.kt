@@ -665,6 +665,7 @@ class PlayerViewModel @Inject constructor(
                         }
                     }
                 }
+            } catch(_: IllegalStateException) {
             } catch (ex: Exception) {
                 Log.e(TAG, "timerTick", ex)
             }

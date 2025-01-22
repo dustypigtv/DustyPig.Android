@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.api.models.DetailedMovie
@@ -69,10 +71,10 @@ class DownloadManager @Inject constructor(
     private var _downloadOverMobile = false
 
     private val _statusTimer = Timer()
-    private var _statusTimerBusy = false
+    private var _statusTimerMutex = Mutex(locked = false)
 
     private val _updateTimer = Timer()
-    private var _updateTimerBusy = false
+    private var _updateTimerMutex = Mutex(locked = false)
 
     private val _downloadFlow = MutableSharedFlow<List<UIJob>>(replay = 1)
     val downloads = _downloadFlow.asSharedFlow()
@@ -142,17 +144,16 @@ class DownloadManager @Inject constructor(
     }
 
     private fun statusTimerTick() {
-        if(_statusTimerBusy)
-            return
-        _statusTimerBusy = true
         _scope.launch {
             try {
-                statusTimerWork()
+                _statusTimerMutex.withLock {
+                    statusTimerWork()
+                }
+            } catch (_: IllegalStateException) {
             } catch (ex: Exception) {
                 Log.e(TAG, ex.localizedMessage ?: "Unknown Error", ex)
                 ex.logToCrashlytics()
             }
-            _statusTimerBusy = false
         }
     }
 
@@ -529,17 +530,16 @@ class DownloadManager @Inject constructor(
 
 
     private fun updateTimerTick() {
-        if(_updateTimerBusy)
-            return
-        _updateTimerBusy = true
         _scope.launch {
             try {
-                updateTimerWork()
+                _updateTimerMutex.withLock {
+                    updateTimerWork()
+                }
+            } catch (_: IllegalStateException) {
             } catch(ex: Exception) {
                 Log.e(TAG, ex.localizedMessage ?: "Unknown Error", ex)
                 ex.logToCrashlytics()
             }
-            _updateTimerBusy = false
         }
     }
 
