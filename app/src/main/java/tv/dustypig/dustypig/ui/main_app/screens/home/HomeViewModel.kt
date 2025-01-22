@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import tv.dustypig.dustypig.api.models.HomeScreenList
 import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.global_managers.NetworkManager
@@ -29,17 +31,18 @@ class HomeViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(
         HomeUIState(
-            onRefresh = ::refresh,
             onShowMoreClicked = ::navToShowMore
         )
     )
     val uiState: StateFlow<HomeUIState> = _uiState.asStateFlow()
 
     private val _timer = Timer()
-    private var _timerBusy = false
+    private val _timerMutext = Mutex(locked = false)
 
     companion object {
+
         private var _nextTimerTick: Date = Calendar.getInstance().time
+
         fun triggerUpdate() {
             val calendar = Calendar.getInstance()
             calendar.add(Calendar.SECOND, -1)
@@ -70,36 +73,33 @@ class HomeViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 hasNetworkConnection = networkManager.isConnected(),
-                isRefreshing = if (it.sections.isEmpty()) true else it.isRefreshing
+                isFirstLoad = if (it.sections.isEmpty()) true else it.isFirstLoad
             )
         }
 
         if(Calendar.getInstance().time < _nextTimerTick)
             return
 
-        if(_timerBusy)
-            return
-
-        _timerBusy = true
-
         viewModelScope.launch {
             try {
-                val data = mediaRepository.homeScreen()
-                val sections = data.sections ?: listOf()
-                _uiState.update {
-                    it.copy(
-                        isRefreshing = false,
-                        sections = sections
-                    )
+                _timerMutext.withLock {
+                    val data = mediaRepository.homeScreen()
+                    val sections = data.sections ?: listOf()
+                    _uiState.update {
+                        it.copy(
+                            isFirstLoad = false,
+                            sections = sections
+                        )
+                    }
                 }
             } catch (ex: Exception) {
                 ex.logToCrashlytics()
 
                 //Only show error message if manually refreshing (or first load)
-                if(_uiState.value.isRefreshing) {
+                if(_uiState.value.isFirstLoad) {
                     _uiState.update {
                         it.copy(
-                            isRefreshing = false,
+                            isFirstLoad = false,
                             showErrorDialog = true,
                             errorMessage = ex.localizedMessage
                         )
@@ -108,15 +108,7 @@ class HomeViewModel @Inject constructor(
             }
 
             waitMinute()
-            _timerBusy = false
         }
-    }
-
-    private fun refresh() {
-        _uiState.update {
-            it.copy(isRefreshing = true)
-        }
-        triggerUpdate()
     }
 
     private fun navToShowMore(hsl: HomeScreenList) {

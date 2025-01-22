@@ -20,6 +20,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import tv.dustypig.dustypig.api.models.SRTSubtitles
 import tv.dustypig.dustypig.api.models.PlaybackProgress
 import tv.dustypig.dustypig.api.repositories.MediaRepository
@@ -94,7 +96,8 @@ class PlayerViewModel @Inject constructor(
         }
 
     private val _timer = Timer()
-    private var _timerBusy = false
+    private var _timerMutex = Mutex(locked = false)
+
     private val _videoTimings = arrayListOf<VideoTiming>()
     private var _autoSkipIntros = false
     private var _autoSkipCredits = false
@@ -575,99 +578,96 @@ class PlayerViewModel @Inject constructor(
             return
         }
 
-        if (_timerBusy) {
-            return
-        }
-        _timerBusy = true
-
         viewModelScope.launch {
+
             try {
+                _timerMutex.withLock {
 
-                if(_localPlayer.playbackState == Player.STATE_ENDED) {
-                    popBackStack()
-                } else {
-
-                    val seconds = _localPlayer.currentPosition.coerceAtLeast(0).toDouble() / 1000
-                    val videoTiming = _videoTimings.first {
-                        it.mediaId == _currentMediaItemId!!
-                    }
-
-
-                    if(videoTiming.introClicked) {
-                        if(_uiState.value.currentPositionWithinIntro) {
-                            _uiState.update {
-                                it.copy(
-                                    currentPositionWithinIntro = false
-                                )
-                            }
-                        }
+                    if (_localPlayer.playbackState == Player.STATE_ENDED) {
+                        popBackStack()
                     } else {
-                        val positionWithinIntro = videoTiming.positionWithinIntro(seconds)
-                        if (positionWithinIntro && _autoSkipIntros) {
-                            skipIntro()
-                        } else {
-                            if (_uiState.value.currentPositionWithinIntro != positionWithinIntro) {
-                                _uiState.update {
-                                    it.copy(
-                                        currentPositionWithinIntro = positionWithinIntro
-                                    )
-                                }
-                            }
-                        }
-                    }
 
-                    val endOfPlaylist = _videoTimings.indexOf(videoTiming) == _videoTimings.size - 1
-                    if(!endOfPlaylist) {
-                        if (videoTiming.creditsClicked) {
-                            if (_uiState.value.currentPositionWithinCredits) {
+                        val seconds =
+                            _localPlayer.currentPosition.coerceAtLeast(0).toDouble() / 1000
+                        val videoTiming = _videoTimings.first {
+                            it.mediaId == _currentMediaItemId!!
+                        }
+
+
+                        if (videoTiming.introClicked) {
+                            if (_uiState.value.currentPositionWithinIntro) {
                                 _uiState.update {
                                     it.copy(
-                                        currentPositionWithinCredits = false
+                                        currentPositionWithinIntro = false
                                     )
                                 }
                             }
                         } else {
-                            val length = _localPlayer.contentDuration.toDouble() / 1000
-                            val positionWithinCredits =
-                                videoTiming.positionWithinCredits(seconds, length)
-                            if (positionWithinCredits && _autoSkipCredits) {
-                                playNext()
+                            val positionWithinIntro = videoTiming.positionWithinIntro(seconds)
+                            if (positionWithinIntro && _autoSkipIntros) {
+                                skipIntro()
                             } else {
-                                if (_uiState.value.currentPositionWithinCredits != positionWithinCredits) {
+                                if (_uiState.value.currentPositionWithinIntro != positionWithinIntro) {
                                     _uiState.update {
                                         it.copy(
-                                            currentPositionWithinCredits = positionWithinCredits
+                                            currentPositionWithinIntro = positionWithinIntro
                                         )
                                     }
                                 }
                             }
                         }
-                    }
+
+                        val endOfPlaylist =
+                            _videoTimings.indexOf(videoTiming) == _videoTimings.size - 1
+                        if (!endOfPlaylist) {
+                            if (videoTiming.creditsClicked) {
+                                if (_uiState.value.currentPositionWithinCredits) {
+                                    _uiState.update {
+                                        it.copy(
+                                            currentPositionWithinCredits = false
+                                        )
+                                    }
+                                }
+                            } else {
+                                val length = _localPlayer.contentDuration.toDouble() / 1000
+                                val positionWithinCredits =
+                                    videoTiming.positionWithinCredits(seconds, length)
+                                if (positionWithinCredits && _autoSkipCredits) {
+                                    playNext()
+                                } else {
+                                    if (_uiState.value.currentPositionWithinCredits != positionWithinCredits) {
+                                        _uiState.update {
+                                            it.copy(
+                                                currentPositionWithinCredits = positionWithinCredits
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
 
 
-                    if(_currentMediaItemId != null && seconds > 1.0 && abs(_previousSeconds - seconds) >= 1.0) {
-                        _previousSeconds = seconds
-                        val pp = PlaybackProgress(
-                            id = _currentMediaItemId!!.toInt(),
-                            seconds = seconds
-                        )
+                        if (_currentMediaItemId != null && seconds > 1.0 && abs(_previousSeconds - seconds) >= 1.0) {
+                            _previousSeconds = seconds
+                            val pp = PlaybackProgress(
+                                id = _currentMediaItemId!!.toInt(),
+                                seconds = seconds
+                            )
 
-                        when(_mediaType) {
-                            PlayerNav.MEDIA_TYPE_MOVIE,
-                            PlayerNav.MEDIA_TYPE_SERIES ->
-                                mediaRepository.updatePlaybackProgress(pp)
+                            when (_mediaType) {
+                                PlayerNav.MEDIA_TYPE_MOVIE,
+                                PlayerNav.MEDIA_TYPE_SERIES ->
+                                    mediaRepository.updatePlaybackProgress(pp)
 
-                            PlayerNav.MEDIA_TYPE_PLAYLIST ->
-                                playlistRepository.setPlaylistProgress(pp)
+                                PlayerNav.MEDIA_TYPE_PLAYLIST ->
+                                    playlistRepository.setPlaylistProgress(pp)
+                            }
                         }
                     }
                 }
             } catch (ex: Exception) {
-                //Log.e(TAG, "timerTick", ex)
+                Log.e(TAG, "timerTick", ex)
             }
-
-            _timerBusy = false
         }
     }
-
 }

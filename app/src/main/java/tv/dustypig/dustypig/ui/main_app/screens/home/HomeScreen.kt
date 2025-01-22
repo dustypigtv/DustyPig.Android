@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -62,9 +63,9 @@ private fun HomeScreenInternal(
     routeNavigator: RouteNavigator
 ) {
 
-    val showLoading = uiState.isRefreshing && uiState.sections.isEmpty()
-    val showEmpty = uiState.sections.isEmpty() && !uiState.isRefreshing
-    val showLoadingOrEmpty = showLoading || showEmpty
+    //val showLoading = uiState.isFirstLoad && uiState.sections.isEmpty()
+    val showEmpty = uiState.sections.isEmpty() && !uiState.isFirstLoad
+    val showLoadingOrEmpty = uiState.isFirstLoad || showEmpty
 
     Box(modifier = Modifier.fillMaxSize()) {
 
@@ -84,6 +85,8 @@ private fun HomeScreenInternal(
                     }
                 } else {
                     Text(text = stringResource(R.string.loading))
+                    Spacer(modifier = Modifier.height(12.dp))
+                    CircularProgressIndicator()
                 }
             }
         } else {
@@ -209,7 +212,7 @@ private fun HomeScreenPreview() {
 
 
     val uiState = HomeUIState(
-        isRefreshing = false,
+        isFirstLoad = false,
         sections = sections
     )
 
