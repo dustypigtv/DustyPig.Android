@@ -15,15 +15,13 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.api.models.DetailedMovie
 import tv.dustypig.dustypig.api.models.DetailedPlaylist
 import tv.dustypig.dustypig.api.models.DetailedSeries
-import tv.dustypig.dustypig.api.models.SRTSubtitles
 import tv.dustypig.dustypig.api.models.MediaTypes
+import tv.dustypig.dustypig.api.models.SRTSubtitles
 import tv.dustypig.dustypig.api.repositories.EpisodesRepository
 import tv.dustypig.dustypig.api.repositories.MoviesRepository
 import tv.dustypig.dustypig.api.repositories.PlaylistRepository
@@ -71,10 +69,7 @@ class DownloadManager @Inject constructor(
     private var _downloadOverMobile = false
 
     private val _statusTimer = Timer()
-    private var _statusTimerMutex = Mutex(locked = false)
-
     private val _updateTimer = Timer()
-    private var _updateTimerMutex = Mutex(locked = false)
 
     private val _downloadFlow = MutableSharedFlow<List<UIJob>>(replay = 1)
     val downloads = _downloadFlow.asSharedFlow()
@@ -146,10 +141,7 @@ class DownloadManager @Inject constructor(
     private fun statusTimerTick() {
         _scope.launch {
             try {
-                _statusTimerMutex.withLock {
-                    statusTimerWork()
-                }
-            } catch (_: IllegalStateException) {
+                statusTimerWork()
             } catch (ex: Exception) {
                 Log.e(TAG, ex.localizedMessage ?: "Unknown Error", ex)
                 ex.logToCrashlytics()
@@ -532,10 +524,7 @@ class DownloadManager @Inject constructor(
     private fun updateTimerTick() {
         _scope.launch {
             try {
-                _updateTimerMutex.withLock {
-                    updateTimerWork()
-                }
-            } catch (_: IllegalStateException) {
+                updateTimerWork()
             } catch(ex: Exception) {
                 Log.e(TAG, ex.localizedMessage ?: "Unknown Error", ex)
                 ex.logToCrashlytics()

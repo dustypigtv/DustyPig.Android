@@ -20,10 +20,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import tv.dustypig.dustypig.api.models.SRTSubtitles
 import tv.dustypig.dustypig.api.models.PlaybackProgress
+import tv.dustypig.dustypig.api.models.SRTSubtitles
 import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.api.repositories.MoviesRepository
 import tv.dustypig.dustypig.api.repositories.PlaylistRepository
@@ -96,7 +94,6 @@ class PlayerViewModel @Inject constructor(
         }
 
     private val _timer = Timer()
-    private var _timerMutex = Mutex(locked = false)
 
     private val _videoTimings = arrayListOf<VideoTiming>()
     private var _autoSkipIntros = false
@@ -581,7 +578,6 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
 
             try {
-                _timerMutex.withLock {
 
                     if (_localPlayer.playbackState == Player.STATE_ENDED) {
                         popBackStack()
@@ -664,8 +660,6 @@ class PlayerViewModel @Inject constructor(
                             }
                         }
                     }
-                }
-            } catch(_: IllegalStateException) {
             } catch (ex: Exception) {
                 Log.e(TAG, "timerTick", ex)
             }
