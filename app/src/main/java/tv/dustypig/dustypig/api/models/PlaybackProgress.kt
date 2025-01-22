@@ -16,6 +16,5 @@ private fun getTimestamp(): String {
     val tz = TimeZone.getTimeZone("UTC")
     val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
     sdf.timeZone = tz
-
-    return sdf.format(Calendar.getInstance(tz))
+    return sdf.format(Calendar.getInstance(tz).time)
 }
