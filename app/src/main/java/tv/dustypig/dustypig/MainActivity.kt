@@ -42,6 +42,7 @@ import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
 import tv.dustypig.dustypig.global_managers.FCMManager
+import tv.dustypig.dustypig.global_managers.progress_manager.ProgressReportManager
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.auth_flow.AuthNav
@@ -73,6 +74,9 @@ class MainActivity: ComponentActivity() {
 
     @Inject
     lateinit var alertsManager: AlertsManager
+
+    @Inject
+    lateinit var progressReportManager: ProgressReportManager
 
     private lateinit var analytics: FirebaseAnalytics
 

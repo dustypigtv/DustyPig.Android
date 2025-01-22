@@ -143,7 +143,7 @@ data class GenrePair(
     }
 }
 
-class Genres constructor() {
+class Genres() {
 
     constructor(fromVal: Long) : this() {
         value = fromVal

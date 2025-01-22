@@ -20,9 +20,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.api.models.PlaybackProgress
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import tv.dustypig.dustypig.api.models.SRTSubtitles
-import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.api.repositories.MoviesRepository
 import tv.dustypig.dustypig.api.repositories.PlaylistRepository
 import tv.dustypig.dustypig.api.repositories.SeriesRepository
@@ -32,6 +32,7 @@ import tv.dustypig.dustypig.global_managers.cast_manager.CastConnectionState
 import tv.dustypig.dustypig.global_managers.cast_manager.CastConnectionStateListener
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
+import tv.dustypig.dustypig.global_managers.progress_manager.ProgressReportManager
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
@@ -49,13 +50,13 @@ import kotlin.math.abs
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
     private val routeNavigator: RouteNavigator,
-    private val mediaRepository: MediaRepository,
     private val moviesRepository: MoviesRepository,
     private val seriesRepository: SeriesRepository,
     private val playlistRepository: PlaylistRepository,
     private val downloadManager: DownloadManager,
     private val castManager: CastManager,
     private val networkManager: NetworkManager,
+    private val progressReportManager: ProgressReportManager,
     app: Application,
     settingsManager: SettingsManager,
     savedStateHandle: SavedStateHandle
@@ -94,6 +95,7 @@ class PlayerViewModel @Inject constructor(
         }
 
     private val _timer = Timer()
+    private val _timerMutex = Mutex(locked = false)
 
     private val _videoTimings = arrayListOf<VideoTiming>()
     private var _autoSkipIntros = false
@@ -578,7 +580,7 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
 
             try {
-
+                _timerMutex.withLock {
                     if (_localPlayer.playbackState == Player.STATE_ENDED) {
                         popBackStack()
                     } else {
@@ -645,21 +647,15 @@ class PlayerViewModel @Inject constructor(
 
                         if (_currentMediaItemId != null && seconds > 1.0 && abs(_previousSeconds - seconds) >= 1.0) {
                             _previousSeconds = seconds
-                            val pp = PlaybackProgress(
-                                id = _currentMediaItemId!!.toInt(),
+                            progressReportManager.setProgress(
+                                _currentMediaItemId!!.toInt(),
+                                playlist = _mediaType == PlayerNav.MEDIA_TYPE_PLAYLIST,
                                 seconds = seconds
                             )
-
-                            when (_mediaType) {
-                                PlayerNav.MEDIA_TYPE_MOVIE,
-                                PlayerNav.MEDIA_TYPE_SERIES ->
-                                    mediaRepository.updatePlaybackProgress(pp)
-
-                                PlayerNav.MEDIA_TYPE_PLAYLIST ->
-                                    playlistRepository.setPlaylistProgress(pp)
-                            }
                         }
                     }
+                }
+            } catch (_: IllegalStateException) {
             } catch (ex: Exception) {
                 Log.e(TAG, "timerTick", ex)
             }

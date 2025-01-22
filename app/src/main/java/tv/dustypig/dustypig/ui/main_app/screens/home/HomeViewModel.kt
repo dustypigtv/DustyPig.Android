@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import tv.dustypig.dustypig.api.models.HomeScreenList
 import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.global_managers.NetworkManager
@@ -35,6 +37,7 @@ class HomeViewModel @Inject constructor(
     val uiState: StateFlow<HomeUIState> = _uiState.asStateFlow()
 
     private val _timer = Timer()
+    private val _timerMutex = Mutex(locked = false)
 
     companion object {
 
@@ -79,14 +82,20 @@ class HomeViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                val data = mediaRepository.homeScreen()
-                val sections = data.sections ?: listOf()
-                _uiState.update {
-                    it.copy(
-                        isFirstLoad = false,
-                        sections = sections
-                    )
+                _timerMutex.withLock {
+
+                    waitMinute()
+
+                    val data = mediaRepository.homeScreen()
+                    val sections = data.sections ?: listOf()
+                    _uiState.update {
+                        it.copy(
+                            isFirstLoad = false,
+                            sections = sections
+                        )
+                    }
                 }
+            } catch (_: IllegalStateException) {
             } catch (ex: Exception) {
                 ex.logToCrashlytics()
 
@@ -101,8 +110,6 @@ class HomeViewModel @Inject constructor(
                     }
                 }
             }
-
-            waitMinute()
         }
     }
 

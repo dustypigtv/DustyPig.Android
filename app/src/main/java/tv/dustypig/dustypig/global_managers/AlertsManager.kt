@@ -1,6 +1,7 @@
 package tv.dustypig.dustypig.global_managers
 
 import android.content.Intent
+import android.util.Log
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -10,7 +11,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.models.FCMToken
 import tv.dustypig.dustypig.api.models.MediaTypes
@@ -46,6 +46,8 @@ class AlertsManager @Inject constructor(
     private val authRepository: AuthRepository
 ) {
     companion object {
+
+        private const val TAG = "AlertsManager"
 
         const val DATA_ID = "dp.id"
         const val DATA_PROFILE_ID = "dp.pid"
@@ -249,8 +251,13 @@ class AlertsManager @Inject constructor(
                     listenerRegistration = Firebase.firestore
                         .collection(FIRESTORE_ALERTS_COLLECTION_PATH)
                         .document(authManager.currentProfileId.toString())
-                        .addSnapshotListener { _, _ ->
-                            _mutableUpdateFlow.tryEmit(UUID.randomUUID().toString())
+                        .addSnapshotListener { _, err ->
+                            if(err != null) {
+                                Log.e(TAG, err.localizedMessage ?: "Unknown error", err)
+                            } else {
+                                Log.d(TAG, "Firestore sent alerts signal")
+                                _mutableUpdateFlow.tryEmit(UUID.randomUUID().toString())
+                            }
                         }
                 }
             }
@@ -322,29 +329,15 @@ class AlertsManager @Inject constructor(
 
     private suspend fun markAsRead(id: Int) {
         try {
-            val lst: ArrayList<Notification>? = _notificationsFlow.lastOrNull()
-                ?.let { ArrayList(it) }
-            if (lst != null) {
-                val n = lst.firstOrNull { it.id == id }
-                if(n != null) {
-                    n.seen = true
-                    _notificationsFlow.tryEmit(lst.toList())
-                }
-            }
             notificationsRepository.markAsRead(id)
         } catch (ex: Exception) {
+            Log.e(TAG, ex.localizedMessage ?: "Unknown error", ex)
             ex.logToCrashlytics()
         }
     }
 
     private suspend fun delete(id: Int) {
         try {
-            val lst: ArrayList<Notification>? = _notificationsFlow.lastOrNull()
-                ?.let { ArrayList(it) }
-            if (lst != null) {
-                if(lst.removeAll { it.id == id })
-                    _notificationsFlow.tryEmit(lst.toList())
-            }
             notificationsRepository.delete(id)
         } catch (ex: Exception) {
             ex.logToCrashlytics()
