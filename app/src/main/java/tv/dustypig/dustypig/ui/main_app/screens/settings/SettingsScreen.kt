@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig.ui.main_app.screens.settings
 
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,9 +27,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import tv.dustypig.dustypig.BuildConfig
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
@@ -82,6 +85,12 @@ private fun SettingsScreenInternal(
             LinkRow(text = stringResource(R.string.my_profile), onClick = uiState.onNavToMyProfile)
         }
 
+        Spacer(modifier = Modifier.height(24.dp))
+
+
+        val version = "Version: " + BuildConfig.VERSION_NAME + "." + BuildConfig.VERSION_CODE
+        Text("Dusty Pig")
+        Text(version)
     }
 }
 
@@ -92,7 +101,10 @@ private fun LinkRow(text: String, onClick: () -> Unit) {
             .fillMaxWidth()
             .padding(4.dp)
             .clip(shape = RoundedCornerShape(4.dp))
-            .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp))
+            .background(
+                color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+                shape = RoundedCornerShape(4.dp)
+            )
             .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween

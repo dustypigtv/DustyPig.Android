@@ -105,6 +105,7 @@ import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.composables.YesNoDialog
 import tv.dustypig.dustypig.ui.isTablet
+import tv.dustypig.dustypig.ui.theme.DarkRed
 
 
 private val dismissPadding = 12.dp
@@ -693,7 +694,7 @@ private fun PlaylistItemCard(
 @Composable
 private fun DismissBackground(dismissState: SwipeToDismissBoxState) {
     val color = when (dismissState.dismissDirection) {
-        SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.errorContainer
+        SwipeToDismissBoxValue.EndToStart -> DarkRed
         else -> Color.Transparent
     }
 
@@ -719,6 +720,7 @@ private fun DismissBackground(dismissState: SwipeToDismissBoxState) {
         if(dismissState.progress < 0.99f) {
             Icon(
                 Icons.Outlined.Delete,
+                tint = Color.White,
                 contentDescription = "delete",
                 modifier = Modifier
                     .size(36.dp)

@@ -21,3 +21,8 @@ val DisneyBlue = Color(0xFF355ACA)
 val BurntOrange = Color(0xFFCC5500)
 
 val DisabledWhite = Color.White.copy(alpha = 0.38f)
+
+val DarkRed = Color.Red.copy(alpha = 0.5f)
+
+val DarkGreen = Color.Green.copy(alpha = 0.5f)
+

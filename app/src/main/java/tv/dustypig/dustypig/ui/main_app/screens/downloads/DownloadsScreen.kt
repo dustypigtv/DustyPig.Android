@@ -70,6 +70,8 @@ import tv.dustypig.dustypig.ui.composables.MultiDownloadDialog
 import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.composables.YesNoDialog
+import tv.dustypig.dustypig.ui.theme.DarkGreen
+import tv.dustypig.dustypig.ui.theme.DarkRed
 
 private val dismissPadding = 12.dp
 
@@ -83,8 +85,8 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
 private fun DismissBackground(dismissState: SwipeToDismissBoxState) {
 
     val color = when (dismissState.dismissDirection) {
-        SwipeToDismissBoxValue.EndToStart -> Color.Red.copy(0.5f, 1f, 0f, 0f)
-        SwipeToDismissBoxValue.StartToEnd -> Color.Green.copy(0.5f, 0f, 1f, 0f)
+        SwipeToDismissBoxValue.EndToStart -> DarkRed
+        SwipeToDismissBoxValue.StartToEnd -> DarkGreen
         else -> Color.Transparent
     }
 

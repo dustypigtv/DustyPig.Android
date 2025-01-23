@@ -50,6 +50,7 @@ import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.Notification
 import tv.dustypig.dustypig.api.models.NotificationTypes
 import tv.dustypig.dustypig.ui.composables.PreviewBase
+import tv.dustypig.dustypig.ui.theme.DarkRed
 import java.util.Date
 
 
@@ -124,7 +125,7 @@ private fun AlertCard(
 private fun DismissBackground(dismissState: SwipeToDismissBoxState) {
 
     val color = when (dismissState.dismissDirection) {
-        SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.errorContainer
+        SwipeToDismissBoxValue.EndToStart -> DarkRed
         else -> Color.Transparent
     }
 
@@ -149,6 +150,7 @@ private fun DismissBackground(dismissState: SwipeToDismissBoxState) {
         if(dismissState.progress < 0.99f) {
             Icon(
                 Icons.Outlined.Delete,
+                tint = Color.White,
                 contentDescription = "delete",
                 modifier = Modifier
                     .size(36.dp)
