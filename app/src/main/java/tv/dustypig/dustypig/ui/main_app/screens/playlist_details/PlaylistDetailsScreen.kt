@@ -27,34 +27,34 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.DownloadDone
 import androidx.compose.material.icons.filled.Downloading
 import androidx.compose.material.icons.filled.DragIndicator
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PlayCircleOutline
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DismissDirection
-import androidx.compose.material3.DismissValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SwipeToDismiss
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxState
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDismissState
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -79,13 +79,14 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Play
-import kotlinx.coroutines.delay
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.detectReorder
@@ -104,6 +105,10 @@ import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.composables.YesNoDialog
 import tv.dustypig.dustypig.ui.isTablet
+
+
+private val dismissPadding = 12.dp
+private val itemHeight = 64.dp
 
 @Composable
 fun PlaylistDetailsScreen(vm: PlaylistDetailsViewModel) {
@@ -347,7 +352,7 @@ private fun HorizontalTabletLayout(
                         PlaylistItemLayout(
                             playlistItem = playlistItem,
                             isDragging = isDragging,
-                            state = state,
+                            reorderState = state,
                             uiState = uiState
                         )
                     }
@@ -392,7 +397,7 @@ private fun PhoneLayout(
     }
 
     //There are 2 items before the playlist items, so subtract 2 from indices
-    val state = rememberReorderableLazyListState(
+    val reorderState = rememberReorderableLazyListState(
         onMove = { from, to ->
             try {
                 data.value = data.value.toMutableList().apply {
@@ -413,10 +418,10 @@ private fun PhoneLayout(
     ) {
 
         LazyColumn(
-            state = state.listState,
+            state = reorderState.listState,
             modifier = Modifier
                 .fillMaxSize()
-                .reorderable(state),
+                .reorderable(reorderState),
             horizontalAlignment = columnAlignment,
             //verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -458,11 +463,11 @@ private fun PhoneLayout(
                 }
 
                 items(data.value, { it.id }) { playlistItem ->
-                    ReorderableItem(state, key = playlistItem.id) { isDragging ->
+                    ReorderableItem(reorderState, key = playlistItem.id) { isDragging ->
                         PlaylistItemLayout(
                             playlistItem = playlistItem,
                             isDragging = isDragging,
-                            state = state,
+                            reorderState = reorderState,
                             uiState = uiState
                         )
                     }
@@ -582,37 +587,176 @@ private fun PlaybackLayout(
 }
 
 
+
+@Composable
+private fun PlaylistItemCard(
+    playlistItem: PlaylistItem,
+    uiState: PlaylistDetailsUIState,
+    elevationState: State<Dp>,
+    reorderState: ReorderableLazyListState
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(0.dp),
+        verticalAlignment = Alignment.Top,
+        modifier = Modifier
+            .height(itemHeight)
+            .shadow(elevationState.value)
+            .background(
+                color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
+                shape = RoundedCornerShape(4.dp)
+            )
+    ) {
+
+        Box(
+            modifier = Modifier
+                .height(itemHeight)
+                .width(24.dp)
+                .clickable { }
+                .detectReorder(reorderState)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.DragIndicator,
+                contentDescription = "",
+                modifier = Modifier.size(24.dp, 64.dp)
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .width(114.dp)
+                .height(itemHeight),
+            contentAlignment = Alignment.Center
+        ) {
+            AsyncImage(
+                model = playlistItem.artworkUrl,
+                contentDescription = "",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = Color.DarkGray)
+                    .clip(shape = RoundedCornerShape(4.dp)),
+                error = painterResource(id = R.drawable.error_wide)
+            )
+
+            TintedIcon(
+                imageVector = Icons.Filled.PlayCircleOutline,
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(shape = CircleShape)
+                    .background(color = Color.Black.copy(alpha = 0.5f))
+                    .clickable { uiState.onPlayItem(playlistItem.id) }
+            )
+
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = playlistItem.title,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = playlistItem.description,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
+        Spacer(modifier = Modifier.width(18.dp))
+
+        Box(
+            modifier = Modifier
+                .width(24.dp)
+                .height(itemHeight)
+                .offset(x = (-12).dp),
+            contentAlignment = Alignment.Center
+        ) {
+
+            IconButton(onClick = { uiState.onNavToItem(playlistItem.id) }) {
+                Icon(
+                    imageVector = Icons.Outlined.Info,
+                    contentDescription = null
+                )
+            }
+        }
+
+    }
+}
+
+
+@Composable
+private fun DismissBackground(dismissState: SwipeToDismissBoxState) {
+    val color = when (dismissState.dismissDirection) {
+        SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.errorContainer
+        else -> Color.Transparent
+    }
+
+    val configuration = LocalConfiguration.current
+
+    val boxWidth = configuration.screenWidthDp.dp - dismissPadding * 2
+    val slide = boxWidth * dismissState.progress
+    val xOffset = if(slide > 60.dp)
+        min (dismissPadding * 4, (slide - dismissPadding * 3) / 2)
+    else
+        dismissPadding
+
+    Row(
+        modifier = Modifier
+            .clip(shape = RoundedCornerShape(4.dp))
+            .height(itemHeight)
+            .fillMaxWidth()
+            .background(color),
+
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.End
+    ) {
+        if(dismissState.progress < 0.99f) {
+            Icon(
+                Icons.Outlined.Delete,
+                contentDescription = "delete",
+                modifier = Modifier
+                    .size(36.dp)
+                    .offset(x = -xOffset)
+            )
+        }
+    }
+}
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PlaylistItemLayout(
     playlistItem: PlaylistItem,
     isDragging: Boolean,
-    state: ReorderableLazyListState,
+    reorderState: ReorderableLazyListState,
     uiState: PlaylistDetailsUIState
 ) {
+
+    val delayTime = 300
 
     val elevation = animateDpAsState(if (isDragging) 16.dp else 0.dp, label = "")
     var show by remember { mutableStateOf(true) }
 
-    val dismissState = rememberDismissState(
-        initialValue = DismissValue.Default,
+    val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = {
-            if(it == DismissValue.DismissedToStart) {
-                show = false
+            when (it) {
+                SwipeToDismissBoxValue.EndToStart -> {
+                    show = false
+                    uiState.onDeleteItem(playlistItem.id)
+                    true
+                }
+
+                else -> false
             }
-            it == DismissValue.DismissedToStart
         },
-        positionalThreshold = { totalDistance -> (totalDistance * 0.5).dp.toPx() }
+        positionalThreshold = { it * 0.5f }
     )
-
-    val delayTime = 300
-
-    LaunchedEffect(show) {
-        if(!show) {
-            delay(delayTime.toLong())
-            uiState.onDeleteItem(playlistItem.id)
-        }
-    }
 
     AnimatedVisibility(
         visible = show,
@@ -623,134 +767,20 @@ private fun PlaylistItemLayout(
         )
 
     ) {
-        SwipeToDismiss(
-            modifier = Modifier.padding(12.dp, 0.dp),
+        SwipeToDismissBox(
+            modifier = Modifier
+                .padding(dismissPadding),
             state = dismissState,
-            directions = setOf(DismissDirection.EndToStart),
-            background = {
-                val color = when (dismissState.dismissDirection) {
-                    DismissDirection.EndToStart -> MaterialTheme.colorScheme.errorContainer
-                    else -> Color.Transparent
-                }
-                val direction = dismissState.dismissDirection
-
-                Row(
-                    //Padding doesn't seem to work here
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(64.dp)
-                        .background(color, shape = RoundedCornerShape(4.dp)),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    if (direction == DismissDirection.EndToStart) {
-                        Icon(
-                            imageVector = Icons.Filled.Delete,
-                            contentDescription = stringResource(R.string.delete),
-                            modifier = Modifier.padding(12.dp, 0.dp)
-                        )
-                    }
-                }
-            },
-            dismissContent = {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(0.dp),
-                    verticalAlignment = Alignment.Top,
-                    modifier = Modifier
-                        .height(80.dp)
-                        .padding(bottom = 16.dp)
-                        .shadow(elevation.value)
-                        .background(
-                            color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
-                            shape = RoundedCornerShape(4.dp)
-                        )
-                ) {
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .width(24.dp)
-                            .clickable { }
-                            .detectReorder(state)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.DragIndicator,
-                            contentDescription = "",
-                            modifier = Modifier.size(24.dp, 64.dp)
-                        )
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .width(114.dp)
-                            .height(64.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        AsyncImage(
-                            model = playlistItem.artworkUrl,
-                            contentDescription = "",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(color = Color.DarkGray)
-                                .clip(shape = RoundedCornerShape(4.dp)),
-                            error = painterResource(id = R.drawable.error_wide)
-                        )
-
-                        TintedIcon(
-                            imageVector = Icons.Filled.PlayCircleOutline,
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(shape = CircleShape)
-                                .background(color = Color.Black.copy(alpha = 0.5f))
-                                .clickable { uiState.onPlayItem(playlistItem.id) }
-                        )
-
-                    }
-
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    Column(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(
-                            text = playlistItem.title,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = playlistItem.description,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(18.dp))
-
-                    Box(
-                        modifier = Modifier
-                            .width(24.dp)
-                            .height(64.dp)
-                            .offset(x = (-12).dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-
-                        IconButton(onClick = { uiState.onNavToItem(playlistItem.id) }) {
-                            Icon(
-                                imageVector = Icons.Outlined.Info,
-                                contentDescription = null
-                            )
-                        }
-                    }
-
-                }
-            }
+            backgroundContent = { DismissBackground(dismissState) },
+            enableDismissFromStartToEnd = false,
+            content = {  PlaylistItemCard(
+                playlistItem = playlistItem,
+                uiState = uiState,
+                elevationState = elevation,
+                reorderState = reorderState
+            )}
         )
     }
-
-
 }
 
 @Composable

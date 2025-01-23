@@ -9,10 +9,12 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -36,24 +38,23 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.global_managers.AuthManager
 import tv.dustypig.dustypig.global_managers.AlertsManager
+import tv.dustypig.dustypig.global_managers.AuthManager
+import tv.dustypig.dustypig.global_managers.FCMManager
 import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
-import tv.dustypig.dustypig.global_managers.FCMManager
 import tv.dustypig.dustypig.global_managers.progress_manager.ProgressReportManager
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 import tv.dustypig.dustypig.ui.auth_flow.AuthNav
-import tv.dustypig.dustypig.ui.hideSystemUi
 import tv.dustypig.dustypig.ui.isTablet
 import tv.dustypig.dustypig.ui.main_app.AppNav
-import tv.dustypig.dustypig.ui.showSystemUi
 import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 import javax.inject.Inject
 
-@UnstableApi @AndroidEntryPoint
+@UnstableApi
+@AndroidEntryPoint
 class MainActivity: ComponentActivity() {
 
     companion object {
@@ -96,6 +97,7 @@ class MainActivity: ComponentActivity() {
             )
         }
 
+        enableEdgeToEdge()
 
         setContent {
 
@@ -109,23 +111,25 @@ class MainActivity: ComponentActivity() {
                 }
             }
 
-            DustyPigTheme(currentTheme) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    AppStateSwitcher()
+//            Box(Modifier.safeDrawingPadding()) {
+                DustyPigTheme(currentTheme) {
+                    Surface(
+                        modifier = Modifier.fillMaxSize().safeDrawingPadding(),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        AppStateSwitcher()
+                    }
                 }
-            }
+//            }
         }
 
         checkIntent(intent)
     }
 
-    override fun onNewIntent(intent: Intent?) {
-        super.onNewIntent(intent)
-        checkIntent(intent)
-    }
+//    override fun onNewIntent(intent: Intent?) {
+//        super.onNewIntent(intent)
+//        checkIntent(intent)
+//    }
 
     @androidx.annotation.OptIn(UnstableApi::class)
     override fun onResume() {
@@ -179,10 +183,10 @@ class MainActivity: ComponentActivity() {
             true -> {
 
                 val playerScreenVisible by PlayerStateManager.playerScreenVisible.collectAsState()
-                if (playerScreenVisible)
-                    hideSystemUi()
-                else
-                    showSystemUi()
+//                if (playerScreenVisible)
+//                    hideSystemUi()
+//                else
+//                    showSystemUi()
 
 
                 requestedOrientation = if (playerScreenVisible) {
@@ -198,7 +202,7 @@ class MainActivity: ComponentActivity() {
 
             }
             false -> {
-                showSystemUi()
+//                showSystemUi()
                 requestedOrientation = if (isTablet()) {
                     ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
                 } else {
@@ -209,7 +213,7 @@ class MainActivity: ComponentActivity() {
 
             else -> {
                 //Unknown state
-                showSystemUi()
+//                showSystemUi()
                 Scaffold { paddingValues ->
                     Box(
                         modifier = Modifier

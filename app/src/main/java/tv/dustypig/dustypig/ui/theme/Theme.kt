@@ -6,7 +6,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import tv.dustypig.dustypig.global_managers.settings_manager.Themes
@@ -83,7 +82,7 @@ fun DustyPigTheme(
     if (!view.isInEditMode) {
 
         val window = (view.context as Activity).window
-        window.statusBarColor = colorScheme.background.toArgb()
+//        window.statusBarColor = colorScheme.background.toArgb()
         WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
 
 //        val insetsController = WindowCompat.getInsetsController(window, window.decorView)

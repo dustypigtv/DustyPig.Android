@@ -14,9 +14,9 @@ import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.outlined.Forward30
 import androidx.compose.material.icons.outlined.Replay10
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -116,7 +116,7 @@ private fun CastPlaybackButton(
                 enabled = enabled,
                 role = Role.Button,
                 interactionSource = remember { MutableInteractionSource() },
-                indication = rememberRipple(
+                indication = ripple(
                     bounded = false,
                     radius = 40.dp * (sizeMultiple / 2)
                 )
