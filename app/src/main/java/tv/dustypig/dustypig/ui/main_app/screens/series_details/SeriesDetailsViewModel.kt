@@ -129,6 +129,9 @@ class SeriesDetailsViewModel  @OptIn(UnstableApi::class) @Inject constructor(
 
         try {
             _detailedSeries = seriesRepository.details(_mediaId)
+            _detailedSeries.episodes?.forEach {
+                detailedEpisode -> detailedEpisode.seriesTitle = _detailedSeries.title
+            }
             MediaCacheManager.Series[_detailCacheId] = _detailedSeries
 
             val episodes = _detailedSeries.episodes ?: listOf()

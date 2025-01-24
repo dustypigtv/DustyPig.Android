@@ -20,7 +20,7 @@ data class DetailedEpisode(
     val seasonNumber: UShort = 0u,
     val episodeNumber: UShort= 0u,
     val seriesId: Int = 0,
-    val seriesTitle: String? = null
+    var seriesTitle: String? = null
 ) {
     fun fullDisplayTitle() = "S$seasonNumber:E$episodeNumber - $title"
     fun shortDisplayTitle() = "E$episodeNumber: $title"

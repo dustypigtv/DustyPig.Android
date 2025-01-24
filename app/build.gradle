@@ -55,9 +55,7 @@ android {
 }
 
 ext {
-    media3_version = '1.5.1'
     room_version = '2.5.2'
-    androidx_lifecycle_version = '2.6.2'
     hilt_version = '2.45'
 }
 dependencies {
@@ -79,7 +77,7 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation('com.squareup.retrofit2:converter-gson:2.9.0')
     implementation("androidx.navigation:navigation-compose:2.8.5")
-    implementation "androidx.paging:paging-compose:3.2.1"
+    implementation "androidx.paging:paging-compose:3.3.5"
     implementation("br.com.devsrsouza.compose.icons:font-awesome:1.1.0")
 
     implementation(platform('com.google.firebase:firebase-bom:32.5.0'))
@@ -90,23 +88,23 @@ dependencies {
     implementation 'com.google.firebase:firebase-firestore-ktx'
 
     implementation("com.google.dagger:hilt-android:$hilt_version")
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.6.2'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.8.7'
     implementation 'com.google.android.material:material:1.10.0'
-    implementation 'androidx.window:window:1.2.0'
+    implementation 'androidx.window:window:1.3.0'
     kapt("com.google.dagger:hilt-android-compiler:$hilt_version")
 
 
-    implementation("androidx.hilt:hilt-work:1.0.0")
-    kapt("androidx.hilt:hilt-compiler:1.0.0")
-    implementation("androidx.work:work-runtime-ktx:2.8.1")
-    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
+    implementation("androidx.hilt:hilt-work:1.2.0")
+    kapt("androidx.hilt:hilt-compiler:1.2.0")
+    implementation("androidx.work:work-runtime-ktx:2.10.0")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$androidx_lifecycle_version")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$androidx_lifecycle_version")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:$androidx_lifecycle_version")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:$androidx_lifecycle_version")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
 
     implementation("androidx.room:room-runtime:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
@@ -114,17 +112,17 @@ dependencies {
 //    annotationProcessor("androidx.room:room-compiler:$room_version")
 
     implementation("org.burnoutcrew.composereorderable:reorderable:0.9.6")
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("androidx.datastore:datastore-preferences:1.1.2")
     implementation('io.coil-kt:coil-compose:2.5.0')
     implementation("com.vanniktech:android-image-cropper:4.5.0")
 
 
     // For media playback using ExoPlayer
-    implementation("androidx.media3:media3-exoplayer:$media3_version")
-    implementation("androidx.media3:media3-ui:$media3_version")
-    implementation("androidx.media3:media3-cast:$media3_version")
-    implementation("androidx.mediarouter:mediarouter:1.6.0")
-    implementation("com.google.android.gms:play-services-cast-framework:21.3.0")
+    implementation("androidx.media3:media3-exoplayer:1.5.1")
+    implementation("androidx.media3:media3-ui:1.5.1")
+    implementation("androidx.media3:media3-cast:1.5.1")
+    implementation("androidx.mediarouter:mediarouter:1.7.0")
+    implementation("com.google.android.gms:play-services-cast-framework:22.0.0")
 
 
 

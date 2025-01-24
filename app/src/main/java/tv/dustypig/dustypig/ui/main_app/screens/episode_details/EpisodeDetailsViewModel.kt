@@ -1,8 +1,10 @@
 package tv.dustypig.dustypig.ui.main_app.screens.episode_details
 
+import androidx.annotation.OptIn
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.util.UnstableApi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,8 +30,10 @@ import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
 import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
 import javax.inject.Inject
 
+@OptIn(UnstableApi::class)
 @HiltViewModel
-class EpisodeDetailsViewModel  @Inject constructor(
+class EpisodeDetailsViewModel
+@Inject constructor(
     private val episodesRepository: EpisodesRepository,
     private val downloadManager: DownloadManager,
     castManager: CastManager,
