@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
@@ -101,9 +102,7 @@ private fun ManageParentalControlsForTitleScreenInternal(uiState: ManageParental
                             modifier = Modifier.padding(24.dp, 0.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Divider(
-                                modifier = Modifier.height(1.dp)
-                            )
+                            HorizontalDivider()
                             Text(
                                 modifier = Modifier.background(color = MaterialTheme.colorScheme.background),
                                 text = "   Profiles   ",
@@ -153,9 +152,7 @@ private fun ManageParentalControlsForTitleScreenInternal(uiState: ManageParental
                             modifier = Modifier.padding(24.dp, 0.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Divider(
-                                modifier = Modifier.height(1.dp)
-                            )
+                            HorizontalDivider()
                             Text(
                                 modifier = Modifier.background(color = MaterialTheme.colorScheme.background),
                                 text = "   Friends   ",

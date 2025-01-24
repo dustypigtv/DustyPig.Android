@@ -18,12 +18,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.DownloadDone
 import androidx.compose.material.icons.filled.Downloading
-import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.RemoveRedEye
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -58,11 +58,11 @@ import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Play
 import compose.icons.fontawesomeicons.solid.UserLock
 import tv.dustypig.dustypig.R
+import tv.dustypig.dustypig.api.models.BasicPerson
 import tv.dustypig.dustypig.api.models.CreditRoles
 import tv.dustypig.dustypig.api.models.Genre
 import tv.dustypig.dustypig.api.models.GenrePair
 import tv.dustypig.dustypig.api.models.OverrideRequestStatus
-import tv.dustypig.dustypig.api.models.BasicPerson
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
 import tv.dustypig.dustypig.ui.composables.ActionButton
 import tv.dustypig.dustypig.ui.composables.CastTopAppBar
@@ -430,7 +430,7 @@ private fun MovieTitleLayout(uiState: MovieDetailsUIState) {
                 ActionButton(
                     onClick = uiState.onAddToPlaylist,
                     caption = stringResource(R.string.add_to_playlist),
-                    icon = Icons.Filled.PlaylistAdd
+                    icon = Icons.AutoMirrored.Filled.PlaylistAdd
                 )
 
                 if(uiState.partiallyPlayed) {

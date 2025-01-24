@@ -23,6 +23,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -151,9 +152,7 @@ private fun FriendDetailsSettingsScreenInternal(uiState: FriendDetailsSettingsUI
                             modifier = Modifier.padding(12.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Divider(
-                                modifier = Modifier.height(1.dp)
-                            )
+                            HorizontalDivider()
                             Text(
                                 modifier = Modifier.background(color = MaterialTheme.colorScheme.background),
                                 text = "   Shared Libraries   ",
@@ -222,9 +221,7 @@ private fun FriendDetailsSettingsScreenInternal(uiState: FriendDetailsSettingsUI
                             modifier = Modifier.padding(12.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Divider(
-                                modifier = Modifier.height(1.dp)
-                            )
+                            HorizontalDivider()
                             Text(
                                 modifier = Modifier.background(color = MaterialTheme.colorScheme.background),
                                 text = "   Libraries Shared With Me   ",

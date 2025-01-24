@@ -3,7 +3,7 @@ package tv.dustypig.dustypig.ui.composables
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -32,7 +32,7 @@ fun CommonTopAppBar(onClick: () -> Unit, text: String) {
         },
         navigationIcon = {
             IconButton(onClick = onClick) {
-                TintedIcon(Icons.Filled.ArrowBack)
+                TintedIcon(Icons.AutoMirrored.Filled.ArrowBack)
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(

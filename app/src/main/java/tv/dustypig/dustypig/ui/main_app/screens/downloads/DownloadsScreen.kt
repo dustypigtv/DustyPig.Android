@@ -143,24 +143,24 @@ private fun DismissBackground(dismissState: SwipeToDismissBoxState) {
 @Composable
 private fun DownloadCard(
     uiState: DownloadsUIState,
-    job: UIJob
+    job: UIJob,
+    modifier: Modifier
 ) {
 
-    val modifier = when (job.mediaType) {
+    val modifierX = when (job.mediaType) {
         MediaTypes.Series, MediaTypes.Playlist -> Modifier.clickable {
             uiState.onToggleExpansion(job.mediaId)
         }
 
-        else -> Modifier
+        else -> modifier
     }
 
 
     Row(
-        modifier = modifier
+        modifier = modifierX
             .fillMaxWidth()
             .clip(shape = RoundedCornerShape(4.dp))
             .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp))
-//            .animateItemPlacement()
         ,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -309,16 +309,15 @@ private fun DownloadCard(
 private fun SubDownloadCard(
     job: UIJob,
     dl: UIDownload,
-    uiState: DownloadsUIState
+    uiState: DownloadsUIState,
+    modifier: Modifier
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .padding(start = 36.dp, top = 0.dp, end = 0.dp, bottom = 0.dp)
             .fillMaxWidth()
             .clip(shape = RoundedCornerShape(4.dp))
-            .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp))
-//                                        .animateItemPlacement()
-        ,
+            .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp)),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
 
@@ -538,7 +537,13 @@ private fun DownloadsScreenInternal(uiState: DownloadsUIState) {
                                     .padding(dismissPadding),
                                 state = dismissState,
                                 backgroundContent = { DismissBackground(dismissState) },
-                                content = { DownloadCard(uiState, job) }
+                                content = {
+                                    DownloadCard(
+                                        uiState,
+                                        job,
+                                        Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
+                                    )
+                                }
                             )
                         }
                     }
@@ -548,7 +553,12 @@ private fun DownloadsScreenInternal(uiState: DownloadsUIState) {
 
                         for (dl in job.downloads.filter { it.mediaId != job.mediaId }) {
                             item(key = dl.key) {
-                                SubDownloadCard(job, dl, uiState)
+                                SubDownloadCard(
+                                    job,
+                                    dl,
+                                    uiState,
+                                    Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
+                                )
                             }
                         }
 

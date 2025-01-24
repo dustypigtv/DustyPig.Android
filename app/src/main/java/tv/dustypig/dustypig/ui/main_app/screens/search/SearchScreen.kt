@@ -29,6 +29,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -36,10 +37,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -77,7 +77,7 @@ fun SearchScreen(vm: SearchViewModel) {
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SearchScreenInternal(
     uiState: SearchUIState,
@@ -87,7 +87,7 @@ private fun SearchScreenInternal(
     val keyboardController = LocalSoftwareKeyboardController.current
     val availableState = rememberLazyGridState()
     val tmdbState = rememberLazyGridState()
-    var active by remember { mutableStateOf(false) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
 
 
     Column(
@@ -95,52 +95,59 @@ private fun SearchScreenInternal(
     ) {
 
         SearchBar(
-            query = uiState.query,
-            onQueryChange = uiState.onUpdateQuery,
-            onSearch = {
-                active = false
-                uiState.onSearch()
-            },
-            active = active,
-            onActiveChange = { active = it },
-            modifier = Modifier.fillMaxWidth()
-                .padding(12.dp,0.dp),
-            leadingIcon = {
-                TintedIcon(imageVector = Icons.Filled.Search)
-            },
-            trailingIcon = {
-                IconButton(
-                    onClick = {
-                        if(uiState.query.isEmpty()) {
-                            active = false
-                        } else {
-                            uiState.onUpdateQuery("")
-                            uiState.onSearch()
+            inputField = {
+                SearchBarDefaults.InputField(
+                    query = uiState.query,
+                    onQueryChange = uiState.onUpdateQuery,
+                    onSearch = {
+                        expanded = false
+                        uiState.onSearch()
+                    },
+                    expanded = expanded,
+                    onExpandedChange = { expanded = it },
+                    leadingIcon = {
+                        TintedIcon(imageVector = Icons.Filled.Search)
+                    },
+                    trailingIcon = {
+                        IconButton(
+                            onClick = {
+                                if(uiState.query.isEmpty()) {
+                                    expanded = false
+                                } else {
+                                    uiState.onUpdateQuery("")
+                                    uiState.onSearch()
+                                }
+                            }
+                        ) {
+                            TintedIcon(imageVector = Icons.Filled.Cancel)
                         }
                     }
-                ) {
-                    TintedIcon(imageVector = Icons.Filled.Cancel)
+                )
+            },
+            expanded = expanded,
+            onExpandedChange = { expanded = it },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp, 0.dp),
+            content =  {
+                uiState.history.forEach { history ->
+                    Row(
+                        modifier = Modifier
+                            .clickable {
+                                uiState.onUpdateQuery(history)
+                                expanded = false
+                                uiState.onSearch()
+                            }
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        TintedIcon(imageVector = Icons.Filled.History)
+                        Text(text = history)
+                    }
                 }
-            }
-        ) {
-            uiState.history.forEach { history ->
-                Row(
-                    modifier = Modifier
-                        .clickable {
-                            uiState.onUpdateQuery(history)
-                            active = false
-                            uiState.onSearch()
-                        }
-                        .fillMaxWidth()
-                        .padding(12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    TintedIcon(imageVector = Icons.Filled.History)
-                    Text(text = history)
-                }
-            }
-        }
-
+            },
+        )
 
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -227,7 +234,6 @@ private fun SearchScreenInternal(
 
 
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun AvailableLayout(
     uiState: SearchUIState,
@@ -256,7 +262,6 @@ private fun AvailableLayout(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun TMDBLayout(
     uiState: SearchUIState,

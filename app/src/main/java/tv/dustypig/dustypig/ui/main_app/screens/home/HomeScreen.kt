@@ -103,19 +103,22 @@ private fun HomeScreenInternal(
                     Column (
                         modifier = Modifier
                             .fillMaxWidth()
-                            .animateItemPlacement()
+                            .animateItem(fadeInSpec = null, fadeOutSpec = null)
                     ) {
                         Text(
                             text = section.title,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(6.dp, 2.dp)
                         )
+                        Modifier
+                            .fillMaxWidth()
+                            .height(150.dp)
                         LazyRow(
                             state = lazyRowStates[section.listId]!!,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(150.dp)
-                                .animateItemPlacement()
+                                .animateItem(fadeInSpec = null, fadeOutSpec = null)
                         ) {
                             items(section.items, key = { basicMedia -> basicMedia.id }) { basicMedia ->
 

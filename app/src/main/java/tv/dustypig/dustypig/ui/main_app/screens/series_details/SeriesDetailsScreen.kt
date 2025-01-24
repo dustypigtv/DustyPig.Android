@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Download
@@ -33,7 +34,6 @@ import androidx.compose.material.icons.filled.Downloading
 import androidx.compose.material.icons.filled.NotificationAdd
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.PlayCircleOutline
-import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.RemoveRedEye
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
@@ -475,7 +475,7 @@ private fun SeriesTitleLayout(uiState: SeriesDetailsUIState) {
                 ActionButton(
                     onClick = uiState.onAddToPlaylist,
                     caption = stringResource(R.string.add_to_playlist),
-                    icon = Icons.Filled.PlaylistAdd
+                    icon = Icons.AutoMirrored.Filled.PlaylistAdd
                 )
 
                 if(uiState.partiallyPlayed) {

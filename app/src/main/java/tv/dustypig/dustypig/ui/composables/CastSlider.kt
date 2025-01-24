@@ -52,10 +52,10 @@ fun CastSlider(
 
             if (displayOnly) {
                 LinearProgressIndicator(
+                    progress = { castState.progress },
                     modifier = Modifier.fillMaxWidth(),
-                    progress = castState.progress,
                     color = activeTrackColor,
-                    trackColor = inactiveTrackColor
+                    trackColor = inactiveTrackColor,
                 )
             } else {
 
