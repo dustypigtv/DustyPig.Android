@@ -22,10 +22,9 @@ annotation class AuthenticatedAPIService
 annotation class UnAuthenticatedAPIService
 
 
-
 @Module
 @InstallIn(SingletonComponent::class)
-class SingletonModule{
+class SingletonModule {
 
     companion object {
         private const val baseUrl = "https://service.dustypig.tv/api/v3/"

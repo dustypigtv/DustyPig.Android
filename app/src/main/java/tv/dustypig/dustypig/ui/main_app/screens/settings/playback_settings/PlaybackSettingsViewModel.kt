@@ -16,7 +16,7 @@ import javax.inject.Inject
 class PlaybackSettingsViewModel @Inject constructor(
     routeNavigator: RouteNavigator,
     private val settingsManager: SettingsManager
-): ViewModel(), RouteNavigator by routeNavigator {
+) : ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
         PlaybackSettingsUIState(

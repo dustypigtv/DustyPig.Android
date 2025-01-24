@@ -20,7 +20,7 @@ import javax.inject.Singleton
 
 
 @Singleton
-class SettingsManager @Inject constructor (
+class SettingsManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
 
@@ -51,7 +51,6 @@ class SettingsManager @Inject constructor (
     }
 
 
-
     // ***** Global Settings *****
 
     fun getSystemLevelAllowNotifications(): Boolean {
@@ -64,23 +63,36 @@ class SettingsManager @Inject constructor (
 
 
     //suspend fun getLastLoginEmail() = context.dataStore.data.map { it[lastLoginEmailKey] ?: "" }.first()
-    suspend fun setLastLoginEmail(value: String) = context.dataStore.edit { it[lastLoginEmailKey] = value }
+    suspend fun setLastLoginEmail(value: String) =
+        context.dataStore.edit { it[lastLoginEmailKey] = value }
+
     val lastLoginEmailFlow = context.dataStore.data.map { it[lastLoginEmailKey] ?: "" }
 
-    suspend fun getToken() = context.dataStore.data.map { it[authTokenPreferencesKey] ?: "" }.first()
-    suspend fun setToken(value: String) = context.dataStore.edit { it[authTokenPreferencesKey] = value }
+    suspend fun getToken() =
+        context.dataStore.data.map { it[authTokenPreferencesKey] ?: "" }.first()
 
-    suspend fun getProfileId() = context.dataStore.data.map { it[profileIdPreferencesKey] ?: 0 }.first()
-    suspend fun setProfileId(value: Int) = context.dataStore.edit { it[profileIdPreferencesKey] = value }
+    suspend fun setToken(value: String) =
+        context.dataStore.edit { it[authTokenPreferencesKey] = value }
+
+    suspend fun getProfileId() =
+        context.dataStore.data.map { it[profileIdPreferencesKey] ?: 0 }.first()
+
+    suspend fun setProfileId(value: Int) =
+        context.dataStore.edit { it[profileIdPreferencesKey] = value }
+
     val profileIdFlow = context.dataStore.data.map { it[profileIdPreferencesKey] ?: 0 }
 
-    suspend fun getIsMainProfile() = context.dataStore.data.map { it[isMainProfilePreferencesKey] ?: false }.first()
-    suspend fun setIsMainProfile(value: Boolean) = context.dataStore.edit { it[isMainProfilePreferencesKey] = value }
+    suspend fun getIsMainProfile() =
+        context.dataStore.data.map { it[isMainProfilePreferencesKey] ?: false }.first()
+
+    suspend fun setIsMainProfile(value: Boolean) =
+        context.dataStore.edit { it[isMainProfilePreferencesKey] = value }
+
     val profileIsMainFlow = context.dataStore.data.map { it[isMainProfilePreferencesKey] ?: false }
 
     suspend fun getDeviceId(): String {
         var ret = context.dataStore.data.map { it[deviceIdKey] ?: "" }.first()
-        if(ret.isBlank()) {
+        if (ret.isBlank()) {
             ret = UUID.randomUUID().toString().replace("-", "")
             context.dataStore.edit { it[deviceIdKey] = ret }
         }
@@ -88,38 +100,58 @@ class SettingsManager @Inject constructor (
     }
 
 
-
-
-
-
     // ***** Profile Settings *****
 
     private fun profileKey(key: String, profileId: Int) = "${key}_${profileId}"
     private suspend fun profileKey(key: String) = profileKey(key, getProfileId())
 
-    private suspend fun downloadOverMobilePreferencesKey() = booleanPreferencesKey(profileKey(DOWNLOAD_OVER_CELLULAR_KEY))
-    suspend fun getDownloadOverMobile() = context.dataStore.data.map { it[downloadOverMobilePreferencesKey()] ?: false }.first()
-    suspend fun setDownloadOverMobile(value: Boolean) = context.dataStore.edit { it[downloadOverMobilePreferencesKey()] = value }
-    val downloadOverMobileFlow = context.dataStore.data.map { it[downloadOverMobilePreferencesKey()] ?: false }
+    private suspend fun downloadOverMobilePreferencesKey() =
+        booleanPreferencesKey(profileKey(DOWNLOAD_OVER_CELLULAR_KEY))
+
+    suspend fun getDownloadOverMobile() =
+        context.dataStore.data.map { it[downloadOverMobilePreferencesKey()] ?: false }.first()
+
+    suspend fun setDownloadOverMobile(value: Boolean) =
+        context.dataStore.edit { it[downloadOverMobilePreferencesKey()] = value }
+
+    val downloadOverMobileFlow =
+        context.dataStore.data.map { it[downloadOverMobilePreferencesKey()] ?: false }
 
 
-    private suspend fun skipIntrosPreferencesKey() = booleanPreferencesKey(profileKey(SKIP_INTROS_KEY))
-    suspend fun getSkipIntros() = context.dataStore.data.map { it[skipIntrosPreferencesKey()] ?: false }.first()
-    suspend fun setSkipIntros(value: Boolean) = context.dataStore.edit { it[skipIntrosPreferencesKey()] = value }
+    private suspend fun skipIntrosPreferencesKey() =
+        booleanPreferencesKey(profileKey(SKIP_INTROS_KEY))
+
+    suspend fun getSkipIntros() =
+        context.dataStore.data.map { it[skipIntrosPreferencesKey()] ?: false }.first()
+
+    suspend fun setSkipIntros(value: Boolean) =
+        context.dataStore.edit { it[skipIntrosPreferencesKey()] = value }
 
 
-    private suspend fun skipCreditsPreferencesKey() = booleanPreferencesKey(profileKey(SKIP_CREDITS_KEY))
-    suspend fun getSkipCredits() = context.dataStore.data.map { it[skipCreditsPreferencesKey()] ?: false }.first()
-    suspend fun setSkipCredits(value: Boolean) = context.dataStore.edit { it[skipCreditsPreferencesKey()] = value }
+    private suspend fun skipCreditsPreferencesKey() =
+        booleanPreferencesKey(profileKey(SKIP_CREDITS_KEY))
+
+    suspend fun getSkipCredits() =
+        context.dataStore.data.map { it[skipCreditsPreferencesKey()] ?: false }.first()
+
+    suspend fun setSkipCredits(value: Boolean) =
+        context.dataStore.edit { it[skipCreditsPreferencesKey()] = value }
 
 
     private suspend fun themePreferencesKey() = intPreferencesKey(profileKey(THEME_KEY))
-    suspend fun setTheme(theme: Themes) = context.dataStore.edit { it[themePreferencesKey()] = theme.ordinal }
-    val themeFlow = context.dataStore.data.map { Themes.fromOrdinal(it[themePreferencesKey()] ?: 0) }
+    suspend fun setTheme(theme: Themes) =
+        context.dataStore.edit { it[themePreferencesKey()] = theme.ordinal }
+
+    val themeFlow =
+        context.dataStore.data.map { Themes.fromOrdinal(it[themePreferencesKey()] ?: 0) }
 
 
-    private suspend fun searchHistoryPreferencesKey() = stringPreferencesKey(profileKey(SEARCH_HISTORY_KEY))
-    suspend fun setSearchHistory(value: List<String>) = context.dataStore.edit { it[searchHistoryPreferencesKey()] = JSONArray(value).toString() }
+    private suspend fun searchHistoryPreferencesKey() =
+        stringPreferencesKey(profileKey(SEARCH_HISTORY_KEY))
+
+    suspend fun setSearchHistory(value: List<String>) =
+        context.dataStore.edit { it[searchHistoryPreferencesKey()] = JSONArray(value).toString() }
+
     val searchHistoryFlow = context.dataStore.data.map {
         val lst = arrayListOf<String>()
         try {
@@ -135,15 +167,19 @@ class SettingsManager @Inject constructor (
     }
 
 
+    private suspend fun allowNotificationsKey() =
+        booleanPreferencesKey(profileKey(ALLOW_NOTIFICATIONS_KEY))
 
-    private suspend fun allowNotificationsKey() = booleanPreferencesKey(profileKey(ALLOW_NOTIFICATIONS_KEY))
-    private fun allowNotificationsKey(id: Int) = booleanPreferencesKey(profileKey(ALLOW_NOTIFICATIONS_KEY, id))
-    suspend fun setAllowNotifications(value: Boolean) = context.dataStore.edit { it[allowNotificationsKey()] = value }
+    private fun allowNotificationsKey(id: Int) =
+        booleanPreferencesKey(profileKey(ALLOW_NOTIFICATIONS_KEY, id))
+
+    suspend fun setAllowNotifications(value: Boolean) =
+        context.dataStore.edit { it[allowNotificationsKey()] = value }
 
     suspend fun getAllowNotifications(): Boolean {
         return try {
             getSystemLevelAllowNotifications() &&
-            context.dataStore.data.map { it[allowNotificationsKey()] ?: true }.first()
+                    context.dataStore.data.map { it[allowNotificationsKey()] ?: true }.first()
         } catch (_: Exception) {
             false
         }
@@ -152,7 +188,7 @@ class SettingsManager @Inject constructor (
     suspend fun getAllowNotifications(id: Int): Boolean {
         return try {
             getSystemLevelAllowNotifications() &&
-            context.dataStore.data.map { it[allowNotificationsKey(id)] ?: true }.first()
+                    context.dataStore.data.map { it[allowNotificationsKey(id)] ?: true }.first()
         } catch (_: Exception) {
             false
         }

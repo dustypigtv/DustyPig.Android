@@ -18,8 +18,8 @@ interface ProgressDao {
     suspend fun delete(progress: ProgressEntity)
 
     @Query("SELECT * FROM progresses WHERE mediaId = :mediaId AND playlist = :playlist AND profileId = :profileId")
-    suspend fun get(mediaId: Int, playlist: Boolean, profileId: Int) : ProgressEntity?
+    suspend fun get(mediaId: Int, playlist: Boolean, profileId: Int): ProgressEntity?
 
     @Query("SELECT * FROM progresses")
-    suspend fun getAll() : List<ProgressEntity>
+    suspend fun getAll(): List<ProgressEntity>
 }

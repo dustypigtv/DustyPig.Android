@@ -13,19 +13,24 @@ import javax.inject.Singleton
 class AuthRepository @Inject constructor(
     @AuthenticatedAPIService private val apiService: ApiService,
     authManager: AuthManager
-): RepositoryBase(authManager) {
+) : RepositoryBase(authManager) {
 
-    suspend fun loginDeviceWithCode(code: String) = wrapAPICall { apiService.loginDeviceWithCode(code) }
+    suspend fun loginDeviceWithCode(code: String) =
+        wrapAPICall { apiService.loginDeviceWithCode(code) }
 
-    suspend fun passwordLogin(passwordCredentials: PasswordCredentials) = wrapAPICallWithReturnData { apiService.passwordLogin(passwordCredentials) }
+    suspend fun passwordLogin(passwordCredentials: PasswordCredentials) =
+        wrapAPICallWithReturnData { apiService.passwordLogin(passwordCredentials) }
 
-    suspend fun sendPasswordResetEmail(email: String) = wrapAPICall { apiService.sendPasswordResetEmail(email) }
+    suspend fun sendPasswordResetEmail(email: String) =
+        wrapAPICall { apiService.sendPasswordResetEmail(email) }
 
-    suspend fun profileLogin(profileCredentials: ProfileCredentials) = wrapAPICallWithReturnData { apiService.profileLogin(profileCredentials) }
+    suspend fun profileLogin(profileCredentials: ProfileCredentials) =
+        wrapAPICallWithReturnData { apiService.profileLogin(profileCredentials) }
 
     suspend fun signout() = wrapAPICall { apiService.signout() }
 
     suspend fun signoutEverywhere() = wrapAPICall { apiService.signoutEverywhere() }
 
-    suspend fun updateFCMToken(fcmToken: FCMToken) = wrapAPICallWithReturnData { apiService.updateFCMToken(fcmToken) }
+    suspend fun updateFCMToken(fcmToken: FCMToken) =
+        wrapAPICallWithReturnData { apiService.updateFCMToken(fcmToken) }
 }

@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import tv.dustypig.dustypig.nav.NavRoute
 
-object EditProfileNav: NavRoute<EditProfileViewModel> {
+object EditProfileNav : NavRoute<EditProfileViewModel> {
 
     override val route = "editProfile"
 

@@ -107,7 +107,10 @@ private fun SignUpScreenInternal(uiState: SignUpUIState) {
         modifier = Modifier.fillMaxSize()
     ) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp, alignment = Alignment.CenterVertically),
+            verticalArrangement = Arrangement.spacedBy(
+                12.dp,
+                alignment = Alignment.CenterVertically
+            ),
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize()
         ) {
@@ -127,7 +130,11 @@ private fun SignUpScreenInternal(uiState: SignUpUIState) {
                 singleLine = true,
                 enabled = !uiState.busy,
                 modifier = Modifier.width(300.dp),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Next)
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    capitalization = KeyboardCapitalization.Words,
+                    imeAction = ImeAction.Next
+                )
             )
 
             OutlinedTextField(
@@ -138,7 +145,10 @@ private fun SignUpScreenInternal(uiState: SignUpUIState) {
                 singleLine = true,
                 enabled = !uiState.busy,
                 modifier = Modifier.width(300.dp),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next)
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next
+                )
             )
 
             OutlinedTextField(
@@ -149,8 +159,13 @@ private fun SignUpScreenInternal(uiState: SignUpUIState) {
                 singleLine = true,
                 enabled = !uiState.busy,
                 modifier = Modifier.width(300.dp),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = imeAction.value),
-                keyboardActions = KeyboardActions(onGo = { signUp() }, onDone = { keyboardController?.hide() }),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction = imeAction.value
+                ),
+                keyboardActions = KeyboardActions(
+                    onGo = { signUp() },
+                    onDone = { keyboardController?.hide() }),
                 trailingIcon = {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         TintedIcon(imageVector = iconImage)
@@ -176,7 +191,7 @@ private fun SignUpScreenInternal(uiState: SignUpUIState) {
 
         }
 
-        if(uiState.busy) {
+        if (uiState.busy) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         }
     }
@@ -187,7 +202,11 @@ private fun SignUpScreenInternal(uiState: SignUpUIState) {
     }
 
     if (uiState.showSuccess) {
-        OkDialog(onDismissRequest = { uiState.onNavToSignIn(email) }, title = stringResource(R.string.success), message = uiState.message)
+        OkDialog(
+            onDismissRequest = { uiState.onNavToSignIn(email) },
+            title = stringResource(R.string.success),
+            message = uiState.message
+        )
     }
 }
 

@@ -2,7 +2,7 @@ package tv.dustypig.dustypig.api.models
 
 import java.util.Date
 
-data class Notification (
+data class Notification(
     val id: Int,
     val profileId: Int,
     val title: String,

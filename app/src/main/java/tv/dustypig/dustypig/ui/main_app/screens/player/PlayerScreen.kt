@@ -61,7 +61,6 @@ fun PlayerScreen(vm: PlayerViewModel) {
 }
 
 
-
 @OptIn(UnstableApi::class)
 @Composable
 private fun PlayerScreenInternal(uiState: PlayerUIState) {
@@ -86,27 +85,29 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
     }
 
 
-
-
     var showControls by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
 
-        if(uiState.isCastPlayer) {
+        if (uiState.isCastPlayer) {
 
             // Cast Controls
             Box(
                 modifier = Modifier.fillMaxSize()
             ) {
-                Row (
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.Center),
                     horizontalArrangement = Arrangement.Center
-                ){
-                    CastControls(castManager = uiState.castManager, sizeMultiple = 2, showBusy = uiState.busy)
+                ) {
+                    CastControls(
+                        castManager = uiState.castManager,
+                        sizeMultiple = 2,
+                        showBusy = uiState.busy
+                    )
                 }
 
                 CastSlider(
@@ -142,7 +143,8 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
 
                         // Default is a dark green spinner - fix that
                         try {
-                            val progressBar = playerView.findViewById<ProgressBar>(androidx.media3.ui.R.id.exo_buffering)
+                            val progressBar =
+                                playerView.findViewById<ProgressBar>(androidx.media3.ui.R.id.exo_buffering)
                             DrawableCompat.setTint(
                                 progressBar.indeterminateDrawable,
                                 primaryColor
@@ -190,7 +192,7 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
             )
         ) {
 
-            Row (
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(color = barBackgroundColor),
@@ -219,7 +221,6 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
                 CastButton(uiState.castManager)
             }
         }
-
 
 
         // Skip Credits
@@ -263,9 +264,8 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
         }
 
 
-
     }
-    
+
     if (uiState.showErrorDialog) {
         ErrorDialog(
             onDismissRequest = uiState.onPlayNext,

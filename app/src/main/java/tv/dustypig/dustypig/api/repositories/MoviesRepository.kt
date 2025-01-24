@@ -10,7 +10,7 @@ import javax.inject.Singleton
 class MoviesRepository @Inject constructor(
     @AuthenticatedAPIService private val apiService: ApiService,
     authManager: AuthManager
-): RepositoryBase(authManager) {
+) : RepositoryBase(authManager) {
 
     suspend fun details(id: Int) = wrapAPICallWithReturnData { apiService.movieDetails(id) }
 

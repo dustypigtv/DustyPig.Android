@@ -19,7 +19,7 @@ object PlayerNav : NavRoute<PlayerViewModel> {
     const val KEY_MEDIA_TYPE = "KEY_MEDIA_TYPE"
     const val KEY_UPNEXT_ID = "KEY_UPNEXT_ID"
 
-    override val route= "player/{$KEY_MEDIA_ID}/{$KEY_MEDIA_TYPE}/{$KEY_UPNEXT_ID}"
+    override val route = "player/{$KEY_MEDIA_ID}/{$KEY_MEDIA_TYPE}/{$KEY_UPNEXT_ID}"
 
     fun getRoute(mediaId: Int, sourceType: Int, upNextId: Int) = route
         .replace("{$KEY_MEDIA_ID}", "$mediaId")

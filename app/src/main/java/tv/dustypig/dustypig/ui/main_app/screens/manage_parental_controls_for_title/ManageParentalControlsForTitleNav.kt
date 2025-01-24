@@ -11,7 +11,7 @@ object ManageParentalControlsForTitleNav : NavRoute<ManageParentalControlsForTit
 
     const val KEY_ID = "KEY_ID"
 
-    override val route= "manageParentalControlsForTitle/{$KEY_ID}"
+    override val route = "manageParentalControlsForTitle/{$KEY_ID}"
 
     /**
      * Returns the route that can be used for navigating to this page.
@@ -28,5 +28,6 @@ object ManageParentalControlsForTitleNav : NavRoute<ManageParentalControlsForTit
     override fun viewModel(): ManageParentalControlsForTitleViewModel = hiltViewModel()
 
     @Composable
-    override fun Content(viewModel: ManageParentalControlsForTitleViewModel) = ManageParentalControlsForTitleScreen(vm = viewModel)
+    override fun Content(viewModel: ManageParentalControlsForTitleViewModel) =
+        ManageParentalControlsForTitleScreen(vm = viewModel)
 }

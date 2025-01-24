@@ -5,5 +5,5 @@ import androidx.room.RoomDatabase
 
 @Database(entities = [ProgressEntity::class], version = 1, exportSchema = false)
 abstract class ProgressDB : RoomDatabase() {
-    abstract fun progressDao() : ProgressDao
+    abstract fun progressDao(): ProgressDao
 }

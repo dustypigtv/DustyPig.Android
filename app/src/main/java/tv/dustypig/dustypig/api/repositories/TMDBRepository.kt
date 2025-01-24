@@ -11,15 +11,17 @@ import javax.inject.Singleton
 class TMDBRepository @Inject constructor(
     @AuthenticatedAPIService private val apiService: ApiService,
     authManager: AuthManager
-): RepositoryBase(authManager) {
+) : RepositoryBase(authManager) {
 
     suspend fun getMovie(id: Int) = wrapAPICallWithReturnData { apiService.getTMDBMovie(id) }
 
     suspend fun getSeries(id: Int) = wrapAPICallWithReturnData { apiService.getTMDBSeries(id) }
 
-    suspend fun requestTitle(titleRequest: TitleRequest) = wrapAPICall { apiService.requestTMDBTitle(titleRequest) }
+    suspend fun requestTitle(titleRequest: TitleRequest) =
+        wrapAPICall { apiService.requestTMDBTitle(titleRequest) }
 
-    suspend fun cancelTitleRequest(titleRequest: TitleRequest) = wrapAPICall { apiService.cancelTMDBTitleRequest(titleRequest) }
+    suspend fun cancelTitleRequest(titleRequest: TitleRequest) =
+        wrapAPICall { apiService.cancelTMDBTitleRequest(titleRequest) }
 
     suspend fun getPerson(id: Int) = wrapAPICallWithReturnData { apiService.getTMDBPerson(id) }
 }

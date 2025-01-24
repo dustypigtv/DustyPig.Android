@@ -2,7 +2,7 @@ package tv.dustypig.dustypig.api.models
 
 import java.util.UUID
 
-data class BasicFriend (
+data class BasicFriend(
     val id: Int,
     val displayName: String,
     val initials: String,

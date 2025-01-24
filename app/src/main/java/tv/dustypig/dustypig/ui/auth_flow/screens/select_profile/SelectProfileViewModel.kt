@@ -27,7 +27,7 @@ class SelectProfileViewModel @Inject constructor(
     private val authManager: AuthManager,
     private val profilesRepository: ProfilesRepository,
     private val settingsManager: SettingsManager
-): ViewModel(), RouteNavigator by routeNavigator {
+) : ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
         SelectProfileUIState(
@@ -66,7 +66,7 @@ class SelectProfileViewModel @Inject constructor(
 
     private fun hideError() {
         _uiState.update { it.copy(showError = false) }
-        if(criticalError)
+        if (criticalError)
             popBackStack()
     }
 
@@ -78,10 +78,10 @@ class SelectProfileViewModel @Inject constructor(
             )
         }
         viewModelScope.launch {
-            try{
+            try {
                 val fcmToken =
-                    if(settingsManager.getAllowNotifications(profileId))
-                       FCMManager.currentToken
+                    if (settingsManager.getAllowNotifications(profileId))
+                        FCMManager.currentToken
                     else
                         null
 

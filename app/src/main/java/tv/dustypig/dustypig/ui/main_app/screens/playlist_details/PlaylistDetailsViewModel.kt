@@ -37,7 +37,7 @@ class PlaylistDetailsViewModel @Inject constructor(
     private val downloadManager: DownloadManager,
     castManager: CastManager,
     savedStateHandle: SavedStateHandle
-): ViewModel(), RouteNavigator by routeNavigator {
+) : ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
         PlaylistDetailsUIState(
@@ -157,10 +157,9 @@ class PlaylistDetailsViewModel @Inject constructor(
     }
 
     private fun hideError() {
-        if(_uiState.value.criticalError) {
+        if (_uiState.value.criticalError) {
             popBackStack()
-        }
-        else {
+        } else {
             _uiState.update {
                 it.copy(showErrorDialog = false)
             }
@@ -241,7 +240,7 @@ class PlaylistDetailsViewModel @Inject constructor(
     }
 
     private fun deleteItem(id: Int) {
-        _localItems.remove(_localItems.first{it.id == id})
+        _localItems.remove(_localItems.first { it.id == id })
         _uiState.update {
             it.copy(
                 updateList = true,
@@ -253,7 +252,7 @@ class PlaylistDetailsViewModel @Inject constructor(
             try {
                 playlistRepository.deleteItem(id)
                 _detailedPlaylist.items = _detailedPlaylist.items!!.toMutableList().apply {
-                    remove(_detailedPlaylist.items!!.first{it.id == id})
+                    remove(_detailedPlaylist.items!!.first { it.id == id })
                 }
                 _uiState.update {
                     it.copy(busy = false)
@@ -278,7 +277,7 @@ class PlaylistDetailsViewModel @Inject constructor(
     }
 
     fun playUpNext() {
-       navigateToRoute(
+        navigateToRoute(
             PlayerNav.getRoute(
                 mediaId = _detailedPlaylist.id,
                 sourceType = PlayerNav.MEDIA_TYPE_PLAYLIST,

@@ -16,13 +16,16 @@ import javax.inject.Singleton
 class PlaylistRepository @Inject constructor(
     @AuthenticatedAPIService private val apiService: ApiService,
     authManager: AuthManager
-): RepositoryBase(authManager) {
+) : RepositoryBase(authManager) {
 
-    suspend fun addItem(addPlaylistItem: AddPlaylistItem) = wrapAPICallWithReturnData { apiService.addItemToPlaylist(addPlaylistItem) }
+    suspend fun addItem(addPlaylistItem: AddPlaylistItem) =
+        wrapAPICallWithReturnData { apiService.addItemToPlaylist(addPlaylistItem) }
 
-    suspend fun addSeries(addSeriesToPlaylistInfo: AddSeriesToPlaylistInfo) = wrapAPICall { apiService.addSeriesToPlaylist(addSeriesToPlaylistInfo) }
+    suspend fun addSeries(addSeriesToPlaylistInfo: AddSeriesToPlaylistInfo) =
+        wrapAPICall { apiService.addSeriesToPlaylist(addSeriesToPlaylistInfo) }
 
-    suspend fun create(createPlaylist: CreatePlaylist) = wrapAPICallWithReturnData { apiService.createPlaylist(createPlaylist) }
+    suspend fun create(createPlaylist: CreatePlaylist) =
+        wrapAPICallWithReturnData { apiService.createPlaylist(createPlaylist) }
 
     suspend fun deletePlaylist(id: Int) = wrapAPICall { apiService.deletePlaylist(id) }
 
@@ -30,12 +33,16 @@ class PlaylistRepository @Inject constructor(
 
     suspend fun list() = wrapAPICallWithReturnData { apiService.listPlaylists() }
 
-    suspend fun moveItem(id: Int, newIndex: Int) = wrapAPICall { apiService.movePlaylistItemToNewIndex(MovePlaylistItem(id, newIndex)) }
+    suspend fun moveItem(id: Int, newIndex: Int) =
+        wrapAPICall { apiService.movePlaylistItemToNewIndex(MovePlaylistItem(id, newIndex)) }
 
-    suspend fun rename(updatesPlaylist: UpdatesPlaylist) = wrapAPICall { apiService.updatePlaylist(updatesPlaylist) }
+    suspend fun rename(updatesPlaylist: UpdatesPlaylist) =
+        wrapAPICall { apiService.updatePlaylist(updatesPlaylist) }
 
     suspend fun details(id: Int) = wrapAPICallWithReturnData { apiService.playlistDetails(id) }
 
-    suspend fun setPlaylistProgress(playbackProgress: PlaybackProgress) { apiService.setPlaylistProgress(playbackProgress) }
+    suspend fun setPlaylistProgress(playbackProgress: PlaybackProgress) {
+        apiService.setPlaylistProgress(playbackProgress)
+    }
 
 }

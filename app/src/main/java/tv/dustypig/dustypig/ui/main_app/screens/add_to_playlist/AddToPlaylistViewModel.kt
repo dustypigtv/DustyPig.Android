@@ -21,11 +21,11 @@ import javax.inject.Inject
 
 
 @HiltViewModel
-class AddToPlaylistViewModel  @Inject constructor(
+class AddToPlaylistViewModel @Inject constructor(
     private val routeNavigator: RouteNavigator,
     private val playlistRepository: PlaylistRepository,
     savedStateHandle: SavedStateHandle
-): ViewModel(), RouteNavigator by routeNavigator {
+) : ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
         AddToPlaylistUIState(
@@ -40,7 +40,8 @@ class AddToPlaylistViewModel  @Inject constructor(
     private var _existingPlaylists: List<BasicPlaylist> = listOf()
 
     private val _mediaId: Int = savedStateHandle.getOrThrow(AddToPlaylistNav.KEY_ID)
-    private val _isSeries: Boolean = savedStateHandle.getOrThrow<String>(AddToPlaylistNav.KEY_IS_SERIES).toBoolean()
+    private val _isSeries: Boolean =
+        savedStateHandle.getOrThrow<String>(AddToPlaylistNav.KEY_IS_SERIES).toBoolean()
 
     init {
         viewModelScope.launch {
@@ -53,7 +54,7 @@ class AddToPlaylistViewModel  @Inject constructor(
                         addingSeries = _isSeries
                     )
                 }
-            } catch(ex: Exception) {
+            } catch (ex: Exception) {
                 setError(ex = ex, criticalError = true)
             }
         }
@@ -72,7 +73,7 @@ class AddToPlaylistViewModel  @Inject constructor(
     }
 
     private fun hideError() {
-        if(_uiState.value.criticalError) {
+        if (_uiState.value.criticalError) {
             popBackStack()
         } else {
             _uiState.update {
@@ -91,9 +92,9 @@ class AddToPlaylistViewModel  @Inject constructor(
         }
 
         viewModelScope.launch {
-            try{
+            try {
                 val newId = playlistRepository.create(CreatePlaylist(name))
-                if(_isSeries) {
+                if (_isSeries) {
                     playlistRepository.addSeries(
                         AddSeriesToPlaylistInfo(
                             playlistId = newId,
@@ -101,8 +102,7 @@ class AddToPlaylistViewModel  @Inject constructor(
                             autoAddNewEpisodes = autoAddEpisodes
                         )
                     )
-                }
-                else {
+                } else {
                     playlistRepository.addItem(AddPlaylistItem(newId, _mediaId))
                 }
 
@@ -122,8 +122,8 @@ class AddToPlaylistViewModel  @Inject constructor(
         }
 
         viewModelScope.launch {
-            try{
-                if(_isSeries) {
+            try {
+                if (_isSeries) {
                     playlistRepository.addSeries(
                         AddSeriesToPlaylistInfo(
                             playlistId = id,
@@ -131,8 +131,7 @@ class AddToPlaylistViewModel  @Inject constructor(
                             autoAddNewEpisodes = autoAddEpisodes
                         )
                     )
-                }
-                else {
+                } else {
                     playlistRepository.addItem(
                         AddPlaylistItem(playlistId = id, mediaId = _mediaId)
                     )

@@ -21,7 +21,7 @@ import javax.inject.Inject
 class NotificationSettingsViewModel @Inject constructor(
     routeNavigator: RouteNavigator,
     private val settingsManager: SettingsManager
-): ViewModel(), RouteNavigator by routeNavigator {
+) : ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
         NotificationSettingsUIState(
@@ -61,7 +61,7 @@ class NotificationSettingsViewModel @Inject constructor(
 
         viewModelScope.launch {
 
-            if(value && !settingsManager.getSystemLevelAllowNotifications()) {
+            if (value && !settingsManager.getSystemLevelAllowNotifications()) {
                 _uiState.update {
                     it.copy(
                         showAlertsDialog = true
@@ -72,7 +72,7 @@ class NotificationSettingsViewModel @Inject constructor(
                 //Update settings FIRST
                 settingsManager.setAllowNotifications(value)
 
-                if(value) {
+                if (value) {
                     //There should be a fcm token, so just tell dusty pig to
                     //associate it with this profile
                     AlertsManager.triggerUpdateFCMToken()

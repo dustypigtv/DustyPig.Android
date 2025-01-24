@@ -39,7 +39,8 @@ import tv.dustypig.dustypig.ui.composables.PreviewBase
 @Composable
 fun SwitchProfilesScreen(vm: SwitchProfilesViewModel) {
     val uiState by vm.uiState.collectAsState()
-    SwitchProfilesScreenInternal(uiState = uiState)}
+    SwitchProfilesScreenInternal(uiState = uiState)
+}
 
 @Composable
 private fun SwitchProfilesScreenInternal(
@@ -53,7 +54,10 @@ private fun SwitchProfilesScreenInternal(
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = uiState.onPopBackStack, text = stringResource(R.string.select_profile))
+            CommonTopAppBar(
+                onClick = uiState.onPopBackStack,
+                text = stringResource(R.string.select_profile)
+            )
         }
     ) { contentPadding ->
 
@@ -80,7 +84,7 @@ private fun SwitchProfilesScreenInternal(
                             basicProfile = it,
                             clickable = !uiState.busy,
                             onClick = {
-                                if(it.hasPin) {
+                                if (it.hasPin) {
                                     selectedProfile = it
                                     showPinDialog = true
                                 } else {
@@ -100,7 +104,7 @@ private fun SwitchProfilesScreenInternal(
         }
     }
 
-    if(showPinDialog) {
+    if (showPinDialog) {
 
         val confirmEnabled by remember {
             derivedStateOf {
@@ -139,7 +143,7 @@ private fun SwitchProfilesScreenInternal(
         )
     }
 
-    if(uiState.showError) {
+    if (uiState.showError) {
         ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
     }
 }
@@ -148,7 +152,7 @@ private fun SwitchProfilesScreenInternal(
 @Preview
 @Composable
 private fun SwitchProfilesScreenPreview() {
-    val uiState = SwitchProfilesUIState (
+    val uiState = SwitchProfilesUIState(
         busy = false,
         profiles = listOf(
             BasicProfile(

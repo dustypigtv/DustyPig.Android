@@ -22,7 +22,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -78,13 +77,13 @@ private fun FriendDetailsSettingsScreenInternal(uiState: FriendDetailsSettingsUI
         mutableStateOf(false)
     }
 
-    Scaffold (
+    Scaffold(
         topBar = {
             CommonTopAppBar(onClick = uiState.onPopBackStack, text = "Friend Info")
         }
     ) { paddingValues ->
 
-        Box (
+        Box(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
@@ -103,15 +102,18 @@ private fun FriendDetailsSettingsScreenInternal(uiState: FriendDetailsSettingsUI
                     Spacer(modifier = Modifier.height(12.dp))
                 }
                 item {
-                    Row (
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(12.dp, 0.dp)
                             .clip(shape = RoundedCornerShape(4.dp))
-                            .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp)),
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+                                shape = RoundedCornerShape(4.dp)
+                            ),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically
-                    ){
+                    ) {
 
                         Box(
                             modifier = Modifier.padding(12.dp, 0.dp, 0.dp, 0.dp)
@@ -143,7 +145,7 @@ private fun FriendDetailsSettingsScreenInternal(uiState: FriendDetailsSettingsUI
                 /**
                  * Libs shared with friend
                  */
-                if(uiState.myLibs.isNotEmpty()) {
+                if (uiState.myLibs.isNotEmpty()) {
                     item {
                         Spacer(modifier = Modifier.height(24.dp))
                     }
@@ -167,7 +169,11 @@ private fun FriendDetailsSettingsScreenInternal(uiState: FriendDetailsSettingsUI
                                 .fillMaxWidth()
                                 .padding(12.dp)
                                 .clip(shape = RoundedCornerShape(4.dp))
-                                .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp)),
+                                .background(
+                                    color = MaterialTheme.colorScheme.surfaceColorAtElevation(
+                                        3.dp
+                                    ), shape = RoundedCornerShape(4.dp)
+                                ),
 
                             ) {
                             Text(
@@ -207,12 +213,10 @@ private fun FriendDetailsSettingsScreenInternal(uiState: FriendDetailsSettingsUI
                 }
 
 
-
-
                 /**
                  * Libs shared with me
                  */
-                if(uiState.libsSharedWithMe.isNotEmpty()) {
+                if (uiState.libsSharedWithMe.isNotEmpty()) {
                     item {
                         Spacer(modifier = Modifier.height(24.dp))
                     }
@@ -257,15 +261,15 @@ private fun FriendDetailsSettingsScreenInternal(uiState: FriendDetailsSettingsUI
                 }
             }
 
-            if(uiState.busy) {
+            if (uiState.busy) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
         }
     }
 
-    if(showChangeDisplayName) {
+    if (showChangeDisplayName) {
         val keyboardController = LocalSoftwareKeyboardController.current
-        var displayName by remember{ mutableStateOf(uiState.displayName) }
+        var displayName by remember { mutableStateOf(uiState.displayName) }
         val focusRequester = remember { FocusRequester() }
 
         val submitEnabled by remember {
@@ -306,7 +310,12 @@ private fun FriendDetailsSettingsScreenInternal(uiState: FriendDetailsSettingsUI
             onDismissRequest = ::dismissClicked,
             title = { Text(text = "Change Display Name") },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(20.dp, alignment = Alignment.CenterVertically)) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(
+                        20.dp,
+                        alignment = Alignment.CenterVertically
+                    )
+                ) {
                     OutlinedTextField(
                         value = displayName,
                         onValueChange = { displayName = it },
@@ -315,8 +324,13 @@ private fun FriendDetailsSettingsScreenInternal(uiState: FriendDetailsSettingsUI
                         modifier = Modifier
                             .fillMaxWidth()
                             .focusRequester(focusRequester),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = imeAction),
-                        keyboardActions = KeyboardActions(onGo = { submitClicked() }, onDone = { keyboardController?.hide() })
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = imeAction
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onGo = { submitClicked() },
+                            onDone = { keyboardController?.hide() })
                     )
                 }
             },
@@ -338,7 +352,7 @@ private fun FriendDetailsSettingsScreenInternal(uiState: FriendDetailsSettingsUI
         )
     }
 
-    if(uiState.showError) {
+    if (uiState.showError) {
         ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
     }
 }

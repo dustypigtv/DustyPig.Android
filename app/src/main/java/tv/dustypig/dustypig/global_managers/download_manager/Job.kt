@@ -12,7 +12,7 @@ import java.util.Date
     indices = [Index(value = ["mediaId", "mediaType", "profileId"], unique = true)]
 )
 @TypeConverters(DateConverter::class)
-data class Job (
+data class Job(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val mediaId: Int,
     val mediaType: MediaTypes,

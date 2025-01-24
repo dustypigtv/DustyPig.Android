@@ -20,7 +20,7 @@ class SettingsViewModel @Inject constructor(
     private val routeNavigator: RouteNavigator,
     private val settingsManager: SettingsManager,
     private val authManager: AuthManager
-): ViewModel(), RouteNavigator by routeNavigator {
+) : ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
         SettingsUIState(

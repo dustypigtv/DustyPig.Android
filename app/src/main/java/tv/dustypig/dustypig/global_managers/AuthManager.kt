@@ -63,7 +63,7 @@ class AuthManager @Inject constructor(
         FCMManager.resetToken()
     }
 
-    fun setTempAuthToken(token:String) {
+    fun setTempAuthToken(token: String) {
         currentToken = token
     }
 

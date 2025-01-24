@@ -41,7 +41,10 @@ private fun NotificationSettingsScreenInternal(uiState: NotificationSettingsUISt
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = uiState.onPopBackStack, text = stringResource(R.string.notification_settings))
+            CommonTopAppBar(
+                onClick = uiState.onPopBackStack,
+                text = stringResource(R.string.notification_settings)
+            )
         }
     ) { paddingValues ->
         Column(
@@ -51,14 +54,17 @@ private fun NotificationSettingsScreenInternal(uiState: NotificationSettingsUISt
         ) {
             Spacer(modifier = Modifier.height(12.dp))
 
-            Row (
+            Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(12.dp, 0.dp)
                     .clip(shape = RoundedCornerShape(4.dp))
-                    .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp))
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+                        shape = RoundedCornerShape(4.dp)
+                    )
             ) {
                 Text(
                     text = stringResource(R.string.allow_notifications),
@@ -79,7 +85,7 @@ private fun NotificationSettingsScreenInternal(uiState: NotificationSettingsUISt
         }
     }
 
-    if(uiState.showAlertsDialog) {
+    if (uiState.showAlertsDialog) {
         OkDialog(
             onDismissRequest = { uiState.onHideAlertsDialog(context) },
             title = stringResource(R.string.action_required),
@@ -91,7 +97,7 @@ private fun NotificationSettingsScreenInternal(uiState: NotificationSettingsUISt
 @Preview
 @Composable
 private fun NotificationSettingsScreenPreview() {
-    val uiState = NotificationSettingsUIState ()
+    val uiState = NotificationSettingsUIState()
     PreviewBase {
         NotificationSettingsScreenInternal(uiState = uiState)
     }

@@ -64,8 +64,6 @@ interface ApiService {
     suspend fun deleteAccount(): Response<Result>
 
 
-
-
     // ***** Auth *****
     @POST("Auth/PasswordLogin")
     suspend fun passwordLogin(@Body passwordCredentials: PasswordCredentials): Response<ResultOf<LoginResponse>>
@@ -89,15 +87,9 @@ interface ApiService {
     suspend fun updateFCMToken(@Body fcmToken: FCMToken): Response<ResultOf<String>>
 
 
-
-
-
-
     // ***** Episodes *****
     @GET("Episodes/Details/{id}")
     suspend fun episodeDetails(@Path("id") id: Int): Response<ResultOf<DetailedEpisode>>
-
-
 
 
     // ***** Friends *****
@@ -123,20 +115,12 @@ interface ApiService {
     suspend fun unShareLibraryWithFriend(@Body libraryFriendLink: LibraryFriendLink): Response<Result>
 
 
-
-
-
-
-
     // ***** Libraries *****
     @GET("Libraries/AdminList")
     suspend fun adminListLibraries(): Response<ResultOf<List<DetailedLibrary>>>
 
     @GET("Libraries/List")
     suspend fun listLibraries(): Response<ResultOf<List<BasicLibrary>>>
-
-
-
 
 
     // ***** Media *****
@@ -162,20 +146,15 @@ interface ApiService {
     suspend fun search(@Body searchRequest: SearchRequest): Response<ResultOf<SearchResults>>
 
     @POST("Media/SetTitlePermissions")
-    suspend fun setTitlePermissions(@Body setTitlePermissionInfo: SetTitlePermission) : Response<Result>
+    suspend fun setTitlePermissions(@Body setTitlePermissionInfo: SetTitlePermission): Response<Result>
 
     @POST("Media/UpdatePlaybackProgress")
     suspend fun updatePlaybackProgress(@Body playbackProgress: PlaybackProgress): Response<Result>
 
 
-
     // ***** Movies *****
     @GET("Movies/Details/{id}")
     suspend fun movieDetails(@Path("id") id: Int): Response<ResultOf<DetailedMovie>>
-
-
-
-
 
 
     // ***** Notifications *****
@@ -187,8 +166,6 @@ interface ApiService {
 
     @GET("Notifications/MarkAsRead/{id}")
     suspend fun markNotificationRead(@Path("id") id: Int): Response<Result>
-
-
 
 
     // ***** Playlists *****
@@ -223,8 +200,6 @@ interface ApiService {
     suspend fun setPlaylistProgress(@Body playbackProgress: PlaybackProgress): Response<Result>
 
 
-
-
     // ***** Profiles *****
     @POST("Profiles/Create")
     suspend fun createProfile(@Body createProfile: CreateProfile): Response<ResultOf<Int>>
@@ -240,7 +215,10 @@ interface ApiService {
 
     @Multipart
     @PUT("Profiles/SetProfileAvatarMultipart/{id}")
-    suspend fun setProfileAvatar(@Path("id") id: Int, @Part image: MultipartBody.Part): Response<ResultOf<String>>
+    suspend fun setProfileAvatar(
+        @Path("id") id: Int,
+        @Part image: MultipartBody.Part
+    ): Response<ResultOf<String>>
 
     @POST("Profiles/LinkToLibrary")
     suspend fun linkProfileLibrary(@Body profileLibraryLink: ProfileLibraryLink): Response<Result>
@@ -250,10 +228,6 @@ interface ApiService {
 
     @DELETE("Profiles/Delete/{id}")
     suspend fun deleteProfile(@Path("id") id: Int): Response<Result>
-
-
-
-
 
 
     // ***** Series *****
@@ -271,8 +245,6 @@ interface ApiService {
 
     @DELETE("Series/Unsubscribe/{id}")
     suspend fun unsubscribeFromSeries(@Path("id") id: Int): Response<Result>
-
-
 
 
     // ***** TMDB *****

@@ -34,7 +34,8 @@ fun Context.hideSystemUi() {
     val window = activity.window ?: return
     WindowInsetsControllerCompat(window, window.decorView).let { controller ->
         controller.hide(WindowInsetsCompat.Type.systemBars())
-        controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        controller.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
     }
 }
 
@@ -48,7 +49,6 @@ fun Context.showSystemUi() {
 }
 
 
-
 inline fun <T : Any> LazyGridScope.itemsExt(
     items: LazyPagingItems<T>,
     noinline key: ((item: T) -> Any)? = null,
@@ -58,7 +58,9 @@ inline fun <T : Any> LazyGridScope.itemsExt(
 ) = items(
     count = items.itemCount,
     key = if (key != null) { index: Int -> items[index]?.let(key) ?: index } else null,
-    span = if (span != null) { { span(items[it]) } } else null,
+    span = if (span != null) {
+        { span(items[it]) }
+    } else null,
     contentType = { index: Int -> contentType(items[index]) }
 ) {
     itemContent(items[it])

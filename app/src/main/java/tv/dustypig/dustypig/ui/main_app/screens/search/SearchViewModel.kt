@@ -22,7 +22,7 @@ class SearchViewModel @Inject constructor(
     private val routeNavigator: RouteNavigator,
     private val mediaRepository: MediaRepository,
     private val settingsManager: SettingsManager
-): ViewModel(), RouteNavigator by routeNavigator {
+) : ViewModel(), RouteNavigator by routeNavigator {
 
     companion object {
         private const val TAG = "SearchViewModel"
@@ -57,22 +57,22 @@ class SearchViewModel @Inject constructor(
                 emptyQuery = query.isBlank(),
                 busy = query.isNotBlank(),
                 progressOnly = query.isNotBlank() && !it.hasResults,
-                hasResults = if(query.isNotBlank()) it.hasResults else false,
-                availableItems = if(query.isBlank()) listOf() else it.availableItems,
-                tmdbItems = if(query.isBlank()) listOf() else it.tmdbItems
+                hasResults = if (query.isNotBlank()) it.hasResults else false,
+                availableItems = if (query.isBlank()) listOf() else it.availableItems,
+                tmdbItems = if (query.isBlank()) listOf() else it.tmdbItems
             )
         }
 
-        if(query.isBlank())
+        if (query.isBlank())
             return
 
         viewModelScope.launch {
             try {
                 val hist = ArrayList<String>()
                 hist.add(query)
-                for(q in _uiState.value.history) {
-                    if(q != query)
-                        if(hist.count() < 25)
+                for (q in _uiState.value.history) {
+                    if (q != query)
+                        if (hist.count() < 25)
                             hist.add(q)
                 }
                 settingsManager.setSearchHistory(hist)
@@ -81,7 +81,8 @@ class SearchViewModel @Inject constructor(
             }
 
             try {
-                val response = mediaRepository.search(SearchRequest(query = query, searchTMDB = true))
+                val response =
+                    mediaRepository.search(SearchRequest(query = query, searchTMDB = true))
 
                 _uiState.update {
                     it.copy(

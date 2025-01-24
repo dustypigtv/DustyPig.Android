@@ -47,7 +47,6 @@ fun Avatar(
 }
 
 
-
 @Composable
 fun Avatar(
     imageUrl: String? = null,
@@ -64,10 +63,10 @@ fun Avatar(
         .clip(CircleShape)
         .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
         .padding(padding.dp)
-    if(clickable)
+    if (clickable)
         internalModifier = internalModifier.clickable(onClick = onClick)
 
-    if(imageUrl.isNullOrBlank()) {
+    if (imageUrl.isNullOrBlank()) {
         Box(
             contentAlignment = Alignment.Center,
             modifier = internalModifier

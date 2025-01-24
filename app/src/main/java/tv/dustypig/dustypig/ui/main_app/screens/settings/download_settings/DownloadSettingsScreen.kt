@@ -35,14 +35,17 @@ fun DownloadSettingsScreen(vm: DownloadSettingsViewModel) {
 
 
 @Composable
-private fun DownloadSettingsScreenInternal (
+private fun DownloadSettingsScreenInternal(
     uiState: DownloadSettingsUIState
 ) {
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = uiState.onPopBackStack, text = stringResource(R.string.download_settings))
+            CommonTopAppBar(
+                onClick = uiState.onPopBackStack,
+                text = stringResource(R.string.download_settings)
+            )
         }
-    ){ paddingValues ->
+    ) { paddingValues ->
         Column(
             modifier = Modifier.padding(paddingValues),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -51,14 +54,17 @@ private fun DownloadSettingsScreenInternal (
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Row (
+            Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(12.dp, 0.dp)
                     .clip(shape = RoundedCornerShape(4.dp))
-                    .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp))
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+                        shape = RoundedCornerShape(4.dp)
+                    )
             ) {
                 Text(
                     text = stringResource(R.string.download_over_mobile),
@@ -88,7 +94,7 @@ private fun DownloadSettingsScreenInternal (
 @Preview
 @Composable
 private fun DownloadSettingsScreenPreview() {
-    val uiState = DownloadSettingsUIState ()
+    val uiState = DownloadSettingsUIState()
     PreviewBase {
         DownloadSettingsScreenInternal(uiState = uiState)
     }

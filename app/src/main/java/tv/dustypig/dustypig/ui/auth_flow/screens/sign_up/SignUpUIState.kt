@@ -1,7 +1,6 @@
 package tv.dustypig.dustypig.ui.auth_flow.screens.sign_up
 
 
-
 data class SignUpUIState(
 
     //Data

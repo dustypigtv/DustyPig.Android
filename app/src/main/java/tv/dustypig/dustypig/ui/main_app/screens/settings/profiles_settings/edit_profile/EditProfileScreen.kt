@@ -85,9 +85,9 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
     var profileLocked by remember { mutableStateOf(uiState.lockedState) }
 
 
-    val topBarText = if(uiState.addMode) "Add Profile" else "Edit Profile"
+    val topBarText = if (uiState.addMode) "Add Profile" else "Edit Profile"
 
-    if(uiState.loadingComplete) {
+    if (uiState.loadingComplete) {
         newName = uiState.name
         newAvatar = uiState.avatarUrl
         maxMovieRating = uiState.maxMovieRating
@@ -95,7 +95,7 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
         titleRequestPermission = uiState.titleRequestPermissions
         profileLocked = uiState.lockedState
         newSelectedLibraryIds.clear()
-        for(id in uiState.selectedLibraryIds) {
+        for (id in uiState.selectedLibraryIds) {
             newSelectedLibraryIds.add(id)
         }
         uiState.onInfoLoaded()
@@ -103,7 +103,7 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
 
 
 
-    Scaffold (
+    Scaffold(
         topBar = {
             CommonTopAppBar(onClick = uiState.onPopBackStack, text = topBarText)
         }
@@ -115,7 +115,7 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
                 .padding(paddingValues)
         ) {
 
-            LazyColumn (
+            LazyColumn(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxWidth(),
@@ -222,7 +222,7 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
                  * Max Movie Rating
                  */
                 item {
-                    if(uiState.busy || uiState.selfMode) {
+                    if (uiState.busy || uiState.selfMode) {
                         OutlinedTextField(
                             value = maxMovieRating.toString(),
                             onValueChange = { },
@@ -251,7 +251,7 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
                  * Max TV Rating
                  */
                 item {
-                    if(uiState.busy || uiState.selfMode) {
+                    if (uiState.busy || uiState.selfMode) {
                         OutlinedTextField(
                             value = maxTVRating.toString(),
                             onValueChange = { },
@@ -280,7 +280,7 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
                  * Title Request Permissions
                  */
                 item {
-                    if(uiState.busy || uiState.selfMode) {
+                    if (uiState.busy || uiState.selfMode) {
                         OutlinedTextField(
                             value = titleRequestPermission.toString(),
                             onValueChange = { },
@@ -305,9 +305,9 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
                     }
                 }
 
-                if(!uiState.addMode && !uiState.selfMode) {
-                    item{
-                        if(uiState.busy) {
+                if (!uiState.addMode && !uiState.selfMode) {
+                    item {
+                        if (uiState.busy) {
                             OutlinedTextField(
                                 value = profileLocked.toString(),
                                 onValueChange = { },
@@ -369,7 +369,11 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
                                 .fillMaxWidth()
                                 .padding(12.dp, 0.dp)
                                 .clip(shape = RoundedCornerShape(4.dp))
-                                .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp)),
+                                .background(
+                                    color = MaterialTheme.colorScheme.surfaceColorAtElevation(
+                                        3.dp
+                                    ), shape = RoundedCornerShape(4.dp)
+                                ),
 
                             ) {
                             Text(
@@ -399,7 +403,7 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
                                 style = MaterialTheme.typography.titleMedium
                             )
 
-                            if(uiState.selfMode) {
+                            if (uiState.selfMode) {
                                 TintedIcon(
                                     imageVector = Icons.Filled.Check,
                                     modifier = Modifier.padding(12.dp, 0.dp)
@@ -434,7 +438,12 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
                  */
                 item {
                     Button(
-                        modifier = Modifier.padding(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 24.dp),
+                        modifier = Modifier.padding(
+                            start = 0.dp,
+                            top = 0.dp,
+                            end = 0.dp,
+                            bottom = 24.dp
+                        ),
                         enabled = !uiState.busy,
                         onClick = {
                             if (newName.isBlank()) {
@@ -472,7 +481,12 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
                 if (!uiState.addMode && !uiState.selfMode) {
                     item {
                         Button(
-                            modifier = Modifier.padding(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 24.dp),
+                            modifier = Modifier.padding(
+                                start = 0.dp,
+                                top = 0.dp,
+                                end = 0.dp,
+                                bottom = 24.dp
+                            ),
                             enabled = !uiState.busy,
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.errorContainer,
@@ -486,12 +500,12 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
                 }
             }
 
-            if(uiState.busy) {
+            if (uiState.busy) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
 
 
-            if(showDeleteDialog) {
+            if (showDeleteDialog) {
                 YesNoDialog(
                     onNo = { showDeleteDialog = false },
                     onYes = {
@@ -503,7 +517,7 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
                 )
             }
 
-            if(uiState.showErrorDialog) {
+            if (uiState.showErrorDialog) {
                 ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
             }
         }
@@ -511,13 +525,12 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
 }
 
 
-
 @Preview
 @Composable
 private fun EditProfileScreenPreview() {
 
     val libs = arrayListOf<BasicLibrary>()
-    for(i in 1..10)
+    for (i in 1..10)
         libs.add(
             BasicLibrary(
                 id = i,

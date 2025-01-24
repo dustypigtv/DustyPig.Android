@@ -6,9 +6,9 @@ import androidx.compose.ui.platform.LocalConfiguration
 
 
 @Composable
-fun OnOrientation (onPortrait: @Composable () -> Unit, onLandscape: @Composable () -> Unit) {
+fun OnOrientation(onPortrait: @Composable () -> Unit, onLandscape: @Composable () -> Unit) {
     val configuration = LocalConfiguration.current
-    if(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+    if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
         onLandscape()
     } else {
         onPortrait()

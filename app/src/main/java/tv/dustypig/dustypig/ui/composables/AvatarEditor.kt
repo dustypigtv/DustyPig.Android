@@ -42,20 +42,20 @@ fun AvatarEditor(
         }
     }
 
-    val imagePickerLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
-        val cropOptions = CropImageContractOptions(
-            uri = uri,
-            cropImageOptions = CropImageOptions(
-                outputCompressQuality = 100,
-                cropShape = CropImageView.CropShape.OVAL,
-                aspectRatioX = 1,
-                aspectRatioY = 1,
-                fixAspectRatio = true
+    val imagePickerLauncher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
+            val cropOptions = CropImageContractOptions(
+                uri = uri,
+                cropImageOptions = CropImageOptions(
+                    outputCompressQuality = 100,
+                    cropShape = CropImageView.CropShape.OVAL,
+                    aspectRatioX = 1,
+                    aspectRatioY = 1,
+                    fixAspectRatio = true
+                )
             )
-        )
-        imageCropLauncher.launch(cropOptions)
-    }
-
+            imageCropLauncher.launch(cropOptions)
+        }
 
 
     //IconButtonTokens.StateLayerSize = 40
@@ -68,7 +68,7 @@ fun AvatarEditor(
     val fact = (sqrt(2.0) - 1) / 2
     val distance = circleSize * fact
     val iconDiagonal = iconSize * sqrt(2.0)
-    if(distance < iconDiagonal) {
+    if (distance < iconDiagonal) {
         circlePadding = max(0.0, iconDiagonal - distance)
     }
 

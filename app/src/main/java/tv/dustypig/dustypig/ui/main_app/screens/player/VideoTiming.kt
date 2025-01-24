@@ -10,31 +10,31 @@ data class VideoTiming(
     val isMovie: Boolean
 ) {
     fun positionWithinIntro(position: Double): Boolean {
-        if(introClicked)
+        if (introClicked)
             return false
 
-        if(introStartTime == null)
+        if (introStartTime == null)
             return false
 
-        if(introEndTime == null)
+        if (introEndTime == null)
             return false
 
-        if(introEndTime <= introStartTime)
+        if (introEndTime <= introStartTime)
             return false
 
         return position >= introStartTime && position < introEndTime
     }
 
     fun positionWithinCredits(position: Double, length: Double): Boolean {
-        if(creditsClicked)
+        if (creditsClicked)
             return false
 
-        if(isMovie && creditsStartTime == null)
+        if (isMovie && creditsStartTime == null)
             return false
 
         val calcTime = creditsStartTime ?: (length - 30.0)
 
-        if(calcTime < 1.0)
+        if (calcTime < 1.0)
             return false
 
         return position >= calcTime

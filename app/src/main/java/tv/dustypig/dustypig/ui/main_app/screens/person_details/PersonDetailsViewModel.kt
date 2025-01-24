@@ -30,7 +30,7 @@ class PersonDetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     castManager: CastManager,
     tmdbRepository: TMDBRepository
-): ViewModel(), RouteNavigator by routeNavigator {
+) : ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
         PersonDetailsUIState(
@@ -42,8 +42,10 @@ class PersonDetailsViewModel @Inject constructor(
 
     val uiState: StateFlow<PersonDetailsUIState> = _uiState.asStateFlow()
 
-    private val _tmdbPersonId: Int = savedStateHandle.getOrThrow(PersonDetailsNav.KEY_TMDB_PERSON_ID)
-    private val _basicCacheId: String = savedStateHandle.getOrThrow(PersonDetailsNav.KEY_BASIC_CACHE_ID)
+    private val _tmdbPersonId: Int =
+        savedStateHandle.getOrThrow(PersonDetailsNav.KEY_TMDB_PERSON_ID)
+    private val _basicCacheId: String =
+        savedStateHandle.getOrThrow(PersonDetailsNav.KEY_BASIC_CACHE_ID)
 
     init {
 
@@ -66,8 +68,8 @@ class PersonDetailsViewModel @Inject constructor(
                         placeOfBirth = data.placeOfBirth,
                         biography = data.biography,
                         knownFor = data.knownFor,
-                        birthday = if(data.birthday == null) null else df.format(data.birthday),
-                        deathday = if(data.deathday == null) null else df.format(data.deathday),
+                        birthday = if (data.birthday == null) null else df.format(data.birthday),
+                        deathday = if (data.deathday == null) null else df.format(data.deathday),
                         available = data.available,
                         otherTitles = data.otherTitles
                     )
@@ -87,10 +89,9 @@ class PersonDetailsViewModel @Inject constructor(
     }
 
     private fun hideError() {
-        if(_uiState.value.criticalError) {
+        if (_uiState.value.criticalError) {
             popBackStack()
-        }
-        else {
+        } else {
             _uiState.update {
                 it.copy(showErrorDialog = false)
             }

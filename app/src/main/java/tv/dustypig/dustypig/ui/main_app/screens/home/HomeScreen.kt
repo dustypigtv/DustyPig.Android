@@ -77,8 +77,8 @@ private fun HomeScreenInternal(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if(showEmpty) {
-                    if(uiState.hasNetworkConnection) {
+                if (showEmpty) {
+                    if (uiState.hasNetworkConnection) {
                         Text(text = stringResource(R.string.no_media_available))
                     } else {
                         Text(text = stringResource(R.string.no_internet_detected))
@@ -100,7 +100,7 @@ private fun HomeScreenInternal(
             ) {
 
                 items(uiState.sections, key = { section -> section.listId }) { section ->
-                    Column (
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .animateItem(fadeInSpec = null, fadeOutSpec = null)
@@ -120,7 +120,9 @@ private fun HomeScreenInternal(
                                 .height(150.dp)
                                 .animateItem(fadeInSpec = null, fadeOutSpec = null)
                         ) {
-                            items(section.items, key = { basicMedia -> basicMedia.id }) { basicMedia ->
+                            items(
+                                section.items,
+                                key = { basicMedia -> basicMedia.id }) { basicMedia ->
 
                                 Box(modifier = Modifier.width(116.dp)) {
                                     BasicMediaView(
@@ -130,7 +132,7 @@ private fun HomeScreenInternal(
                                 }
                             }
 
-                            if(section.items.size >= 25) {
+                            if (section.items.size >= 25) {
                                 item {
                                     Box(
                                         modifier = Modifier
@@ -147,7 +149,7 @@ private fun HomeScreenInternal(
                                                     shape = RoundedCornerShape(4.dp)
                                                 )
                                                 .clickable { uiState.onShowMoreClicked(section) }
-                                        ){
+                                        ) {
                                             Spacer(modifier = Modifier.height(12.dp))
                                             Icon(
                                                 imageVector = Icons.Filled.KeyboardDoubleArrowRight,
@@ -190,7 +192,7 @@ private fun HomeScreenInternal(
 private fun HomeScreenPreview() {
 
     val items = arrayListOf<BasicMedia>()
-    for(i in 1..25) {
+    for (i in 1..25) {
         items.add(
             BasicMedia(
                 id = i,
@@ -203,7 +205,7 @@ private fun HomeScreenPreview() {
     }
 
     val sections = arrayListOf<HomeScreenList>()
-    for(i in 1..40) {
+    for (i in 1..40) {
         sections.add(
             HomeScreenList(
                 listId = i.toLong(),

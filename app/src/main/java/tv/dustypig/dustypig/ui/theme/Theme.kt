@@ -48,7 +48,8 @@ private fun accentColorScheme(
     val secondaryContainer = Color(r2, g2, b2, 1f)
 
     //tertiaryContainer is primary -> 50% closer to black, with 50% alpha
-    val tertiaryContainer = primary.copy(0.5f, primary.red * 0.5f, primary.green * 0.5f, primary.blue * 0.5f)
+    val tertiaryContainer =
+        primary.copy(0.5f, primary.red * 0.5f, primary.green * 0.5f, primary.blue * 0.5f)
 
     return darkColorScheme(
         primary = primary,
@@ -67,7 +68,7 @@ fun DustyPigTheme(
     currentTheme: Themes,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when(currentTheme) {
+    val colorScheme = when (currentTheme) {
         Themes.Maggies -> maggiesColorScheme
         Themes.DustyPig -> dustyPigColorScheme
         Themes.LB -> accentColorScheme(LBPrimary)

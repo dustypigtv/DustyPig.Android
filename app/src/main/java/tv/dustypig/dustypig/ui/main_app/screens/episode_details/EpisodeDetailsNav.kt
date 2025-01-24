@@ -17,7 +17,8 @@ object EpisodeDetailsNav : NavRoute<EpisodeDetailsViewModel> {
     const val KEY_PLAYLIST_UPNEXT_INDEX_ID = "KEY_PLAYLIST_UPNEXT_INDEX_ID"
 
 
-    override val route= "episodeDetails/{$KEY_MEDIA_ID}/{$KEY_BASIC_CACHE_ID}/{$KEY_DETAILED_CACHE_ID}/{$KEY_CAN_PLAY}/{$KEY_FROM_SERIES_DETAILS}/{$KEY_PLAYLIST_UPNEXT_INDEX_ID}"
+    override val route =
+        "episodeDetails/{$KEY_MEDIA_ID}/{$KEY_BASIC_CACHE_ID}/{$KEY_DETAILED_CACHE_ID}/{$KEY_CAN_PLAY}/{$KEY_FROM_SERIES_DETAILS}/{$KEY_PLAYLIST_UPNEXT_INDEX_ID}"
 
     /**
      * fromSeriesDetails is weather this screen will be navigated to from the SeriesDetails screen,

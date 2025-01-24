@@ -19,7 +19,7 @@ import javax.inject.Inject
 class FriendsSettingsViewModel @Inject constructor(
     routeNavigator: RouteNavigator,
     private val friendsRepository: FriendsRepository
-): ViewModel(), RouteNavigator by routeNavigator  {
+) : ViewModel(), RouteNavigator by routeNavigator {
 
     companion object {
 
@@ -45,7 +45,7 @@ class FriendsSettingsViewModel @Inject constructor(
         //This will update on first launch and any time something changes.
         viewModelScope.launch {
             _needsUpdate.collectLatest {
-               updateData()
+                updateData()
             }
         }
     }
@@ -86,12 +86,12 @@ class FriendsSettingsViewModel @Inject constructor(
             it.copy(busy = false)
         }
         viewModelScope.launch {
-            try{
+            try {
                 friendsRepository.invite(email)
                 _uiState.update {
                     it.copy(
                         busy = false,
-                        showInviteSuccessDialog =  true
+                        showInviteSuccessDialog = true
                     )
                 }
             } catch (ex: Exception) {

@@ -19,7 +19,7 @@ class AccountSettingsViewModel @Inject constructor(
     private val authManager: AuthManager,
     private val accountRepository: AccountRepository,
     private val authRepository: AuthRepository
-): ViewModel(), RouteNavigator by routeNavigator {
+) : ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
         AccountSettingsUIState(
@@ -63,8 +63,8 @@ class AccountSettingsViewModel @Inject constructor(
     }
 
     private fun loginToDevice(code: String) {
-       viewModelScope.launch {
-            try{
+        viewModelScope.launch {
+            try {
                 authRepository.loginDeviceWithCode(code)
                 _uiState.update {
                     it.copy(busy = true)
@@ -80,7 +80,7 @@ class AccountSettingsViewModel @Inject constructor(
         _uiState.update {
             it.copy(busy = true)
         }
-        viewModelScope.launch{
+        viewModelScope.launch {
             try {
                 accountRepository.changePassword(newPassword)
                 _uiState.update {

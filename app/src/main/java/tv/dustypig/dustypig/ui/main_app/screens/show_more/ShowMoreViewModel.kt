@@ -24,7 +24,7 @@ class ShowMoreViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val routeNavigator: RouteNavigator,
     private val mediaRepository: MediaRepository
-): ViewModel(), RouteNavigator by routeNavigator {
+) : ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(ShowMoreUIState())
     val uiState: StateFlow<ShowMoreUIState> = _uiState.asStateFlow()
@@ -35,7 +35,12 @@ class ShowMoreViewModel @Inject constructor(
     val itemData: Flow<PagingData<BasicMedia>> = Pager(
         config = PagingConfig(pageSize = 25),
         initialKey = 0,
-        pagingSourceFactory = { ShowMorePagingSource(listId = _listId, mediaRepository = mediaRepository) }
+        pagingSourceFactory = {
+            ShowMorePagingSource(
+                listId = _listId,
+                mediaRepository = mediaRepository
+            )
+        }
     ).flow.cachedIn(viewModelScope)
 
     init {

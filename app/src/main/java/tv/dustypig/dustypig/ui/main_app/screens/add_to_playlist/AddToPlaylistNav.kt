@@ -12,7 +12,7 @@ object AddToPlaylistNav : NavRoute<AddToPlaylistViewModel> {
     const val KEY_ID = "KEY_ID"
     const val KEY_IS_SERIES = "KEY_IS_SERIES"
 
-    override val route= "addToPlaylist/{$KEY_ID}/{$KEY_IS_SERIES}"
+    override val route = "addToPlaylist/{$KEY_ID}/{$KEY_IS_SERIES}"
 
     /**
      * Returns the route that can be used for navigating to this page.

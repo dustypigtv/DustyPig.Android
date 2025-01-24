@@ -27,7 +27,7 @@ import javax.inject.Singleton
 import kotlin.concurrent.schedule
 
 @Singleton
-class ProgressReportManager  @Inject constructor(
+class ProgressReportManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val settingsManager: SettingsManager,
     private val networkManager: NetworkManager,
@@ -93,7 +93,12 @@ class ProgressReportManager  @Inject constructor(
         for (progress in progresses) {
             if (progress.profileId == _profileId) {
                 try {
-                    sendUpdate(progress.mediaId, progress.seconds, progress.timestamp, progress.playlist)
+                    sendUpdate(
+                        progress.mediaId,
+                        progress.seconds,
+                        progress.timestamp,
+                        progress.playlist
+                    )
                     _db.delete(progress)
                 } catch (ex: Exception) {
                     Log.e(TAG, ex.localizedMessage ?: "Unknown Error", ex)
@@ -104,7 +109,12 @@ class ProgressReportManager  @Inject constructor(
         }
     }
 
-    private suspend fun sendUpdate(mediaId: Int, seconds: Double, timestamp: String, playlist: Boolean) {
+    private suspend fun sendUpdate(
+        mediaId: Int,
+        seconds: Double,
+        timestamp: String,
+        playlist: Boolean
+    ) {
         val pp = PlaybackProgress(
             id = mediaId,
             seconds = seconds,
@@ -122,7 +132,7 @@ class ProgressReportManager  @Inject constructor(
             var progress = _db.get(mediaId, playlist, _profileId)
             if (progress == null) {
                 try {
-                    if(!networkManager.isConnected())
+                    if (!networkManager.isConnected())
                         throw Exception("Not connected")
                     sendUpdate(mediaId, seconds, getTimestamp(), playlist)
                 } catch (_: Exception) {
@@ -137,7 +147,7 @@ class ProgressReportManager  @Inject constructor(
                 }
             } else {
                 try {
-                    if(!networkManager.isConnected())
+                    if (!networkManager.isConnected())
                         throw Exception("Not connected")
                     sendUpdate(mediaId, seconds, getTimestamp(), playlist)
                     _db.delete(progress)

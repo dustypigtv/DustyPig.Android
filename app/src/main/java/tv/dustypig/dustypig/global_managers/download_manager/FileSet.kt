@@ -19,7 +19,7 @@ import androidx.room.TypeConverters
     indices = [Index(value = ["jobId"])]
 )
 @TypeConverters(DateConverter::class)
-data class FileSet (
+data class FileSet(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val jobId: Int,
     val mediaId: Int,

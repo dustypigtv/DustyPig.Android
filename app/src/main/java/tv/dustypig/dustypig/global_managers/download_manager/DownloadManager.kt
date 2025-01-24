@@ -65,7 +65,8 @@ class DownloadManager @Inject constructor(
         private const val NO_MEDIA = ".nomedia"
     }
 
-    private val _androidDownloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as AndroidDownloadManager
+    private val _androidDownloadManager =
+        context.getSystemService(Context.DOWNLOAD_SERVICE) as AndroidDownloadManager
     private val _rootDir = File(context.getExternalFilesDir(null)!!, "downloads")
     private var _profileId = 0
     private var _downloadOverMobile = false
@@ -93,7 +94,8 @@ class DownloadManager @Inject constructor(
     private var _playbackId = 0
 
     private val displayMetrics = Resources.getSystem().displayMetrics
-    private val urlParameters = "displayWidth=${displayMetrics.widthPixels}&displayHeight=${displayMetrics.heightPixels}"
+    private val urlParameters =
+        "displayWidth=${displayMetrics.widthPixels}&displayHeight=${displayMetrics.heightPixels}"
 
 
     private var _doFullScan = false
@@ -116,7 +118,7 @@ class DownloadManager @Inject constructor(
         }
 
         _scope.launch {
-            PlayerStateManager.playerScreenVisible.collectLatest { _playerScreenVisible = it  }
+            PlayerStateManager.playerScreenVisible.collectLatest { _playerScreenVisible = it }
         }
 
         _scope.launch {
@@ -528,15 +530,14 @@ class DownloadManager @Inject constructor(
     }
 
 
-
     private fun updateTimerTick() {
         _scope.launch {
             try {
                 _updateTimerMutex.withLock {
                     updateTimerWork()
                 }
-            } catch(_: IllegalStateException) {
-            } catch(ex: Exception) {
+            } catch (_: IllegalStateException) {
+            } catch (ex: Exception) {
                 Log.e(TAG, ex.localizedMessage ?: "Unknown Error", ex)
                 ex.logToCrashlytics()
             }
@@ -545,10 +546,10 @@ class DownloadManager @Inject constructor(
 
     private suspend fun updateTimerWork() {
 
-        if(_profileId <= 0)
+        if (_profileId <= 0)
             return
 
-        if(!networkManager.isConnected())
+        if (!networkManager.isConnected())
             return
 
         val jobs = _db.getJobs(_profileId)
@@ -596,7 +597,7 @@ class DownloadManager @Inject constructor(
 
     private fun saveFile(fileName: String, data: Any) {
         val file = File(_rootDir, fileName)
-        if(file.exists())
+        if (file.exists())
             file.delete()
         file.writeText(Gson().toJson(data))
     }
@@ -607,7 +608,7 @@ class DownloadManager @Inject constructor(
         disposition: String,
         ext: String
     ): String {
-        val pls = if(isPlaylist) ".playlist" else ""
+        val pls = if (isPlaylist) ".playlist" else ""
         return "$mediaId$pls.$disposition$ext"
     }
 
@@ -629,12 +630,12 @@ class DownloadManager @Inject constructor(
         isPlaylist: Boolean = false
     ) {
 
-        if(url.isNullOrBlank())
+        if (url.isNullOrBlank())
             return
 
         var ext = url.split("?")[0]
         ext = ext.substring(ext.lastIndexOf("."))
-        if(ext.isBlank())
+        if (ext.isBlank())
             ext = ".dat"
 
 
@@ -649,14 +650,14 @@ class DownloadManager @Inject constructor(
             it.fileName == fileName
         }
 
-        if(dl == null) {
+        if (dl == null) {
             dl = Download(
                 fileSetId = fileSetWithDownloads.fileSet.id,
                 url = url,
                 totalBytes = size,
                 fileName = fileName,
                 mediaId = fileSetWithDownloads.fileSet.mediaId,
-                status = if(size > 0) DownloadStatus.None else DownloadStatus.Pending,
+                status = if (size > 0) DownloadStatus.None else DownloadStatus.Pending,
                 statusDetails = "",
                 disposition = disposition,
                 profileId = _profileId
@@ -674,7 +675,7 @@ class DownloadManager @Inject constructor(
                 dl.complete = false
                 dl.androidId = 0
                 dl.downloadedBytes = 0
-                dl.status = if(size > 0) DownloadStatus.None else DownloadStatus.Pending
+                dl.status = if (size > 0) DownloadStatus.None else DownloadStatus.Pending
                 dl.statusDetails = ""
 
                 _db.update(download = dl)
@@ -688,12 +689,12 @@ class DownloadManager @Inject constructor(
         sub: SRTSubtitles
     ) {
 
-        if(sub.url.isBlank())
+        if (sub.url.isBlank())
             return
 
         var ext = sub.url.split("?")[0]
         ext = ext.substring(startIndex = ext.lastIndexOf(string = "."))
-        if(ext.isBlank())
+        if (ext.isBlank())
             ext = ".dat"
 
         val fileName = getDownloadFilename(
@@ -706,14 +707,14 @@ class DownloadManager @Inject constructor(
         var dl = fileSetWithDownloads.downloads.firstOrNull {
             it.fileName == fileName
         }
-        if(dl == null) {
+        if (dl == null) {
             dl = Download(
                 fileSetId = fileSetWithDownloads.fileSet.id,
                 url = sub.url,
                 totalBytes = sub.fileSize.toLong(),
                 fileName = fileName,
                 mediaId = fileSetWithDownloads.fileSet.mediaId,
-                status = if(sub.fileSize > 0u) DownloadStatus.None else DownloadStatus.Pending,
+                status = if (sub.fileSize > 0u) DownloadStatus.None else DownloadStatus.Pending,
                 statusDetails = "",
                 disposition = DISPOSITION_SUBTITLE,
                 profileId = _profileId
@@ -728,7 +729,7 @@ class DownloadManager @Inject constructor(
                 dl.complete = false
                 dl.androidId = 0
                 dl.downloadedBytes = 0
-                dl.status = if(sub.fileSize > 0u) DownloadStatus.None else DownloadStatus.Pending
+                dl.status = if (sub.fileSize > 0u) DownloadStatus.None else DownloadStatus.Pending
                 dl.statusDetails = ""
                 _db.update(download = dl)
             }
@@ -741,8 +742,9 @@ class DownloadManager @Inject constructor(
         val detailedMovie = moviesRepository.details(id = job.mediaId)
         saveFile(job.filename, detailedMovie)
 
-        var fileSetWithDownloads = _db.getFileSetAndDownloadsByMediaId(jobId = job.id, mediaId = job.mediaId)
-        if(fileSetWithDownloads == null) {
+        var fileSetWithDownloads =
+            _db.getFileSetAndDownloadsByMediaId(jobId = job.id, mediaId = job.mediaId)
+        if (fileSetWithDownloads == null) {
             _db.insert(
                 FileSet(
                     jobId = job.id,
@@ -752,7 +754,8 @@ class DownloadManager @Inject constructor(
                     profileId = _profileId
                 )
             )
-            fileSetWithDownloads = _db.getFileSetAndDownloadsByMediaId(jobId = job.id, mediaId = job.mediaId)!!
+            fileSetWithDownloads =
+                _db.getFileSetAndDownloadsByMediaId(jobId = job.id, mediaId = job.mediaId)!!
         }
 
 
@@ -770,8 +773,8 @@ class DownloadManager @Inject constructor(
             size = detailedMovie.backdropSize.toLong()
         )
 
-        if(detailedMovie.srtSubtitles?.isNotEmpty() == true) {
-            for(sub in detailedMovie.srtSubtitles) {
+        if (detailedMovie.srtSubtitles?.isNotEmpty() == true) {
+            for (sub in detailedMovie.srtSubtitles) {
                 addOrUpdateSubtitleDownload(fileSetWithDownloads = fileSetWithDownloads, sub = sub)
             }
         }
@@ -795,7 +798,7 @@ class DownloadManager @Inject constructor(
 
 
         var jobFileSet = _db.getFileSetAndDownloadsByMediaId(jobId = job.id, mediaId = job.mediaId)
-        if(jobFileSet == null) {
+        if (jobFileSet == null) {
             _db.insert(
                 FileSet(
                     jobId = job.id,
@@ -805,7 +808,8 @@ class DownloadManager @Inject constructor(
                     profileId = _profileId
                 )
             )
-            jobFileSet = _db.getFileSetAndDownloadsByMediaId(jobId = job.id, mediaId = job.mediaId)!!
+            jobFileSet =
+                _db.getFileSetAndDownloadsByMediaId(jobId = job.id, mediaId = job.mediaId)!!
         }
 
 
@@ -828,13 +832,13 @@ class DownloadManager @Inject constructor(
         var upNext = detailedSeries.episodes?.firstOrNull {
             it.upNext
         }
-        if(upNext == null)
+        if (upNext == null)
             upNext = detailedSeries.episodes?.first()
 
         var reachedUpNext = false
         var count = 0
         val itemIds = ArrayList<Int>()
-        if(upNext != null) {
+        if (upNext != null) {
             for (episode in detailedSeries.episodes!!) {
                 if (upNext.id == episode.id)
                     reachedUpNext = true
@@ -849,8 +853,8 @@ class DownloadManager @Inject constructor(
 
         //Remove any episodes that should no longer be downloaded
         val fileSets = _db.getFileSets(jobId = job.id)
-        for(fileSet in fileSets) {
-            if(fileSet.mediaId != job.mediaId) {
+        for (fileSet in fileSets) {
+            if (fileSet.mediaId != job.mediaId) {
                 if (!itemIds.any {
                         it == fileSet.mediaId
                     }) {
@@ -860,14 +864,14 @@ class DownloadManager @Inject constructor(
         }
 
 
-
         //Add any episodes that should be downloaded
-        if(upNext != null) {
+        if (upNext != null) {
             for ((idx, mediaId) in itemIds.withIndex()) {
                 val episode = detailedSeries.episodes!!.first {
                     it.id == mediaId
                 }
-                var fileSet = _db.getFileSetAndDownloadsByMediaId(jobId = job.id, mediaId = episode.id)
+                var fileSet =
+                    _db.getFileSetAndDownloadsByMediaId(jobId = job.id, mediaId = episode.id)
                 if (fileSet == null) {
                     _db.insert(
                         FileSet(
@@ -878,8 +882,9 @@ class DownloadManager @Inject constructor(
                             profileId = _profileId
                         )
                     )
-                    fileSet = _db.getFileSetAndDownloadsByMediaId(jobId = job.id, mediaId = episode.id)!!
-                } else if(fileSet.fileSet.playOrder != idx) {
+                    fileSet =
+                        _db.getFileSetAndDownloadsByMediaId(jobId = job.id, mediaId = episode.id)!!
+                } else if (fileSet.fileSet.playOrder != idx) {
                     fileSet.fileSet.playOrder = idx
                     _db.update(fileSet.fileSet)
                 }
@@ -916,8 +921,9 @@ class DownloadManager @Inject constructor(
         val detailedEpisode = episodesRepository.details(id = job.mediaId)
         saveFile(job.filename, detailedEpisode)
 
-        var fileSetWithDownloads = _db.getFileSetAndDownloadsByMediaId(jobId = job.id, mediaId = job.mediaId)
-        if(fileSetWithDownloads == null) {
+        var fileSetWithDownloads =
+            _db.getFileSetAndDownloadsByMediaId(jobId = job.id, mediaId = job.mediaId)
+        if (fileSetWithDownloads == null) {
             _db.insert(
                 FileSet(
                     jobId = job.id,
@@ -927,7 +933,8 @@ class DownloadManager @Inject constructor(
                     profileId = _profileId
                 )
             )
-            fileSetWithDownloads = _db.getFileSetAndDownloadsByMediaId(jobId = job.id, mediaId = job.mediaId)!!
+            fileSetWithDownloads =
+                _db.getFileSetAndDownloadsByMediaId(jobId = job.id, mediaId = job.mediaId)!!
         }
 
         addOrUpdateDownload(
@@ -938,8 +945,8 @@ class DownloadManager @Inject constructor(
         )
 
 
-        if(detailedEpisode.srtSubtitles?.isNotEmpty() == true) {
-            for(sub in detailedEpisode.srtSubtitles) {
+        if (detailedEpisode.srtSubtitles?.isNotEmpty() == true) {
+            for (sub in detailedEpisode.srtSubtitles) {
                 addOrUpdateSubtitleDownload(fileSetWithDownloads = fileSetWithDownloads, sub = sub)
             }
         }
@@ -962,7 +969,7 @@ class DownloadManager @Inject constructor(
         saveFile(job.filename, detailedPlaylist)
 
         var jobFileSet = _db.getFileSetAndDownloadsByMediaId(jobId = job.id, mediaId = job.mediaId)
-        if(jobFileSet == null) {
+        if (jobFileSet == null) {
             _db.insert(
                 FileSet(
                     jobId = job.id,
@@ -972,7 +979,8 @@ class DownloadManager @Inject constructor(
                     profileId = _profileId
                 )
             )
-            jobFileSet = _db.getFileSetAndDownloadsByMediaId(jobId = job.id, mediaId = job.mediaId)!!
+            jobFileSet =
+                _db.getFileSetAndDownloadsByMediaId(jobId = job.id, mediaId = job.mediaId)!!
         }
 
 
@@ -989,13 +997,13 @@ class DownloadManager @Inject constructor(
         var upNext = detailedPlaylist.items?.firstOrNull {
             it.index == detailedPlaylist.currentItemId
         }
-        if(upNext == null)
+        if (upNext == null)
             upNext = detailedPlaylist.items?.first()
 
         var reachedUpNext = false
         var count = 0
         val itemIds = ArrayList<Int>()
-        if(upNext != null) {
+        if (upNext != null) {
             for (playListItem in detailedPlaylist.items!!) {
                 if (upNext.id == playListItem.id)
                     reachedUpNext = true
@@ -1010,8 +1018,8 @@ class DownloadManager @Inject constructor(
 
         //Remove any items that should no longer be downloaded
         val fileSets = _db.getFileSets(jobId = job.id)
-        for(fileSet in fileSets) {
-            if(fileSet.mediaId != job.mediaId) {
+        for (fileSet in fileSets) {
+            if (fileSet.mediaId != job.mediaId) {
                 if (!itemIds.any {
                         it == fileSet.playlistItemId
                     }) {
@@ -1021,14 +1029,16 @@ class DownloadManager @Inject constructor(
         }
 
 
-
         //Add any items that should be downloaded
-        if(upNext != null) {
+        if (upNext != null) {
             for ((idx, playlistItemId) in itemIds.withIndex()) {
                 val playlistItem = detailedPlaylist.items!!.first {
                     it.id == playlistItemId
                 }
-                var fileSet = _db.getFileSetAndDownloadsByPlaylistItemId(jobId = job.id, playlistItemId = playlistItem.id)
+                var fileSet = _db.getFileSetAndDownloadsByPlaylistItemId(
+                    jobId = job.id,
+                    playlistItemId = playlistItem.id
+                )
                 if (fileSet == null) {
                     _db.insert(
                         FileSet(
@@ -1040,8 +1050,11 @@ class DownloadManager @Inject constructor(
                             profileId = _profileId
                         )
                     )
-                    fileSet = _db.getFileSetAndDownloadsByPlaylistItemId(jobId = job.id, playlistItemId = playlistItem.id)!!
-                } else if(fileSet.fileSet.playOrder != idx) {
+                    fileSet = _db.getFileSetAndDownloadsByPlaylistItemId(
+                        jobId = job.id,
+                        playlistItemId = playlistItem.id
+                    )!!
+                } else if (fileSet.fileSet.playOrder != idx) {
                     fileSet.fileSet.playOrder = idx
                     _db.update(fileSet.fileSet)
                 }
@@ -1074,7 +1087,6 @@ class DownloadManager @Inject constructor(
     }
 
 
-
     suspend fun addMovie(detailedMovie: DetailedMovie) {
 
         val lastUpdate = Calendar.getInstance()
@@ -1097,7 +1109,7 @@ class DownloadManager @Inject constructor(
 
     suspend fun addOrUpdateSeries(detailedSeries: DetailedSeries, count: Int) {
 
-        if(count == 0) {
+        if (count == 0) {
             delete(detailedSeries.id, MediaTypes.Series)
             return
         }
@@ -1106,7 +1118,7 @@ class DownloadManager @Inject constructor(
         lastUpdate.add(Calendar.MINUTE, -2 * UPDATE_MINUTES)
 
         var job = _db.getJob(detailedSeries.id, MediaTypes.Series, _profileId)
-        if(job == null) {
+        if (job == null) {
 
             job = Job(
                 mediaId = detailedSeries.id,
@@ -1122,7 +1134,7 @@ class DownloadManager @Inject constructor(
             _db.insert(job)
             saveFile(job.filename, job)
 
-        } else if(job.count != count) {
+        } else if (job.count != count) {
             job.pending = true
             job.count = count
             _db.update(job)
@@ -1132,7 +1144,7 @@ class DownloadManager @Inject constructor(
 
     suspend fun updateSeries(mediaId: Int, newCount: Int) {
 
-        if(newCount == 0) {
+        if (newCount == 0) {
             delete(mediaId, MediaTypes.Series)
             return
         }
@@ -1142,7 +1154,7 @@ class DownloadManager @Inject constructor(
 
         val job = _db.getJob(mediaId, MediaTypes.Series, _profileId)
         if (job != null) {
-            if(job.count != newCount) {
+            if (job.count != newCount) {
                 job.count = newCount
                 job.pending = true
                 _db.update(job)
@@ -1172,7 +1184,7 @@ class DownloadManager @Inject constructor(
 
     suspend fun addOrUpdatePlaylist(detailedPlaylist: DetailedPlaylist, count: Int) {
 
-        if(count == 0) {
+        if (count == 0) {
             delete(detailedPlaylist.id, MediaTypes.Playlist)
             return
         }
@@ -1181,7 +1193,7 @@ class DownloadManager @Inject constructor(
         lastUpdate.add(Calendar.MINUTE, -2 * UPDATE_MINUTES)
 
         var job = _db.getJob(detailedPlaylist.id, MediaTypes.Playlist, _profileId)
-        if(job == null) {
+        if (job == null) {
 
             job = Job(
                 mediaId = detailedPlaylist.id,
@@ -1197,7 +1209,7 @@ class DownloadManager @Inject constructor(
             _db.insert(job)
             saveFile(job.filename, job)
 
-        } else if(job.count != count) {
+        } else if (job.count != count) {
             job.count = count
             job.pending = true
             _db.update(job)
@@ -1206,7 +1218,7 @@ class DownloadManager @Inject constructor(
 
     suspend fun updatePlaylist(mediaId: Int, newCount: Int) {
 
-        if(newCount == 0) {
+        if (newCount == 0) {
             delete(mediaId, MediaTypes.Playlist)
             return
         }
@@ -1216,7 +1228,7 @@ class DownloadManager @Inject constructor(
 
         val job = _db.getJob(mediaId, MediaTypes.Playlist, _profileId)
         if (job != null) {
-            if(job.count != newCount) {
+            if (job.count != newCount) {
                 job.count = newCount
                 job.pending = true
                 _db.update(job)
@@ -1243,7 +1255,7 @@ class DownloadManager @Inject constructor(
 
     private fun getLocalFile(filename: String): String? {
         val file = _rootDir.resolve(filename)
-        if(file.exists())
+        if (file.exists())
             return file.absolutePath
         return null
     }

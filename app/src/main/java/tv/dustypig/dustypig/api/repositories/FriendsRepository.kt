@@ -12,7 +12,7 @@ import javax.inject.Singleton
 class FriendsRepository @Inject constructor(
     @AuthenticatedAPIService private val apiService: ApiService,
     authManager: AuthManager
-): RepositoryBase(authManager) {
+) : RepositoryBase(authManager) {
 
     suspend fun list() = wrapAPICallWithReturnData { apiService.listFriends() }
 
@@ -20,11 +20,14 @@ class FriendsRepository @Inject constructor(
 
     suspend fun details(id: Int) = wrapAPICallWithReturnData { apiService.friendDetails(id) }
 
-    suspend fun update(updateFriend: UpdateFriend) = wrapAPICall { apiService.updateFriend(updateFriend) }
+    suspend fun update(updateFriend: UpdateFriend) =
+        wrapAPICall { apiService.updateFriend(updateFriend) }
 
     suspend fun unfriend(id: Int) = wrapAPICall { apiService.unfriend(id) }
 
-    suspend fun shareLibrary(libraryFriendLink: LibraryFriendLink) = wrapAPICall { apiService.shareLibraryWithFriend(libraryFriendLink) }
+    suspend fun shareLibrary(libraryFriendLink: LibraryFriendLink) =
+        wrapAPICall { apiService.shareLibraryWithFriend(libraryFriendLink) }
 
-    suspend fun unShareLibrary(libraryFriendLink: LibraryFriendLink) = wrapAPICall { apiService.unShareLibraryWithFriend(libraryFriendLink) }
+    suspend fun unShareLibrary(libraryFriendLink: LibraryFriendLink) =
+        wrapAPICall { apiService.unShareLibraryWithFriend(libraryFriendLink) }
 }

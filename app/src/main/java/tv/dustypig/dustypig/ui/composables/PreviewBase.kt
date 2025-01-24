@@ -11,7 +11,7 @@ import tv.dustypig.dustypig.ui.theme.DustyPigTheme
 @Composable
 fun PreviewBase(preview: @Composable () -> Unit) {
     DustyPigTheme(currentTheme = Themes.Maggies) {
-        Surface (
+        Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {

@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -51,7 +50,10 @@ private fun ManageParentalControlsForTitleScreenInternal(uiState: ManageParental
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = uiState.onPopBackStack, text = stringResource(R.string.parental_controls))
+            CommonTopAppBar(
+                onClick = uiState.onPopBackStack,
+                text = stringResource(R.string.parental_controls)
+            )
         }
     ) { innerPadding ->
 
@@ -77,7 +79,10 @@ private fun ManageParentalControlsForTitleScreenInternal(uiState: ManageParental
                             .fillMaxWidth()
                             .padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 0.dp)
                             .clip(shape = RoundedCornerShape(4.dp))
-                            .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp)),
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+                                shape = RoundedCornerShape(4.dp)
+                            ),
 
                         ) {
                         Text(
@@ -192,7 +197,7 @@ private fun ManageParentalControlsForTitleScreenInternal(uiState: ManageParental
 
             }
 
-            if(uiState.busy) {
+            if (uiState.busy) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
 
@@ -200,7 +205,7 @@ private fun ManageParentalControlsForTitleScreenInternal(uiState: ManageParental
     }
 
 
-    if(uiState.showErrorDialog) {
+    if (uiState.showErrorDialog) {
         ErrorDialog(
             onDismissRequest = uiState.onHideError,
             message = uiState.errorMessage

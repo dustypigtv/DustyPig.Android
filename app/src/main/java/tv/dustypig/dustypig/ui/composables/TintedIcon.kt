@@ -7,9 +7,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 
 @Composable
-fun TintedIcon (
+fun TintedIcon(
     imageVector: ImageVector,
-    modifier:Modifier = Modifier,
+    modifier: Modifier = Modifier,
     contentDescription: String? = null
 ) {
     Icon(

@@ -3,7 +3,7 @@ package tv.dustypig.dustypig.ui.main_app.screens.search
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.BasicTMDB
 
-data class SearchUIState (
+data class SearchUIState(
 
     //Data
     val busy: Boolean = false,

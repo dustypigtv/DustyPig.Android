@@ -40,14 +40,14 @@ import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
-class SeriesDetailsViewModel  @OptIn(UnstableApi::class) @Inject constructor(
+class SeriesDetailsViewModel @OptIn(UnstableApi::class) @Inject constructor(
     private val mediaRepository: MediaRepository,
     private val seriesRepository: SeriesRepository,
     private val downloadManager: DownloadManager,
     routeNavigator: RouteNavigator,
     castManager: CastManager,
     savedStateHandle: SavedStateHandle
-): ViewModel(), RouteNavigator by routeNavigator {
+) : ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
         SeriesDetailsUIState(
@@ -69,7 +69,8 @@ class SeriesDetailsViewModel  @OptIn(UnstableApi::class) @Inject constructor(
     )
     val uiState: StateFlow<SeriesDetailsUIState> = _uiState.asStateFlow()
 
-    private val _basicCacheId: String = savedStateHandle.getOrThrow(SeriesDetailsNav.KEY_BASIC_CACHE_ID)
+    private val _basicCacheId: String =
+        savedStateHandle.getOrThrow(SeriesDetailsNav.KEY_BASIC_CACHE_ID)
     private val _mediaId: Int = savedStateHandle.getOrThrow(SeriesDetailsNav.KEY_MEDIA_ID)
 
     private var _detailedSeries = DetailedSeries()
@@ -95,7 +96,7 @@ class SeriesDetailsViewModel  @OptIn(UnstableApi::class) @Inject constructor(
                 val job = jobLst.firstOrNull {
                     it.mediaId == _mediaId && it.mediaType == MediaTypes.Series
                 }
-                if(job == null) {
+                if (job == null) {
                     _uiState.update {
                         it.copy(
                             downloadStatus = DownloadStatus.None,
@@ -129,27 +130,29 @@ class SeriesDetailsViewModel  @OptIn(UnstableApi::class) @Inject constructor(
 
         try {
             _detailedSeries = seriesRepository.details(_mediaId)
-            _detailedSeries.episodes?.forEach {
-                detailedEpisode -> detailedEpisode.seriesTitle = _detailedSeries.title
+            _detailedSeries.episodes?.forEach { detailedEpisode ->
+                detailedEpisode.seriesTitle = _detailedSeries.title
             }
             MediaCacheManager.Series[_detailCacheId] = _detailedSeries
 
             val episodes = _detailedSeries.episodes ?: listOf()
-            if(episodes.isEmpty()) {
+            if (episodes.isEmpty()) {
                 throw Exception("No episodes found.")
             }
 
             val allSeasons = ArrayList<UShort>()
-            for(ep in episodes) {
-                if(!allSeasons.contains(ep.seasonNumber))
+            for (ep in episodes) {
+                if (!allSeasons.contains(ep.seasonNumber))
                     allSeasons.add(ep.seasonNumber)
             }
 
             val upNext: DetailedEpisode = episodes.firstOrNull { it.upNext } ?: episodes.first()
 
 
-            val unPlayed = upNext.id == episodes.first().id && (upNext.played == null || upNext.played < 1)
-            val fullyPlayed = upNext.id == episodes.last().id && (upNext.played ?: 0.0) >= (upNext.creditsStartTime ?: (upNext.length - 30.0))
+            val unPlayed =
+                upNext.id == episodes.first().id && (upNext.played == null || upNext.played < 1)
+            val fullyPlayed = upNext.id == episodes.last().id && (upNext.played
+                ?: 0.0) >= (upNext.creditsStartTime ?: (upNext.length - 30.0))
 
             _uiState.update {
                 it.copy(
@@ -171,11 +174,12 @@ class SeriesDetailsViewModel  @OptIn(UnstableApi::class) @Inject constructor(
                     canManage = _detailedSeries.canManage,
                     canPlay = _detailedSeries.canPlay,
                     rated = _detailedSeries.rated.toString(),
-                    overview = (if(unPlayed) _detailedSeries.description else upNext.description) ?: "",
+                    overview = (if (unPlayed) _detailedSeries.description else upNext.description)
+                        ?: "",
                     partiallyPlayed = !(unPlayed || fullyPlayed),
-                    upNextSeason = if(unPlayed) null else upNext.seasonNumber,
-                    upNextEpisode = if(unPlayed) null else upNext.episodeNumber,
-                    episodeTitle = if(unPlayed) "" else upNext.title,
+                    upNextSeason = if (unPlayed) null else upNext.seasonNumber,
+                    upNextEpisode = if (unPlayed) null else upNext.episodeNumber,
+                    episodeTitle = if (unPlayed) "" else upNext.title,
                     titleRequestPermissions = _detailedSeries.titleRequestPermission,
                     accessRequestStatus = _detailedSeries.accessRequestedStatus,
                     accessRequestBusy = false,
@@ -204,10 +208,9 @@ class SeriesDetailsViewModel  @OptIn(UnstableApi::class) @Inject constructor(
     }
 
     private fun hideError() {
-        if(_uiState.value.criticalError) {
+        if (_uiState.value.criticalError) {
             popBackStack()
-        }
-        else {
+        } else {
             _uiState.update {
                 it.copy(showErrorDialog = false)
             }
@@ -235,7 +238,7 @@ class SeriesDetailsViewModel  @OptIn(UnstableApi::class) @Inject constructor(
     }
 
     private fun updateDownloads(newCount: Int) {
-       viewModelScope.launch {
+        viewModelScope.launch {
             downloadManager.addOrUpdateSeries(_detailedSeries, newCount)
         }
     }
@@ -246,7 +249,7 @@ class SeriesDetailsViewModel  @OptIn(UnstableApi::class) @Inject constructor(
         }
 
         viewModelScope.launch {
-            try{
+            try {
                 mediaRepository.requestAccessOverride(_mediaId)
                 _uiState.update {
                     it.copy(
@@ -269,7 +272,7 @@ class SeriesDetailsViewModel  @OptIn(UnstableApi::class) @Inject constructor(
 
             try {
 
-                if(_uiState.value.inWatchList) {
+                if (_uiState.value.inWatchList) {
                     mediaRepository.deleteFromWatchlist(_mediaId)
                 } else {
                     mediaRepository.addToWatchlist(_mediaId)
@@ -294,8 +297,8 @@ class SeriesDetailsViewModel  @OptIn(UnstableApi::class) @Inject constructor(
             it.copy(markWatchedBusy = true)
         }
         viewModelScope.launch {
-            try{
-                if(removeFromContinueWatching) {
+            try {
+                if (removeFromContinueWatching) {
                     seriesRepository.removeFromContinueWatching(_mediaId)
                 } else {
                     seriesRepository.markWatched(_mediaId)
@@ -353,8 +356,8 @@ class SeriesDetailsViewModel  @OptIn(UnstableApi::class) @Inject constructor(
         }
 
         viewModelScope.launch {
-            try{
-                if(_uiState.value.subscribed) {
+            try {
+                if (_uiState.value.subscribed) {
                     seriesRepository.unsubscribe(_mediaId)
                     _uiState.update {
                         it.copy(
@@ -371,7 +374,7 @@ class SeriesDetailsViewModel  @OptIn(UnstableApi::class) @Inject constructor(
                         )
                     }
                 }
-            } catch (ex:Exception){
+            } catch (ex: Exception) {
                 setError(ex, false)
             }
         }
@@ -392,7 +395,7 @@ class SeriesDetailsViewModel  @OptIn(UnstableApi::class) @Inject constructor(
         navigateToRoute(ShowMoreNav.getRoute(genrePair.genre.value, genrePair.text))
     }
 
-    private fun personNav(tmdbId: Int, cacheId: String){
+    private fun personNav(tmdbId: Int, cacheId: String) {
         navigateToRoute(PersonDetailsNav.getRoute(tmdbId, cacheId))
     }
 }

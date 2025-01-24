@@ -133,8 +133,8 @@ private fun DismissBackground(dismissState: SwipeToDismissBoxState) {
 
     val boxWidth = configuration.screenWidthDp.dp - dismissPadding * 2
     val slide = boxWidth * dismissState.progress
-    val xOffset = if(slide > 60.dp)
-        min (dismissPadding * 4, (slide - dismissPadding * 3) / 2)
+    val xOffset = if (slide > 60.dp)
+        min(dismissPadding * 4, (slide - dismissPadding * 3) / 2)
     else
         dismissPadding
 
@@ -147,7 +147,7 @@ private fun DismissBackground(dismissState: SwipeToDismissBoxState) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.End
     ) {
-        if(dismissState.progress < 0.99f) {
+        if (dismissState.progress < 0.99f) {
             Icon(
                 Icons.Outlined.Delete,
                 tint = Color.White,
@@ -205,7 +205,6 @@ private fun AlertItem(
 }
 
 
-
 @Composable
 private fun AlertsScreenInternal(uiState: AlertsUIState) {
 
@@ -260,14 +259,12 @@ private fun AlertsScreenInternal(uiState: AlertsUIState) {
                     AlertItem(notification = notification, uiState = uiState)
 
 
-
-
                 }
 
             }
         }
 
-        if(uiState.busy) {
+        if (uiState.busy) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         }
     }

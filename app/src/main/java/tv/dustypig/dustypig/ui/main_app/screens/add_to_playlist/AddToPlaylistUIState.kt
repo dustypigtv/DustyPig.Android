@@ -2,7 +2,7 @@ package tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist
 
 import tv.dustypig.dustypig.api.models.BasicPlaylist
 
-data class AddToPlaylistUIState (
+data class AddToPlaylistUIState(
 
     //Data
     val busy: Boolean = true,
@@ -18,4 +18,4 @@ data class AddToPlaylistUIState (
     val onNewPlaylist: (name: String, autoAddEpisodes: Boolean) -> Unit = { _, _ -> },
     val onSelectPlaylist: (id: Int, autoAddEpisodes: Boolean) -> Unit = { _, _ -> },
 
-)
+    )

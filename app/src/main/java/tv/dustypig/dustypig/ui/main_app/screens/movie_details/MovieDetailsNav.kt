@@ -15,7 +15,8 @@ object MovieDetailsNav : NavRoute<MovieDetailsViewModel> {
     const val KEY_FROM_PLAYLIST_ID = "KEY_FROM_PLAYLIST_ID"
     const val KEY_PLAYLIST_UPNEXT_INDEX_ID = "KEY_PLAYLIST_UPNEXT_INDEX_ID"
 
-    override val route = "movieDetails/{$KEY_MEDIA_ID}/{$KEY_BASIC_CACHE_ID}/{$KEY_DETAILED_PLAYLIST_CACHE_ID}/{$KEY_FROM_PLAYLIST_ID}/{$KEY_PLAYLIST_UPNEXT_INDEX_ID}"
+    override val route =
+        "movieDetails/{$KEY_MEDIA_ID}/{$KEY_BASIC_CACHE_ID}/{$KEY_DETAILED_PLAYLIST_CACHE_ID}/{$KEY_FROM_PLAYLIST_ID}/{$KEY_PLAYLIST_UPNEXT_INDEX_ID}"
 
     fun getRoute(
         mediaId: Int,

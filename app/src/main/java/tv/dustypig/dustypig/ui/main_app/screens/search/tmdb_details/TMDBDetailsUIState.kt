@@ -5,7 +5,7 @@ import tv.dustypig.dustypig.api.models.RequestStatus
 import tv.dustypig.dustypig.api.models.TitleRequestPermissions
 import tv.dustypig.dustypig.ui.composables.CreditsData
 
-data class TMDBDetailsUIState (
+data class TMDBDetailsUIState(
 
     //Data
     val loading: Boolean = true,

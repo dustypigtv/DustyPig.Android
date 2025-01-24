@@ -26,8 +26,8 @@ import kotlin.concurrent.schedule
 class HomeViewModel @Inject constructor(
     private val routeNavigator: RouteNavigator,
     private val mediaRepository: MediaRepository,
-    private val  networkManager: NetworkManager,
-): ViewModel(), RouteNavigator by routeNavigator {
+    private val networkManager: NetworkManager,
+) : ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
         HomeUIState(
@@ -60,14 +60,14 @@ class HomeViewModel @Inject constructor(
         _timer.schedule(
             delay = 0,
             period = 1000
-        ){
+        ) {
             loadData()
         }
     }
 
     private fun loadData() {
 
-        if(_uiState.value.sections.isEmpty())
+        if (_uiState.value.sections.isEmpty())
             triggerUpdate()
 
         _uiState.update {
@@ -77,7 +77,7 @@ class HomeViewModel @Inject constructor(
             )
         }
 
-        if(Calendar.getInstance().time < _nextTimerTick)
+        if (Calendar.getInstance().time < _nextTimerTick)
             return
 
         viewModelScope.launch {
@@ -100,7 +100,7 @@ class HomeViewModel @Inject constructor(
                 ex.logToCrashlytics()
 
                 //Only show error message if manually refreshing (or first load)
-                if(_uiState.value.isFirstLoad) {
+                if (_uiState.value.isFirstLoad) {
                     _uiState.update {
                         it.copy(
                             isFirstLoad = false,

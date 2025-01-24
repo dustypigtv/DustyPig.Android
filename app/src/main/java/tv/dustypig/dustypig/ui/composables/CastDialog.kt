@@ -50,7 +50,7 @@ fun CastDialog(
 ) {
 
     val castState by castManager.castState.collectAsState()
-    if(!castState.castPossible())
+    if (!castState.castPossible())
         return
 
     AlertDialog(
@@ -60,7 +60,7 @@ fun CastDialog(
             closeDialog()
         },
         title = {
-            if(castState.castConnectionState == CastConnectionState.Connected) {
+            if (castState.castConnectionState == CastConnectionState.Connected) {
                 Text(text = "Casting to ${castState.selectedRoute?.name}")
             } else {
                 Text(text = "Cast to")
@@ -68,7 +68,7 @@ fun CastDialog(
         },
         text = {
             if (castState.castConnectionState == CastConnectionState.Connected) {
-                if(castState.playbackStatus == CastPlaybackStatus.Stopped) {
+                if (castState.playbackStatus == CastPlaybackStatus.Stopped) {
                     Text(text = "Nothing Playing")
                 } else {
                     Row(
@@ -113,10 +113,10 @@ fun CastDialog(
                                 overflow = TextOverflow.Ellipsis
                             )
 
-                            Row (
+                            Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceAround
-                            ){
+                            ) {
                                 CastControls(
                                     castManager = castManager,
                                     sizeMultiple = 1,
@@ -136,11 +136,11 @@ fun CastDialog(
                     state = rememberLazyListState()
                 ) {
 
-                    if(castState.availableRoutes.isEmpty()) {
+                    if (castState.availableRoutes.isEmpty()) {
                         item {
-                            Row (
+                            Row(
                                 verticalAlignment = Alignment.CenterVertically
-                            ){
+                            ) {
                                 Text(text = "Looking for Cast devices")
                                 CircularProgressIndicator(
                                     modifier = Modifier
@@ -177,7 +177,7 @@ fun CastDialog(
             }
         },
         confirmButton = {
-            if(castState.castConnectionState == CastConnectionState.Connected) {
+            if (castState.castConnectionState == CastConnectionState.Connected) {
                 TextButton(
                     onClick = {
                         castManager.setPassiveScanning()

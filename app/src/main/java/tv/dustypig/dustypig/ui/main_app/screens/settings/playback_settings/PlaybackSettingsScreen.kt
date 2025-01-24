@@ -38,12 +38,15 @@ fun PlaybackSettingsScreen(vm: PlaybackSettingsViewModel) {
 private fun PlaybackSettingsScreenInternal(
     uiState: PlaybackSettingsUIState
 ) {
-    Scaffold (
+    Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = uiState.onPopBackStack, text = stringResource(R.string.playback_settings))
+            CommonTopAppBar(
+                onClick = uiState.onPopBackStack,
+                text = stringResource(R.string.playback_settings)
+            )
         }
     ) { paddingValues ->
-        Column (
+        Column(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize(),
@@ -53,14 +56,17 @@ private fun PlaybackSettingsScreenInternal(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Row (
+            Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(12.dp, 0.dp)
                     .clip(shape = RoundedCornerShape(4.dp))
-                    .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp))
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+                        shape = RoundedCornerShape(4.dp)
+                    )
             ) {
                 Text(
                     text = stringResource(R.string.auto_skip_intros),
@@ -74,14 +80,17 @@ private fun PlaybackSettingsScreenInternal(
                 )
             }
 
-            Row (
+            Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(12.dp, 0.dp)
                     .clip(shape = RoundedCornerShape(4.dp))
-                    .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp))
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+                        shape = RoundedCornerShape(4.dp)
+                    )
             ) {
                 Text(
                     text = stringResource(R.string.auto_skip_credits),
@@ -108,7 +117,7 @@ private fun PlaybackSettingsScreenInternal(
 @Preview
 @Composable
 private fun PlaybackSettingsScreenPreview() {
-    val uiState = PlaybackSettingsUIState (
+    val uiState = PlaybackSettingsUIState(
         autoSkipCredits = true
     )
     PreviewBase {

@@ -7,10 +7,10 @@ import tv.dustypig.dustypig.api.models.LoadMoreHomeScreenItemsRequest
 import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.logToCrashlytics
 
-class ShowMorePagingSource (
+class ShowMorePagingSource(
     val listId: Long,
     private val mediaRepository: MediaRepository
-): PagingSource<Int, BasicMedia>() {
+) : PagingSource<Int, BasicMedia>() {
 
 //    companion object {
 //        var showMoreData: HomeScreenList = HomeScreenList(0, "", listOf())
@@ -34,7 +34,12 @@ class ShowMorePagingSource (
 //            else
 //                mediaRepository.loadMoreHomeScreenItems(LoadMoreHomeScreenItemsRequest(listId, start))
 
-            val data = mediaRepository.loadMoreHomeScreenItems(LoadMoreHomeScreenItemsRequest(listId, start))
+            val data = mediaRepository.loadMoreHomeScreenItems(
+                LoadMoreHomeScreenItemsRequest(
+                    listId,
+                    start
+                )
+            )
 
             val nextKey = when {
                 data.size < 25 -> null

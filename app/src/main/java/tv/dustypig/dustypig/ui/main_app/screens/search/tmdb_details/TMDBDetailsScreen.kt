@@ -102,7 +102,9 @@ private fun TMDBDetailsScreenInternal(
         topBar = {
             CommonTopAppBar(
                 onClick = uiState.onPopBackStack,
-                text = if(uiState.isMovie) stringResource(R.string.movie_info) else stringResource(R.string.series_info)
+                text = if (uiState.isMovie) stringResource(R.string.movie_info) else stringResource(
+                    R.string.series_info
+                )
             )
         }
     ) { innerPadding ->
@@ -141,9 +143,9 @@ private fun TMDBDetailsScreenInternal(
         )
     }
 
-    if(showFriendsDialog.value) {
+    if (showFriendsDialog.value) {
         var friendId by remember { mutableStateOf<Int?>(-1) }
-        val titleType = if(uiState.isMovie) "movie" else "series"
+        val titleType = if (uiState.isMovie) "movie" else "series"
         val listState = rememberLazyListState()
 
         AlertDialog(
@@ -160,22 +162,27 @@ private fun TMDBDetailsScreenInternal(
                     ) {
                         items(uiState.friends) { friend ->
 
-                            val backgroundColor = if(friendId == friend.id) MaterialTheme.colorScheme.primary else Color.Transparent
-                            val textColor = if(friendId == friend.id) MaterialTheme.colorScheme.onPrimary else AlertDialogDefaults.textContentColor
+                            val backgroundColor =
+                                if (friendId == friend.id) MaterialTheme.colorScheme.primary else Color.Transparent
+                            val textColor =
+                                if (friendId == friend.id) MaterialTheme.colorScheme.onPrimary else AlertDialogDefaults.textContentColor
 
 
-                            Row (
+                            Row(
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
-                                    .background(color = backgroundColor, shape = RoundedCornerShape(48.dp))
+                                    .background(
+                                        color = backgroundColor,
+                                        shape = RoundedCornerShape(48.dp)
+                                    )
                                     .clip(shape = RoundedCornerShape(size = 48.dp))
                                     .fillMaxSize()
                                     .clickable { friendId = friend.id }
                             ) {
                                 Avatar(
                                     imageUrl = friend.avatarUrl,
-                                    size=48,
+                                    size = 48,
                                     clickable = false
                                 )
                                 Text(
@@ -207,11 +214,10 @@ private fun TMDBDetailsScreenInternal(
         )
     }
 
-    if(uiState.showErrorDialog) {
+    if (uiState.showErrorDialog) {
         ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
     }
 }
-
 
 
 @Composable
@@ -224,7 +230,7 @@ private fun HorizontalTabletLayout(
 ) {
 
     //Left aligns content or center aligns busy indicator
-    val columnAlignment = if(uiState.loading) Alignment.CenterHorizontally else Alignment.Start
+    val columnAlignment = if (uiState.loading) Alignment.CenterHorizontally else Alignment.Start
 
     Row(
         modifier = Modifier
@@ -286,7 +292,7 @@ private fun PhoneLayout(
     val hdp = configuration.screenWidthDp.dp * 0.5625f
 
     //Left aligns content or center aligns busy indicator
-    val columnAlignment = if(uiState.loading) Alignment.CenterHorizontally else Alignment.Start
+    val columnAlignment = if (uiState.loading) Alignment.CenterHorizontally else Alignment.Start
 
     Column(
         modifier = Modifier
@@ -346,7 +352,6 @@ private fun PhoneLayout(
 }
 
 
-
 @Composable
 fun InfoLayout(
     uiState: TMDBDetailsUIState,
@@ -358,9 +363,9 @@ fun InfoLayout(
     if (uiState.loading) {
         Spacer(modifier = Modifier.height(48.dp))
         CircularProgressIndicator()
-    } else if(!criticalError) {
+    } else if (!criticalError) {
 
-        Column (
+        Column(
             modifier = Modifier.padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
@@ -389,7 +394,11 @@ fun InfoLayout(
                         text = uiState.rated,
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier
-                            .border(width = 1.dp, color = MaterialTheme.colorScheme.outline, shape = RectangleShape)
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.outline,
+                                shape = RectangleShape
+                            )
                             .padding(8.dp, 4.dp)
                     )
                 }
@@ -398,23 +407,23 @@ fun InfoLayout(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            if(uiState.available.isEmpty()) {
+            if (uiState.available.isEmpty()) {
 
-                if(uiState.requestPermissions != TitleRequestPermissions.Disabled) {
+                if (uiState.requestPermissions != TitleRequestPermissions.Disabled) {
 
                     val isTablet = LocalContext.current.isTablet()
                     val buttonModifier = remember {
-                        if(isTablet) Modifier.width(320.dp) else Modifier.fillMaxWidth()
+                        if (isTablet) Modifier.width(320.dp) else Modifier.fillMaxWidth()
                     }
 
-                    when(uiState.requestStatus) {
+                    when (uiState.requestStatus) {
                         RequestStatus.NotRequested -> {
                             Button(
                                 onClick = { showFriendsDialog.value = true },
                                 modifier = buttonModifier,
                                 enabled = !uiState.busy
                             ) {
-                                if(uiState.busy)
+                                if (uiState.busy)
                                     CircularProgressIndicator(modifier = Modifier.size(20.dp))
                                 else
                                     Text(text = stringResource(R.string.request))
@@ -427,7 +436,7 @@ fun InfoLayout(
                                 modifier = buttonModifier,
                                 enabled = !uiState.busy
                             ) {
-                                if(uiState.busy)
+                                if (uiState.busy)
                                     CircularProgressIndicator(modifier = Modifier.size(20.dp))
                                 else
                                     Text(text = stringResource(R.string.cancel_request))
@@ -435,15 +444,27 @@ fun InfoLayout(
                         }
 
                         RequestStatus.Denied -> {
-                            Text(text = if(uiState.isMovie) stringResource(R.string.your_request_for_this_movie_was_denied) else stringResource(R.string.your_request_for_this_series_was_denied))
+                            Text(
+                                text = if (uiState.isMovie) stringResource(R.string.your_request_for_this_movie_was_denied) else stringResource(
+                                    R.string.your_request_for_this_series_was_denied
+                                )
+                            )
                         }
 
                         RequestStatus.Pending -> {
-                            Text(text = if(uiState.isMovie) stringResource(R.string.your_request_for_this_movie_was_accepted_and_is_pending) else stringResource(R.string.your_request_for_this_series_was_accepted_and_is_pending))
+                            Text(
+                                text = if (uiState.isMovie) stringResource(R.string.your_request_for_this_movie_was_accepted_and_is_pending) else stringResource(
+                                    R.string.your_request_for_this_series_was_accepted_and_is_pending
+                                )
+                            )
                         }
 
                         RequestStatus.Fulfilled -> {
-                            Text(text = if(uiState.isMovie) stringResource(R.string.your_request_for_this_movie_was_completed) else stringResource(R.string.your_request_for_this_series_was_completed))
+                            Text(
+                                text = if (uiState.isMovie) stringResource(R.string.your_request_for_this_movie_was_completed) else stringResource(
+                                    R.string.your_request_for_this_series_was_completed
+                                )
+                            )
                         }
                     }
 
@@ -480,10 +501,9 @@ fun InfoLayout(
 }
 
 
-
 @Preview
 @Composable
-private  fun TMDBDetailsScreenPreview() {
+private fun TMDBDetailsScreenPreview() {
 
     val uiState = TMDBDetailsUIState(
         loading = false,

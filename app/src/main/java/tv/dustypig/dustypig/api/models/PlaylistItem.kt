@@ -1,6 +1,6 @@
 package tv.dustypig.dustypig.api.models
 
-data class PlaylistItem (
+data class PlaylistItem(
     val id: Int,
     val index: Int,
     val mediaId: Int,

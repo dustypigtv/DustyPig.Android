@@ -1,6 +1,5 @@
 package tv.dustypig.dustypig.ui.main_app.screens.settings
 
-import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,7 +26,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -70,17 +68,33 @@ private fun SettingsScreenInternal(
         Spacer(modifier = Modifier.height(1.dp))
 
 
-        LinkRow(text = stringResource(R.string.playback_settings), onClick = { uiState.onNavToRoute(PlaybackSettingsNav.route) })
-        LinkRow(text = stringResource(R.string.notification_settings), onClick = { uiState.onNavToRoute(NotificationSettingsNav.route) })
-        LinkRow(text = stringResource(R.string.download_settings), onClick = { uiState.onNavToRoute(DownloadSettingsNav.route) })
-        LinkRow(text = stringResource(R.string.theme), onClick = { uiState.onNavToRoute(ThemeSettingsNav.route) })
-        LinkRow(text = stringResource(R.string.switch_profiles), onClick = { uiState.onNavToRoute(SwitchProfilesNav.route) })
+        LinkRow(
+            text = stringResource(R.string.playback_settings),
+            onClick = { uiState.onNavToRoute(PlaybackSettingsNav.route) })
+        LinkRow(
+            text = stringResource(R.string.notification_settings),
+            onClick = { uiState.onNavToRoute(NotificationSettingsNav.route) })
+        LinkRow(
+            text = stringResource(R.string.download_settings),
+            onClick = { uiState.onNavToRoute(DownloadSettingsNav.route) })
+        LinkRow(
+            text = stringResource(R.string.theme),
+            onClick = { uiState.onNavToRoute(ThemeSettingsNav.route) })
+        LinkRow(
+            text = stringResource(R.string.switch_profiles),
+            onClick = { uiState.onNavToRoute(SwitchProfilesNav.route) })
 
-        LinkRow(text = stringResource(R.string.account_settings), onClick = { uiState.onNavToRoute(AccountSettingsNav.route)  })
+        LinkRow(
+            text = stringResource(R.string.account_settings),
+            onClick = { uiState.onNavToRoute(AccountSettingsNav.route) })
 
-        if(uiState.isMainProfile) {
-            LinkRow(text = stringResource(R.string.manage_profiles), onClick = { uiState.onNavToRoute(ProfilesSettingsNav.route) })
-            LinkRow(text = stringResource(R.string.manage_friends), onClick = { uiState.onNavToRoute(FriendsSettingsNav.route) })
+        if (uiState.isMainProfile) {
+            LinkRow(
+                text = stringResource(R.string.manage_profiles),
+                onClick = { uiState.onNavToRoute(ProfilesSettingsNav.route) })
+            LinkRow(
+                text = stringResource(R.string.manage_friends),
+                onClick = { uiState.onNavToRoute(FriendsSettingsNav.route) })
         } else {
             LinkRow(text = stringResource(R.string.my_profile), onClick = uiState.onNavToMyProfile)
         }
@@ -96,7 +110,7 @@ private fun SettingsScreenInternal(
 
 @Composable
 private fun LinkRow(text: String, onClick: () -> Unit) {
-    Row (
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(4.dp)

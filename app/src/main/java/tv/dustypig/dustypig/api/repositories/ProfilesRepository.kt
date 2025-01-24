@@ -16,7 +16,7 @@ import javax.inject.Singleton
 class ProfilesRepository @Inject constructor(
     @AuthenticatedAPIService private val apiService: ApiService,
     authManager: AuthManager
-): RepositoryBase(authManager) {
+) : RepositoryBase(authManager) {
 
     suspend fun list() = wrapAPICallWithReturnData { apiService.listProfiles() }
 
@@ -24,13 +24,17 @@ class ProfilesRepository @Inject constructor(
 
     suspend fun delete(id: Int) = wrapAPICall { apiService.deleteProfile(id) }
 
-    suspend fun create(createProfile: CreateProfile) = wrapAPICallWithReturnData { apiService.createProfile(createProfile) }
+    suspend fun create(createProfile: CreateProfile) =
+        wrapAPICallWithReturnData { apiService.createProfile(createProfile) }
 
-    suspend fun update(updateProfile: UpdateProfile) = wrapAPICall { apiService.updateProfile(updateProfile) }
+    suspend fun update(updateProfile: UpdateProfile) =
+        wrapAPICall { apiService.updateProfile(updateProfile) }
 
-    suspend fun linkToLibrary(profileLibraryLink: ProfileLibraryLink) = wrapAPICall { apiService.linkProfileLibrary(profileLibraryLink) }
+    suspend fun linkToLibrary(profileLibraryLink: ProfileLibraryLink) =
+        wrapAPICall { apiService.linkProfileLibrary(profileLibraryLink) }
 
-    suspend fun unLinkFromLibrary(profileLibraryLink: ProfileLibraryLink) = wrapAPICall { apiService.unLinkProfileLibrary(profileLibraryLink) }
+    suspend fun unLinkFromLibrary(profileLibraryLink: ProfileLibraryLink) =
+        wrapAPICall { apiService.unLinkProfileLibrary(profileLibraryLink) }
 
     suspend fun setAvatar(id: Int, requestBody: RequestBody) = wrapAPICallWithReturnData {
         apiService.setProfileAvatar(

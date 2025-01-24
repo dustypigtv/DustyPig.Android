@@ -45,7 +45,6 @@ fun SelectProfileScreen(vm: SelectProfileViewModel) {
 }
 
 
-
 @Composable
 private fun SelectProfileScreenInternal(uiState: SelectProfileUIState) {
 
@@ -56,7 +55,10 @@ private fun SelectProfileScreenInternal(uiState: SelectProfileUIState) {
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = uiState.onPopBackStack, text = stringResource(R.string.select_profile))
+            CommonTopAppBar(
+                onClick = uiState.onPopBackStack,
+                text = stringResource(R.string.select_profile)
+            )
         }
     ) { contentPadding ->
 
@@ -83,14 +85,14 @@ private fun SelectProfileScreenInternal(uiState: SelectProfileUIState) {
                             basicProfile = it,
                             clickable = !uiState.busy,
                             onClick = {
-                                if(it.hasPin) {
+                                if (it.hasPin) {
                                     selectedProfileId = it.id
                                     showPinDialog = true
                                 } else {
                                     uiState.onSignIn(it.id, null)
                                 }
                             },
-                            size=48
+                            size = 48
                         )
                         Text(text = it.name)
                     }
@@ -103,11 +105,11 @@ private fun SelectProfileScreenInternal(uiState: SelectProfileUIState) {
         }
     }
 
-    if(uiState.showError) {
+    if (uiState.showError) {
         ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
     }
 
-    if(showPinDialog) {
+    if (showPinDialog) {
 
         val confirmEnabled by remember {
             derivedStateOf {

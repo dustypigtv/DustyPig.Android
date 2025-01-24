@@ -96,12 +96,12 @@ private fun DismissBackground(dismissState: SwipeToDismissBoxState) {
         else -> null
     }
 
-    val arrangement = when(dismissState.dismissDirection) {
+    val arrangement = when (dismissState.dismissDirection) {
         SwipeToDismissBoxValue.EndToStart -> Arrangement.End
-        else-> Arrangement.Start
+        else -> Arrangement.Start
     }
 
-    val xOffsetMultiplier = when(dismissState.dismissDirection) {
+    val xOffsetMultiplier = when (dismissState.dismissDirection) {
         SwipeToDismissBoxValue.EndToStart -> -1f
         SwipeToDismissBoxValue.StartToEnd -> 1f
         else -> 0f
@@ -111,8 +111,8 @@ private fun DismissBackground(dismissState: SwipeToDismissBoxState) {
 
     val boxWidth = configuration.screenWidthDp.dp - dismissPadding * 2
     val slide = boxWidth * dismissState.progress
-    val xOffset = if(slide > 60.dp)
-        min (dismissPadding * 4, (slide - dismissPadding * 3) / 2)
+    val xOffset = if (slide > 60.dp)
+        min(dismissPadding * 4, (slide - dismissPadding * 3) / 2)
     else
         dismissPadding
 
@@ -125,8 +125,8 @@ private fun DismissBackground(dismissState: SwipeToDismissBoxState) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = arrangement
     ) {
-        if(dismissState.progress < 0.99f) {
-            if(icon != null) {
+        if (dismissState.progress < 0.99f) {
+            if (icon != null) {
                 Icon(
                     imageVector = icon,
                     tint = Color.White,
@@ -160,8 +160,10 @@ private fun DownloadCard(
         modifier = modifierX
             .fillMaxWidth()
             .clip(shape = RoundedCornerShape(4.dp))
-            .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp))
-        ,
+            .background(
+                color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+                shape = RoundedCornerShape(4.dp)
+            ),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
 
@@ -292,7 +294,7 @@ private fun DownloadCard(
 
                 else -> {
                     CircularProgressIndicator(
-                        modifier =  Modifier.size(24.dp),
+                        modifier = Modifier.size(24.dp),
                         trackColor = MaterialTheme.colorScheme.tertiaryContainer,
                         progress = { job.percent }
                     )
@@ -317,7 +319,10 @@ private fun SubDownloadCard(
             .padding(start = 36.dp, top = 0.dp, end = 0.dp, bottom = 0.dp)
             .fillMaxWidth()
             .clip(shape = RoundedCornerShape(4.dp))
-            .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp)),
+            .background(
+                color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+                shape = RoundedCornerShape(4.dp)
+            ),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
 
@@ -439,7 +444,7 @@ private fun SubDownloadCard(
 
                 else -> {
                     CircularProgressIndicator(
-                        modifier =  Modifier.size(24.dp),
+                        modifier = Modifier.size(24.dp),
                         trackColor = MaterialTheme.colorScheme.tertiaryContainer,
                         progress = { dl.percent }
                     )
@@ -472,157 +477,158 @@ private fun DownloadsScreenInternal(uiState: DownloadsUIState) {
     }
 
 
-    if(uiState.jobs.isEmpty()) {
+    if (uiState.jobs.isEmpty()) {
 
-        Box (
+        Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
-        ){
+        ) {
             Text(text = "No Downloads")
         }
 
     } else {
 
         LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                state = listState
-            ) {
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            state = listState
+        ) {
 
-                item {
-                    Spacer(modifier = Modifier.height(6.dp))
-                }
+            item {
+                Spacer(modifier = Modifier.height(6.dp))
+            }
 
-                for (job in uiState.jobs) {
+            for (job in uiState.jobs) {
 
-                    item(key = job.key) {
+                item(key = job.key) {
 
-                        var show by remember { mutableStateOf(true) }
+                    var show by remember { mutableStateOf(true) }
 
-                        val dismissState = rememberSwipeToDismissBoxState(
-                            confirmValueChange = {
-                                when (it) {
-                                    SwipeToDismissBoxValue.EndToStart -> {
-                                        if(uiState.expandedMediaIds.contains(job.mediaId)) {
-                                            uiState.onToggleExpansion(job.mediaId)
-                                        }
-                                        show = false
-                                        uiState.onDeleteDownload(job)
-                                        true
+                    val dismissState = rememberSwipeToDismissBoxState(
+                        confirmValueChange = {
+                            when (it) {
+                                SwipeToDismissBoxValue.EndToStart -> {
+                                    if (uiState.expandedMediaIds.contains(job.mediaId)) {
+                                        uiState.onToggleExpansion(job.mediaId)
                                     }
-
-                                    SwipeToDismissBoxValue.StartToEnd -> {
-                                        selectedJob = job
-                                        showEditDownloadDialog = true
-                                        false
-                                    }
-
-                                    else -> false
+                                    show = false
+                                    uiState.onDeleteDownload(job)
+                                    true
                                 }
 
-                            },
-                            positionalThreshold = { it * 0.5f }
+                                SwipeToDismissBoxValue.StartToEnd -> {
+                                    selectedJob = job
+                                    showEditDownloadDialog = true
+                                    false
+                                }
+
+                                else -> false
+                            }
+
+                        },
+                        positionalThreshold = { it * 0.5f }
+                    )
+
+
+                    AnimatedVisibility(
+                        visible = show,
+                        exit = shrinkVertically(
+                            animationSpec = tween(
+                                durationMillis = delayTime,
+                            )
                         )
-
-
-                        AnimatedVisibility(
-                            visible = show,
-                            exit = shrinkVertically(
-                                animationSpec = tween(
-                                    durationMillis = delayTime,
-                                )
-                            )
-                        ) {
-                            SwipeToDismissBox (
-                                modifier = Modifier
-                                    .padding(dismissPadding),
-                                state = dismissState,
-                                backgroundContent = { DismissBackground(dismissState) },
-                                content = {
-                                    DownloadCard(
-                                        uiState,
-                                        job,
-                                        Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
-                                    )
-                                }
-                            )
-                        }
-                    }
-
-
-                    if (uiState.expandedMediaIds.contains(job.mediaId)) {
-
-                        for (dl in job.downloads.filter { it.mediaId != job.mediaId }) {
-                            item(key = dl.key) {
-                                SubDownloadCard(
-                                    job,
-                                    dl,
+                    ) {
+                        SwipeToDismissBox(
+                            modifier = Modifier
+                                .padding(dismissPadding),
+                            state = dismissState,
+                            backgroundContent = { DismissBackground(dismissState) },
+                            content = {
+                                DownloadCard(
                                     uiState,
+                                    job,
                                     Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
                                 )
                             }
-                        }
-
-                        if (job.downloads.any { it.mediaId != job.mediaId })
-                            item {
-                                Spacer(modifier = Modifier.height(16.dp))
-                            }
+                        )
                     }
-
-
                 }
 
-                item {
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                if (uiState.expandedMediaIds.contains(job.mediaId)) {
 
-                    if (uiState.jobs.isNotEmpty()) {
+                    for (dl in job.downloads.filter { it.mediaId != job.mediaId }) {
+                        item(key = dl.key) {
+                            SubDownloadCard(
+                                job,
+                                dl,
+                                uiState,
+                                Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
+                            )
+                        }
+                    }
 
-                        val configuration = LocalConfiguration.current
-                        val modifier = if (configuration.screenWidthDp >= 352) Modifier.width(320.dp) else Modifier.fillMaxWidth()
-
-                        Box(
-                            contentAlignment = Alignment.BottomCenter
-                        ) {
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                Button(
-                                    onClick = { showDeleteAllDownloads = true },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.errorContainer,
-                                        contentColor = MaterialTheme.colorScheme.onErrorContainer
-                                    ),
-                                    modifier = modifier
-                                ) {
-                                    Text(text = stringResource(R.string.delete_all_downloads))
-                                }
-                            }
+                    if (job.downloads.any { it.mediaId != job.mediaId })
+                        item {
                             Spacer(modifier = Modifier.height(16.dp))
                         }
+                }
+
+
+            }
+
+            item {
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                if (uiState.jobs.isNotEmpty()) {
+
+                    val configuration = LocalConfiguration.current
+                    val modifier =
+                        if (configuration.screenWidthDp >= 352) Modifier.width(320.dp) else Modifier.fillMaxWidth()
+
+                    Box(
+                        contentAlignment = Alignment.BottomCenter
+                    ) {
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Button(
+                                onClick = { showDeleteAllDownloads = true },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                                ),
+                                modifier = modifier
+                            ) {
+                                Text(text = stringResource(R.string.delete_all_downloads))
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
             }
+        }
 
 
     }
 
 
-    if(showEditDownloadDialog && selectedJob != null) {
+    if (showEditDownloadDialog && selectedJob != null) {
         MultiDownloadDialog(
             onSave = { newCount ->
                 showEditDownloadDialog = false
                 uiState.onModifyDownload(selectedJob!!, newCount)
             },
             onDismiss = { showEditDownloadDialog = false },
-            title = when(selectedJob!!.mediaType) {
+            title = when (selectedJob!!.mediaType) {
                 MediaTypes.Series -> stringResource(R.string.download_series)
                 MediaTypes.Playlist -> stringResource(R.string.download_playlist)
                 else -> ""
             },
-            text = when(selectedJob!!.mediaType) {
+            text = when (selectedJob!!.mediaType) {
                 MediaTypes.Series -> stringResource(R.string.how_many_unwatched_episodes_do_you_want_to_keep_downloaded)
                 MediaTypes.Playlist -> stringResource(R.string.how_many_unwatched_items_do_you_want_to_keep_downloaded)
                 else -> ""
@@ -634,7 +640,7 @@ private fun DownloadsScreenInternal(uiState: DownloadsUIState) {
         )
     }
 
-    if(showDeleteAllDownloads) {
+    if (showDeleteAllDownloads) {
         YesNoDialog(
             onNo = { showDeleteAllDownloads = false },
             onYes = {
@@ -646,13 +652,11 @@ private fun DownloadsScreenInternal(uiState: DownloadsUIState) {
         )
     }
 
-    if(uiState.showErrorDialog) {
+    if (uiState.showErrorDialog) {
         ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
     }
 
 }
-
-
 
 
 @Preview(

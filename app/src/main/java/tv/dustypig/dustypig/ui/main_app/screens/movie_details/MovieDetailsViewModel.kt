@@ -50,7 +50,7 @@ class MovieDetailsViewModel @Inject constructor(
     private val mediaRepository: MediaRepository,
     private val moviesRepository: MoviesRepository,
     private val downloadManager: DownloadManager
-): ViewModel(), RouteNavigator by routeNavigator {
+) : ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
         MovieDetailsUIState(
@@ -70,10 +70,14 @@ class MovieDetailsViewModel @Inject constructor(
     val uiState: StateFlow<MovieDetailsUIState> = _uiState.asStateFlow()
 
     private val mediaId: Int = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_MEDIA_ID)
-    private val _basicCacheId: String = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_BASIC_CACHE_ID)
-    private val _detailedPlaylistCacheId: String = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_DETAILED_PLAYLIST_CACHE_ID)
-    private val _fromPlaylistDetails: Boolean = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_FROM_PLAYLIST_ID)
-    private val _playlistUpNextIndex: Int = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_PLAYLIST_UPNEXT_INDEX_ID)
+    private val _basicCacheId: String =
+        savedStateHandle.getOrThrow(MovieDetailsNav.KEY_BASIC_CACHE_ID)
+    private val _detailedPlaylistCacheId: String =
+        savedStateHandle.getOrThrow(MovieDetailsNav.KEY_DETAILED_PLAYLIST_CACHE_ID)
+    private val _fromPlaylistDetails: Boolean =
+        savedStateHandle.getOrThrow(MovieDetailsNav.KEY_FROM_PLAYLIST_ID)
+    private val _playlistUpNextIndex: Int =
+        savedStateHandle.getOrThrow(MovieDetailsNav.KEY_PLAYLIST_UPNEXT_INDEX_ID)
 
     private var _detailedMovie = DetailedMovie()
 
@@ -100,7 +104,7 @@ class MovieDetailsViewModel @Inject constructor(
                     it.mediaId == mediaId && it.mediaType == MediaTypes.Movie
                 }
                 _uiState.update {
-                    it.copy (
+                    it.copy(
                         downloadStatus = job?.status ?: DownloadStatus.None
                     )
                 }
@@ -177,10 +181,9 @@ class MovieDetailsViewModel @Inject constructor(
     }
 
     private fun hideError() {
-        if(_uiState.value.criticalError) {
+        if (_uiState.value.criticalError) {
             popBackStack()
-        }
-        else {
+        } else {
             _uiState.update {
                 it.copy(showErrorDialog = false)
             }
@@ -189,7 +192,7 @@ class MovieDetailsViewModel @Inject constructor(
 
     private fun addDownload() {
         viewModelScope.launch {
-            try{
+            try {
                 downloadManager.addMovie(_detailedMovie)
             } catch (ex: Exception) {
                 setError(ex = ex, criticalError = false)
@@ -205,27 +208,27 @@ class MovieDetailsViewModel @Inject constructor(
                 setError(ex = ex, criticalError = false)
             }
         }
-     }
+    }
 
 
     private fun play() {
         navigateToRoute(
             PlayerNav.getRoute(
                 mediaId =
-                    if(_fromPlaylistDetails)
-                        MediaCacheManager.Playlists[_detailedPlaylistCacheId]!!.id
-                    else
-                        _detailedMovie.id,
+                if (_fromPlaylistDetails)
+                    MediaCacheManager.Playlists[_detailedPlaylistCacheId]!!.id
+                else
+                    _detailedMovie.id,
                 sourceType =
-                    if(_fromPlaylistDetails)
-                        PlayerNav.MEDIA_TYPE_PLAYLIST
-                    else
-                        PlayerNav.MEDIA_TYPE_MOVIE,
+                if (_fromPlaylistDetails)
+                    PlayerNav.MEDIA_TYPE_PLAYLIST
+                else
+                    PlayerNav.MEDIA_TYPE_MOVIE,
                 upNextId =
-                    if(_fromPlaylistDetails)
-                        _playlistUpNextIndex
-                    else
-                        0
+                if (_fromPlaylistDetails)
+                    _playlistUpNextIndex
+                else
+                    0
             )
         )
     }
@@ -236,7 +239,7 @@ class MovieDetailsViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            try{
+            try {
                 mediaRepository.requestAccessOverride(mediaId)
                 _uiState.update {
                     it.copy(
@@ -257,7 +260,7 @@ class MovieDetailsViewModel @Inject constructor(
         viewModelScope.launch {
 
             try {
-                if(_uiState.value.inWatchList) {
+                if (_uiState.value.inWatchList) {
                     mediaRepository.deleteFromWatchlist(mediaId)
                 } else {
                     mediaRepository.addToWatchlist(mediaId)
@@ -283,8 +286,13 @@ class MovieDetailsViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            try{
-                mediaRepository.updatePlaybackProgress(PlaybackProgress(id = mediaId, seconds = -1.0))
+            try {
+                mediaRepository.updatePlaybackProgress(
+                    PlaybackProgress(
+                        id = mediaId,
+                        seconds = -1.0
+                    )
+                )
                 _uiState.update {
                     it.copy(
                         markWatchedBusy = false,
@@ -311,7 +319,7 @@ class MovieDetailsViewModel @Inject constructor(
         navigateToRoute(ShowMoreNav.getRoute(genrePair.genre.value, genrePair.text))
     }
 
-    private fun personNav(tmdbId: Int, cacheId: String){
+    private fun personNav(tmdbId: Int, cacheId: String) {
         navigateToRoute(PersonDetailsNav.getRoute(tmdbId, cacheId))
     }
 }

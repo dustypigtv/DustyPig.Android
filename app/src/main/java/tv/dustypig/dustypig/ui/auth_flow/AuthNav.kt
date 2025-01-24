@@ -9,7 +9,7 @@ import tv.dustypig.dustypig.ui.auth_flow.screens.sign_up.SignUpNav
 
 
 @Composable
-fun AuthNav(){
+fun AuthNav() {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = SignInNav.route) {
         SignInNav.composable(this, navController)

@@ -20,7 +20,7 @@ import javax.inject.Inject
 class AppNavViewModel @Inject constructor(
     val castManager: CastManager,
     val alertsManager: AlertsManager
-): ViewModel() {
+) : ViewModel() {
 
     private val _notificationCountState = MutableStateFlow<String?>(null)
     val notificationCount: StateFlow<String?> = _notificationCountState.asStateFlow()
@@ -31,7 +31,7 @@ class AppNavViewModel @Inject constructor(
             alertsManager.notifications.collectLatest { it ->
                 val cnt = it.count { !it.seen }
                 val s: String? =
-                    if(cnt == 0)
+                    if (cnt == 0)
                         null
                     else if (cnt > 99)
                         "99+"

@@ -28,7 +28,7 @@ class FriendDetailsSettingsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val friendsRepository: FriendsRepository,
     private val librariesRepository: LibrariesRepository
-): ViewModel(), RouteNavigator by routeNavigator {
+) : ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
         FriendDetailsSettingsUIState(
@@ -47,7 +47,7 @@ class FriendDetailsSettingsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            try{
+            try {
                 val deferredMyLibs = async { librariesRepository.adminList() }
                 val deferredDetailedFriend = async { friendsRepository.details(_friendshipId) }
                 val lst = awaitAll(deferredMyLibs, deferredDetailedFriend)
@@ -57,7 +57,7 @@ class FriendDetailsSettingsViewModel @Inject constructor(
                 _detailedFriend = lst[1] as DetailedFriend
 
                 val transformedList: ArrayList<ShareableLibrary> = arrayListOf()
-                for(lib in _myLibs) {
+                for (lib in _myLibs) {
                     transformedList.add(
                         ShareableLibrary(
                             id = lib.id,
@@ -99,7 +99,7 @@ class FriendDetailsSettingsViewModel @Inject constructor(
     }
 
     private fun hideError() {
-        if(_uiState.value.criticalError) {
+        if (_uiState.value.criticalError) {
             popBackStack()
         } else {
             _uiState.update {
@@ -145,20 +145,20 @@ class FriendDetailsSettingsViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                val libraryFriendLink = LibraryFriendLink (
+                val libraryFriendLink = LibraryFriendLink(
                     friendId = _friendshipId,
                     libraryId = libraryId
                 )
 
-                if(_uiState.value.myLibs.first{ it.id == libraryId}.shared) {
+                if (_uiState.value.myLibs.first { it.id == libraryId }.shared) {
                     friendsRepository.unShareLibrary(libraryFriendLink)
                 } else {
                     friendsRepository.shareLibrary(libraryFriendLink)
                 }
 
                 val libs = mutableListOf<ShareableLibrary>()
-                for(oldLib in _uiState.value.myLibs) {
-                    if(oldLib.id == libraryId) {
+                for (oldLib in _uiState.value.myLibs) {
+                    if (oldLib.id == libraryId) {
                         libs.add(
                             ShareableLibrary(
                                 id = oldLib.id,

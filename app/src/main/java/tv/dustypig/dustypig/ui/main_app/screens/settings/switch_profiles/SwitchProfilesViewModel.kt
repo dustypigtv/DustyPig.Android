@@ -29,7 +29,7 @@ class SwitchProfilesViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val authManager: AuthManager,
     private val settingsManager: SettingsManager
-): ViewModel(), RouteNavigator by routeNavigator {
+) : ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
         SwitchProfilesUIState(
@@ -66,7 +66,7 @@ class SwitchProfilesViewModel @Inject constructor(
     }
 
     private fun hideError() {
-        if(criticalError) {
+        if (criticalError) {
             popBackStack()
         } else {
             _uiState.update {
@@ -84,7 +84,7 @@ class SwitchProfilesViewModel @Inject constructor(
                 val allowNotifications = settingsManager.getAllowNotifications(profile.id)
 
                 val fcmToken: String? =
-                    if(allowNotifications)
+                    if (allowNotifications)
                         FCMManager.currentToken
                     else
                         null
@@ -103,7 +103,7 @@ class SwitchProfilesViewModel @Inject constructor(
                     data.loginType == LoginTypes.MainProfile
                 )
 
-                if(!allowNotifications)
+                if (!allowNotifications)
                     FCMManager.resetToken()
 
                 HomeViewModel.triggerUpdate()

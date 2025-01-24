@@ -93,7 +93,10 @@ private fun AccountSettingsScreenInternal(uiState: AccountSettingsUIState) {
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = uiState.onPopBackStack, text = stringResource(R.string.account_settings))
+            CommonTopAppBar(
+                onClick = uiState.onPopBackStack,
+                text = stringResource(R.string.account_settings)
+            )
         }
     ) { paddingValues ->
 
@@ -120,7 +123,7 @@ private fun AccountSettingsScreenInternal(uiState: AccountSettingsUIState) {
                 }
 
 
-                if(uiState.isMainProfile) {
+                if (uiState.isMainProfile) {
                     Button(
                         onClick = { showChangePasswordDialog = true },
                         modifier = buttonModifier,
@@ -138,7 +141,7 @@ private fun AccountSettingsScreenInternal(uiState: AccountSettingsUIState) {
                     Text(text = stringResource(R.string.logout))
                 }
 
-                if(uiState.isMainProfile) {
+                if (uiState.isMainProfile) {
                     Button(
                         onClick = { showSignoutEverywhereDialog = true },
                         modifier = buttonModifier,
@@ -161,7 +164,7 @@ private fun AccountSettingsScreenInternal(uiState: AccountSettingsUIState) {
                 }
             }
 
-            if(uiState.busy) {
+            if (uiState.busy) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center)
                 )
@@ -169,21 +172,21 @@ private fun AccountSettingsScreenInternal(uiState: AccountSettingsUIState) {
         }
     }
 
-    if(showLoginToDeviceDialog) {
+    if (showLoginToDeviceDialog) {
 
         var code by remember {
             mutableStateOf("")
         }
 
         val enableOk by remember {
-            derivedStateOf{
+            derivedStateOf {
                 code.length == 5 && !uiState.busy
             }
         }
 
         val imeAction by remember {
             derivedStateOf {
-                if(enableOk)
+                if (enableOk)
                     ImeAction.Go
                 else
                     ImeAction.Done
@@ -215,7 +218,10 @@ private fun AccountSettingsScreenInternal(uiState: AccountSettingsUIState) {
             title = { Text(text = stringResource(R.string.login_to_another_device)) },
             text = {
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(20.dp, alignment = Alignment.CenterVertically)
+                    verticalArrangement = Arrangement.spacedBy(
+                        20.dp,
+                        alignment = Alignment.CenterVertically
+                    )
                 ) {
                     OutlinedTextField(
                         value = code,
@@ -225,7 +231,11 @@ private fun AccountSettingsScreenInternal(uiState: AccountSettingsUIState) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .focusRequester(focusRequester),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = imeAction, capitalization = KeyboardCapitalization.Characters),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Text,
+                            imeAction = imeAction,
+                            capitalization = KeyboardCapitalization.Characters
+                        ),
                         keyboardActions = KeyboardActions(
                             onGo = { loginToDevice() },
                             onDone = { keyboardController?.hide() }
@@ -250,7 +260,7 @@ private fun AccountSettingsScreenInternal(uiState: AccountSettingsUIState) {
 
     }
 
-    if(showChangePasswordDialog) {
+    if (showChangePasswordDialog) {
         var newPassword by remember { mutableStateOf("") }
         var passwordVisible by remember { mutableStateOf(false) }
 
@@ -274,14 +284,14 @@ private fun AccountSettingsScreenInternal(uiState: AccountSettingsUIState) {
         }
 
         val enableOk by remember {
-            derivedStateOf{
+            derivedStateOf {
                 newPassword.isNotBlank() && !uiState.busy
             }
         }
 
         val imeAction by remember {
             derivedStateOf {
-                if(enableOk)
+                if (enableOk)
                     ImeAction.Go
                 else
                     ImeAction.Done
@@ -297,7 +307,7 @@ private fun AccountSettingsScreenInternal(uiState: AccountSettingsUIState) {
         fun changePassword() {
             passwordVisible = false
             keyboardController?.hide()
-            if(enableOk) {
+            if (enableOk) {
                 uiState.onChangePassword(newPassword)
             }
         }
@@ -313,7 +323,12 @@ private fun AccountSettingsScreenInternal(uiState: AccountSettingsUIState) {
             onDismissRequest = ::dismissDialog,
             title = { Text(text = stringResource(R.string.change_password)) },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(20.dp, alignment = Alignment.CenterVertically)) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(
+                        20.dp,
+                        alignment = Alignment.CenterVertically
+                    )
+                ) {
 
                     OutlinedTextField(
                         value = newPassword,
@@ -323,8 +338,13 @@ private fun AccountSettingsScreenInternal(uiState: AccountSettingsUIState) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .focusRequester(focusRequester),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = imeAction),
-                        keyboardActions = KeyboardActions(onGo = { changePassword() }, onDone = { keyboardController?.hide() }),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = imeAction
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onGo = { changePassword() },
+                            onDone = { keyboardController?.hide() }),
                         trailingIcon = {
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                 TintedIcon(imageVector = iconImage)
@@ -352,7 +372,7 @@ private fun AccountSettingsScreenInternal(uiState: AccountSettingsUIState) {
 
     }
 
-    if(uiState.showChangePasswordSuccessAlert) {
+    if (uiState.showChangePasswordSuccessAlert) {
         OkDialog(
             onDismissRequest = uiState.onHideChangePasswordDialog,
             title = stringResource(R.string.success),
@@ -360,7 +380,7 @@ private fun AccountSettingsScreenInternal(uiState: AccountSettingsUIState) {
         )
     }
 
-    if(showSignoutEverywhereDialog) {
+    if (showSignoutEverywhereDialog) {
         YesNoDialog(
             onNo = { showSignoutEverywhereDialog = false },
             onYes = {
@@ -372,15 +392,18 @@ private fun AccountSettingsScreenInternal(uiState: AccountSettingsUIState) {
         )
     }
 
-    if(showDeleteAccountDialog) {
+    if (showDeleteAccountDialog) {
 
         AlertDialog(
             shape = RoundedCornerShape(8.dp),
             onDismissRequest = { showDeleteAccountDialog = false },
-            title = {Text(text = stringResource(R.string.delete_account)) },
+            title = { Text(text = stringResource(R.string.delete_account)) },
             text = {
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(20.dp, alignment = Alignment.CenterVertically)
+                    verticalArrangement = Arrangement.spacedBy(
+                        20.dp,
+                        alignment = Alignment.CenterVertically
+                    )
                 ) {
                     Text(
                         text = stringResource(R.string.warning),
@@ -405,7 +428,7 @@ private fun AccountSettingsScreenInternal(uiState: AccountSettingsUIState) {
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteAccountDialog = false  }) {
+                TextButton(onClick = { showDeleteAccountDialog = false }) {
                     Text(text = stringResource(R.string.cancel))
                 }
             }
@@ -413,7 +436,7 @@ private fun AccountSettingsScreenInternal(uiState: AccountSettingsUIState) {
     }
 
 
-    if(uiState.showErrorDialog) {
+    if (uiState.showErrorDialog) {
         ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
     }
 

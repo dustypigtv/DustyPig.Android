@@ -22,19 +22,29 @@ public enum NotificationTypes
 
 enum class NotificationTypes {
 
-    @SerializedName("1") NewMediaRequested,
-    @SerializedName("2") NewMediaPending,
-    @SerializedName("3") NewMediaFulfilled,
-    @SerializedName("4") NewMediaRejected,
-    @SerializedName("5") NewMediaAvailable,
-    @SerializedName("6") OverrideMediaRequested,
-    @SerializedName("7") OverrideMediaGranted,
-    @SerializedName("8") OverrideMediaRejected,
-    @SerializedName("9") FriendshipInvited,
-    @SerializedName("10") FriendshipAccepted;
+    @SerializedName("1")
+    NewMediaRequested,
+    @SerializedName("2")
+    NewMediaPending,
+    @SerializedName("3")
+    NewMediaFulfilled,
+    @SerializedName("4")
+    NewMediaRejected,
+    @SerializedName("5")
+    NewMediaAvailable,
+    @SerializedName("6")
+    OverrideMediaRequested,
+    @SerializedName("7")
+    OverrideMediaGranted,
+    @SerializedName("8")
+    OverrideMediaRejected,
+    @SerializedName("9")
+    FriendshipInvited,
+    @SerializedName("10")
+    FriendshipAccepted;
 
     companion object {
-        fun getByVal(value: String?): NotificationTypes? = when(value) {
+        fun getByVal(value: String?): NotificationTypes? = when (value) {
             "1" -> NewMediaRejected
             "2" -> NewMediaPending
             "3" -> NewMediaFulfilled

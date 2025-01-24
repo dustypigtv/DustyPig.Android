@@ -1,7 +1,7 @@
 package tv.dustypig.dustypig.api.models
 
 
-class LoginResponse (
+class LoginResponse(
     val loginType: LoginTypes,
     val accountToken: String? = null,
     val profileToken: String? = null,

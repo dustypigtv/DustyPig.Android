@@ -22,7 +22,7 @@ import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.logToCrashlytics
 
 
-class FCMManager: FirebaseMessagingService() {
+class FCMManager : FirebaseMessagingService() {
 
     companion object {
         private const val TAG = "FCMManager"
@@ -56,7 +56,6 @@ class FCMManager: FirebaseMessagingService() {
             }
         }
     }
-
 
 
     override fun onNewToken(token: String) {

@@ -1,6 +1,6 @@
 package tv.dustypig.dustypig.api.models
 
-data class BasicTMDB (
+data class BasicTMDB(
     val tmdbId: Int,
     val mediaType: TMDBMediaTypes,
     val artworkUrl: String?,

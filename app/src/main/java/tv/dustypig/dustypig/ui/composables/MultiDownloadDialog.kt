@@ -34,9 +34,11 @@ import tv.dustypig.dustypig.R
 @Composable
 private fun CountRow(count: Int, newDownloadCount: MutableIntState) {
 
-    val text = if(count == 0) stringResource(R.string._0_remove_downloads) else count.toString()
-    val backgroundColor = if(newDownloadCount.intValue == count) MaterialTheme.colorScheme.primary else Color.Transparent
-    val textColor = if(newDownloadCount.intValue == count) MaterialTheme.colorScheme.onPrimary else AlertDialogDefaults.textContentColor
+    val text = if (count == 0) stringResource(R.string._0_remove_downloads) else count.toString()
+    val backgroundColor =
+        if (newDownloadCount.intValue == count) MaterialTheme.colorScheme.primary else Color.Transparent
+    val textColor =
+        if (newDownloadCount.intValue == count) MaterialTheme.colorScheme.onPrimary else AlertDialogDefaults.textContentColor
 
     Row(
         modifier = Modifier
@@ -59,7 +61,7 @@ private fun CountRow(count: Int, newDownloadCount: MutableIntState) {
 fun MultiDownloadDialog(
     onSave: (Int) -> Unit,
     onDismiss: () -> Unit,
-    title:String,
+    title: String,
     text: String,
     currentDownloadCount: Int
 ) {
@@ -74,10 +76,14 @@ fun MultiDownloadDialog(
     }
 
     val listState = rememberLazyListState()
-    if(currentDownloadCount > 5) {
+    if (currentDownloadCount > 5) {
         LaunchedEffect(key1 = false) {
             try {
-                listState.scrollToItem(index = (counts.indexOf(currentDownloadCount) - 1).coerceAtLeast(0))
+                listState.scrollToItem(
+                    index = (counts.indexOf(currentDownloadCount) - 1).coerceAtLeast(
+                        0
+                    )
+                )
             } catch (_: Exception) {
             }
         }
@@ -96,7 +102,7 @@ fun MultiDownloadDialog(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
 
-                    for(count in counts) {
+                    for (count in counts) {
                         item {
                             CountRow(count = count, newDownloadCount = newDownloadCount)
                         }

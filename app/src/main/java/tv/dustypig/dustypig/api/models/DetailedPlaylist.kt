@@ -1,6 +1,6 @@
 package tv.dustypig.dustypig.api.models
 
-data class DetailedPlaylist (
+data class DetailedPlaylist(
     val id: Int = 0,
     val name: String = "",
     val artworkUrl: String = "",

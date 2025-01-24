@@ -77,7 +77,10 @@ private fun SettingsThemeScreenInternal(uiState: ThemeSettingsUIState) {
                         .padding(12.dp)
                         .fillMaxWidth()
                         .clickable { uiState.onSetTheme(theme.value) }
-                        .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp), shape = RoundedCornerShape(4.dp))
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
+                            shape = RoundedCornerShape(4.dp)
+                        )
                         .clip(shape = RoundedCornerShape(4.dp)),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -88,12 +91,20 @@ private fun SettingsThemeScreenInternal(uiState: ThemeSettingsUIState) {
 //                    )
 
                     //Making the whole row clickable and using RB icons worked out a lot better than a real RB
-                    val icon = if(uiState.currentTheme == theme.value)
+                    val icon = if (uiState.currentTheme == theme.value)
                         Icons.Filled.RadioButtonChecked
                     else
                         Icons.Filled.RadioButtonUnchecked
 
-                    TintedIcon(imageVector = icon, modifier = Modifier.padding(start = 16.dp, top = 12.dp, end = 0.dp, bottom = 12.dp))
+                    TintedIcon(
+                        imageVector = icon,
+                        modifier = Modifier.padding(
+                            start = 16.dp,
+                            top = 12.dp,
+                            end = 0.dp,
+                            bottom = 12.dp
+                        )
+                    )
 
                     Text(
                         text = theme.key,
@@ -109,7 +120,7 @@ private fun SettingsThemeScreenInternal(uiState: ThemeSettingsUIState) {
 
 @Preview
 @Composable
-private fun SettingsThemeScreenPreview () {
+private fun SettingsThemeScreenPreview() {
     val uiState = ThemeSettingsUIState(
         currentTheme = Themes.Maggies
     )

@@ -10,13 +10,14 @@ import javax.inject.Singleton
 class SeriesRepository @Inject constructor(
     @AuthenticatedAPIService private val apiService: ApiService,
     authManager: AuthManager
-): RepositoryBase(authManager) {
+) : RepositoryBase(authManager) {
 
     suspend fun details(id: Int) = wrapAPICallWithReturnData { apiService.seriesDetails(id) }
 
     suspend fun markWatched(id: Int) = wrapAPICall { apiService.markSeriesWatched(id) }
 
-    suspend fun removeFromContinueWatching(id: Int) = wrapAPICall { apiService.removeFromContinueWatching(id) }
+    suspend fun removeFromContinueWatching(id: Int) =
+        wrapAPICall { apiService.removeFromContinueWatching(id) }
 
     suspend fun subscribe(id: Int) = wrapAPICall { apiService.subscribeToSeries(id) }
 

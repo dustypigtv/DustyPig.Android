@@ -5,7 +5,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import tv.dustypig.dustypig.nav.NavRoute
 
 
-object ThemeSettingsNav: NavRoute<ThemeSettingsViewModel> {
+object ThemeSettingsNav : NavRoute<ThemeSettingsViewModel> {
     override val route = "settingsTheme"
 
     @Composable

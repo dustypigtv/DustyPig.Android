@@ -63,10 +63,9 @@ class CastManager @Inject constructor(
 //    val castButtonState = _castButtonState.asStateFlow()
 
 
-
     init {
         try {
-            val castContext: CastContext = CastContext.getSharedInstance(context){
+            val castContext: CastContext = CastContext.getSharedInstance(context) {
                 it.run()
             }.result
             mediaRouter = MediaRouter.getInstance(context)
@@ -95,7 +94,11 @@ class CastManager @Inject constructor(
      */
     fun setActiveScanning() {
         Log.d(tag, "setActiveScanning")
-        mediaRouter?.addCallback(mediaSelector, mediaCallback, MediaRouter.CALLBACK_FLAG_PERFORM_ACTIVE_SCAN)
+        mediaRouter?.addCallback(
+            mediaSelector,
+            mediaCallback,
+            MediaRouter.CALLBACK_FLAG_PERFORM_ACTIVE_SCAN
+        )
     }
 
     /**
@@ -103,7 +106,11 @@ class CastManager @Inject constructor(
      */
     fun setPassiveScanning() {
         Log.d(tag, "setPassiveScanning")
-        mediaRouter?.addCallback(mediaSelector, mediaCallback, MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY)
+        mediaRouter?.addCallback(
+            mediaSelector,
+            mediaCallback,
+            MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY
+        )
     }
 
     /**
@@ -125,14 +132,14 @@ class CastManager @Inject constructor(
 
     fun addListener(castConnectionStateListener: CastConnectionStateListener) {
         Log.d(tag, "addListener")
-        if(!connectionStateListeners.contains(castConnectionStateListener)) {
+        if (!connectionStateListeners.contains(castConnectionStateListener)) {
             connectionStateListeners.add(castConnectionStateListener)
         }
     }
 
     fun removeListener(castConnectionStateListener: CastConnectionStateListener) {
         Log.d(tag, "removeListener")
-        if(connectionStateListeners.contains(castConnectionStateListener)) {
+        if (connectionStateListeners.contains(castConnectionStateListener)) {
             connectionStateListeners.remove(castConnectionStateListener)
         }
     }
@@ -144,7 +151,7 @@ class CastManager @Inject constructor(
 
     fun togglePlayPause() {
         Log.d(tag, "togglePlayPause")
-        if(remoteMediaClient?.isPaused == true) {
+        if (remoteMediaClient?.isPaused == true) {
             remoteMediaClient?.play()
         } else {
             remoteMediaClient?.pause()
@@ -214,8 +221,6 @@ class CastManager @Inject constructor(
     }
 
 
-
-
     private fun refreshRoutes() {
         try {
             val routes = mediaRouter?.routes?.toMutableList() ?: mutableListOf()
@@ -239,7 +244,7 @@ class CastManager @Inject constructor(
                     selectedRoute = selectedRoute
                 )
             }
-        } catch(ex: Exception) {
+        } catch (ex: Exception) {
             Log.e(tag, ex.localizedMessage, ex)
         }
     }
@@ -256,7 +261,7 @@ class CastManager @Inject constructor(
 
             Otherwise, tell state listeners to stop using it before setting it to null
          */
-        if(castConnectionState == CastConnectionState.Connected) {
+        if (castConnectionState == CastConnectionState.Connected) {
             setRemoteMediaClient(newRemoteMediaClient)
             informConnectionState(castConnectionState)
         } else {
@@ -278,7 +283,7 @@ class CastManager @Inject constructor(
         }
 
         remoteMediaClient = newRemoteMediaClient
-        if(remoteMediaClient != null) {
+        if (remoteMediaClient != null) {
             remoteMediaClient?.registerCallback(remoteMediaClientListener)
             remoteMediaClient?.addProgressListener(remoteMediaClientListener, 1000)
         }
@@ -298,7 +303,7 @@ class CastManager @Inject constructor(
         connectionStateListeners.forEach { listener ->
             try {
                 listener.onConnectionStateChanged(castConnectionState)
-            } catch(ex: Exception) {
+            } catch (ex: Exception) {
                 Log.e(tag, "CastConnectionStateListener.onConnectionStateChanged", ex)
             }
         }
@@ -340,7 +345,8 @@ class CastManager @Inject constructor(
             }
 
             val itemIds = remoteMediaClient?.mediaStatus?.queueItems?.map { it.itemId } ?: listOf()
-            val currentItemIndex = itemIds.indexOf(remoteMediaClient?.mediaStatus?.currentItemId ?: 0)
+            val currentItemIndex =
+                itemIds.indexOf(remoteMediaClient?.mediaStatus?.currentItemId ?: 0)
             val hasNext = itemIds.size > 1 && currentItemIndex < itemIds.size - 1
             val hasPrev = itemIds.size > 1 && currentItemIndex > 0
 
@@ -372,18 +378,24 @@ class CastManager @Inject constructor(
 
     private class SessionListener(
         private val setRemoteMediaClientAndInform: (RemoteMediaClient?, CastConnectionState) -> Unit
-    ): SessionManagerListener<CastSession> {
+    ) : SessionManagerListener<CastSession> {
 
         private val tag = "CM.SessionListener"
 
         override fun onSessionStarted(castSession: CastSession, sessionId: String) {
             Log.d(tag, "onSessionStarted")
-            setRemoteMediaClientAndInform(castSession.remoteMediaClient, CastConnectionState.Connected)
+            setRemoteMediaClientAndInform(
+                castSession.remoteMediaClient,
+                CastConnectionState.Connected
+            )
         }
 
         override fun onSessionResumed(castSession: CastSession, wasSuspended: Boolean) {
             Log.d(tag, "onSessionResumed")
-            setRemoteMediaClientAndInform(castSession.remoteMediaClient, CastConnectionState.Connected)
+            setRemoteMediaClientAndInform(
+                castSession.remoteMediaClient,
+                CastConnectionState.Connected
+            )
         }
 
         override fun onSessionEnded(castSession: CastSession, error: Int) {
@@ -426,7 +438,7 @@ class CastManager @Inject constructor(
     private class RemoteMediaClientListener(
         private val updateProgress: (position: Long, duration: Long) -> Unit,
         private val updatePlaybackInfo: () -> Unit
-    ): RemoteMediaClient.ProgressListener, RemoteMediaClient.Callback() {
+    ) : RemoteMediaClient.ProgressListener, RemoteMediaClient.Callback() {
 
         private val tag = "CM.RMCListener"
 
@@ -468,7 +480,7 @@ class CastManager @Inject constructor(
 
     private class MediaRouterCallback(
         private val refreshRoute: () -> Unit
-    ): MediaRouter.Callback() {
+    ) : MediaRouter.Callback() {
 
         private val tag = "CM.MediaRouterCallback"
 

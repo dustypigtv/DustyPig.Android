@@ -25,7 +25,7 @@ object PersonDetailsNav : NavRoute<PersonDetailsViewModel> {
     )
 
     @Composable
-    override fun viewModel(): PersonDetailsViewModel  = hiltViewModel()
+    override fun viewModel(): PersonDetailsViewModel = hiltViewModel()
 
     @Composable
     override fun Content(viewModel: PersonDetailsViewModel) = PersonDetailsScreen(vm = viewModel)

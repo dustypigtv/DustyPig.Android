@@ -21,7 +21,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -67,7 +66,7 @@ private fun AddToPlaylistScreenInternal(uiState: AddToPlaylistUIState) {
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val listState = rememberLazyListState()
-    var newName by remember { mutableStateOf("")}
+    var newName by remember { mutableStateOf("") }
     val enableSaveButton = !uiState.busy && newName.isNotBlank()
     var showAutoEpisodesDialog by remember { mutableStateOf(false) }
     var newPlaylistMode by remember { mutableStateOf(false) }
@@ -75,7 +74,10 @@ private fun AddToPlaylistScreenInternal(uiState: AddToPlaylistUIState) {
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = uiState.onPopBackStack, text = stringResource(R.string.add_to_playlist))
+            CommonTopAppBar(
+                onClick = uiState.onPopBackStack,
+                text = stringResource(R.string.add_to_playlist)
+            )
         }
     ) { innerPadding ->
 
@@ -221,7 +223,7 @@ private fun AddToPlaylistScreenInternal(uiState: AddToPlaylistUIState) {
         }
     }
 
-    if(showAutoEpisodesDialog) {
+    if (showAutoEpisodesDialog) {
         YesNoDialog(
             onNo = {
                 if (newPlaylistMode) {
@@ -243,7 +245,7 @@ private fun AddToPlaylistScreenInternal(uiState: AddToPlaylistUIState) {
     }
 
 
-    if(uiState.showErrorDialog) {
+    if (uiState.showErrorDialog) {
         ErrorDialog(
             onDismissRequest = uiState.onHideError,
             message = uiState.errorMessage
@@ -251,8 +253,6 @@ private fun AddToPlaylistScreenInternal(uiState: AddToPlaylistUIState) {
     }
 
 }
-
-
 
 
 @Preview(showSystemUi = true)

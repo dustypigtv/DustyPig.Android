@@ -122,7 +122,7 @@ private fun MovieDetailsScreenInternal(uiState: MovieDetailsUIState) {
         )
     }
 
-    if(uiState.showErrorDialog) {
+    if (uiState.showErrorDialog) {
         ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
     }
 
@@ -136,7 +136,7 @@ private fun HorizontalTabletLayout(
 ) {
 
     //Left aligns content or center aligns busy indicator
-    val columnAlignment = if(uiState.loading) Alignment.CenterHorizontally else Alignment.Start
+    val columnAlignment = if (uiState.loading) Alignment.CenterHorizontally else Alignment.Start
 
     val criticalError = uiState.showErrorDialog && uiState.criticalError
 
@@ -163,7 +163,7 @@ private fun HorizontalTabletLayout(
             )
 
             //Prevents error flicker when navigating and no loading info was provided
-            if(uiState.posterUrl.isNotBlank()) {
+            if (uiState.posterUrl.isNotBlank()) {
                 AsyncImage(
                     model = uiState.posterUrl,
                     contentDescription = "",
@@ -184,7 +184,7 @@ private fun HorizontalTabletLayout(
             if (uiState.loading) {
                 Spacer(modifier = Modifier.height(48.dp))
                 CircularProgressIndicator()
-            } else if(!criticalError) {
+            } else if (!criticalError) {
                 MovieTitleLayout(uiState = uiState)
             }
         }
@@ -201,7 +201,7 @@ private fun PhoneLayout(
     val hdp = configuration.screenWidthDp.dp * 0.5625f
 
     //Left aligns content or center aligns busy indicator
-    val columnAlignment = if(uiState.loading) Alignment.CenterHorizontally else Alignment.Start
+    val columnAlignment = if (uiState.loading) Alignment.CenterHorizontally else Alignment.Start
 
     val criticalError = uiState.showErrorDialog && uiState.criticalError
 
@@ -233,7 +233,7 @@ private fun PhoneLayout(
                 )
 
                 //Prevents error flicker when navigating and no loading info was provided
-                if(uiState.posterUrl.isNotBlank()) {
+                if (uiState.posterUrl.isNotBlank()) {
                     AsyncImage(
                         model = uiState.posterUrl,
                         contentDescription = "",
@@ -258,7 +258,7 @@ private fun PhoneLayout(
         if (uiState.loading) {
             Spacer(modifier = Modifier.height(48.dp))
             CircularProgressIndicator()
-        } else if(!criticalError) {
+        } else if (!criticalError) {
             MovieTitleLayout(uiState = uiState)
         }
     }
@@ -270,9 +270,9 @@ private fun MovieTitleLayout(uiState: MovieDetailsUIState) {
     //Align buttons to center for phone, left for tablet
     val context = LocalContext.current
     val isTablet = context.isTablet()
-    val alignment = if(isTablet) Alignment.Start else Alignment.CenterHorizontally
-    val modifier = if(isTablet) Modifier.width(320.dp) else Modifier.fillMaxWidth()
-    val buttonPadding = if(isTablet) PaddingValues(0.dp, 0.dp  ) else PaddingValues(16.dp, 0.dp)
+    val alignment = if (isTablet) Alignment.Start else Alignment.CenterHorizontally
+    val modifier = if (isTablet) Modifier.width(320.dp) else Modifier.fillMaxWidth()
+    val buttonPadding = if (isTablet) PaddingValues(0.dp, 0.dp) else PaddingValues(16.dp, 0.dp)
 
     val playButtonText =
         if (uiState.partiallyPlayed)
@@ -280,12 +280,12 @@ private fun MovieTitleLayout(uiState: MovieDetailsUIState) {
         else
             stringResource(R.string.play).trim()
 
-    val downloadIcon = when(uiState.downloadStatus) {
+    val downloadIcon = when (uiState.downloadStatus) {
         DownloadStatus.None -> Icons.Filled.Download
         DownloadStatus.Finished -> Icons.Filled.DownloadDone
         else -> Icons.Filled.Downloading
     }
-    val downloadText = when(uiState.downloadStatus) {
+    val downloadText = when (uiState.downloadStatus) {
         DownloadStatus.None -> stringResource(R.string.download)
         DownloadStatus.Finished -> stringResource(R.string.downloaded)
         else -> stringResource(R.string.downloading)
@@ -324,7 +324,7 @@ private fun MovieTitleLayout(uiState: MovieDetailsUIState) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if(uiState.year.isNotBlank()) {
+                if (uiState.year.isNotBlank()) {
                     Text(
                         text = uiState.year,
                         style = MaterialTheme.typography.titleSmall
@@ -394,7 +394,7 @@ private fun MovieTitleLayout(uiState: MovieDetailsUIState) {
             ) {
 
 
-                if(uiState.watchListBusy) {
+                if (uiState.watchListBusy) {
 
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -422,7 +422,7 @@ private fun MovieTitleLayout(uiState: MovieDetailsUIState) {
                 }
 
                 ActionButton(
-                    onClick =  { downloadClicked() },
+                    onClick = { downloadClicked() },
                     caption = downloadText,
                     icon = downloadIcon
                 )
@@ -433,8 +433,8 @@ private fun MovieTitleLayout(uiState: MovieDetailsUIState) {
                     icon = Icons.AutoMirrored.Filled.PlaylistAdd
                 )
 
-                if(uiState.partiallyPlayed) {
-                    if(uiState.markWatchedBusy) {
+                if (uiState.partiallyPlayed) {
+                    if (uiState.markWatchedBusy) {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
@@ -497,7 +497,7 @@ private fun MovieTitleLayout(uiState: MovieDetailsUIState) {
     Credits(uiState.creditsData)
 
 
-    if(showRemoveDownload) {
+    if (showRemoveDownload) {
         YesNoDialog(
             onNo = { showRemoveDownload = false },
             onYes = {
@@ -536,128 +536,128 @@ private fun MovieDetailsScreenPreview() {
             ),
             castAndCrew = listOf(
                 BasicPerson(
-                    tmdbId=3223,
-                    name="Robert Downey Jr.",
+                    tmdbId = 3223,
+                    name = "Robert Downey Jr.",
                     initials = "RJ",
                     avatarUrl = "https://image.tmdb.org/t/p/original/im9SAqJPZKEbVZGmjXuLI4O7RvM.jpg",
                     order = 1,
                     role = CreditRoles.Cast
                 ),
                 BasicPerson(
-                    tmdbId=16828,
-                    name="Chris Evans",
+                    tmdbId = 16828,
+                    name = "Chris Evans",
                     initials = "CE",
                     avatarUrl = "https://image.tmdb.org/t/p/original/3bOGNsHlrswhyW79uvIHH1V43JI.jpg",
                     order = 2,
                     role = CreditRoles.Cast
                 ),
                 BasicPerson(
-                    tmdbId=103,
-                    name="Mark Ruffalo",
+                    tmdbId = 103,
+                    name = "Mark Ruffalo",
                     initials = "MR",
                     avatarUrl = "https://image.tmdb.org/t/p/original/5GilHMOt5PAQh6rlUKZzGmaKEI7.jpg",
                     order = 3,
                     role = CreditRoles.Cast
                 ),
                 BasicPerson(
-                    tmdbId=74568,
-                    name="Chris Hemsworth",
+                    tmdbId = 74568,
+                    name = "Chris Hemsworth",
                     initials = "CH",
                     avatarUrl = "https://image.tmdb.org/t/p/original/xkHHiJXraaMFXgRYspN6KVrFn17.jpg",
                     order = 4,
                     role = CreditRoles.Cast
                 ),
                 BasicPerson(
-                    tmdbId=1245,
-                    name="Scarlett Johansson",
+                    tmdbId = 1245,
+                    name = "Scarlett Johansson",
                     initials = "SJ",
                     avatarUrl = "https://image.tmdb.org/t/p/original/6NsMbJXRlDZuDzatN2akFdGuTvx.jpg",
                     order = 5,
                     role = CreditRoles.Cast
                 ),
                 BasicPerson(
-                    tmdbId=17604,
-                    name="Jeremy Renner",
+                    tmdbId = 17604,
+                    name = "Jeremy Renner",
                     initials = "JR",
                     avatarUrl = "https://image.tmdb.org/t/p/original/yB84D1neTYXfWBaV0QOE9RF2VCu.jpg",
                     order = 6,
                     role = CreditRoles.Cast
                 ),
                 BasicPerson(
-                    tmdbId=91606,
-                    name="Tom Hiddleston",
+                    tmdbId = 91606,
+                    name = "Tom Hiddleston",
                     initials = "TH",
                     avatarUrl = "https://image.tmdb.org/t/p/original/mclHxMm8aPlCPKptP67257F5GPo.jpg",
                     order = 7,
                     role = CreditRoles.Cast
                 ),
                 BasicPerson(
-                    tmdbId=2231,
-                    name="Samuel L. Jackson",
+                    tmdbId = 2231,
+                    name = "Samuel L. Jackson",
                     initials = "SJ",
                     avatarUrl = "https://image.tmdb.org/t/p/original/nCJJ3NVksYNxIzEHcyC1XziwPVj.jpg",
                     order = 8,
                     role = CreditRoles.Cast
                 ),
                 BasicPerson(
-                    tmdbId=71189,
-                    name="Cobie Smulders",
+                    tmdbId = 71189,
+                    name = "Cobie Smulders",
                     initials = "CS",
                     avatarUrl = "https://image.tmdb.org/t/p/original/2CSgHUIrEi57pwtzdAY3HAxrp31.jpg",
                     order = 9,
                     role = CreditRoles.Cast
                 ),
                 BasicPerson(
-                    tmdbId=9048,
-                    name="Clark Gregg",
+                    tmdbId = 9048,
+                    name = "Clark Gregg",
                     initials = "CG",
                     avatarUrl = "https://image.tmdb.org/t/p/original/nbxFbr2SaF4Sdc6HdsF193GInvJ.jpg",
                     order = 10,
                     role = CreditRoles.Cast
                 ),
                 BasicPerson(
-                    tmdbId=1640,
-                    name="Stellan Skarsgård",
+                    tmdbId = 1640,
+                    name = "Stellan Skarsgård",
                     initials = "SS",
                     avatarUrl = "https://image.tmdb.org/t/p/original/x78BtYHElirO7Iw8bL4m8CnzRDc.jpg",
                     order = 11,
                     role = CreditRoles.Cast
                 ),
                 BasicPerson(
-                    tmdbId=12052,
-                    name="Gwyneth Paltrow",
+                    tmdbId = 12052,
+                    name = "Gwyneth Paltrow",
                     initials = "GP",
                     avatarUrl = "https://image.tmdb.org/t/p/original/slPWN0VvYJtNOEuxlFSsXSNQMaF.jpg",
                     order = 12,
                     role = CreditRoles.Cast
                 ),
                 BasicPerson(
-                    tmdbId=6162,
-                    name="Paul Bettany",
+                    tmdbId = 6162,
+                    name = "Paul Bettany",
                     initials = "PB",
                     avatarUrl = "https://image.tmdb.org/t/p/original/vcAVrAOZrpqmi37qjFdztRAv1u9.jpg",
                     order = 13,
                     role = CreditRoles.Cast
                 ),
                 BasicPerson(
-                    tmdbId=12891,
-                    name="Joss Wheadon",
+                    tmdbId = 12891,
+                    name = "Joss Wheadon",
                     initials = "JW",
                     avatarUrl = "https://image.tmdb.org/t/p/original/mVvpZnKYKSCtkOQixQnOonV5kv3.jpg",
                     order = 1,
                     role = CreditRoles.Director
                 ),
                 BasicPerson(
-                    tmdbId=10850,
-                    name="Kevin Feige",
+                    tmdbId = 10850,
+                    name = "Kevin Feige",
                     initials = "KF",
                     avatarUrl = "https://image.tmdb.org/t/p/original/kCBqXZ5PT5udYGEj2wfTSFbLMvT.jpg",
                     order = 1,
                     role = CreditRoles.Producer
                 ),
                 BasicPerson(
-                    tmdbId=12891,
-                    name="Joss Wheadon",
+                    tmdbId = 12891,
+                    name = "Joss Wheadon",
                     initials = "JW",
                     avatarUrl = "https://image.tmdb.org/t/p/original/mVvpZnKYKSCtkOQixQnOonV5kv3.jpg",
                     order = 1,

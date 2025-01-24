@@ -52,7 +52,7 @@ data class SeriesDetailsUIState(
     val onUpdateDownload: (Int) -> Unit = { },
     val onAddToPlaylist: () -> Unit = { },
     val onMarkWatched: (removeFromContinueWatching: Boolean) -> Unit = { },
-    val onRequestAccess:() -> Unit = { },
+    val onRequestAccess: () -> Unit = { },
     val onManagePermissions: () -> Unit = { },
     val onToggleSubscribe: () -> Unit = { }
 )

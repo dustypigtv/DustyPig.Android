@@ -111,7 +111,7 @@ private fun SearchScreenInternal(
                     trailingIcon = {
                         IconButton(
                             onClick = {
-                                if(uiState.query.isEmpty()) {
+                                if (uiState.query.isEmpty()) {
                                     expanded = false
                                 } else {
                                     uiState.onUpdateQuery("")
@@ -129,7 +129,7 @@ private fun SearchScreenInternal(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp, 0.dp),
-            content =  {
+            content = {
                 uiState.history.forEach { history ->
                     Row(
                         modifier = Modifier
@@ -210,28 +210,40 @@ private fun SearchScreenInternal(
                         }
 
                         when (uiState.tabIndex) {
-                            0 -> AvailableLayout(uiState = uiState, listState = availableState, routeNavigator = routeNavigator)
-                            1 -> TMDBLayout(uiState = uiState, listState = tmdbState, routeNavigator = routeNavigator)
+                            0 -> AvailableLayout(
+                                uiState = uiState,
+                                listState = availableState,
+                                routeNavigator = routeNavigator
+                            )
+
+                            1 -> TMDBLayout(
+                                uiState = uiState,
+                                listState = tmdbState,
+                                routeNavigator = routeNavigator
+                            )
                         }
 
                     } else {
-                        AvailableLayout(uiState = uiState, listState = availableState, routeNavigator = routeNavigator)
+                        AvailableLayout(
+                            uiState = uiState,
+                            listState = availableState,
+                            routeNavigator = routeNavigator
+                        )
                     }
                 }
 
 
             } else {
-                if(!uiState.progressOnly)
+                if (!uiState.progressOnly)
                     Text(text = stringResource(R.string.no_results))
             }
 
-            if(uiState.busy)
+            if (uiState.busy)
                 CircularProgressIndicator(modifier = Modifier.offset(x = 0.dp, y = (-48).dp))
         }
 
     }
 }
-
 
 
 @Composable
@@ -251,11 +263,11 @@ private fun AvailableLayout(
         horizontalArrangement = Arrangement.SpaceBetween,
         contentPadding = PaddingValues(12.dp)
     ) {
-        items(uiState.availableItems, key = {it.id} ){
+        items(uiState.availableItems, key = { it.id }) {
             BasicMediaView(
                 basicMedia = it,
                 routeNavigator = routeNavigator,
-                clicked = {keyboardController?.hide() }
+                clicked = { keyboardController?.hide() }
             )
         }
 
@@ -279,16 +291,15 @@ private fun TMDBLayout(
         horizontalArrangement = Arrangement.SpaceBetween,
         contentPadding = PaddingValues(12.dp)
     ) {
-        items(uiState.tmdbItems, key = {it.tmdbId} ){
+        items(uiState.tmdbItems, key = { it.tmdbId }) {
             TMDBMediaView(
                 basicTMDB = it,
                 routeNavigator = routeNavigator,
-                clicked = {keyboardController?.hide() }
+                clicked = { keyboardController?.hide() }
             )
         }
     }
 }
-
 
 
 @Composable
@@ -299,7 +310,7 @@ fun TMDBMediaView(
 ) {
     fun onClicked() {
 
-        if(clicked != null)
+        if (clicked != null)
             clicked(basicTMDB.tmdbId)
 
 
@@ -337,13 +348,12 @@ fun TMDBMediaView(
 }
 
 
-
 @Preview
 @Composable
 private fun SearchScreenPreview() {
 
     val basicMediaList = arrayListOf<BasicMedia>()
-    for(i in 1..10) {
+    for (i in 1..10) {
         basicMediaList.add(
             BasicMedia(
                 id = i,
@@ -356,7 +366,7 @@ private fun SearchScreenPreview() {
     }
 
     val basicTMDBList = arrayListOf<BasicTMDB>()
-    for(i in 1..10) {
+    for (i in 1..10) {
         basicTMDBList.add(
             BasicTMDB(
                 tmdbId = i,
@@ -367,8 +377,6 @@ private fun SearchScreenPreview() {
             )
         )
     }
-
-
 
 
     val uiState = SearchUIState(

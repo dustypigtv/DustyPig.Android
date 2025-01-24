@@ -1,6 +1,6 @@
 package tv.dustypig.dustypig.api.models
 
-data class DetailedSeries (
+data class DetailedSeries(
     val id: Int = 0,
     val title: String = "",
     val description: String? = null,

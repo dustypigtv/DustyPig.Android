@@ -185,14 +185,17 @@ private fun PlaylistDetailsScreenInternal(uiState: PlaylistDetailsUIState) {
         )
     }
 
-    if(showRenameDialog.value) {
+    if (showRenameDialog.value) {
         var newName by remember {
             mutableStateOf(uiState.title)
         }
 
         AlertDialog(
             shape = RoundedCornerShape(8.dp),
-            properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
+            properties = DialogProperties(
+                dismissOnBackPress = false,
+                dismissOnClickOutside = false
+            ),
             title = { Text(text = stringResource(R.string.rename_playlist)) },
             text = {
                 OutlinedTextField(
@@ -204,7 +207,10 @@ private fun PlaylistDetailsScreenInternal(uiState: PlaylistDetailsUIState) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .focusRequester(FocusRequester()),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Go),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Go
+                    ),
                     keyboardActions = KeyboardActions(onGo = {
                         showRenameDialog.value = false
                         uiState.onRenamePlaylist(newName)
@@ -228,7 +234,7 @@ private fun PlaylistDetailsScreenInternal(uiState: PlaylistDetailsUIState) {
         )
     }
 
-    if(showDownloadDialog.value) {
+    if (showDownloadDialog.value) {
         MultiDownloadDialog(
             onSave = {
                 showDownloadDialog.value = false
@@ -241,7 +247,7 @@ private fun PlaylistDetailsScreenInternal(uiState: PlaylistDetailsUIState) {
         )
     }
 
-    if(showDeletePlaylistDialog.value) {
+    if (showDeletePlaylistDialog.value) {
         YesNoDialog(
             onNo = {
                 showDeletePlaylistDialog.value = false
@@ -255,7 +261,7 @@ private fun PlaylistDetailsScreenInternal(uiState: PlaylistDetailsUIState) {
         )
     }
 
-    if(uiState.showErrorDialog) {
+    if (uiState.showErrorDialog) {
         ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
     }
 }
@@ -272,13 +278,13 @@ private fun HorizontalTabletLayout(
 ) {
 
     //Left aligns content or center aligns busy indicator
-    val columnAlignment = if(uiState.loading) Alignment.CenterHorizontally else Alignment.Start
+    val columnAlignment = if (uiState.loading) Alignment.CenterHorizontally else Alignment.Start
 
     val data = remember {
         mutableStateOf(uiState.items)
     }
 
-    if(uiState.updateList) {
+    if (uiState.updateList) {
         data.value = uiState.items
         uiState.onListUpdated()
     }
@@ -286,11 +292,12 @@ private fun HorizontalTabletLayout(
     //There is 1 before the playlist items, so subtract 1 from indices
     val state = rememberReorderableLazyListState(
         onMove = { from, to ->
-            try{
+            try {
                 data.value = data.value.toMutableList().apply {
                     add(to.index - 1, removeAt(from.index - 1))
                 }
-            } catch(_: Throwable) { }
+            } catch (_: Throwable) {
+            }
         },
         onDragEnd = { from, to ->
             uiState.onUpdateListOnServer(from - 1, to - 1)
@@ -500,21 +507,21 @@ private fun PlaybackLayout(
     val isTablet = LocalContext.current.isTablet()
 
     //val configuration = LocalConfiguration.current
-    val alignment = if(isTablet) Alignment.Start else Alignment.CenterHorizontally
-    val modifier = if(isTablet) Modifier.width(320.dp) else Modifier.fillMaxWidth()
-    val buttonPadding = if(isTablet) PaddingValues(0.dp, 0.dp  ) else PaddingValues(16.dp, 0.dp)
+    val alignment = if (isTablet) Alignment.Start else Alignment.CenterHorizontally
+    val modifier = if (isTablet) Modifier.width(320.dp) else Modifier.fillMaxWidth()
+    val buttonPadding = if (isTablet) PaddingValues(0.dp, 0.dp) else PaddingValues(16.dp, 0.dp)
 
     if (uiState.loading) {
         Spacer(modifier = Modifier.height(48.dp))
         CircularProgressIndicator()
     } else {
 
-        val downloadIcon = when(uiState.downloadStatus) {
+        val downloadIcon = when (uiState.downloadStatus) {
             DownloadStatus.None -> Icons.Filled.Download
             DownloadStatus.Finished -> Icons.Filled.DownloadDone
             else -> Icons.Filled.Downloading
         }
-        val downloadText = when(uiState.downloadStatus) {
+        val downloadText = when (uiState.downloadStatus) {
             DownloadStatus.None -> stringResource(R.string.download)
             DownloadStatus.Finished -> stringResource(R.string.downloaded)
             else -> stringResource(R.string.downloading)
@@ -540,7 +547,8 @@ private fun PlaybackLayout(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(modifier = Modifier.padding(12.dp, 0.dp),
+        Text(
+            modifier = Modifier.padding(12.dp, 0.dp),
             text = stringResource(R.string.up_next, uiState.upNextTitle)
         )
 
@@ -561,7 +569,9 @@ private fun PlaybackLayout(
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = if(uiState.partiallyPlayed) stringResource(R.string.resume) else stringResource(R.string.play)
+                    text = if (uiState.partiallyPlayed) stringResource(R.string.resume) else stringResource(
+                        R.string.play
+                    )
                 )
             }
 
@@ -586,7 +596,6 @@ private fun PlaybackLayout(
 
     }
 }
-
 
 
 @Composable
@@ -702,8 +711,8 @@ private fun DismissBackground(dismissState: SwipeToDismissBoxState) {
 
     val boxWidth = configuration.screenWidthDp.dp - dismissPadding * 2
     val slide = boxWidth * dismissState.progress
-    val xOffset = if(slide > 60.dp)
-        min (dismissPadding * 4, (slide - dismissPadding * 3) / 2)
+    val xOffset = if (slide > 60.dp)
+        min(dismissPadding * 4, (slide - dismissPadding * 3) / 2)
     else
         dismissPadding
 
@@ -717,7 +726,7 @@ private fun DismissBackground(dismissState: SwipeToDismissBoxState) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.End
     ) {
-        if(dismissState.progress < 0.99f) {
+        if (dismissState.progress < 0.99f) {
             Icon(
                 Icons.Outlined.Delete,
                 tint = Color.White,
@@ -775,12 +784,14 @@ private fun PlaylistItemLayout(
             state = dismissState,
             backgroundContent = { DismissBackground(dismissState) },
             enableDismissFromStartToEnd = false,
-            content = {  PlaylistItemCard(
-                playlistItem = playlistItem,
-                uiState = uiState,
-                elevationState = elevation,
-                reorderState = reorderState
-            )}
+            content = {
+                PlaylistItemCard(
+                    playlistItem = playlistItem,
+                    uiState = uiState,
+                    elevationState = elevation,
+                    reorderState = reorderState
+                )
+            }
         )
     }
 }
@@ -792,7 +803,8 @@ private fun DeleteLayout(
 ) {
 
     val configuration = LocalConfiguration.current
-    val modifier = if (configuration.screenWidthDp >= 352) Modifier.width(320.dp) else Modifier.fillMaxWidth()
+    val modifier =
+        if (configuration.screenWidthDp >= 352) Modifier.width(320.dp) else Modifier.fillMaxWidth()
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -822,7 +834,7 @@ private fun DeleteLayout(
 private fun PlaylistDetailsScreenPreview() {
 
     val listItems: ArrayList<PlaylistItem> = arrayListOf()
-    for(i in 1..10) {
+    for (i in 1..10) {
         listItems.add(
             PlaylistItem(
                 id = i,

@@ -7,7 +7,7 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import tv.dustypig.dustypig.nav.NavRoute
 
-object FriendDetailsSettingsNav: NavRoute<FriendDetailsSettingsViewModel> {
+object FriendDetailsSettingsNav : NavRoute<FriendDetailsSettingsViewModel> {
 
     const val KEY_ID = "KEY_ID"
 
@@ -23,5 +23,6 @@ object FriendDetailsSettingsNav: NavRoute<FriendDetailsSettingsViewModel> {
     override fun viewModel(): FriendDetailsSettingsViewModel = hiltViewModel()
 
     @Composable
-    override fun Content(viewModel: FriendDetailsSettingsViewModel) = FriendDetailsSettingsScreen(vm = viewModel)
+    override fun Content(viewModel: FriendDetailsSettingsViewModel) =
+        FriendDetailsSettingsScreen(vm = viewModel)
 }

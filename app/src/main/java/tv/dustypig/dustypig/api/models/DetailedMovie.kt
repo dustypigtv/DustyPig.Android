@@ -5,7 +5,7 @@ import java.util.Date
 import java.util.Locale
 
 
-data class DetailedMovie (
+data class DetailedMovie(
     val id: Int = 0,
     val title: String = "",
     val description: String? = null,
@@ -34,7 +34,7 @@ data class DetailedMovie (
     val titleRequestPermission: TitleRequestPermissions = TitleRequestPermissions.Disabled,
     val accessRequestedStatus: OverrideRequestStatus = OverrideRequestStatus.NotRequested,
 ) {
-    fun displayTitle(): String{
+    fun displayTitle(): String {
         val year = SimpleDateFormat("yyyy", Locale.US).format(date)
         return "$title ($year)"
     }

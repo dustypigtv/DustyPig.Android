@@ -21,7 +21,7 @@ import javax.inject.Inject
 class DownloadsViewModel @Inject constructor(
     private val routeNavigator: RouteNavigator,
     private val downloadManager: DownloadManager
-): ViewModel(), RouteNavigator by routeNavigator {
+) : ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
         DownloadsUIState(
@@ -71,7 +71,7 @@ class DownloadsViewModel @Inject constructor(
     }
 
     private fun toggleExpansion(id: Int) {
-        if(_expandedMediaIds.contains(id))
+        if (_expandedMediaIds.contains(id))
             _expandedMediaIds.remove(id)
         else
             _expandedMediaIds.add(id)
@@ -83,7 +83,7 @@ class DownloadsViewModel @Inject constructor(
     }
 
     private fun playNext(job: UIJob) {
-        when(job.mediaType) {
+        when (job.mediaType) {
             MediaTypes.Movie -> navigateToRoute(
                 PlayerNav.getRoute(
                     mediaId = job.mediaId,
@@ -119,7 +119,7 @@ class DownloadsViewModel @Inject constructor(
     }
 
     private fun playItem(job: UIJob, download: UIDownload) {
-        when(job.mediaType) {
+        when (job.mediaType) {
             MediaTypes.Series -> navigateToRoute(
                 PlayerNav.getRoute(
                     mediaId = job.mediaId,
@@ -136,7 +136,7 @@ class DownloadsViewModel @Inject constructor(
                 )
             )
 
-            else -> { }
+            else -> {}
         }
     }
 

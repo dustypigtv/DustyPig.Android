@@ -281,7 +281,7 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()) {
                                             if (screen.notifications && unseenNotifications != null) {
                                                 Badge(
                                                     containerColor = Color.Red
-                                                ){
+                                                ) {
                                                     Text(unseenNotifications!!)
                                                 }
                                             }
@@ -372,8 +372,7 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()) {
         vm.alertsManager.navRouteFlow.collectLatest {
             try {
                 navController.navigate(it)
-            }
-            catch (ex: Exception){
+            } catch (ex: Exception) {
                 ex.printStackTrace()
             }
         }

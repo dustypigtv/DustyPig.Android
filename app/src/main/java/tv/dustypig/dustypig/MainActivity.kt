@@ -55,7 +55,7 @@ import javax.inject.Inject
 
 @UnstableApi
 @AndroidEntryPoint
-class MainActivity: ComponentActivity() {
+class MainActivity : ComponentActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
@@ -112,14 +112,16 @@ class MainActivity: ComponentActivity() {
             }
 
 //            Box(Modifier.safeDrawingPadding()) {
-                DustyPigTheme(currentTheme) {
-                    Surface(
-                        modifier = Modifier.fillMaxSize().safeDrawingPadding(),
-                        color = MaterialTheme.colorScheme.background
-                    ) {
-                        AppStateSwitcher()
-                    }
+            DustyPigTheme(currentTheme) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .safeDrawingPadding(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    AppStateSwitcher()
                 }
+            }
 //            }
         }
 
@@ -152,13 +154,13 @@ class MainActivity: ComponentActivity() {
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
 
-        if(!PlayerStateManager.playerScreenVisible.value)
+        if (!PlayerStateManager.playerScreenVisible.value)
             return
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 enterPictureInPictureMode(PictureInPictureParams.Builder().build())
-            } else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 @Suppress("DEPRECATION")
                 enterPictureInPictureMode()
             }
@@ -171,7 +173,6 @@ class MainActivity: ComponentActivity() {
 
         AlertsManager.handleNotificationTapped(intent)
     }
-
 
 
     @Composable
@@ -201,6 +202,7 @@ class MainActivity: ComponentActivity() {
                 AppNav()
 
             }
+
             false -> {
 //                showSystemUi()
                 requestedOrientation = if (isTablet()) {
@@ -233,7 +235,10 @@ class MainActivity: ComponentActivity() {
     private fun AskNotificationPermission() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) ==
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) ==
                 PackageManager.PERMISSION_GRANTED
             ) {
                 Log.d(TAG, "Notification permission granted: true")
@@ -244,7 +249,6 @@ class MainActivity: ComponentActivity() {
     }
 
 
-
     @OptIn(DelicateCoroutinesApi::class)
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
@@ -252,7 +256,7 @@ class MainActivity: ComponentActivity() {
         Log.d(TAG, "Notification permission granted: $isGranted")
         GlobalScope.launch {
             settingsManager.setAllowNotifications(isGranted)
-            if(isGranted)
+            if (isGranted)
                 AlertsManager.triggerUpdateFCMToken()
         }
     }

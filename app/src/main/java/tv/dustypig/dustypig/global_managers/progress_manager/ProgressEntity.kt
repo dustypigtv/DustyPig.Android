@@ -8,7 +8,7 @@ import androidx.room.PrimaryKey
     tableName = "progresses",
     indices = [Index(value = ["mediaId", "playlist", "profileId"], unique = true)]
 )
-data class ProgressEntity (
+data class ProgressEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val mediaId: Int,
     val playlist: Boolean,

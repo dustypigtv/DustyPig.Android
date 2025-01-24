@@ -29,5 +29,6 @@ object PlaylistDetailsNav : NavRoute<PlaylistDetailsViewModel> {
     override fun viewModel(): PlaylistDetailsViewModel = hiltViewModel()
 
     @Composable
-    override fun Content(viewModel: PlaylistDetailsViewModel) = PlaylistDetailsScreen(vm = viewModel)
+    override fun Content(viewModel: PlaylistDetailsViewModel) =
+        PlaylistDetailsScreen(vm = viewModel)
 }

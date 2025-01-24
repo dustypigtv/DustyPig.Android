@@ -20,11 +20,11 @@ import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import javax.inject.Inject
 
 @HiltViewModel
-class ManageParentalControlsForTitleViewModel  @Inject constructor(
+class ManageParentalControlsForTitleViewModel @Inject constructor(
     private val routeNavigator: RouteNavigator,
     private val mediaRepository: MediaRepository,
     savedStateHandle: SavedStateHandle
-): ViewModel(), RouteNavigator by routeNavigator{
+) : ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
         ManageParentalControlsForTitleUIState(
@@ -48,13 +48,13 @@ class ManageParentalControlsForTitleViewModel  @Inject constructor(
         }
 
         viewModelScope.launch {
-            try{
+            try {
                 _data = mediaRepository.getTitlePermissions(_mediaId)
 
-                for(profile in _data.subProfiles) {
+                for (profile in _data.subProfiles) {
                     _origValues[profile.profileId] = profile.overrideState == OverrideState.Allow
                 }
-                for(profile in _data.friendProfiles) {
+                for (profile in _data.friendProfiles) {
                     _origValues[profile.profileId] = profile.overrideState == OverrideState.Allow
                 }
                 _uiState.update {
@@ -99,12 +99,13 @@ class ManageParentalControlsForTitleViewModel  @Inject constructor(
         }
 
         viewModelScope.launch {
-            try{
+            try {
                 var profile = _data.subProfiles.firstOrNull { it.profileId == profileId }
-                if(profile == null)
+                if (profile == null)
                     profile = _data.friendProfiles.first { it.profileId == profileId }
 
-                profile.overrideState = if(profile.overrideState == OverrideState.Allow) OverrideState.Block else OverrideState.Allow
+                profile.overrideState =
+                    if (profile.overrideState == OverrideState.Allow) OverrideState.Block else OverrideState.Allow
 
                 mediaRepository.setTitlePermissions(
                     setTitlePermissionInfo = SetTitlePermission(
@@ -125,8 +126,8 @@ class ManageParentalControlsForTitleViewModel  @Inject constructor(
 
 
         var pendingChanges = false
-        for(p in _data.subProfiles) {
-            if(_origValues[p.profileId] != (p.overrideState == OverrideState.Allow)) {
+        for (p in _data.subProfiles) {
+            if (_origValues[p.profileId] != (p.overrideState == OverrideState.Allow)) {
                 pendingChanges = true
                 break
             }

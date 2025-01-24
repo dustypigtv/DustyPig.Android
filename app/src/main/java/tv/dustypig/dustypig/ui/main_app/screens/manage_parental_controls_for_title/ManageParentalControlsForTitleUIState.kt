@@ -2,7 +2,7 @@ package tv.dustypig.dustypig.ui.main_app.screens.manage_parental_controls_for_ti
 
 import tv.dustypig.dustypig.api.models.ProfileTitleOverrideInfo
 
-data class ManageParentalControlsForTitleUIState (
+data class ManageParentalControlsForTitleUIState(
 
     //Data
     val busy: Boolean = true,

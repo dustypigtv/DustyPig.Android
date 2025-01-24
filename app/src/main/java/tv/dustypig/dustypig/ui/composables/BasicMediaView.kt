@@ -40,13 +40,13 @@ fun BasicMediaView(
 
     fun onClicked() {
 
-        if(clicked != null)
+        if (clicked != null)
             clicked(basicMedia.id)
 
-        if(routeNavigator == null)
+        if (routeNavigator == null)
             return
 
-        if(!navigateOnClick)
+        if (!navigateOnClick)
             return
 
         val cachedId = MediaCacheManager.add(basicMedia)
@@ -82,14 +82,14 @@ fun BasicMediaView(
                 )
             }
 
-            else -> { }
+            else -> {}
         }
     }
 
     val wdp = 100.dp
     val hdp = 150.dp
 
-    val clickableModifier = if(enabled) Modifier.clickable { onClicked() } else Modifier
+    val clickableModifier = if (enabled) Modifier.clickable { onClicked() } else Modifier
 
     Box(
         modifier = Modifier
@@ -110,7 +110,6 @@ fun BasicMediaView(
         )
     }
 }
-
 
 
 @Preview

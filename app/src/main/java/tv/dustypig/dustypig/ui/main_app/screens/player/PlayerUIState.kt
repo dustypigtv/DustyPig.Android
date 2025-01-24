@@ -4,7 +4,7 @@ import androidx.media3.common.Player
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 import tv.dustypig.dustypig.global_managers.cast_manager.CastPlaybackStatus
 
-data class PlayerUIState (
+data class PlayerUIState(
 
     //Data
     val busy: Boolean = false,

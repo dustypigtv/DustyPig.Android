@@ -42,7 +42,7 @@ fun CastControls(castManager: CastManager, sizeMultiple: Int, showBusy: Boolean)
     CastPlaybackButton(
         onClick = {
             if (castState.position <= 10_000) {
-                if(castState.hasPrevious)
+                if (castState.hasPrevious)
                     castManager.playPrevious()
                 else
                     castManager.seekTo(0)
@@ -68,13 +68,14 @@ fun CastControls(castManager: CastManager, sizeMultiple: Int, showBusy: Boolean)
             enabled = true,
             imageVector =
             if (castState.playbackStatus == CastPlaybackStatus.Paused ||
-                castState.playbackStatus == CastPlaybackStatus.Stopped)
+                castState.playbackStatus == CastPlaybackStatus.Stopped
+            )
                 Icons.Filled.PlayCircle
             else
                 Icons.Filled.PauseCircle,
             sizeMultiple = sizeMultiple
         )
-        if(castState.playbackStatus == CastPlaybackStatus.Buffering || showBusy) {
+        if (castState.playbackStatus == CastPlaybackStatus.Buffering || showBusy) {
             CircularProgressIndicator(
                 modifier = Modifier
                     .size(40.dp * (sizeMultiple / 2))
@@ -128,7 +129,7 @@ private fun CastPlaybackButton(
             imageVector = imageVector,
             contentDescription = null,
             tint =
-            if(enabled)
+            if (enabled)
                 Color.White
             else
                 DisabledWhite

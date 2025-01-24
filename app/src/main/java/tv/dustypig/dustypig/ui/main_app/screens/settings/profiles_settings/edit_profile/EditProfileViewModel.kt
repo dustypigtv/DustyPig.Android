@@ -37,7 +37,7 @@ class EditProfileViewModel @Inject constructor(
     private val librariesRepository: LibrariesRepository,
     private val authManager: AuthManager,
     routeNavigator: RouteNavigator
-): ViewModel(), RouteNavigator by routeNavigator {
+) : ViewModel(), RouteNavigator by routeNavigator {
 
     companion object {
         var preloadAvatar = ""
@@ -87,7 +87,7 @@ class EditProfileViewModel @Inject constructor(
 
 
                     val selectedLibs =
-                        if(selfAdminMode) {
+                        if (selfAdminMode) {
 
                             // Main profile has access to all libs on account
                             libs.map { lib -> lib.id }
@@ -98,11 +98,11 @@ class EditProfileViewModel @Inject constructor(
                         }
 
                     val availableLibs = libs.filter {
-                        if(selfAdminMode) {
+                        if (selfAdminMode) {
 
                             // Show all libs
                             true
-                        } else if(selfMode) {
+                        } else if (selfMode) {
 
                             // selfMode but not admin, only show libs with current access
                             selectedLibs.contains(it.id)
@@ -118,7 +118,7 @@ class EditProfileViewModel @Inject constructor(
                             loadingComplete = true,
                             name = detailedProfile.name,
                             hasPin = detailedProfile.hasPin,
-                            lockedState = if(detailedProfile.locked) LockedState.Locked else LockedState.Unlocked,
+                            lockedState = if (detailedProfile.locked) LockedState.Locked else LockedState.Unlocked,
                             avatarUrl = detailedProfile.avatarUrl,
                             libraries = availableLibs,
                             selectedLibraryIds = selectedLibs,
@@ -267,10 +267,15 @@ class EditProfileViewModel @Inject constructor(
 
                 //Set avatar
                 try {
-                    if (avatarFile.isNotBlank() && !avatarFile.startsWith("https://", ignoreCase = true)) {
+                    if (avatarFile.isNotBlank() && !avatarFile.startsWith(
+                            "https://",
+                            ignoreCase = true
+                        )
+                    ) {
                         val maxSize = 1024 * 1024
                         var data = File(avatarFile).readBytes()
-                        var smallEnough = data.size <= maxSize && data[0] == 0xFF.toByte() && data[1] == 0xD8.toByte()
+                        var smallEnough =
+                            data.size <= maxSize && data[0] == 0xFF.toByte() && data[1] == 0xD8.toByte()
                         if (!smallEnough) {
                             val bitmap = BitmapFactory.decodeFile(avatarFile)
                             var quality = 100
@@ -330,7 +335,8 @@ class EditProfileViewModel @Inject constructor(
             var pop = false
             try {
 
-                val selfAdminMode = selectedProfileId == authManager.currentProfileId && authManager.currentProfileIsMain
+                val selfAdminMode =
+                    selectedProfileId == authManager.currentProfileId && authManager.currentProfileIsMain
 
                 val updateProfile = UpdateProfile(
                     id = selectedProfileId,
@@ -351,7 +357,7 @@ class EditProfileViewModel @Inject constructor(
                 val secondaryErrors = arrayListOf<String>()
 
                 //Server knows better for main profile library sharing, but save time and skip anyway
-                if(!selfAdminMode) {
+                if (!selfAdminMode) {
                     try {
 
                         //Remove libs no longer allowed
@@ -397,10 +403,15 @@ class EditProfileViewModel @Inject constructor(
 
                 //Set avatar
                 try {
-                    if (avatarFile.isNotBlank() && !avatarFile.startsWith("https://", ignoreCase = true)) {
+                    if (avatarFile.isNotBlank() && !avatarFile.startsWith(
+                            "https://",
+                            ignoreCase = true
+                        )
+                    ) {
                         val maxSize = 1024 * 1024
                         var data = File(avatarFile).readBytes()
-                        var smallEnough = data.size <= maxSize && data[0] == 0xFF.toByte() && data[1] == 0xD8.toByte()
+                        var smallEnough =
+                            data.size <= maxSize && data[0] == 0xFF.toByte() && data[1] == 0xD8.toByte()
                         if (!smallEnough) {
                             val bitmap = BitmapFactory.decodeFile(avatarFile)
                             var quality = 100

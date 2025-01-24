@@ -13,11 +13,11 @@ import tv.dustypig.dustypig.R
 
 
 @Composable
-fun YesNoDialog (
+fun YesNoDialog(
     onNo: () -> Unit,
     onYes: () -> Unit,
-    title:String,
-    message:String, yes:
+    title: String,
+    message: String, yes:
     String = stringResource(R.string.yes),
     no: String = stringResource(R.string.no),
     dismissOnClickOutside: Boolean = false
@@ -52,6 +52,11 @@ fun YesNoDialog (
 @Composable
 private fun YesNoDialogPreview() {
     PreviewBase {
-        YesNoDialog(onNo = { }, onYes = { }, title = "Confirm Stuff", message = "Are you sure you want to confirm stuff?")
+        YesNoDialog(
+            onNo = { },
+            onYes = { },
+            title = "Confirm Stuff",
+            message = "Are you sure you want to confirm stuff?"
+        )
     }
 }

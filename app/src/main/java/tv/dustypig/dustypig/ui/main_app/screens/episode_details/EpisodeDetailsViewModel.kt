@@ -39,7 +39,7 @@ class EpisodeDetailsViewModel
     castManager: CastManager,
     routeNavigator: RouteNavigator,
     savedStateHandle: SavedStateHandle
-): ViewModel(), RouteNavigator by routeNavigator {
+) : ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
         EpisodeDetailsUIState(
@@ -55,10 +55,14 @@ class EpisodeDetailsViewModel
     )
     val uiState: StateFlow<EpisodeDetailsUIState> = _uiState.asStateFlow()
 
-    private val _detailedCacheId: String = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_DETAILED_CACHE_ID)
-    private val _fromSeriesDetails: Boolean = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_FROM_SERIES_DETAILS)
-    private val _playlistUpNextIndex: Int = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_PLAYLIST_UPNEXT_INDEX_ID)
-    private val _basicCacheId: String = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_BASIC_CACHE_ID)
+    private val _detailedCacheId: String =
+        savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_DETAILED_CACHE_ID)
+    private val _fromSeriesDetails: Boolean =
+        savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_FROM_SERIES_DETAILS)
+    private val _playlistUpNextIndex: Int =
+        savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_PLAYLIST_UPNEXT_INDEX_ID)
+    private val _basicCacheId: String =
+        savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_BASIC_CACHE_ID)
     private val _mediaId: Int = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_MEDIA_ID)
     private val _canPlay: Boolean = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_CAN_PLAY)
 
@@ -83,7 +87,7 @@ class EpisodeDetailsViewModel
 
         viewModelScope.launch {
             downloadManager.downloads.collectLatest { listOfJobs ->
-               updateDownloadStatus(listOfJobs)
+                updateDownloadStatus(listOfJobs)
             }
         }
 
@@ -151,10 +155,9 @@ class EpisodeDetailsViewModel
     }
 
     private fun hideError() {
-        if(_uiState.value.criticalError) {
+        if (_uiState.value.criticalError) {
             popBackStack()
-        }
-        else {
+        } else {
             _uiState.update {
                 it.copy(showErrorDialog = false)
             }
@@ -177,20 +180,20 @@ class EpisodeDetailsViewModel
         navigateToRoute(
             PlayerNav.getRoute(
                 mediaId =
-                    if(_fromSeriesDetails)
-                        _detailedEpisode.seriesId
-                    else
-                        MediaCacheManager.Playlists[_detailedCacheId]!!.id,
+                if (_fromSeriesDetails)
+                    _detailedEpisode.seriesId
+                else
+                    MediaCacheManager.Playlists[_detailedCacheId]!!.id,
                 sourceType =
-                    if(_fromSeriesDetails)
-                        PlayerNav.MEDIA_TYPE_SERIES
-                    else
-                        PlayerNav.MEDIA_TYPE_PLAYLIST,
+                if (_fromSeriesDetails)
+                    PlayerNav.MEDIA_TYPE_SERIES
+                else
+                    PlayerNav.MEDIA_TYPE_PLAYLIST,
                 upNextId =
-                    if(_fromSeriesDetails)
-                        _mediaId
-                    else
-                        _playlistUpNextIndex
+                if (_fromSeriesDetails)
+                    _mediaId
+                else
+                    _playlistUpNextIndex
             )
         )
     }

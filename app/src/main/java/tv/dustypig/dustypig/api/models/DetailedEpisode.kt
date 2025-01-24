@@ -18,7 +18,7 @@ data class DetailedEpisode(
     val introEndTime: Double? = null,
     val creditsStartTime: Double? = null,
     val seasonNumber: UShort = 0u,
-    val episodeNumber: UShort= 0u,
+    val episodeNumber: UShort = 0u,
     val seriesId: Int = 0,
     var seriesTitle: String? = null
 ) {

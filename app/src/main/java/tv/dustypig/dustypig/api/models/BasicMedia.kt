@@ -1,6 +1,6 @@
 package tv.dustypig.dustypig.api.models
 
-data class BasicMedia (
+data class BasicMedia(
     val id: Int,
     val mediaType: MediaTypes,
     val artworkUrl: String,

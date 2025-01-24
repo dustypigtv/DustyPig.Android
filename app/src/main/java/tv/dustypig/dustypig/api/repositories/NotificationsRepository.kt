@@ -11,7 +11,7 @@ import javax.inject.Singleton
 class NotificationsRepository @Inject constructor(
     @AuthenticatedAPIService private val apiService: ApiService,
     authManager: AuthManager
-): RepositoryBase(authManager)  {
+) : RepositoryBase(authManager) {
 
     suspend fun list(): List<Notification> {
         val ret = arrayListOf<Notification>()
@@ -19,7 +19,7 @@ class NotificationsRepository @Inject constructor(
             //The call returns 100 notifications at once
             val nextLst = wrapAPICallWithReturnData { apiService.listNotifications(ret.count()) }
             ret.addAll(nextLst)
-            if(nextLst.count() < 100)
+            if (nextLst.count() < 100)
                 return ret
         }
     }

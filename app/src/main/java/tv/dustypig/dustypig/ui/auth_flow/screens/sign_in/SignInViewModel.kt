@@ -29,7 +29,7 @@ class SignInViewModel @Inject constructor(
     private val authManager: AuthManager,
     private val authRepository: AuthRepository,
     private val settingsManager: SettingsManager
-): ViewModel(), RouteNavigator by routeNavigator {
+) : ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
         SignInUIState(
@@ -77,7 +77,7 @@ class SignInViewModel @Inject constructor(
     }
 
 
-    private fun signIn(email: String, password: String){
+    private fun signIn(email: String, password: String) {
 
         _uiState.update {
             it.copy(busy = true)
@@ -106,12 +106,13 @@ class SignInViewModel @Inject constructor(
                 } else {
 
                     var profileToken = data.profileToken!!
-                    if(settingsManager.getAllowNotifications(data.profileId!!)) {
+                    if (settingsManager.getAllowNotifications(data.profileId!!)) {
                         authManager.setTempAuthToken(profileToken)
-                        profileToken = authRepository.updateFCMToken(FCMToken(FCMManager.currentToken))
+                        profileToken =
+                            authRepository.updateFCMToken(FCMToken(FCMManager.currentToken))
                     }
 
-                   authManager.login(
+                    authManager.login(
                         token = profileToken,
                         profileId = data.profileId,
                         isMain = data.loginType == LoginTypes.MainProfile

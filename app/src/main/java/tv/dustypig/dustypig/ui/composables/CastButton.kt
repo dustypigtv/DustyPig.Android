@@ -27,11 +27,11 @@ import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 @OptIn(UnstableApi::class)
 fun CastButton(castManager: CastManager?) {
 
-    if(castManager == null)
+    if (castManager == null)
         return
 
     val castState by castManager.castState.collectAsState()
-    if(!castState.castPossible())
+    if (!castState.castPossible())
         return
 
     var showPicker by remember {
@@ -54,10 +54,10 @@ fun CastButton(castManager: CastManager?) {
         ) {
             Icon(
                 imageVector =
-                    if(castState.castConnectionState == CastConnectionState.Connected)
-                        Icons.Filled.CastConnected
-                    else
-                        Icons.Filled.Cast,
+                if (castState.castConnectionState == CastConnectionState.Connected)
+                    Icons.Filled.CastConnected
+                else
+                    Icons.Filled.Cast,
                 contentDescription = null,
                 tint = Color.White
             )

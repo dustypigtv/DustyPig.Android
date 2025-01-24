@@ -39,7 +39,11 @@ import tv.dustypig.dustypig.R
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun PinEntry(allowEmpty: Boolean = false, valueChanged: (String) -> Unit, onSubmit: (String) -> Unit) {
+fun PinEntry(
+    allowEmpty: Boolean = false,
+    valueChanged: (String) -> Unit,
+    onSubmit: (String) -> Unit
+) {
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -72,9 +76,9 @@ fun PinEntry(allowEmpty: Boolean = false, valueChanged: (String) -> Unit, onSubm
 
     val imeAction by remember {
         derivedStateOf {
-            if(currentPin.length == 4)
+            if (currentPin.length == 4)
                 ImeAction.Go
-            else if(allowEmpty && currentPin.isEmpty())
+            else if (allowEmpty && currentPin.isEmpty())
                 ImeAction.Go
             else
                 ImeAction.Done
@@ -84,8 +88,8 @@ fun PinEntry(allowEmpty: Boolean = false, valueChanged: (String) -> Unit, onSubm
     fun constructPin() {
 
         var pin = ""
-        for(i in pinList.indices) {
-            if(pinList[i].value.isEmpty()) {
+        for (i in pinList.indices) {
+            if (pinList[i].value.isEmpty()) {
                 break
             }
             pin += pinList[i].value
@@ -104,10 +108,10 @@ fun PinEntry(allowEmpty: Boolean = false, valueChanged: (String) -> Unit, onSubm
         pinList[index].value = newValue
         constructPin()
 
-        if(newValue.isEmpty())
+        if (newValue.isEmpty())
             return
 
-        if(index < 3) {
+        if (index < 3) {
             for (i in (index + 1)..3) {
                 if (pinList[i].value == "") {
                     pinFocusRequesters[i].requestFocus()
@@ -119,16 +123,15 @@ fun PinEntry(allowEmpty: Boolean = false, valueChanged: (String) -> Unit, onSubm
 
     }
 
-    fun keyPressed(keyEvent: KeyEvent, index: Int): Boolean{
+    fun keyPressed(keyEvent: KeyEvent, index: Int): Boolean {
 
-        if(index > 0 && keyEvent.key == Key.Backspace && pinListAllowBackspace[index].value) {
+        if (index > 0 && keyEvent.key == Key.Backspace && pinListAllowBackspace[index].value) {
             pinList[index - 1].value = ""
             constructPin()
             pinListAllowBackspace[index - 1].value = true
             pinFocusRequesters[index - 1].requestFocus()
             return true
-        }
-        else if(pinList[index].value.isEmpty()) {
+        } else if (pinList[index].value.isEmpty()) {
             pinListAllowBackspace[index].value = true
         }
 
@@ -139,8 +142,8 @@ fun PinEntry(allowEmpty: Boolean = false, valueChanged: (String) -> Unit, onSubm
         pinFocusRequesters[0].requestFocus()
     }
 
-    Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()){
-        repeat(4){index ->
+    Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
+        repeat(4) { index ->
             OutlinedTextField(
                 modifier = Modifier
                     .width(40.dp)
@@ -150,7 +153,10 @@ fun PinEntry(allowEmpty: Boolean = false, valueChanged: (String) -> Unit, onSubm
                 textStyle = TextStyle(textAlign = TextAlign.Center),
                 value = pinList[index].value,
                 onValueChange = { newValue -> pinValueChanged(index, newValue) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword, imeAction = imeAction),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.NumberPassword,
+                    imeAction = imeAction
+                ),
                 keyboardActions = KeyboardActions(
                     onDone = { keyboardController?.hide() },
                     onGo = { onSubmit(currentPin) }
@@ -163,9 +169,6 @@ fun PinEntry(allowEmpty: Boolean = false, valueChanged: (String) -> Unit, onSubm
 }
 
 
-
-
-
 @Preview
 @Composable
 private fun PinEntryPreview() {
@@ -176,12 +179,12 @@ private fun PinEntryPreview() {
             title = { Text(stringResource(R.string.enter_pin)) },
             text = {
                 PinEntry(
-                    valueChanged = {  },
+                    valueChanged = { },
                     onSubmit = { }
                 )
             },
             confirmButton = {
-                TextButton(onClick = {  }) {
+                TextButton(onClick = { }) {
                     Text(stringResource(R.string.ok))
                 }
             },

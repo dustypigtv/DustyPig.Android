@@ -60,14 +60,14 @@ import tv.dustypig.dustypig.ui.composables.YesNoDialog
 import tv.dustypig.dustypig.ui.isTablet
 
 @Composable
-fun EpisodeDetailsScreen (vm: EpisodeDetailsViewModel) {
+fun EpisodeDetailsScreen(vm: EpisodeDetailsViewModel) {
     val uiState: EpisodeDetailsUIState by vm.uiState.collectAsState()
     EpisodeDetailsScreenInternal(uiState = uiState)
 }
 
 
 @Composable
-private fun EpisodeDetailsScreenInternal (uiState: EpisodeDetailsUIState) {
+private fun EpisodeDetailsScreenInternal(uiState: EpisodeDetailsUIState) {
 
     val criticalError by remember {
         derivedStateOf {
@@ -80,7 +80,7 @@ private fun EpisodeDetailsScreenInternal (uiState: EpisodeDetailsUIState) {
     }
 
     fun toggleDownload() {
-        if(uiState.downloadStatus == DownloadStatus.None) {
+        if (uiState.downloadStatus == DownloadStatus.None) {
             uiState.onAddDownload()
         } else {
             showRemoveDownloadDialog.value = true
@@ -129,7 +129,7 @@ private fun EpisodeDetailsScreenInternal (uiState: EpisodeDetailsUIState) {
         )
     }
 
-    if(showRemoveDownloadDialog.value) {
+    if (showRemoveDownloadDialog.value) {
         YesNoDialog(
             onNo = { showRemoveDownloadDialog.value = false },
             onYes = {
@@ -141,13 +141,11 @@ private fun EpisodeDetailsScreenInternal (uiState: EpisodeDetailsUIState) {
         )
     }
 
-    if(uiState.showErrorDialog) {
+    if (uiState.showErrorDialog) {
         ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
     }
 
 }
-
-
 
 
 @Composable
@@ -156,10 +154,10 @@ private fun HorizontalTabletLayout(
     uiState: EpisodeDetailsUIState,
     criticalError: Boolean,
     innerPadding: PaddingValues
-){
+) {
 
     //Left aligns content or center aligns busy indicator
-    val columnAlignment = if(uiState.loading) Alignment.CenterHorizontally else Alignment.Start
+    val columnAlignment = if (uiState.loading) Alignment.CenterHorizontally else Alignment.Start
 
     Row(
         modifier = Modifier
@@ -190,7 +188,7 @@ private fun HorizontalTabletLayout(
             if (uiState.loading) {
                 Spacer(modifier = Modifier.height(48.dp))
                 CircularProgressIndicator()
-            } else if(!criticalError) {
+            } else if (!criticalError) {
                 InfoLayout(
                     toggleDownload = toggleDownload,
                     uiState = uiState
@@ -208,13 +206,13 @@ private fun PhoneLayout(
     uiState: EpisodeDetailsUIState,
     criticalError: Boolean,
     innerPadding: PaddingValues
-){
+) {
 
     val configuration = LocalConfiguration.current
     val hdp = configuration.screenWidthDp.dp * 0.5625f
 
     //Left aligns content or center aligns busy indicator
-    val columnAlignment = if(uiState.loading) Alignment.CenterHorizontally else Alignment.Start
+    val columnAlignment = if (uiState.loading) Alignment.CenterHorizontally else Alignment.Start
 
     Column(
         modifier = Modifier
@@ -222,7 +220,7 @@ private fun PhoneLayout(
             .fillMaxWidth()
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = columnAlignment
-    ){
+    ) {
         /**
          * Backdrop
          */
@@ -247,8 +245,8 @@ private fun PhoneLayout(
         if (uiState.loading) {
             Spacer(modifier = Modifier.height(48.dp))
             CircularProgressIndicator()
-        } else if(!criticalError) {
-            Column (
+        } else if (!criticalError) {
+            Column(
                 modifier = Modifier.padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
@@ -282,18 +280,18 @@ private fun InfoLayout(
 
     Spacer(modifier = Modifier.height(12.dp))
 
-    if(uiState.canPlay) {
+    if (uiState.canPlay) {
 
         val isTablet = LocalContext.current.isTablet()
-        val buttonPadding = if(isTablet) PaddingValues(0.dp, 0.dp) else PaddingValues(16.dp, 0.dp)
+        val buttonPadding = if (isTablet) PaddingValues(0.dp, 0.dp) else PaddingValues(16.dp, 0.dp)
 
-        val downloadIcon = when(uiState.downloadStatus) {
+        val downloadIcon = when (uiState.downloadStatus) {
             DownloadStatus.None -> Icons.Filled.Download
             DownloadStatus.Finished -> Icons.Filled.DownloadDone
             else -> Icons.Filled.Downloading
         }
 
-        val downloadText = when(uiState.downloadStatus) {
+        val downloadText = when (uiState.downloadStatus) {
             DownloadStatus.None -> stringResource(R.string.download)
             DownloadStatus.Finished -> stringResource(R.string.downloaded)
             else -> stringResource(R.string.downloading)
@@ -302,10 +300,10 @@ private fun InfoLayout(
 
 
         Button(
-                onClick = uiState.onPlay,
-                modifier = (if(isTablet) Modifier.width(320.dp) else Modifier.fillMaxWidth())
-                    .padding(buttonPadding)
-            ) {
+            onClick = uiState.onPlay,
+            modifier = (if (isTablet) Modifier.width(320.dp) else Modifier.fillMaxWidth())
+                .padding(buttonPadding)
+        ) {
             Icon(
                 imageVector = FontAwesomeIcons.Solid.Play,
                 contentDescription = null,
@@ -341,15 +339,14 @@ private fun InfoLayout(
     }
 
     Text(text = uiState.overview)
-    
-    if(uiState.showGoToSeries) {
+
+    if (uiState.showGoToSeries) {
         Spacer(modifier = Modifier.height(12.dp))
         TextButton(onClick = uiState.onGoToSeries) {
             Text(text = uiState.seriesTitle)
         }
     }
 }
-
 
 
 @Preview

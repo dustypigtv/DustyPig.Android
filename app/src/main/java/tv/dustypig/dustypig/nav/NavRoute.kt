@@ -99,18 +99,22 @@ interface NavRoute<T : RouteNavigator> {
                 navHostController.navigate(navigationState.route)
                 onNavigated(navigationState)
             }
+
             is NavigationState.PopToRoute -> {
                 navHostController.popBackStack(navigationState.staticRoute, false)
                 onNavigated(navigationState)
             }
+
             is NavigationState.NavigateUp -> {
                 navHostController.navigateUp()
                 onNavigated(navigationState)
             }
+
             is NavigationState.PopBackStack -> {
                 navHostController.popBackStack()
                 onNavigated(navigationState)
             }
+
             is NavigationState.Idle -> {
             }
         }

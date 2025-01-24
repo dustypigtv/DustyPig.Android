@@ -75,7 +75,10 @@ private fun FriendsSettingsScreenInternal(uiState: FriendsSettingsUIState) {
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = uiState.onPopBackStack, text = stringResource(R.string.manage_friends))
+            CommonTopAppBar(
+                onClick = uiState.onPopBackStack,
+                text = stringResource(R.string.manage_friends)
+            )
         }
     ) { paddingValues ->
 
@@ -91,18 +94,21 @@ private fun FriendsSettingsScreenInternal(uiState: FriendsSettingsUIState) {
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
 
-                item{
+                item {
                     //Just some blank space between top and actual list
                 }
 
                 items(uiState.friends, key = { it.clientUUID }) {
-                    Row (
+                    Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(12.dp, 0.dp)
                             .clip(shape = RoundedCornerShape(4.dp))
-                            .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp))
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+                                shape = RoundedCornerShape(4.dp)
+                            )
                             .clickable { uiState.onNavToFriendDetails(it.id) }
                     ) {
 
@@ -141,7 +147,7 @@ private fun FriendsSettingsScreenInternal(uiState: FriendsSettingsUIState) {
 
             }
 
-            if(uiState.busy) {
+            if (uiState.busy) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center)
                 )
@@ -153,7 +159,7 @@ private fun FriendsSettingsScreenInternal(uiState: FriendsSettingsUIState) {
         if (showAddFriendDialog) {
 
             val keyboardController = LocalSoftwareKeyboardController.current
-            var email by remember{ mutableStateOf("") }
+            var email by remember { mutableStateOf("") }
             val focusRequester = remember { FocusRequester() }
 
             val submitEnabled by remember {
@@ -197,7 +203,12 @@ private fun FriendsSettingsScreenInternal(uiState: FriendsSettingsUIState) {
                     Box(
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(20.dp, alignment = Alignment.CenterVertically)) {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(
+                                20.dp,
+                                alignment = Alignment.CenterVertically
+                            )
+                        ) {
                             OutlinedTextField(
                                 value = email,
                                 onValueChange = { email = it.trim().lowercase() },
@@ -207,8 +218,13 @@ private fun FriendsSettingsScreenInternal(uiState: FriendsSettingsUIState) {
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .focusRequester(focusRequester),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = imeAction),
-                                keyboardActions = KeyboardActions(onGo = { submitClicked() }, onDone = { keyboardController?.hide() })
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Email,
+                                    imeAction = imeAction
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onGo = { submitClicked() },
+                                    onDone = { keyboardController?.hide() })
                             )
                         }
 
@@ -238,12 +254,16 @@ private fun FriendsSettingsScreenInternal(uiState: FriendsSettingsUIState) {
         }
 
 
-        if(uiState.showInviteSuccessDialog) {
-            OkDialog(onDismissRequest = uiState.onHideDialogs, title = "Add Friend", message = "Invite Sent")
+        if (uiState.showInviteSuccessDialog) {
+            OkDialog(
+                onDismissRequest = uiState.onHideDialogs,
+                title = "Add Friend",
+                message = "Invite Sent"
+            )
         }
 
 
-        if(uiState.showError) {
+        if (uiState.showError) {
             ErrorDialog(onDismissRequest = uiState.onHideDialogs, message = uiState.errorMessage)
         }
     }

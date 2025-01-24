@@ -60,15 +60,15 @@ class PlayerViewModel @Inject constructor(
     app: Application,
     settingsManager: SettingsManager,
     savedStateHandle: SavedStateHandle
-): ViewModel(), RouteNavigator by routeNavigator, Player.Listener, CastConnectionStateListener {
+) : ViewModel(), RouteNavigator by routeNavigator, Player.Listener, CastConnectionStateListener {
 
     companion object {
         private const val TAG = "PlayerViewModel"
     }
 
     private data class StartInfo(
-        val index:Int,
-        val milliSeconds:Long
+        val index: Int,
+        val milliSeconds: Long
     )
 
     private val _uiState = MutableStateFlow(
@@ -161,7 +161,6 @@ class PlayerViewModel @Inject constructor(
         HomeViewModel.triggerUpdate()
         routeNavigator.popBackStack()
     }
-
 
 
     // CastConnectionStateListener
@@ -333,7 +332,7 @@ class PlayerViewModel @Inject constructor(
     private suspend fun loadMovie(): StartInfo {
 
         val detailedMovie =
-            if(networkManager.isConnected()) {
+            if (networkManager.isConnected()) {
                 moviesRepository.details(_mediaId)
             } else {
                 downloadManager.loadDetailedMovie(_mediaId)
@@ -364,7 +363,13 @@ class PlayerViewModel @Inject constructor(
                 .setMediaMetadata(
                     MediaMetadata
                         .Builder()
-                        .setArtworkUri(tryGetLocalPoster(detailedMovie.id, false, detailedMovie.artworkUrl).toUri())
+                        .setArtworkUri(
+                            tryGetLocalPoster(
+                                detailedMovie.id,
+                                false,
+                                detailedMovie.artworkUrl
+                            ).toUri()
+                        )
                         .setMediaType(MediaMetadata.MEDIA_TYPE_MOVIE)
                         .setTitle(detailedMovie.title)
                         .setReleaseYear(calendar.get(Calendar.YEAR))
@@ -381,14 +386,14 @@ class PlayerViewModel @Inject constructor(
     private suspend fun loadSeries(): StartInfo {
 
         val detailedSeries =
-            if(networkManager.isConnected()) {
+            if (networkManager.isConnected()) {
                 seriesRepository.details(_mediaId)
             } else {
                 downloadManager.loadDetailedSeries(_mediaId)
             }
 
         var upNextId = _upNextId
-        if(upNextId < 0) {
+        if (upNextId < 0) {
             upNextId = detailedSeries.episodes?.firstOrNull {
                 it.upNext
             }?.id ?: -1
@@ -415,12 +420,18 @@ class PlayerViewModel @Inject constructor(
                 MediaItem
                     .Builder()
                     .setMediaId(ep.id.toString())
-                    .setUri(tryGetLocalVideo(ep.id,  ep.videoUrl))
+                    .setUri(tryGetLocalVideo(ep.id, ep.videoUrl))
                     .addSubs(ep.id, ep.srtSubtitles)
                     .setMediaMetadata(
                         MediaMetadata
                             .Builder()
-                            .setArtworkUri(tryGetLocalPoster(detailedSeries.id, false, detailedSeries.artworkUrl).toUri())
+                            .setArtworkUri(
+                                tryGetLocalPoster(
+                                    detailedSeries.id,
+                                    false,
+                                    detailedSeries.artworkUrl
+                                ).toUri()
+                            )
                             .setMediaType(MediaMetadata.MEDIA_TYPE_TV_SHOW)
                             .setTitle(ep.title)
                             .build()
@@ -434,20 +445,20 @@ class PlayerViewModel @Inject constructor(
             }
         }
 
-        return StartInfo(index = currentItemIndex, milliSeconds =  playbackPositionMs)
+        return StartInfo(index = currentItemIndex, milliSeconds = playbackPositionMs)
     }
 
     private suspend fun loadPlaylist(): StartInfo {
 
         val detailedPlaylist =
-            if(networkManager.isConnected()) {
+            if (networkManager.isConnected()) {
                 playlistRepository.details(_mediaId)
             } else {
                 downloadManager.loadDetailedPlaylist(_mediaId)
             }
 
         var upNextId = _upNextId
-        if(upNextId < 0) {
+        if (upNextId < 0) {
             upNextId = detailedPlaylist.items?.firstOrNull {
                 it.id == detailedPlaylist.currentItemId
             }?.id ?: -1
@@ -480,7 +491,13 @@ class PlayerViewModel @Inject constructor(
                     .setMediaMetadata(
                         MediaMetadata
                             .Builder()
-                            .setArtworkUri(tryGetLocalPoster(detailedPlaylist.id, true, detailedPlaylist.artworkUrl).toUri())
+                            .setArtworkUri(
+                                tryGetLocalPoster(
+                                    detailedPlaylist.id,
+                                    true,
+                                    detailedPlaylist.artworkUrl
+                                ).toUri()
+                            )
                             .setMediaType(MediaMetadata.MEDIA_TYPE_VIDEO)
                             .setTitle(pli.title)
                             .setSubtitle(detailedPlaylist.name)
@@ -522,7 +539,13 @@ class PlayerViewModel @Inject constructor(
                 .setMediaMetadata(
                     MediaMetadata
                         .Builder()
-                        .setArtworkUri(tryGetLocalPoster(detailedEpisode.id, false, detailedEpisode.artworkUrl).toUri())
+                        .setArtworkUri(
+                            tryGetLocalPoster(
+                                detailedEpisode.id,
+                                false,
+                                detailedEpisode.artworkUrl
+                            ).toUri()
+                        )
                         .setMediaType(MediaMetadata.MEDIA_TYPE_VIDEO)
                         .setTitle(detailedEpisode.title)
                         .build()
@@ -547,8 +570,11 @@ class PlayerViewModel @Inject constructor(
     }
 
 
-    private fun MediaItem.Builder.addSubs(id: Int, subTitles: List<SRTSubtitles>?): MediaItem.Builder {
-        if(!subTitles.isNullOrEmpty()) {
+    private fun MediaItem.Builder.addSubs(
+        id: Int,
+        subTitles: List<SRTSubtitles>?
+    ): MediaItem.Builder {
+        if (!subTitles.isNullOrEmpty()) {
             val subtitleConfigurations = arrayListOf<MediaItem.SubtitleConfiguration>()
             for (sub in subTitles) {
 
@@ -573,7 +599,7 @@ class PlayerViewModel @Inject constructor(
 
     private fun timerTick() {
 
-        if(_uiState.value.isCastPlayer) {
+        if (_uiState.value.isCastPlayer) {
             return
         }
 

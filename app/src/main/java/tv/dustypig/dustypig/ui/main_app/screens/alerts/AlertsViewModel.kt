@@ -17,7 +17,7 @@ import javax.inject.Inject
 class AlertsViewModel @Inject constructor(
     routeNavigator: RouteNavigator,
     private val alertsManager: AlertsManager
-): ViewModel(), RouteNavigator by routeNavigator {
+) : ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
         AlertsUIState(

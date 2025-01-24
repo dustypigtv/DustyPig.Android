@@ -11,5 +11,6 @@ object FriendsSettingsNav : NavRoute<FriendsSettingsViewModel> {
     override fun viewModel(): FriendsSettingsViewModel = hiltViewModel()
 
     @Composable
-    override fun Content(viewModel: FriendsSettingsViewModel) = FriendsSettingsScreen(vm = viewModel)
+    override fun Content(viewModel: FriendsSettingsViewModel) =
+        FriendsSettingsScreen(vm = viewModel)
 }

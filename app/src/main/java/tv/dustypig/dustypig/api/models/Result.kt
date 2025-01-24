@@ -1,11 +1,11 @@
 package tv.dustypig.dustypig.api.models
 
-data class Result (
+data class Result(
     val success: Boolean,
     val error: String
 )
 
-data class ResultOf<T> (
+data class ResultOf<T>(
     val success: Boolean,
     val error: String,
     val data: T?

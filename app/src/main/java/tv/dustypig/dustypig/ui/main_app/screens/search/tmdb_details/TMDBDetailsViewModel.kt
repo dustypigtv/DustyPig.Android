@@ -41,7 +41,7 @@ class TMDBDetailsViewModel @Inject constructor(
     private val authManager: AuthManager,
     private val profilesRepository: ProfilesRepository,
     savedStateHandle: SavedStateHandle
-): ViewModel(), RouteNavigator by routeNavigator {
+) : ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
         TMDBDetailsUIState(
@@ -72,14 +72,14 @@ class TMDBDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
 
-                _detailedTMDB = if(_isMovie)
+                _detailedTMDB = if (_isMovie)
                     tmdbRepository.getMovie(_tmdbId)
                 else
                     tmdbRepository.getSeries(_tmdbId)
 
 
                 val friendsForRequests = arrayListOf<TMDBDetailsRequestFriend>()
-                if(_detailedTMDB.requestPermission == TitleRequestPermissions.Enabled) {
+                if (_detailedTMDB.requestPermission == TitleRequestPermissions.Enabled) {
                     val calls = arrayListOf<Deferred<*>>()
                     calls.add(async { friendsRepository.list() })
                     if (!authManager.currentProfileIsMain) {
@@ -100,10 +100,10 @@ class TMDBDetailsViewModel @Inject constructor(
                         )
                     }
 
-                    if(!authManager.currentProfileIsMain) {
+                    if (!authManager.currentProfileIsMain) {
                         val detailedProfile = results[1] as DetailedProfile
                         friendsForRequests.add(
-                            index =0,
+                            index = 0,
                             element = TMDBDetailsRequestFriend(
                                 id = null,
                                 name = detailedProfile.name,
@@ -128,7 +128,7 @@ class TMDBDetailsViewModel @Inject constructor(
                             personNav = ::personNav
                         ),
                         rated = _detailedTMDB.rated ?: "",
-                        year = if(_detailedTMDB.year > 1900) _detailedTMDB.year.toString() else "",
+                        year = if (_detailedTMDB.year > 1900) _detailedTMDB.year.toString() else "",
                         available = _detailedTMDB.available ?: listOf(),
                         requestPermissions = _detailedTMDB.requestPermission,
                         requestStatus = _detailedTMDB.requestStatus,
@@ -160,7 +160,7 @@ class TMDBDetailsViewModel @Inject constructor(
     }
 
     private fun hideErrorDialog() {
-        if(_uiState.value.criticalError) {
+        if (_uiState.value.criticalError) {
             popBackStack()
         } else {
             _uiState.update {
@@ -178,8 +178,14 @@ class TMDBDetailsViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            try{
-                tmdbRepository.requestTitle(titleRequest = TitleRequest(tmdbId = _tmdbId, friendId = friendId, mediaType = _detailedTMDB.mediaType))
+            try {
+                tmdbRepository.requestTitle(
+                    titleRequest = TitleRequest(
+                        tmdbId = _tmdbId,
+                        friendId = friendId,
+                        mediaType = _detailedTMDB.mediaType
+                    )
+                )
                 _uiState.update {
                     it.copy(
                         busy = false,
@@ -197,8 +203,13 @@ class TMDBDetailsViewModel @Inject constructor(
             it.copy(busy = true)
         }
         viewModelScope.launch {
-            try{
-                tmdbRepository.cancelTitleRequest(titleRequest = TitleRequest(tmdbId = _tmdbId, mediaType = _detailedTMDB.mediaType))
+            try {
+                tmdbRepository.cancelTitleRequest(
+                    titleRequest = TitleRequest(
+                        tmdbId = _tmdbId,
+                        mediaType = _detailedTMDB.mediaType
+                    )
+                )
                 _uiState.update {
                     it.copy(
                         busy = false,
@@ -215,7 +226,7 @@ class TMDBDetailsViewModel @Inject constructor(
         navigateToRoute(ShowMoreNav.getRoute(genrePair.genre.value, genrePair.text))
     }
 
-    private fun personNav(tmdbId: Int, cacheId: String){
+    private fun personNav(tmdbId: Int, cacheId: String) {
         navigateToRoute(PersonDetailsNav.getRoute(tmdbId, cacheId))
     }
 }

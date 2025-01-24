@@ -39,7 +39,7 @@ import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
 
 @Composable
-fun ProfilesSettingsScreen(vm: ProfilesSettingsViewModel){
+fun ProfilesSettingsScreen(vm: ProfilesSettingsViewModel) {
     val uiState by vm.uiState.collectAsState()
     ProfilesSettingsScreenInternal(uiState = uiState)
 }
@@ -53,7 +53,10 @@ private fun ProfilesSettingsScreenInternal(
 
     Scaffold(
         topBar = {
-            CommonTopAppBar(onClick = uiState.onPopBackStack, text = stringResource(R.string.manage_profiles))
+            CommonTopAppBar(
+                onClick = uiState.onPopBackStack,
+                text = stringResource(R.string.manage_profiles)
+            )
         }
     ) { paddingValues ->
 
@@ -69,18 +72,21 @@ private fun ProfilesSettingsScreenInternal(
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
 
-                item{
+                item {
                     //Just some blank space between top and actual list
                 }
 
                 items(uiState.profiles, key = { it.clientUUID }) {
-                    Row (
+                    Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(12.dp, 0.dp)
                             .clip(shape = RoundedCornerShape(4.dp))
-                            .background(color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp), shape = RoundedCornerShape(4.dp))
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+                                shape = RoundedCornerShape(4.dp)
+                            )
                             .clickable { uiState.onNavToProfile(it.id) }
                     ) {
 
@@ -116,7 +122,7 @@ private fun ProfilesSettingsScreenInternal(
 
             }
 
-            if(uiState.busy) {
+            if (uiState.busy) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center)
                 )
@@ -124,7 +130,7 @@ private fun ProfilesSettingsScreenInternal(
         }
 
 
-        if(uiState.showErrorDialog) {
+        if (uiState.showErrorDialog) {
             ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
         }
     }

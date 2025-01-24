@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import tv.dustypig.dustypig.R
 
 @Composable
-fun OkDialog (onDismissRequest: () -> Unit, title:String, message:String) {
+fun OkDialog(onDismissRequest: () -> Unit, title: String, message: String) {
     AlertDialog(
         shape = RoundedCornerShape(8.dp),
         onDismissRequest = onDismissRequest,

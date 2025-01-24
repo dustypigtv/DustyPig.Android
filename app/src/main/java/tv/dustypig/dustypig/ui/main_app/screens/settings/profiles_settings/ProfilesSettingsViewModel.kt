@@ -20,7 +20,7 @@ import javax.inject.Inject
 class ProfilesSettingsViewModel @Inject constructor(
     private val profilesRepository: ProfilesRepository,
     routeNavigator: RouteNavigator
-): ViewModel(), RouteNavigator by routeNavigator {
+) : ViewModel(), RouteNavigator by routeNavigator {
 
     companion object {
         const val TAG = "ProfileSettingsVM"
@@ -47,7 +47,7 @@ class ProfilesSettingsViewModel @Inject constructor(
         //This will update on first launch and any time something changes.
         viewModelScope.launch {
             _needsUpdate.collectLatest {
-                 updateData()
+                updateData()
             }
         }
     }
@@ -94,7 +94,8 @@ class ProfilesSettingsViewModel @Inject constructor(
 
 
     private fun navToProfile(id: Int) {
-        EditProfileViewModel.preloadAvatar = _uiState.value.profiles.first { it.id == id }.avatarUrl ?: ""
+        EditProfileViewModel.preloadAvatar =
+            _uiState.value.profiles.first { it.id == id }.avatarUrl ?: ""
         EditProfileViewModel.selectedProfileId = id
         navigateToRoute(EditProfileNav.route)
     }

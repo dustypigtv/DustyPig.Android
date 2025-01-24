@@ -35,10 +35,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import tv.dustypig.dustypig.R
+import tv.dustypig.dustypig.api.models.BasicPerson
 import tv.dustypig.dustypig.api.models.CreditRoles
 import tv.dustypig.dustypig.api.models.Genre
 import tv.dustypig.dustypig.api.models.GenrePair
-import tv.dustypig.dustypig.api.models.BasicPerson
 import tv.dustypig.dustypig.global_managers.media_cache_manager.MediaCacheManager
 
 
@@ -54,9 +54,13 @@ data class CreditsData(
 )
 
 
-
 @Composable
-private fun CreditsRow(creditsData: CreditsData, role: CreditRoles, singleHeader: String, pluralHeader: String) {
+private fun CreditsRow(
+    creditsData: CreditsData,
+    role: CreditRoles,
+    singleHeader: String,
+    pluralHeader: String
+) {
 
     val peopleInRole = remember {
         creditsData.castAndCrew.filter {
@@ -66,9 +70,9 @@ private fun CreditsRow(creditsData: CreditsData, role: CreditRoles, singleHeader
         }.toMutableList()
     }
 
-    if(peopleInRole.isNotEmpty()) {
+    if (peopleInRole.isNotEmpty()) {
         val txt by remember {
-            mutableStateOf(if(peopleInRole.size > 1) pluralHeader else singleHeader)
+            mutableStateOf(if (peopleInRole.size > 1) pluralHeader else singleHeader)
         }
         Text(
             modifier = Modifier.padding(12.dp, 12.dp, 12.dp, 6.dp),
@@ -130,13 +134,13 @@ fun Credits(creditsData: CreditsData) {
 
     Spacer(modifier = Modifier.height(spacerHeight))
 
-    if(creditsData.genres.isNotEmpty()) {
-       LazyRow(
+    if (creditsData.genres.isNotEmpty()) {
+        LazyRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.padding(12.dp, 0.dp),
             state = rememberLazyListState()
         ) {
-            items(creditsData.genres) {genrePair ->
+            items(creditsData.genres) { genrePair ->
                 Button(onClick = { creditsData.genreNav(genrePair) }) {
                     Text(text = genrePair.text)
                 }
@@ -144,7 +148,7 @@ fun Credits(creditsData: CreditsData) {
         }
     }
 
-    if(creditsData.castAndCrew.isNotEmpty()){
+    if (creditsData.castAndCrew.isNotEmpty()) {
 
         Spacer(modifier = Modifier.height(spacerHeight))
 
@@ -185,8 +189,8 @@ fun Credits(creditsData: CreditsData) {
         )
     }
 
-    if(creditsData.owner.isNotBlank()) {
-        Row (
+    if (creditsData.owner.isNotBlank()) {
+        Row(
             modifier = Modifier.padding(12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -308,10 +312,6 @@ private fun CreditsPreview() {
         }
     }
 }
-
-
-
-
 
 
 @Composable

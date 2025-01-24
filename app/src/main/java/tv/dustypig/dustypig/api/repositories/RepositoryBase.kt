@@ -16,10 +16,10 @@ abstract class RepositoryBase(
     }
 
     internal suspend fun wrapAPICall(call: suspend () -> (Response<Result>)) {
-        try{
+        try {
             val response = call.invoke()
-            if(!response.isSuccessful) {
-                if(response.code() == 401) {
+            if (!response.isSuccessful) {
+                if (response.code() == 401) {
                     authManager.logout()
                     return
                 } else {
@@ -27,16 +27,14 @@ abstract class RepositoryBase(
                 }
             }
             val rw = response.body()!!
-            if(!rw.success)
+            if (!rw.success)
                 throw Exception(rw.error)
-        }
-        catch (ex: IOException) {
+        } catch (ex: IOException) {
             Log.e(TAG, ex.localizedMessage, ex)
             throw Exception("Not connected to the internet")
-        }
-        catch (ex: Exception) {
+        } catch (ex: Exception) {
             Log.e(TAG, ex.localizedMessage, ex)
-            if(ex.localizedMessage.isNullOrBlank()) {
+            if (ex.localizedMessage.isNullOrBlank()) {
                 throw Exception("Unknown Error")
             }
             throw ex
@@ -60,12 +58,10 @@ abstract class RepositoryBase(
                 throw Exception(rw.error)
             }
             return response.body()!!.data!!
-        }
-        catch (ex: IOException) {
+        } catch (ex: IOException) {
             Log.e(TAG, ex.localizedMessage, ex)
             throw Exception("Not connected to the internet")
-        }
-        catch (ex: Exception) {
+        } catch (ex: Exception) {
             Log.e(TAG, ex.localizedMessage, ex)
             if (ex.localizedMessage.isNullOrBlank()) {
                 throw Exception("Unknown Error")

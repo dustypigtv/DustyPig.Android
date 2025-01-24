@@ -13,11 +13,13 @@ class AccountRepository @Inject constructor(
     @UnAuthenticatedAPIService private val unAuthenticatedApiService: ApiService,
     @AuthenticatedAPIService private val apiService: ApiService,
     authManager: AuthManager
-): RepositoryBase(authManager) {
+) : RepositoryBase(authManager) {
 
-    suspend fun create(createAccount: CreateAccount) = wrapAPICall { unAuthenticatedApiService.createAccount(createAccount) }
+    suspend fun create(createAccount: CreateAccount) =
+        wrapAPICall { unAuthenticatedApiService.createAccount(createAccount) }
 
-    suspend fun changePassword(newPassword: String) = wrapAPICall { apiService.changePassword(newPassword) }
+    suspend fun changePassword(newPassword: String) =
+        wrapAPICall { apiService.changePassword(newPassword) }
 
     suspend fun delete() = wrapAPICall { apiService.deleteAccount() }
 }

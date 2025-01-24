@@ -137,7 +137,7 @@ private fun SeriesDetailsScreenInternal(uiState: SeriesDetailsUIState) {
         )
     }
 
-    if(uiState.showErrorDialog) {
+    if (uiState.showErrorDialog) {
         ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
     }
 }
@@ -181,7 +181,7 @@ private fun PhoneLayout(
                     )
 
                     //Prevents error flicker when navigating and no loading info was provided
-                    if(uiState.posterUrl.isNotBlank()) {
+                    if (uiState.posterUrl.isNotBlank()) {
                         AsyncImage(
                             model = uiState.posterUrl,
                             contentDescription = "",
@@ -215,7 +215,7 @@ private fun HorizontalTabletLayout(
     uiState: SeriesDetailsUIState
 ) {
 
-    val columnAlignment = if(uiState.loading) Alignment.CenterHorizontally else Alignment.Start
+    val columnAlignment = if (uiState.loading) Alignment.CenterHorizontally else Alignment.Start
 
     Row(
         modifier = Modifier
@@ -242,7 +242,7 @@ private fun HorizontalTabletLayout(
             )
 
             //Prevents error flicker when navigating and no loading info was provided
-            if(uiState.posterUrl.isNotBlank()) {
+            if (uiState.posterUrl.isNotBlank()) {
                 AsyncImage(
                     model = uiState.posterUrl,
                     contentDescription = "",
@@ -311,15 +311,19 @@ private fun SeriesTitleLayout(uiState: SeriesDetailsUIState) {
     //Align buttons to center for phone, left for tablet
     val context = LocalContext.current
     val isTablet = context.isTablet()
-    val alignment = if(isTablet) Alignment.Start else Alignment.CenterHorizontally
-    val modifier = if(isTablet) Modifier.width(320.dp) else Modifier.fillMaxWidth()
-    val buttonPadding = if(isTablet) PaddingValues(0.dp, 0.dp  ) else PaddingValues(16.dp, 0.dp)
+    val alignment = if (isTablet) Alignment.Start else Alignment.CenterHorizontally
+    val modifier = if (isTablet) Modifier.width(320.dp) else Modifier.fillMaxWidth()
+    val buttonPadding = if (isTablet) PaddingValues(0.dp, 0.dp) else PaddingValues(16.dp, 0.dp)
 
     val seasonEpisode =
-        if(uiState.upNextSeason == null || uiState.upNextEpisode == null)
+        if (uiState.upNextSeason == null || uiState.upNextEpisode == null)
             ""
         else
-            context.getString(R.string.season_episode, uiState.upNextSeason.toString(),  uiState.upNextEpisode.toString())
+            context.getString(
+                R.string.season_episode,
+                uiState.upNextSeason.toString(),
+                uiState.upNextEpisode.toString()
+            )
 
     val playButtonText =
         if (uiState.partiallyPlayed)
@@ -333,23 +337,23 @@ private fun SeriesTitleLayout(uiState: SeriesDetailsUIState) {
     val epHeader = "${seasonEpisode}: ${uiState.episodeTitle}".trim()
 
 
-    val downloadIcon = when(uiState.downloadStatus) {
+    val downloadIcon = when (uiState.downloadStatus) {
         DownloadStatus.None -> Icons.Filled.Download
         DownloadStatus.Finished -> Icons.Filled.DownloadDone
         else -> Icons.Filled.Downloading
     }
-    val downloadText = when(uiState.downloadStatus) {
+    val downloadText = when (uiState.downloadStatus) {
         DownloadStatus.None -> stringResource(R.string.download)
         DownloadStatus.Finished -> stringResource(R.string.downloaded)
         else -> stringResource(R.string.downloading)
     }
 
-    val subscribeIcon = if(uiState.subscribed)
+    val subscribeIcon = if (uiState.subscribed)
         Icons.Filled.NotificationsOff
     else
         Icons.Filled.NotificationAdd
 
-    val subscribeText = if(uiState.subscribed)
+    val subscribeText = if (uiState.subscribed)
         stringResource(R.string.unsubscribe)
     else
         stringResource(R.string.subscribe)
@@ -439,7 +443,7 @@ private fun SeriesTitleLayout(uiState: SeriesDetailsUIState) {
             ) {
 
 
-                if(uiState.watchListBusy) {
+                if (uiState.watchListBusy) {
 
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -467,7 +471,7 @@ private fun SeriesTitleLayout(uiState: SeriesDetailsUIState) {
                 }
 
                 ActionButton(
-                    onClick =  { showChangeDownloadCount = true },
+                    onClick = { showChangeDownloadCount = true },
                     caption = downloadText,
                     icon = downloadIcon
                 )
@@ -478,8 +482,8 @@ private fun SeriesTitleLayout(uiState: SeriesDetailsUIState) {
                     icon = Icons.AutoMirrored.Filled.PlaylistAdd
                 )
 
-                if(uiState.partiallyPlayed) {
-                    if(uiState.markWatchedBusy) {
+                if (uiState.partiallyPlayed) {
+                    if (uiState.markWatchedBusy) {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
@@ -541,7 +545,7 @@ private fun SeriesTitleLayout(uiState: SeriesDetailsUIState) {
     Spacer(modifier = Modifier.height(16.dp))
 
 
-    if(epHeader.length > 1) {
+    if (epHeader.length > 1) {
         Text(
             text = epHeader,
             textDecoration = TextDecoration.Underline,
@@ -556,7 +560,7 @@ private fun SeriesTitleLayout(uiState: SeriesDetailsUIState) {
     )
 
 
-    if(showChangeDownloadCount) {
+    if (showChangeDownloadCount) {
         MultiDownloadDialog(
             onSave = {
                 showChangeDownloadCount = false
@@ -569,7 +573,7 @@ private fun SeriesTitleLayout(uiState: SeriesDetailsUIState) {
         )
     }
 
-    if(showMarkWatchedDialog) {
+    if (showMarkWatchedDialog) {
         YesNoDialog(
             onNo = {
                 showMarkWatchedDialog = false
@@ -595,14 +599,14 @@ private fun SeasonsRow(uiState: SeriesDetailsUIState) {
         }
         val seasonsListState = rememberLazyListState()
         var selSeasonIdx = 0
-        if(!(initialScrolled || uiState.loading)) {
+        if (!(initialScrolled || uiState.loading)) {
             initialScrolled = false
             for (season in uiState.seasons) {
                 if (season == uiState.upNextSeason)
                     break
                 selSeasonIdx++
             }
-            LaunchedEffect(false){
+            LaunchedEffect(false) {
                 seasonsListState.scrollToItem(selSeasonIdx)
             }
         }
@@ -679,7 +683,7 @@ private fun EpisodeRow(
 
         Column(
             modifier = Modifier.weight(1f)
-        ){
+        ) {
             Text(
                 text = episode.shortDisplayTitle(),
                 maxLines = 1,
@@ -713,7 +717,6 @@ private fun EpisodeRow(
 }
 
 
-
 @Preview
 @Composable
 private fun SeriesDetailsScreenPreview() {
@@ -721,9 +724,9 @@ private fun SeriesDetailsScreenPreview() {
     val seasons = arrayListOf<UShort>()
     val episodes = arrayListOf<DetailedEpisode>()
     var idx = 0
-    for(season in 1..7) {
+    for (season in 1..7) {
         seasons.add(season.toUShort())
-        for(episode in 1..23) {
+        for (episode in 1..23) {
             episodes.add(
                 DetailedEpisode(
                     id = idx++,

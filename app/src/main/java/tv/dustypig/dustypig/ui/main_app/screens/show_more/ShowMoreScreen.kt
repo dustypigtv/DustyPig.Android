@@ -37,7 +37,7 @@ fun ShowMoreScreen(vm: ShowMoreViewModel) {
     ) { innerPadding ->
 
         if (mediaItems.itemCount == 0) {
-            Box(modifier = Modifier.fillMaxSize()){
+            Box(modifier = Modifier.fillMaxSize()) {
 
             }
         } else {
@@ -61,7 +61,7 @@ fun ShowMoreScreen(vm: ShowMoreViewModel) {
 //                    )
 //                }
 
-                itemsExt(mediaItems, key = { it.id }){
+                itemsExt(mediaItems, key = { it.id }) {
                     BasicMediaView(
                         basicMedia = it!!,
                         routeNavigator = vm

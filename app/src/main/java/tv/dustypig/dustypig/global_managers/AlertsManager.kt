@@ -29,7 +29,7 @@ import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
-private data class FCMAlertData (
+private data class FCMAlertData(
     val id: Int,
     val profileId: Int,
     val mediaId: Int?,
@@ -55,7 +55,7 @@ class AlertsManager @Inject constructor(
         private const val DATA_MEDIA_ID = "dp.mid"
         private const val DATA_MEDIA_TYPE = "dp.mt"
         private const val DATA_NOTIFICATION_TYPE = "dp.nt"
-        private  const val DATA_FRIENDSHIP_ID = "dp.fid"
+        private const val DATA_FRIENDSHIP_ID = "dp.fid"
 
         private const val FIRESTORE_ALERTS_COLLECTION_PATH = "alerts"
 
@@ -123,7 +123,6 @@ class AlertsManager @Inject constructor(
         }
 
 
-
         fun getNavRoute(
             notificationType: NotificationTypes,
             mediaId: Int? = null,
@@ -138,7 +137,10 @@ class AlertsManager @Inject constructor(
 
                     NotificationTypes.NewMediaFulfilled -> getMediaRoute(mediaId!!, mediaType!!)
                     NotificationTypes.NewMediaAvailable -> getMediaRoute(mediaId!!, mediaType!!)
-                    NotificationTypes.OverrideMediaRequested -> getMediaRoute(mediaId!!, mediaType!!)
+                    NotificationTypes.OverrideMediaRequested -> getMediaRoute(
+                        mediaId!!,
+                        mediaType!!
+                    )
 
                     NotificationTypes.OverrideMediaGranted -> getMediaRoute(mediaId!!, mediaType!!)
                     NotificationTypes.OverrideMediaRejected -> getMediaRoute(mediaId!!, mediaType!!)
@@ -146,12 +148,12 @@ class AlertsManager @Inject constructor(
                     NotificationTypes.FriendshipInvited -> FriendDetailsSettingsNav.getRouteForId(
                         friendshipId!!
                     )
+
                     NotificationTypes.FriendshipAccepted -> FriendDetailsSettingsNav.getRouteForId(
                         friendshipId!!
                     )
                 }
-            }
-            catch (ex: Exception) {
+            } catch (ex: Exception) {
                 ex.logToCrashlytics()
                 return null
             }
@@ -198,6 +200,7 @@ class AlertsManager @Inject constructor(
                     cacheId = "",
                     isMovie = true
                 )
+
                 MediaTypes.Series -> TMDBDetailsNav.getRoute(
                     mediaId = mediaId,
                     cacheId = "",
@@ -247,12 +250,12 @@ class AlertsManager @Inject constructor(
         scope.launch {
             authManager.loginState.collectLatest { loggedIn ->
                 listenerRegistration?.remove()
-                if(loggedIn == true) {
+                if (loggedIn == true) {
                     listenerRegistration = Firebase.firestore
                         .collection(FIRESTORE_ALERTS_COLLECTION_PATH)
                         .document(authManager.currentProfileId.toString())
                         .addSnapshotListener { _, err ->
-                            if(err != null) {
+                            if (err != null) {
                                 Log.e(TAG, err.localizedMessage ?: "Unknown error", err)
                             } else {
                                 Log.d(TAG, "Firestore sent alerts signal")
@@ -274,7 +277,7 @@ class AlertsManager @Inject constructor(
     //Update FCM token on server
     private suspend fun updateFCMToken() {
         try {
-            if(authManager.currentProfileId < 1)
+            if (authManager.currentProfileId < 1)
                 return
 
             val newFCMToken =
@@ -292,7 +295,7 @@ class AlertsManager @Inject constructor(
 
 
     private suspend fun loadData() {
-        if(authManager.currentProfileId < 1) {
+        if (authManager.currentProfileId < 1) {
             _notificationsFlow.tryEmit(listOf())
             return
         }
@@ -309,7 +312,7 @@ class AlertsManager @Inject constructor(
         if (alert == null)
             return
 
-        if(authManager.currentProfileId < 1)
+        if (authManager.currentProfileId < 1)
             return
 
         if (authManager.currentProfileId != alert.profileId)

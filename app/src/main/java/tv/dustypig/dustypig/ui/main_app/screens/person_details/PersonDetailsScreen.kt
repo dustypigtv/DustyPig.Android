@@ -99,7 +99,7 @@ private fun PersonDetailsScreenInternal(
         )
     }
 
-    if(uiState.showErrorDialog) {
+    if (uiState.showErrorDialog) {
         ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
     }
 }
@@ -152,7 +152,6 @@ private fun HorizontalTabletLayout(
 }
 
 
-
 @Composable
 private fun PhoneLayout(
     uiState: PersonDetailsUIState,
@@ -163,7 +162,7 @@ private fun PhoneLayout(
     val hdp = configuration.screenHeightDp.dp * 0.66f
 
     //Left aligns content or center aligns busy indicator
-    val columnAlignment = if(uiState.loading) Alignment.CenterHorizontally else Alignment.Start
+    val columnAlignment = if (uiState.loading) Alignment.CenterHorizontally else Alignment.Start
 
     val criticalError = uiState.showErrorDialog && uiState.criticalError
 
@@ -189,12 +188,11 @@ private fun PhoneLayout(
         if (uiState.loading) {
             Spacer(modifier = Modifier.height(48.dp))
             CircularProgressIndicator()
-        } else if(!criticalError) {
+        } else if (!criticalError) {
             InfoLayout(uiState = uiState, routeNavigator = routeNavigator)
         }
     }
 }
-
 
 
 @Composable
@@ -210,7 +208,7 @@ private fun InfoLayout(
     )
 
     //Available titles
-    if(uiState.available.isNotEmpty()) {
+    if (uiState.available.isNotEmpty()) {
         Text(
             text = stringResource(R.string.person_available_titles),
             modifier = Modifier.padding(12.dp, 12.dp, 12.dp, 0.dp)
@@ -233,7 +231,7 @@ private fun InfoLayout(
     }
 
     //TMDB Titles
-    if(uiState.otherTitles.isNotEmpty()) {
+    if (uiState.otherTitles.isNotEmpty()) {
         Text(
             text = stringResource(R.string.person_other_titles),
             modifier = Modifier.padding(12.dp, 12.dp, 12.dp, 0.dp)
@@ -248,14 +246,14 @@ private fun InfoLayout(
         ) {
             items(uiState.otherTitles) { basicTMDB ->
                 TMDBMediaView(
-                    basicTMDB  = basicTMDB,
+                    basicTMDB = basicTMDB,
                     routeNavigator = routeNavigator
                 )
             }
         }
     }
 
-    if(uiState.available.isNotEmpty() or uiState.otherTitles.isNotEmpty()) {
+    if (uiState.available.isNotEmpty() or uiState.otherTitles.isNotEmpty()) {
         Spacer(modifier = Modifier.height(12.dp))
     }
 
@@ -304,14 +302,12 @@ private fun InfoLayout(
 }
 
 
-
-
 @Preview
 @Composable
 private fun PersonDetailsScreenPreview() {
 
     val available = arrayListOf<BasicMedia>()
-    for(i in 1..25) {
+    for (i in 1..25) {
         available.add(
             BasicMedia(
                 id = i,
@@ -324,7 +320,7 @@ private fun PersonDetailsScreenPreview() {
     }
 
     val tmdb = arrayListOf<BasicTMDB>()
-    for(i in 1..25) {
+    for (i in 1..25) {
         tmdb.add(
             BasicTMDB(
                 tmdbId = i,
@@ -338,7 +334,7 @@ private fun PersonDetailsScreenPreview() {
 
     val uiState = PersonDetailsUIState(
         loading = false,
-        name="John Doe",
+        name = "John Doe",
         birthday = "1/1/2000",
         placeOfBirth = "Somewhere, USA",
         deathday = "1/1/2100",

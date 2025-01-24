@@ -44,4 +44,4 @@ data class EditProfileUIState(
         avatarFile: String
     ) -> Unit = { _, _, _, _, _, _, _, _, _ -> },
 
-)
+    )

@@ -91,7 +91,7 @@ private fun SignInScreenInternal(uiState: SignInUIState) {
 
     val imeAction = remember {
         derivedStateOf {
-            if(email.isBlank() || password.isBlank())
+            if (email.isBlank() || password.isBlank())
                 ImeAction.Done
             else
                 ImeAction.Go
@@ -103,7 +103,7 @@ private fun SignInScreenInternal(uiState: SignInUIState) {
 
     fun updateEmail(newValue: String) {
         email = newValue.trim().lowercase()
-        if(email == AuthManager.TEST_USER)
+        if (email == AuthManager.TEST_USER)
             password = AuthManager.TEST_PASSWORD
     }
 
@@ -114,11 +114,14 @@ private fun SignInScreenInternal(uiState: SignInUIState) {
         uiState.onSignIn(email, password)
     }
 
-    Box (
+    Box(
         modifier = Modifier.fillMaxSize()
     ) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp, alignment = Alignment.CenterVertically),
+            verticalArrangement = Arrangement.spacedBy(
+                12.dp,
+                alignment = Alignment.CenterVertically
+            ),
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize()
         ) {
@@ -136,7 +139,10 @@ private fun SignInScreenInternal(uiState: SignInUIState) {
                 singleLine = true,
                 enabled = !uiState.busy,
                 modifier = Modifier.width(300.dp),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next)
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next
+                )
             )
 
             OutlinedTextField(
@@ -147,8 +153,13 @@ private fun SignInScreenInternal(uiState: SignInUIState) {
                 singleLine = true,
                 enabled = !uiState.busy,
                 modifier = Modifier.width(300.dp),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = imeAction.value),
-                keyboardActions = KeyboardActions(onGo = { signIn() }, onDone = { keyboardController?.hide() }),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction = imeAction.value
+                ),
+                keyboardActions = KeyboardActions(
+                    onGo = { signIn() },
+                    onDone = { keyboardController?.hide() }),
                 trailingIcon = {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         TintedIcon(imageVector = iconImage)
@@ -185,7 +196,7 @@ private fun SignInScreenInternal(uiState: SignInUIState) {
             }
         }
 
-        if(uiState.busy) {
+        if (uiState.busy) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         }
     }
@@ -193,7 +204,7 @@ private fun SignInScreenInternal(uiState: SignInUIState) {
 
     if (showForgotPassword) {
 
-        var forgotPasswordEmail by remember{ mutableStateOf(email) }
+        var forgotPasswordEmail by remember { mutableStateOf(email) }
 
         val focusRequester = remember { FocusRequester() }
 
@@ -239,7 +250,12 @@ private fun SignInScreenInternal(uiState: SignInUIState) {
                 Box(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(20.dp, alignment = Alignment.CenterVertically)) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(
+                            20.dp,
+                            alignment = Alignment.CenterVertically
+                        )
+                    ) {
                         OutlinedTextField(
                             value = forgotPasswordEmail,
                             onValueChange = { forgotPasswordEmail = it.trim().lowercase() },
@@ -249,8 +265,13 @@ private fun SignInScreenInternal(uiState: SignInUIState) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .focusRequester(focusRequester),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = forgotPasswordImeAction),
-                            keyboardActions = KeyboardActions(onGo = { forgotPasswordConfirmClick() }, onDone = { keyboardController?.hide() })
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Email,
+                                imeAction = forgotPasswordImeAction
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onGo = { forgotPasswordConfirmClick() },
+                                onDone = { keyboardController?.hide() })
                         )
                     }
 
@@ -293,8 +314,11 @@ private fun SignInScreenInternal(uiState: SignInUIState) {
         )
     }
 
-    if(uiState.showForgotPasswordError) {
-        ErrorDialog(onDismissRequest = uiState.onHideForgotPasswordError, message = uiState.errorMessage)
+    if (uiState.showForgotPasswordError) {
+        ErrorDialog(
+            onDismissRequest = uiState.onHideForgotPasswordError,
+            message = uiState.errorMessage
+        )
     }
 
 }

@@ -30,7 +30,7 @@ class SignUpViewModel @Inject constructor(
     private val authManager: AuthManager,
     private val authRepository: AuthRepository,
     private val settingsManager: SettingsManager
-): ViewModel(), RouteNavigator by routeNavigator {
+) : ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
         SignUpUIState(
@@ -101,9 +101,10 @@ class SignUpViewModel @Inject constructor(
                     } else {
 
                         var profileToken = data2.profileToken!!
-                        if(settingsManager.getAllowNotifications(data2.profileId!!)) {
+                        if (settingsManager.getAllowNotifications(data2.profileId!!)) {
                             authManager.setTempAuthToken(profileToken)
-                            profileToken = authRepository.updateFCMToken(FCMToken(FCMManager.currentToken))
+                            profileToken =
+                                authRepository.updateFCMToken(FCMToken(FCMManager.currentToken))
                         }
 
                         authManager.login(

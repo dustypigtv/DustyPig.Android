@@ -42,8 +42,9 @@ fun CastSlider(
 
     val castState by castManager.castState.collectAsState()
 
-    val activeTrackColor = if(useTheme) MaterialTheme.colorScheme.primary else Color.White
-    val inactiveTrackColor = if(useTheme) MaterialTheme.colorScheme.surfaceVariant else DisabledWhite
+    val activeTrackColor = if (useTheme) MaterialTheme.colorScheme.primary else Color.White
+    val inactiveTrackColor =
+        if (useTheme) MaterialTheme.colorScheme.surfaceVariant else DisabledWhite
 
     Box(modifier = modifier) {
         Column(

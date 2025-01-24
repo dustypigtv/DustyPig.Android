@@ -7,7 +7,7 @@ import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
 
 @OptIn(UnstableApi::class)
-data class PlaylistDetailsUIState (
+data class PlaylistDetailsUIState(
 
     //Data
     val loading: Boolean = true,

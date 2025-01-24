@@ -42,7 +42,7 @@ fun CastTopAppBar(
             }
         },
         actions = {
-           CastButton(castManager = castManager)
+            CastButton(castManager = castManager)
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),

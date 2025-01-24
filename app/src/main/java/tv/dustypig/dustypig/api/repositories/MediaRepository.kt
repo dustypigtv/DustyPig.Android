@@ -15,24 +15,33 @@ import javax.inject.Singleton
 class MediaRepository @Inject constructor(
     @AuthenticatedAPIService private val apiService: ApiService,
     authManager: AuthManager
-): RepositoryBase(authManager) {
+) : RepositoryBase(authManager) {
 
     suspend fun addToWatchlist(id: Int) = wrapAPICall { apiService.addToWatchlist(id) }
 
     suspend fun deleteFromWatchlist(id: Int) = wrapAPICall { apiService.deleteFromWatchlist(id) }
 
-    suspend fun getTitlePermissions(id: Int) = wrapAPICallWithReturnData { apiService.getTitlePermissions(id) }
+    suspend fun getTitlePermissions(id: Int) =
+        wrapAPICallWithReturnData { apiService.getTitlePermissions(id) }
 
     suspend fun homeScreen() = wrapAPICallWithReturnData { apiService.homeScreen() }
 
     suspend fun loadMoreHomeScreenItems(loadMoreHomeScreenListItemsRequest: LoadMoreHomeScreenItemsRequest) =
-        wrapAPICallWithReturnData { apiService.loadMoreHomeScreenItems(loadMoreHomeScreenListItemsRequest) }
+        wrapAPICallWithReturnData {
+            apiService.loadMoreHomeScreenItems(
+                loadMoreHomeScreenListItemsRequest
+            )
+        }
 
-    suspend fun requestAccessOverride(id: Int) = wrapAPICall { apiService.requestAccessOverride(id) }
+    suspend fun requestAccessOverride(id: Int) =
+        wrapAPICall { apiService.requestAccessOverride(id) }
 
-    suspend fun search(searchRequest: SearchRequest)= wrapAPICallWithReturnData { apiService.search(searchRequest) }
+    suspend fun search(searchRequest: SearchRequest) =
+        wrapAPICallWithReturnData { apiService.search(searchRequest) }
 
-    suspend fun setTitlePermissions(setTitlePermissionInfo: SetTitlePermission) = wrapAPICall { apiService.setTitlePermissions(setTitlePermissionInfo) }
+    suspend fun setTitlePermissions(setTitlePermissionInfo: SetTitlePermission) =
+        wrapAPICall { apiService.setTitlePermissions(setTitlePermissionInfo) }
 
-    suspend fun updatePlaybackProgress(playbackProgress: PlaybackProgress) = wrapAPICall { apiService.updatePlaybackProgress(playbackProgress) }
+    suspend fun updatePlaybackProgress(playbackProgress: PlaybackProgress) =
+        wrapAPICall { apiService.updatePlaybackProgress(playbackProgress) }
 }
