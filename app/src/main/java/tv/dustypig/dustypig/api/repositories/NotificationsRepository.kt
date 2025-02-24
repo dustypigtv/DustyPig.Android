@@ -27,4 +27,8 @@ class NotificationsRepository @Inject constructor(
     suspend fun delete(id: Int) = wrapAPICall { apiService.deleteNotification(id) }
 
     suspend fun markAsRead(id: Int) = wrapAPICall { apiService.markNotificationRead(id) }
+
+    suspend fun markAllAsRead() = wrapAPICall { apiService.markAllRead() }
+
+    suspend fun deleteAll() = wrapAPICall { apiService.deleteAllNotifications() }
 }
