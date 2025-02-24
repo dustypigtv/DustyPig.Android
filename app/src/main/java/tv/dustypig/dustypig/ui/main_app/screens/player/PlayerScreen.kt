@@ -198,6 +198,7 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
+                    modifier = Modifier.padding(12.dp, 0.dp),
                     onClick = uiState.onPopBackStack
                 ) {
                     Icon(
@@ -217,7 +218,9 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
                         .padding(12.dp, 0.dp)
                 )
 
-                CastButton(uiState.castManager)
+                Box(modifier = Modifier.padding(12.dp, 0.dp)) {
+                    CastButton(uiState.castManager)
+                }
             }
         }
 
