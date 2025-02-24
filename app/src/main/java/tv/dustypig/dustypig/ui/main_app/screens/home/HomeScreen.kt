@@ -108,7 +108,8 @@ private fun HomeScreenInternal(
                         Text(
                             text = section.title,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(6.dp, 2.dp)
+                            modifier = Modifier.padding(6.dp, 2.dp),
+                            color = MaterialTheme.colorScheme.primary
                         )
                         Modifier
                             .fillMaxWidth()
