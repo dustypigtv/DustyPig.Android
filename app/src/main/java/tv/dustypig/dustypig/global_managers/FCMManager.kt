@@ -86,7 +86,8 @@ class FCMManager : FirebaseMessagingService() {
                 return
             }
 
-            if (!PlayerStateManager.playerScreenVisible.value) {
+//            if (!PlayerStateManager.playerScreenVisible.value) {
+            if(!PlayerStateManager.playerScreenVisible) {
 
                 val intent = Intent(this, MainActivity::class.java).apply {
                     addFlags(Intent.FLAG_FROM_BACKGROUND or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)

@@ -122,12 +122,15 @@ class ProgressReportManager @Inject constructor(
         )
 
         if (playlist)
-            mediaRepository.updatePlaybackProgress(pp)
-        else
             playlistRepository.setPlaylistProgress(pp)
+        else
+            mediaRepository.updatePlaybackProgress(pp)
     }
 
     suspend fun setProgress(mediaId: Int, playlist: Boolean, seconds: Double) {
+
+        Log.d(TAG, "setProgress: mediaId=$mediaId, playlist=$playlist, seconds=$seconds")
+
         try {
             var progress = _db.get(mediaId, playlist, _profileId)
             if (progress == null) {

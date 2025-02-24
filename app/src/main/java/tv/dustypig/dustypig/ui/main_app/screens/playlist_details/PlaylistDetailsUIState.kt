@@ -17,6 +17,7 @@ data class PlaylistDetailsUIState(
     val criticalError: Boolean = false,
     val currentDownloadCount: Int = 0,
     val posterUrl: String = "",
+    val backdropUrl: String = "",
     val title: String = "",
     val canPlay: Boolean = false,
     val upNextTitle: String = "",

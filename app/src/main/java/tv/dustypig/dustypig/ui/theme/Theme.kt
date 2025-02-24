@@ -10,28 +10,6 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import tv.dustypig.dustypig.global_managers.settings_manager.Themes
 
-
-private val maggiesColorScheme = darkColorScheme(
-    primary = MaggiePink,
-    onPrimary = Color.White,
-    background = Color.Black,
-    onBackground = MaggieYellow,
-    secondaryContainer = MaggieLightPink,
-    tertiaryContainer = MaggieDimPink
-)
-
-
-private val dustyPigColorScheme = darkColorScheme(
-    primary = Color.White,
-    onPrimary = Color.Black,
-    background = Color.Black,
-    onBackground = Color.White,
-    surface = DustyPigDarkGray,
-    secondaryContainer = DustyPigGray,
-    tertiaryContainer = DustyPigGray
-)
-
-
 private fun accentColorScheme(
     primary: Color
 ): ColorScheme {
@@ -69,8 +47,7 @@ fun DustyPigTheme(
     content: @Composable () -> Unit
 ) {
     val colorScheme = when (currentTheme) {
-        Themes.Maggies -> maggiesColorScheme
-        Themes.DustyPig -> dustyPigColorScheme
+        Themes.Maggies -> accentColorScheme(MaggiePink)
         Themes.LB -> accentColorScheme(LBPrimary)
         Themes.Red -> accentColorScheme(NetflixRed)
         Themes.HuluGreen -> accentColorScheme(HuluGreen)
@@ -83,22 +60,7 @@ fun DustyPigTheme(
     if (!view.isInEditMode) {
 
         val window = (view.context as Activity).window
-//        window.statusBarColor = colorScheme.background.toArgb()
         WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
-
-//        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
-//        val playerVisible by PlayerStateManager.playerScreenVisible.collectAsState()
-//        if (playerVisible) {
-//            insetsController.apply {
-//                hide(WindowInsetsCompat.Type.systemBars())
-//                //systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-//            }
-//        } else {
-//            insetsController.apply {
-//                show(WindowInsetsCompat.Type.systemBars())
-//                //systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
-//            }
-//        }
     }
 
 

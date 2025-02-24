@@ -24,7 +24,6 @@ import tv.dustypig.dustypig.api.repositories.FriendsRepository
 import tv.dustypig.dustypig.api.repositories.ProfilesRepository
 import tv.dustypig.dustypig.api.repositories.TMDBRepository
 import tv.dustypig.dustypig.global_managers.AuthManager
-import tv.dustypig.dustypig.global_managers.media_cache_manager.MediaCacheManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
@@ -53,22 +52,12 @@ class TMDBDetailsViewModel @Inject constructor(
     )
     val uiState = _uiState.asStateFlow()
 
-    private val _cacheId: String = savedStateHandle.getOrThrow(TMDBDetailsNav.KEY_CACHE_ID)
     private val _tmdbId: Int = savedStateHandle.getOrThrow(TMDBDetailsNav.KEY_MEDIA_ID)
     private val _isMovie: Boolean = savedStateHandle.getOrThrow(TMDBDetailsNav.KEY_IS_MOVIE)
-    private lateinit var _detailedTMDB: DetailedTMDB
+    private var _detailedTMDB: DetailedTMDB? = null
 
     init {
-        val cachedInfo = MediaCacheManager.getBasicInfo(_cacheId)
-        _uiState.update {
-            it.copy(
-                loading = true,
-                posterUrl = cachedInfo.posterUrl,
-                backdropUrl = cachedInfo.backdropUrl ?: "",
-                title = cachedInfo.title,
-                isMovie = _isMovie
-            )
-        }
+
         viewModelScope.launch {
             try {
 
@@ -79,7 +68,7 @@ class TMDBDetailsViewModel @Inject constructor(
 
 
                 val friendsForRequests = arrayListOf<TMDBDetailsRequestFriend>()
-                if (_detailedTMDB.requestPermission == TitleRequestPermissions.Enabled) {
+                if (_detailedTMDB!!.requestPermission == TitleRequestPermissions.Enabled) {
                     val calls = arrayListOf<Deferred<*>>()
                     calls.add(async { friendsRepository.list() })
                     if (!authManager.currentProfileIsMain) {
@@ -118,20 +107,20 @@ class TMDBDetailsViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         loading = false,
-                        isMovie = _detailedTMDB.mediaType == TMDBMediaTypes.Movie,
-                        title = _detailedTMDB.title,
-                        overview = _detailedTMDB.description ?: "",
+                        isMovie = _detailedTMDB!!.mediaType == TMDBMediaTypes.Movie,
+                        title = _detailedTMDB!!.title,
+                        overview = _detailedTMDB!!.description ?: "",
                         creditsData = CreditsData(
-                            genres = Genres(_detailedTMDB.genres).toList(),
+                            genres = Genres(_detailedTMDB!!.genres).toList(),
                             genreNav = ::genreNav,
-                            castAndCrew = _detailedTMDB.credits ?: listOf(),
+                            castAndCrew = _detailedTMDB!!.credits ?: listOf(),
                             personNav = ::personNav
                         ),
-                        rated = _detailedTMDB.rated ?: "",
-                        year = if (_detailedTMDB.year > 1900) _detailedTMDB.year.toString() else "",
-                        available = _detailedTMDB.available ?: listOf(),
-                        requestPermissions = _detailedTMDB.requestPermission,
-                        requestStatus = _detailedTMDB.requestStatus,
+                        rated = _detailedTMDB!!.rated ?: "",
+                        year = if (_detailedTMDB!!.year > 1900) _detailedTMDB!!.year.toString() else "",
+                        available = _detailedTMDB!!.available ?: listOf(),
+                        requestPermissions = _detailedTMDB!!.requestPermission,
+                        requestStatus = _detailedTMDB!!.requestStatus,
                         friends = friendsForRequests
                     )
                 }
@@ -141,10 +130,6 @@ class TMDBDetailsViewModel @Inject constructor(
         }
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        MediaCacheManager.BasicInfo.removeAll { it.cacheId == _cacheId }
-    }
 
     private fun setError(ex: Exception, criticalError: Boolean) {
         ex.logToCrashlytics()
@@ -183,7 +168,7 @@ class TMDBDetailsViewModel @Inject constructor(
                     titleRequest = TitleRequest(
                         tmdbId = _tmdbId,
                         friendId = friendId,
-                        mediaType = _detailedTMDB.mediaType
+                        mediaType = _detailedTMDB!!.mediaType
                     )
                 )
                 _uiState.update {
@@ -207,7 +192,7 @@ class TMDBDetailsViewModel @Inject constructor(
                 tmdbRepository.cancelTitleRequest(
                     titleRequest = TitleRequest(
                         tmdbId = _tmdbId,
-                        mediaType = _detailedTMDB.mediaType
+                        mediaType = _detailedTMDB!!.mediaType
                     )
                 )
                 _uiState.update {
@@ -226,7 +211,7 @@ class TMDBDetailsViewModel @Inject constructor(
         navigateToRoute(ShowMoreNav.getRoute(genrePair.genre.value, genrePair.text))
     }
 
-    private fun personNav(tmdbId: Int, cacheId: String) {
-        navigateToRoute(PersonDetailsNav.getRoute(tmdbId, cacheId))
+    private fun personNav(tmdbId: Int) {
+        navigateToRoute(PersonDetailsNav.getRoute(tmdbId))
     }
 }

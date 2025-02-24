@@ -104,7 +104,6 @@
     <string name="delete_all_downloads">Delete All Downloads</string>
     <string name="select_theme">Select Theme</string>
     <string name="maggie_s">Maggie\'s</string>
-    <string name="dusty_pig_classic">Dusty Pig Classic</string>
     <string name="lb">LB</string>
     <string name="red_hot">Red Hot</string>
     <string name="neon_green">Neon Green</string>
@@ -170,4 +169,7 @@
     <string name="person_known_for">Known For: %1$s</string>
     <string name="person_available_titles">Available Titles</string>
     <string name="person_other_titles">Other Titles</string>
+    <string name="exo_download_notification_channel_name">Downloads</string>
+    <string name="exo_download_notification_channel_description">Dusty Pig video downloads</string>
+    <string name="new_playlist">New Playlist</string>
 </resources>

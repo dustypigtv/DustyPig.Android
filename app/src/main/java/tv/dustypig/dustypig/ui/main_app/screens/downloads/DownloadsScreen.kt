@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,7 +18,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -66,6 +66,7 @@ import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
 import tv.dustypig.dustypig.global_managers.download_manager.UIDownload
 import tv.dustypig.dustypig.global_managers.download_manager.UIJob
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
+import tv.dustypig.dustypig.ui.composables.LazyColumnBottomAlign
 import tv.dustypig.dustypig.ui.composables.MultiDownloadDialog
 import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
@@ -80,6 +81,10 @@ fun DownloadsScreen(vm: DownloadsViewModel) {
     val uiState by vm.uiState.collectAsState()
     DownloadsScreenInternal(uiState = uiState)
 }
+
+
+
+
 
 @Composable
 private fun DismissBackground(dismissState: SwipeToDismissBoxState) {
@@ -140,183 +145,176 @@ private fun DismissBackground(dismissState: SwipeToDismissBoxState) {
     }
 }
 
+
+
+
+
+@Composable
+private fun Header(
+    isPoster: Boolean,
+    url: String,
+    playButton: @Composable () -> Unit
+) {
+
+    Box(
+        modifier = Modifier
+            .width(124.dp)
+            .height(70.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        if (isPoster) {
+            AsyncImage(
+                model = url,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .blur(50.dp),
+                contentDescription = null,
+                error = painterResource(id = R.drawable.error_wide)
+            )
+
+            AsyncImage(
+                model = url,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxSize(),
+                contentDescription = null,
+                error = painterResource(id = R.drawable.error_wide)
+            )
+        } else {
+            AsyncImage(
+                model = url,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+                contentDescription = null,
+                error = painterResource(id = R.drawable.error_wide)
+            )
+        }
+
+        playButton()
+    }
+}
+
+
+@Composable
+private fun JobInfo(job: UIJob) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(70.dp)
+    ) {
+        Column(
+            modifier = Modifier.height(70.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+
+            Text(
+                text = job.title,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+    }
+}
+
+
+
+
+
+@Composable
+private fun RowScope.DownloadInfo(download: UIDownload) {
+
+    Box(
+        modifier = Modifier
+            .weight(1f)
+            .height(70.dp)
+    ) {
+        Column(
+            modifier = Modifier.height(70.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = download.title,
+                maxLines = when (download.status) {
+                    DownloadStatus.Paused, DownloadStatus.Error -> 2
+                    else -> 3
+                },
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            if (download.status == DownloadStatus.Error)
+                Text(
+                    text = "Error",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+        }
+    }
+
+
+    Box(
+        modifier = Modifier
+            .padding(start = 0.dp, top = 0.dp, end = 8.dp, bottom = 0.dp)
+            .height(70.dp),
+        contentAlignment = Alignment.Center
+    ) {
+
+        when (download.status) {
+            DownloadStatus.Finished -> {
+                TintedIcon(
+                    imageVector = Icons.Filled.DownloadDone,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            DownloadStatus.Paused -> {
+                TintedIcon(
+                    imageVector = Icons.Filled.Pause,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            DownloadStatus.Error -> {
+                Icon(
+                    imageVector = Icons.Filled.Error,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
+
+            DownloadStatus.Pending -> {
+                TintedIcon(
+                    imageVector = Icons.Filled.HourglassBottom,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            else -> {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    trackColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    progress = { download.percent }
+                )
+            }
+        }
+    }
+}
+
+
+
+
+
 @Composable
 private fun DownloadCard(
     uiState: DownloadsUIState,
     job: UIJob,
+    download: UIDownload?,
     modifier: Modifier
-) {
-
-    val modifierX = when (job.mediaType) {
-        MediaTypes.Series, MediaTypes.Playlist -> Modifier.clickable {
-            uiState.onToggleExpansion(job.mediaId)
-        }
-
-        else -> modifier
-    }
-
-
-    Row(
-        modifier = modifierX
-            .fillMaxWidth()
-            .clip(shape = RoundedCornerShape(4.dp))
-            .background(
-                color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
-                shape = RoundedCornerShape(4.dp)
-            ),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-
-        Box(
-            modifier = Modifier
-                .width(124.dp)
-                .height(70.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            if (job.artworkPoster) {
-                AsyncImage(
-                    model = job.artworkUrl,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .blur(50.dp),
-                    contentDescription = null,
-                    error = painterResource(id = R.drawable.error_wide)
-                )
-
-                AsyncImage(
-                    model = job.artworkUrl,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxSize(),
-                    contentDescription = null,
-                    error = painterResource(id = R.drawable.error_wide)
-                )
-            } else {
-                AsyncImage(
-                    model = job.artworkUrl,
-                    contentDescription = "",
-                    error = painterResource(id = R.drawable.error_wide)
-                )
-            }
-
-            var showPlay = job.status == DownloadStatus.Finished
-            if (!showPlay) {
-                if (job.mediaType == MediaTypes.Series || job.mediaType == MediaTypes.Playlist) {
-                    showPlay = job.downloads.firstOrNull {
-                        it.mediaId != job.mediaId
-                    }?.status == DownloadStatus.Finished
-                }
-            }
-            if (showPlay) {
-                TintedIcon(
-                    imageVector = Icons.Filled.PlayCircleOutline,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(shape = CircleShape)
-                        .background(color = Color.Black.copy(alpha = 0.5f))
-                        .clickable { uiState.onPlayNext(job) }
-                )
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .height(70.dp)
-        ) {
-            Column(
-                modifier = Modifier.height(70.dp),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-
-                Text(
-                    text = job.title,
-                    maxLines = when (job.status) {
-                        DownloadStatus.Paused, DownloadStatus.Error -> 2
-                        else -> 3
-                    },
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.titleMedium
-                )
-
-                if (job.status == DownloadStatus.Paused)
-                    Text(
-                        text = job.statusDetails,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-
-                if (job.status == DownloadStatus.Error)
-                    Text(
-                        text = job.statusDetails,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error
-                    )
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .padding(start = 0.dp, top = 0.dp, end = 8.dp, bottom = 0.dp)
-                .height(70.dp),
-            contentAlignment = Alignment.Center
-        ) {
-
-            when (job.status) {
-                DownloadStatus.Finished -> {
-                    TintedIcon(
-                        imageVector = Icons.Filled.DownloadDone,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-
-                DownloadStatus.Paused -> {
-                    TintedIcon(
-                        imageVector = Icons.Filled.Pause,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-
-                DownloadStatus.Error -> {
-                    Icon(
-                        imageVector = Icons.Filled.Error,
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp),
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
-
-                DownloadStatus.Pending -> {
-                    TintedIcon(
-                        imageVector = Icons.Filled.HourglassBottom,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-
-                else -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        trackColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        progress = { job.percent }
-                    )
-                }
-            }
-
-        }
-
-    }
-}
-
-
-@Composable
-private fun SubDownloadCard(
-    job: UIJob,
-    dl: UIDownload,
-    uiState: DownloadsUIState,
-    modifier: Modifier
-) {
+){
     Row(
         modifier = modifier
-            .padding(start = 36.dp, top = 0.dp, end = 0.dp, bottom = 0.dp)
             .fillMaxWidth()
             .clip(shape = RoundedCornerShape(4.dp))
             .background(
@@ -326,135 +324,30 @@ private fun SubDownloadCard(
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
 
-        Box(
-            modifier = Modifier
-                .width(124.dp)
-                .height(70.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            if (dl.artworkPoster) {
-                AsyncImage(
-                    model = dl.artworkUrl,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .blur(50.dp),
-                    contentDescription = null,
-                    error = painterResource(id = R.drawable.error_wide)
-                )
-
-                AsyncImage(
-                    model = dl.artworkUrl,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxSize(),
-                    contentDescription = null,
-                    error = painterResource(id = R.drawable.error_wide)
-                )
-            } else {
-                AsyncImage(
-                    model = dl.artworkUrl,
-                    contentDescription = "",
-                    error = painterResource(id = R.drawable.error_wide)
-                )
-            }
-
-            if (dl.status == DownloadStatus.Finished) {
-                TintedIcon(
-                    imageVector = Icons.Filled.PlayCircleOutline,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(shape = CircleShape)
-                        .background(color = Color.Black.copy(alpha = 0.5f))
-                        .clickable { uiState.onPlayItem(job, dl) }
-                )
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .height(70.dp)
-        ) {
-            Column(
-                modifier = Modifier.height(70.dp),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = dl.title,
-                    maxLines = when (dl.status) {
-                        DownloadStatus.Paused, DownloadStatus.Error -> 2
-                        else -> 3
-                    },
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.titleMedium
-                )
-
-                if (dl.status == DownloadStatus.Paused)
-                    Text(
-                        text = dl.statusDetails,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-
-                if (dl.status == DownloadStatus.Error)
-                    Text(
-                        text = dl.statusDetails,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error
-                    )
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .padding(start = 0.dp, top = 0.dp, end = 8.dp, bottom = 0.dp)
-                .height(70.dp),
-            contentAlignment = Alignment.Center
-        ) {
-
-            when (dl.status) {
-                DownloadStatus.Finished -> {
+        if(download == null) {
+            Header(job.artworkIsPoster, job.artworkUrl) { }
+            JobInfo(job)
+        } else {
+            Header(download.artworkIsPoster, download.artworkUrl) {
+                if (download.status == DownloadStatus.Finished) {
                     TintedIcon(
-                        imageVector = Icons.Filled.DownloadDone,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-
-                DownloadStatus.Paused -> {
-                    TintedIcon(
-                        imageVector = Icons.Filled.Pause,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-
-                DownloadStatus.Error -> {
-                    Icon(
-                        imageVector = Icons.Filled.Error,
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp),
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
-
-                DownloadStatus.Pending -> {
-                    TintedIcon(
-                        imageVector = Icons.Filled.HourglassBottom,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-
-                else -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        trackColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        progress = { dl.percent }
+                        imageVector = Icons.Filled.PlayCircleOutline,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(shape = CircleShape)
+                            .background(color = Color.Black.copy(alpha = 0.5f))
+                            .clickable { uiState.onPlayItem(job, download) }
                     )
                 }
             }
-
+            DownloadInfo(download)
         }
-
     }
 }
+
+
+
+
 
 
 @Composable
@@ -488,14 +381,12 @@ private fun DownloadsScreenInternal(uiState: DownloadsUIState) {
 
     } else {
 
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            state = listState
-        ) {
 
-            item {
-                Spacer(modifier = Modifier.height(6.dp))
-            }
+        LazyColumnBottomAlign (
+            //verticalArrangement = Arrangement.spacedBy(12.dp),
+            state = listState,
+            modifier = Modifier.fillMaxSize()
+        ) {
 
             for (job in uiState.jobs) {
 
@@ -505,11 +396,9 @@ private fun DownloadsScreenInternal(uiState: DownloadsUIState) {
 
                     val dismissState = rememberSwipeToDismissBoxState(
                         confirmValueChange = {
+
                             when (it) {
                                 SwipeToDismissBoxValue.EndToStart -> {
-                                    if (uiState.expandedMediaIds.contains(job.mediaId)) {
-                                        uiState.onToggleExpansion(job.mediaId)
-                                    }
                                     show = false
                                     uiState.onDeleteDownload(job)
                                     true
@@ -539,57 +428,53 @@ private fun DownloadsScreenInternal(uiState: DownloadsUIState) {
                     ) {
                         SwipeToDismissBox(
                             modifier = Modifier
-                                .padding(dismissPadding),
+                                .padding(dismissPadding, 0.dp),
                             state = dismissState,
+                            enableDismissFromStartToEnd = when(job.mediaType) {
+                                MediaTypes.Series, MediaTypes.Playlist -> true
+                                else -> false
+                            },
                             backgroundContent = { DismissBackground(dismissState) },
                             content = {
-                                DownloadCard(
-                                    uiState,
-                                    job,
-                                    Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
-                                )
+                                val modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
+                                when(job.mediaType) {
+                                    MediaTypes.Series,
+                                    MediaTypes.Playlist -> DownloadCard(uiState, job, null, modifier)
+                                    else -> DownloadCard(uiState, job, job.downloads.first(), modifier)
+                                }
                             }
                         )
                     }
+
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
 
-
-                if (uiState.expandedMediaIds.contains(job.mediaId)) {
-
-                    for (dl in job.downloads.filter { it.mediaId != job.mediaId }) {
-                        item(key = dl.key) {
-                            SubDownloadCard(
-                                job,
-                                dl,
-                                uiState,
-                                Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
-                            )
-                        }
+                for (dl in job.downloads.filter { it.mediaId != job.mediaId }) {
+                    item(key = dl.key) {
+                        val modifier =  Modifier
+                            .animateItem(fadeInSpec = null, fadeOutSpec = null)
+                            .padding(36.dp, 0.dp, 12.dp, 0.dp)
+                        DownloadCard(uiState, job, dl, modifier)
+                        Spacer(modifier = Modifier.height(12.dp))
                     }
-
-                    if (job.downloads.any { it.mediaId != job.mediaId })
-                        item {
-                            Spacer(modifier = Modifier.height(16.dp))
-                        }
                 }
-
-
             }
 
             item {
 
-                Spacer(modifier = Modifier.height(16.dp))
-
                 if (uiState.jobs.isNotEmpty()) {
+
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     val configuration = LocalConfiguration.current
                     val modifier =
-                        if (configuration.screenWidthDp >= 352) Modifier.width(320.dp) else Modifier.fillMaxWidth()
+                        if (configuration.screenWidthDp >= 352) Modifier.width(320.dp)
+                        else Modifier.fillMaxWidth()
+
 
                     Box(
                         contentAlignment = Alignment.BottomCenter
                     ) {
-                        Spacer(modifier = Modifier.height(16.dp))
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -606,13 +491,12 @@ private fun DownloadsScreenInternal(uiState: DownloadsUIState) {
                                 Text(text = stringResource(R.string.delete_all_downloads))
                             }
                         }
-                        Spacer(modifier = Modifier.height(16.dp))
                     }
+
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         }
-
-
     }
 
 
@@ -675,10 +559,7 @@ private fun DownloadScreenPreview() {
                 mediaType = MediaTypes.Movie,
                 title = "Big Buck Bunny (2008)",
                 artworkUrl = "https://s3.dustypig.tv/demo-media/Movies/Big%20Buck%20Bunny%20%282008%29.backdrop.jpg",
-                artworkPoster = false,
-                percent = 1f,
-                status = DownloadStatus.Finished,
-                statusDetails = "",
+                artworkIsPoster = false,
                 downloads = listOf()
             ),
             UIJob(
@@ -688,17 +569,14 @@ private fun DownloadScreenPreview() {
                 mediaType = MediaTypes.Series,
                 title = "Caminandes",
                 artworkUrl = "https://s3.dustypig.tv/demo-media/TV%20Shows/Caminandes/backdrop.jpg",
-                artworkPoster = false,
-                percent = 0.66f,
-                status = DownloadStatus.Running,
-                statusDetails = "",
+                artworkIsPoster = false,
                 downloads = listOf(
                     UIDownload(
                         key = "2.3",
                         mediaId = 3,
                         title = "s01e01 - Llama Drama",
                         artworkUrl = "https://s3.dustypig.tv/demo-media/TV%20Shows/Caminandes/Season%2001/Caminandes%20-%20s01e01%20-%20Llama%20Drama.jpg",
-                        artworkPoster = false,
+                        artworkIsPoster = false,
                         percent = 0.66f,
                         status = DownloadStatus.Running,
                         statusDetails = ""

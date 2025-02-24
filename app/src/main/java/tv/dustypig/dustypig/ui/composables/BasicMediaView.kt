@@ -20,13 +20,11 @@ import coil.compose.AsyncImage
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.MediaTypes
-import tv.dustypig.dustypig.global_managers.media_cache_manager.MediaCacheManager
 import tv.dustypig.dustypig.nav.MyRouteNavigator
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.main_app.screens.movie_details.MovieDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.playlist_details.PlaylistDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
-import java.util.UUID
 
 
 @Composable
@@ -49,15 +47,13 @@ fun BasicMediaView(
         if (!navigateOnClick)
             return
 
-        val cachedId = MediaCacheManager.add(basicMedia)
 
         when (basicMedia.mediaType) {
             MediaTypes.Movie -> {
                 routeNavigator.navigateToRoute(
                     route = MovieDetailsNav.getRoute(
                         mediaId = basicMedia.id,
-                        basicCacheId = cachedId,
-                        detailedPlaylistCacheId = UUID.randomUUID().toString(),
+                        detailedPlaylistId = -1,
                         fromPlaylist = false,
                         playlistUpNextIndex = 0
                     )
@@ -67,18 +63,14 @@ fun BasicMediaView(
             MediaTypes.Series -> {
                 routeNavigator.navigateToRoute(
                     route = SeriesDetailsNav.getRoute(
-                        mediaId = basicMedia.id,
-                        basicCacheId = cachedId
+                        mediaId = basicMedia.id
                     )
                 )
             }
 
             MediaTypes.Playlist -> {
                 routeNavigator.navigateToRoute(
-                    route = PlaylistDetailsNav.getRoute(
-                        mediaId = basicMedia.id,
-                        cacheId = cachedId
-                    )
+                    route = PlaylistDetailsNav.getRoute(mediaId = basicMedia.id)
                 )
             }
 

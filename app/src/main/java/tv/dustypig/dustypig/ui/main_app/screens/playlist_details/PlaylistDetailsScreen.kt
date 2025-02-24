@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,7 +38,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -63,7 +61,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
@@ -98,6 +95,7 @@ import tv.dustypig.dustypig.api.models.PlaylistItem
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
 import tv.dustypig.dustypig.ui.composables.CastTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
+import tv.dustypig.dustypig.ui.composables.LazyColumnBottomAlign
 import tv.dustypig.dustypig.ui.composables.MultiDownloadDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
 import tv.dustypig.dustypig.ui.composables.OnOrientation
@@ -289,6 +287,8 @@ private fun HorizontalTabletLayout(
         uiState.onListUpdated()
     }
 
+
+
     //There is 1 before the playlist items, so subtract 1 from indices
     val state = rememberReorderableLazyListState(
         onMove = { from, to ->
@@ -315,64 +315,59 @@ private fun HorizontalTabletLayout(
                 .fillMaxHeight()
                 .fillMaxWidth(fraction = 0.33f)
         ) {
-
             AsyncImage(
                 model = uiState.posterUrl,
                 contentDescription = "",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(color = Color.DarkGray)
-                    .blur(50.dp)
-            )
-
-            AsyncImage(
-                model = uiState.posterUrl,
-                contentDescription = "",
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxSize(),
+                    .background(color = Color.DarkGray),
                 error = painterResource(id = R.drawable.error_tall)
             )
         }
 
-        LazyColumn(
-            state = state.listState,
-            modifier = Modifier
-                .padding(8.dp)
-                .fillMaxWidth()
-                .reorderable(state),
-            horizontalAlignment = columnAlignment,
-            //verticalArrangement = Arrangement.spacedBy(16.dp)
+        Box(
+            modifier = Modifier.fillMaxSize()
         ) {
 
-            if (!uiState.loading && !criticalError) {
-                item {
-                    PlaybackLayout(
-                        showRenameDialog = showRenameDialog,
-                        playUpNext = uiState.onPlayUpNext,
-                        showDownloadDialog = showDownloadDialog,
-                        uiState = uiState
-                    )
-                }
+            LazyColumnBottomAlign(
+                state = state.listState,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .fillMaxWidth()
+                    .reorderable(state),
+                horizontalAlignment = columnAlignment,
+            ) {
 
-                items(data.value, { it.id }) { playlistItem ->
-                    ReorderableItem(state, key = playlistItem.id) { isDragging ->
-                        PlaylistItemLayout(
-                            playlistItem = playlistItem,
-                            isDragging = isDragging,
-                            reorderState = state,
+                if (!uiState.loading && !criticalError) {
+                    item {
+                        PlaybackLayout(
+                            showRenameDialog = showRenameDialog,
+                            playUpNext = uiState.onPlayUpNext,
+                            showDownloadDialog = showDownloadDialog,
                             uiState = uiState
                         )
                     }
-                }
 
-                item {
-                    DeleteLayout(
-                        showDeletePlaylistDialog = showDeletePlaylistDialog,
-                        uiState = uiState
-                    )
-                }
+                    items(data.value, { it.id }) { playlistItem ->
+                        ReorderableItem(state, key = playlistItem.id) { isDragging ->
+                            PlaylistItemLayout(
+                                playlistItem = playlistItem,
+                                isDragging = isDragging,
+                                reorderState = state,
+                                uiState = uiState
+                            )
+                        }
+                    }
 
+                    item {
+                        DeleteLayout(
+                            showDeletePlaylistDialog,
+                            uiState
+                        )
+                    }
+
+                }
             }
         }
     }
@@ -419,43 +414,35 @@ private fun PhoneLayout(
         }
     )
 
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding)
     ) {
 
-        LazyColumn(
+        LazyColumnBottomAlign(
             state = reorderState.listState,
             modifier = Modifier
                 .fillMaxSize()
                 .reorderable(reorderState),
-            horizontalAlignment = columnAlignment,
-            //verticalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalAlignment = columnAlignment
         ) {
 
-            item {
+           item {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(hdp)
                 ) {
                     AsyncImage(
-                        model = uiState.posterUrl,
+                        model = uiState.backdropUrl,
                         contentDescription = "",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(color = Color.DarkGray)
-                            .blur(50.dp)
-                    )
-
-                    AsyncImage(
-                        model = uiState.posterUrl,
-                        contentDescription = "",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.fillMaxSize(),
-                        error = painterResource(id = R.drawable.error_tall)
+                            .background(color = Color.DarkGray),
+                        error = painterResource(id = R.drawable.error_wide)
                     )
                 }
             }
@@ -484,8 +471,8 @@ private fun PhoneLayout(
 
             item {
                 DeleteLayout(
-                    showDeletePlaylistDialog = showDeletePlaylistDialog,
-                    uiState = uiState
+                    showDeletePlaylistDialog,
+                    uiState
                 )
             }
         }
@@ -531,13 +518,13 @@ private fun PlaybackLayout(
         Row(
             modifier = Modifier.padding(12.dp, 0.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = uiState.title,
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f).padding(0.dp)
             )
 
             IconButton(onClick = { showRenameDialog.value = true }) {
@@ -740,7 +727,6 @@ private fun DismissBackground(dismissState: SwipeToDismissBoxState) {
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PlaylistItemLayout(
     playlistItem: PlaylistItem,
@@ -796,6 +782,7 @@ private fun PlaylistItemLayout(
     }
 }
 
+
 @Composable
 private fun DeleteLayout(
     showDeletePlaylistDialog: MutableState<Boolean>,
@@ -807,9 +794,11 @@ private fun DeleteLayout(
         if (configuration.screenWidthDp >= 352) Modifier.width(320.dp) else Modifier.fillMaxWidth()
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
@@ -829,12 +818,17 @@ private fun DeleteLayout(
 }
 
 
+
+
+
+
+
 @Preview
 @Composable
 private fun PlaylistDetailsScreenPreview() {
 
     val listItems: ArrayList<PlaylistItem> = arrayListOf()
-    for (i in 1..10) {
+    for (i in 1..2) {
         listItems.add(
             PlaylistItem(
                 id = i,
@@ -845,6 +839,7 @@ private fun PlaylistDetailsScreenPreview() {
                 title = "Item $i",
                 description = "Overview $i",
                 artworkUrl = "",
+                backdropUrl = "",
                 length = 5000.0,
                 introStartTime = null,
                 introEndTime = null,

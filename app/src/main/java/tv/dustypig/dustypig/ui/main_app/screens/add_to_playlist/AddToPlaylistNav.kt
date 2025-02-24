@@ -24,7 +24,8 @@ object AddToPlaylistNav : NavRoute<AddToPlaylistViewModel> {
 
 
     override fun getArguments(): List<NamedNavArgument> = listOf(
-        navArgument(KEY_ID) { type = NavType.IntType }
+        navArgument(KEY_ID) { type = NavType.IntType },
+        navArgument(KEY_IS_SERIES) { type = NavType.BoolType }
     )
 
 

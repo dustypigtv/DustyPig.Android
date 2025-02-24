@@ -39,7 +39,6 @@ import tv.dustypig.dustypig.api.models.BasicPerson
 import tv.dustypig.dustypig.api.models.CreditRoles
 import tv.dustypig.dustypig.api.models.Genre
 import tv.dustypig.dustypig.api.models.GenrePair
-import tv.dustypig.dustypig.global_managers.media_cache_manager.MediaCacheManager
 
 
 private val spacerHeight = 24.dp
@@ -49,7 +48,7 @@ data class CreditsData(
     val genres: List<GenrePair> = listOf(),
     val genreNav: (genrePair: GenrePair) -> Unit = { },
     val castAndCrew: List<BasicPerson> = listOf(),
-    val personNav: (tmdbId: Int, cacheId: String) -> Unit = { _: Int, _: String -> },
+    val personNav: (id: Int) -> Unit = { _: Int -> },
     val owner: String = ""
 )
 
@@ -103,15 +102,7 @@ private fun CreditsRow(
                             .width(100.dp)
                             .height(150.dp)
                             .clip(RoundedCornerShape(4.dp))
-                            .clickable {
-                                val cacheId = MediaCacheManager.add(
-                                    person.name,
-                                    posterUrl = person.avatarUrl ?: "",
-                                    backdropUrl = null
-                                )
-                                creditsData.personNav(person.tmdbId, cacheId)
-                            }
-
+                            .clickable { creditsData.personNav(person.tmdbId) }
                     )
                     Text(
                         modifier = Modifier.width(100.dp),

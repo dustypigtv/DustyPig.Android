@@ -7,6 +7,10 @@
     <uses-permission android:name="android.permission.DOWNLOAD_WITHOUT_NOTIFICATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="Manifest.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
 
     <application
         android:name=".DustyPigApplication"
@@ -19,7 +23,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DustyPig"
         android:usesCleartextTraffic="true"
-        tools:targetApi="33">
+        tools:targetApi="35">
 
         <meta-data
             android:name="firebase_analytics_collection_enabled"
@@ -40,6 +44,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service android:name="tv.dustypig.dustypig.global_managers.download_manager.MyDownloadService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync">
+            <!-- This is needed for Scheduler -->
+            <intent-filter>
+                <action android:name="androidx.media3.exoplayer.downloadService.action.RESTART"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </service>
 
         <activity
             android:name="com.canhub.cropper.CropImageActivity"

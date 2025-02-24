@@ -22,9 +22,8 @@ import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.api.repositories.SeriesRepository
 import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
-import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
-import tv.dustypig.dustypig.global_managers.media_cache_manager.MediaCacheManager
+import tv.dustypig.dustypig.global_managers.download_manager.MyDownloadManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
@@ -36,14 +35,14 @@ import tv.dustypig.dustypig.ui.main_app.screens.manage_parental_controls_for_tit
 import tv.dustypig.dustypig.ui.main_app.screens.person_details.PersonDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
 import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
-import java.util.UUID
 import javax.inject.Inject
 
+@OptIn(UnstableApi::class)
 @HiltViewModel
-class SeriesDetailsViewModel @OptIn(UnstableApi::class) @Inject constructor(
+class SeriesDetailsViewModel @Inject constructor(
     private val mediaRepository: MediaRepository,
     private val seriesRepository: SeriesRepository,
-    private val downloadManager: DownloadManager,
+    private val downloadManager: MyDownloadManager,
     routeNavigator: RouteNavigator,
     castManager: CastManager,
     savedStateHandle: SavedStateHandle
@@ -69,21 +68,11 @@ class SeriesDetailsViewModel @OptIn(UnstableApi::class) @Inject constructor(
     )
     val uiState: StateFlow<SeriesDetailsUIState> = _uiState.asStateFlow()
 
-    private val _basicCacheId: String =
-        savedStateHandle.getOrThrow(SeriesDetailsNav.KEY_BASIC_CACHE_ID)
     private val _mediaId: Int = savedStateHandle.getOrThrow(SeriesDetailsNav.KEY_MEDIA_ID)
 
-    private var _detailedSeries = DetailedSeries()
-    private val _detailCacheId = UUID.randomUUID().toString()
+    private var _detailedSeries: DetailedSeries? = null
 
     init {
-        val cachedInfo = MediaCacheManager.getBasicInfo(_basicCacheId)
-        _uiState.update {
-            it.copy(
-                posterUrl = cachedInfo.posterUrl,
-                backdropUrl = cachedInfo.backdropUrl ?: ""
-            )
-        }
 
         viewModelScope.launch {
             PlayerStateManager.playbackEnded.collectLatest {
@@ -92,7 +81,7 @@ class SeriesDetailsViewModel @OptIn(UnstableApi::class) @Inject constructor(
         }
 
         viewModelScope.launch {
-            downloadManager.downloads.collectLatest { jobLst ->
+            downloadManager.currentDownloads.collectLatest { jobLst ->
                 val job = jobLst.firstOrNull {
                     it.mediaId == _mediaId && it.mediaType == MediaTypes.Series
                 }
@@ -115,27 +104,17 @@ class SeriesDetailsViewModel @OptIn(UnstableApi::class) @Inject constructor(
         }
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        MediaCacheManager.BasicInfo.removeAll { it.cacheId == _basicCacheId }
-        MediaCacheManager.Series.remove(_detailCacheId)
-    }
 
     private suspend fun updateData() {
-        _uiState.update {
-            it.copy(
-                title = MediaCacheManager.getBasicInfo(_basicCacheId).title
-            )
-        }
 
         try {
             _detailedSeries = seriesRepository.details(_mediaId)
-            _detailedSeries.episodes?.forEach { detailedEpisode ->
-                detailedEpisode.seriesTitle = _detailedSeries.title
-            }
-            MediaCacheManager.Series[_detailCacheId] = _detailedSeries
 
-            val episodes = _detailedSeries.episodes ?: listOf()
+            _detailedSeries!!.episodes?.forEach { detailedEpisode ->
+                detailedEpisode.seriesTitle = _detailedSeries!!.title
+            }
+
+            val episodes = _detailedSeries!!.episodes ?: listOf()
             if (episodes.isEmpty()) {
                 throw Exception("No episodes found.")
             }
@@ -150,40 +129,49 @@ class SeriesDetailsViewModel @OptIn(UnstableApi::class) @Inject constructor(
 
 
             val unPlayed =
-                upNext.id == episodes.first().id && (upNext.played == null || upNext.played < 1)
+                upNext.id == episodes.first().id && (upNext.played == null || upNext.played!! < 1)
             val fullyPlayed = upNext.id == episodes.last().id && (upNext.played
                 ?: 0.0) >= (upNext.creditsStartTime ?: (upNext.length - 30.0))
+
+            //Prevent flicker
+            if(_detailedSeries!!.artworkUrl != _uiState.value.posterUrl ||
+                _detailedSeries!!.backdropUrl != uiState.value.backdropUrl) {
+                _uiState.update {
+                    it.copy(
+                        posterUrl = _detailedSeries!!.artworkUrl,
+                        backdropUrl = _detailedSeries!!.backdropUrl ?: ""
+                    )
+                }
+            }
 
             _uiState.update {
                 it.copy(
                     loading = false,
-                    posterUrl = _detailedSeries.artworkUrl,
-                    backdropUrl = _detailedSeries.backdropUrl ?: "",
                     seasons = allSeasons.toList(),
                     selectedSeason = upNext.seasonNumber,
                     episodes = episodes,
                     creditsData = CreditsData(
-                        genres = Genres(_detailedSeries.genres).toList(),
+                        genres = Genres(_detailedSeries!!.genres).toList(),
                         genreNav = ::genreNav,
-                        castAndCrew = _detailedSeries.credits ?: listOf(),
+                        castAndCrew = _detailedSeries!!.credits ?: listOf(),
                         personNav = ::personNav,
-                        owner = _detailedSeries.owner ?: ""
+                        owner = _detailedSeries!!.owner ?: ""
                     ),
-                    inWatchList = _detailedSeries.inWatchlist,
-                    title = _detailedSeries.title,
-                    canManage = _detailedSeries.canManage,
-                    canPlay = _detailedSeries.canPlay,
-                    rated = _detailedSeries.rated.toString(),
-                    overview = (if (unPlayed) _detailedSeries.description else upNext.description)
+                    inWatchList = _detailedSeries!!.inWatchlist,
+                    title = _detailedSeries!!.title,
+                    canManage = _detailedSeries!!.canManage,
+                    canPlay = _detailedSeries!!.canPlay,
+                    rated = _detailedSeries!!.rated.toString(),
+                    overview = (if (unPlayed) _detailedSeries!!.description else upNext.description)
                         ?: "",
                     partiallyPlayed = !(unPlayed || fullyPlayed),
                     upNextSeason = if (unPlayed) null else upNext.seasonNumber,
                     upNextEpisode = if (unPlayed) null else upNext.episodeNumber,
                     episodeTitle = if (unPlayed) "" else upNext.title,
-                    titleRequestPermissions = _detailedSeries.titleRequestPermission,
-                    accessRequestStatus = _detailedSeries.accessRequestedStatus,
+                    titleRequestPermissions = _detailedSeries!!.titleRequestPermission,
+                    accessRequestStatus = _detailedSeries!!.accessRequestedStatus,
                     accessRequestBusy = false,
-                    subscribed = _detailedSeries.subscribed
+                    subscribed = _detailedSeries!!.subscribed
                 )
             }
         } catch (ex: Exception) {
@@ -218,19 +206,16 @@ class SeriesDetailsViewModel @OptIn(UnstableApi::class) @Inject constructor(
     }
 
     private fun playUpNext() {
-        navigateToRoute(
-            PlayerNav.getRoute(
-                mediaId = _detailedSeries.id,
-                sourceType = PlayerNav.MEDIA_TYPE_SERIES,
-                upNextId = -1
-            )
-        )
+        val upNext =
+            _detailedSeries!!.episodes?.firstOrNull{ it.upNext } ?:
+            _detailedSeries!!.episodes?.firstOrNull()
+        playEpisode(upNext!!.id)
     }
 
     private fun playEpisode(id: Int) {
         navigateToRoute(
             PlayerNav.getRoute(
-                mediaId = _detailedSeries.id,
+                mediaId = _mediaId,
                 sourceType = PlayerNav.MEDIA_TYPE_SERIES,
                 upNextId = id
             )
@@ -239,7 +224,7 @@ class SeriesDetailsViewModel @OptIn(UnstableApi::class) @Inject constructor(
 
     private fun updateDownloads(newCount: Int) {
         viewModelScope.launch {
-            downloadManager.addOrUpdateSeries(_detailedSeries, newCount)
+            downloadManager.addOrUpdateSeries(_detailedSeries!!, newCount)
         }
     }
 
@@ -327,21 +312,11 @@ class SeriesDetailsViewModel @OptIn(UnstableApi::class) @Inject constructor(
     }
 
     private fun navToEpisodeInfo(id: Int) {
-        val episode = _detailedSeries.episodes?.firstOrNull {
-            it.id == id
-        } ?: return
-
-        val cacheId = MediaCacheManager.add(
-            title = episode.title,
-            posterUrl = _detailedSeries.artworkUrl,
-            backdropUrl = episode.artworkUrl
-        )
         navigateToRoute(
             EpisodeDetailsNav.getRoute(
+                parentId = _mediaId,
                 mediaId = id,
-                basicCacheId = cacheId,
-                detailedCacheId = _detailCacheId,
-                canPlay = _detailedSeries.canPlay,
+                canPlay = _detailedSeries!!.canPlay,
                 fromSeriesDetails = true,
                 playlistUpNextIndex = 0
             )
@@ -395,7 +370,7 @@ class SeriesDetailsViewModel @OptIn(UnstableApi::class) @Inject constructor(
         navigateToRoute(ShowMoreNav.getRoute(genrePair.genre.value, genrePair.text))
     }
 
-    private fun personNav(tmdbId: Int, cacheId: String) {
-        navigateToRoute(PersonDetailsNav.getRoute(tmdbId, cacheId))
+    private fun personNav(tmdbId: Int) {
+        navigateToRoute(PersonDetailsNav.getRoute(tmdbId))
     }
 }

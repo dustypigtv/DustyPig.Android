@@ -12,7 +12,7 @@ import java.util.Date
     indices = [Index(value = ["mediaId", "mediaType", "profileId"], unique = true)]
 )
 @TypeConverters(DateConverter::class)
-data class Job(
+data class DBJob(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val mediaId: Int,
     val mediaType: MediaTypes,
@@ -20,7 +20,9 @@ data class Job(
     val title: String,
     val added: Date = Date(),
     var count: Int,
-    var pending: Boolean,
-    var lastUpdate: Date = Date(),
-    var filename: String = ""
+    var pending: Boolean = true,
+    val artworkUrl: String? = null,
+    val artworkFile: String? = null,
+    val artworkIsPoster: Boolean,
+    var lastUpdate: Date = Date()
 )

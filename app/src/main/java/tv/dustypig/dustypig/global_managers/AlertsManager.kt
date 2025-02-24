@@ -20,7 +20,6 @@ import tv.dustypig.dustypig.api.repositories.AuthRepository
 import tv.dustypig.dustypig.api.repositories.NotificationsRepository
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.logToCrashlytics
-import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.movie_details.MovieDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.search.tmdb_details.TMDBDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
@@ -166,25 +165,13 @@ class AlertsManager @Inject constructor(
             return when (mediaType) {
                 MediaTypes.Movie -> MovieDetailsNav.getRoute(
                     mediaId = mediaId,
-                    basicCacheId = UUID.randomUUID().toString(),
-                    detailedPlaylistCacheId = UUID.randomUUID().toString(),
+                    detailedPlaylistId = -1,
                     fromPlaylist = false,
                     playlistUpNextIndex = 0
                 )
 
-                MediaTypes.Series -> SeriesDetailsNav.getRoute(
-                    mediaId = mediaId,
-                    basicCacheId = ""
-                )
-
-                MediaTypes.Episode -> EpisodeDetailsNav.getRoute(
-                    mediaId = mediaId,
-                    basicCacheId = UUID.randomUUID().toString(),
-                    detailedCacheId = UUID.randomUUID().toString(),
-                    canPlay = true,
-                    fromSeriesDetails = false,
-                    playlistUpNextIndex = -1
-                )
+                MediaTypes.Series,
+                MediaTypes.Episode -> SeriesDetailsNav.getRoute(mediaId)
 
                 else -> null
             }
@@ -197,13 +184,11 @@ class AlertsManager @Inject constructor(
             return when (mediaType) {
                 MediaTypes.Movie -> TMDBDetailsNav.getRoute(
                     mediaId = mediaId,
-                    cacheId = "",
                     isMovie = true
                 )
 
                 MediaTypes.Series -> TMDBDetailsNav.getRoute(
                     mediaId = mediaId,
-                    cacheId = "",
                     isMovie = false
                 )
 

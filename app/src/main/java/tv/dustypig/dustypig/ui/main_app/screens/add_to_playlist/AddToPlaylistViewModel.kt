@@ -40,8 +40,7 @@ class AddToPlaylistViewModel @Inject constructor(
     private var _existingPlaylists: List<BasicPlaylist> = listOf()
 
     private val _mediaId: Int = savedStateHandle.getOrThrow(AddToPlaylistNav.KEY_ID)
-    private val _isSeries: Boolean =
-        savedStateHandle.getOrThrow<String>(AddToPlaylistNav.KEY_IS_SERIES).toBoolean()
+    private val _isSeries: Boolean = savedStateHandle.getOrThrow(AddToPlaylistNav.KEY_IS_SERIES)
 
     init {
         viewModelScope.launch {

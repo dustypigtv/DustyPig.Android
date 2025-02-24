@@ -1,5 +1,7 @@
 package tv.dustypig.dustypig.ui.main_app.screens.series_details
 
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
 import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.api.models.OverrideRequestStatus
 import tv.dustypig.dustypig.api.models.TitleRequestPermissions
@@ -7,6 +9,7 @@ import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
 import tv.dustypig.dustypig.ui.composables.CreditsData
 
+@OptIn(UnstableApi::class)
 data class SeriesDetailsUIState(
 
     //Data

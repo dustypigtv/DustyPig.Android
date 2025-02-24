@@ -1,6 +1,7 @@
 package tv.dustypig.dustypig.ui.main_app.screens.movie_details
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.annotation.OptIn
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -24,9 +25,8 @@ import tv.dustypig.dustypig.api.repositories.MoviesRepository
 import tv.dustypig.dustypig.api.toTimeString
 import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
-import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
-import tv.dustypig.dustypig.global_managers.media_cache_manager.MediaCacheManager
+import tv.dustypig.dustypig.global_managers.download_manager.MyDownloadManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
@@ -49,8 +49,12 @@ class MovieDetailsViewModel @Inject constructor(
     castManager: CastManager,
     private val mediaRepository: MediaRepository,
     private val moviesRepository: MoviesRepository,
-    private val downloadManager: DownloadManager
+    private val downloadManager: MyDownloadManager
 ) : ViewModel(), RouteNavigator by routeNavigator {
+
+    companion object {
+        private const val TAG = "MovieDetailsViewModel"
+    }
 
     private val _uiState = MutableStateFlow(
         MovieDetailsUIState(
@@ -69,29 +73,15 @@ class MovieDetailsViewModel @Inject constructor(
     )
     val uiState: StateFlow<MovieDetailsUIState> = _uiState.asStateFlow()
 
-    private val mediaId: Int = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_MEDIA_ID)
-    private val _basicCacheId: String =
-        savedStateHandle.getOrThrow(MovieDetailsNav.KEY_BASIC_CACHE_ID)
-    private val _detailedPlaylistCacheId: String =
-        savedStateHandle.getOrThrow(MovieDetailsNav.KEY_DETAILED_PLAYLIST_CACHE_ID)
-    private val _fromPlaylistDetails: Boolean =
-        savedStateHandle.getOrThrow(MovieDetailsNav.KEY_FROM_PLAYLIST_ID)
-    private val _playlistUpNextIndex: Int =
-        savedStateHandle.getOrThrow(MovieDetailsNav.KEY_PLAYLIST_UPNEXT_INDEX_ID)
+    private val _mediaId: Int = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_MEDIA_ID)
+    private val _detailedPlaylistId: Int = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_DETAILED_PLAYLIST_ID)
+    private val _fromPlaylistDetails: Boolean = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_FROM_PLAYLIST_ID)
+    private val _playlistUpNextIndex: Int = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_PLAYLIST_UPNEXT_INDEX_ID)
 
-    private var _detailedMovie = DetailedMovie()
+    private var _detailedMovie: DetailedMovie? = null
 
 
     init {
-        val cachedInfo = MediaCacheManager.getBasicInfo(_basicCacheId)
-        _uiState.update {
-            it.copy(
-                posterUrl = cachedInfo.posterUrl,
-                backdropUrl = cachedInfo.backdropUrl ?: "",
-                title = cachedInfo.title
-            )
-        }
-
         viewModelScope.launch {
             PlayerStateManager.playbackEnded.collectLatest {
                 updateData()
@@ -99,9 +89,9 @@ class MovieDetailsViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            downloadManager.downloads.collectLatest { jobLst ->
+            downloadManager.currentDownloads.collectLatest { jobLst ->
                 val job = jobLst.firstOrNull {
-                    it.mediaId == mediaId && it.mediaType == MediaTypes.Movie
+                    it.mediaId == _mediaId && it.mediaType == MediaTypes.Movie
                 }
                 _uiState.update {
                     it.copy(
@@ -113,50 +103,53 @@ class MovieDetailsViewModel @Inject constructor(
     }
 
 
-    private suspend fun updateData() {
-        try {
-            _detailedMovie = moviesRepository.details(mediaId)
-            MediaCacheManager.add(_detailedMovie)
 
+    private suspend fun updateData() {
+
+        Log.d(TAG, "Updating data")
+
+        try {
+            _detailedMovie = moviesRepository.details(_mediaId)
             _uiState.update {
                 it.copy(
                     loading = false,
                     creditsData = CreditsData(
-                        genres = Genres(_detailedMovie.genres).toList(),
+                        genres = Genres(_detailedMovie!!.genres).toList(),
                         genreNav = ::genreNav,
-                        castAndCrew = _detailedMovie.credits ?: listOf(),
+                        castAndCrew = _detailedMovie!!.credits ?: listOf(),
                         personNav = ::personNav,
-                        owner = _detailedMovie.owner ?: ""
+                        owner = _detailedMovie!!.owner ?: ""
                     )
                 )
             }
 
             // Prevent flicker by only updating if needed
-            if (_detailedMovie.artworkUrl != _uiState.value.posterUrl || _detailedMovie.backdropUrl != _uiState.value.backdropUrl) {
+            if (_detailedMovie!!.artworkUrl != _uiState.value.posterUrl ||
+                _detailedMovie!!.backdropUrl != _uiState.value.backdropUrl) {
                 _uiState.update {
                     it.copy(
-                        posterUrl = _detailedMovie.artworkUrl,
-                        backdropUrl = _detailedMovie.backdropUrl ?: ""
+                        posterUrl = _detailedMovie!!.artworkUrl,
+                        backdropUrl = _detailedMovie!!.backdropUrl ?: ""
                     )
                 }
             }
 
             val cal = Calendar.getInstance()
-            cal.time = _detailedMovie.date
+            cal.time = _detailedMovie!!.date
 
             _uiState.update {
                 it.copy(
-                    inWatchList = _detailedMovie.inWatchlist,
-                    title = _detailedMovie.title,
+                    inWatchList = _detailedMovie!!.inWatchlist,
+                    title = _detailedMovie!!.title,
                     year = cal.get(Calendar.YEAR).toString(),
-                    canManage = _detailedMovie.canManage,
-                    canPlay = _detailedMovie.canPlay,
-                    rated = _detailedMovie.rated.toString(),
-                    length = _detailedMovie.length.toTimeString(),
-                    partiallyPlayed = (_detailedMovie.played ?: 0.0) > 0.0,
-                    overview = _detailedMovie.description ?: "",
-                    titleRequestPermissions = _detailedMovie.titleRequestPermission,
-                    accessRequestStatus = _detailedMovie.accessRequestedStatus,
+                    canManage = _detailedMovie!!.canManage,
+                    canPlay = _detailedMovie!!.canPlay,
+                    rated = _detailedMovie!!.rated.toString(),
+                    length = _detailedMovie!!.length.toTimeString(),
+                    partiallyPlayed = (_detailedMovie!!.played ?: 0.0) > 0.0,
+                    overview = _detailedMovie!!.description ?: "",
+                    titleRequestPermissions = _detailedMovie!!.titleRequestPermission,
+                    accessRequestStatus = _detailedMovie!!.accessRequestedStatus,
                     accessRequestBusy = false,
                 )
             }
@@ -193,7 +186,7 @@ class MovieDetailsViewModel @Inject constructor(
     private fun addDownload() {
         viewModelScope.launch {
             try {
-                downloadManager.addMovie(_detailedMovie)
+                downloadManager.addMovie(_detailedMovie!!)
             } catch (ex: Exception) {
                 setError(ex = ex, criticalError = false)
             }
@@ -203,7 +196,7 @@ class MovieDetailsViewModel @Inject constructor(
     private fun removeDownload() {
         viewModelScope.launch {
             try {
-                downloadManager.delete(mediaId = mediaId, mediaType = MediaTypes.Movie)
+                downloadManager.delete(mediaId = _mediaId, mediaType = MediaTypes.Movie)
             } catch (ex: Exception) {
                 setError(ex = ex, criticalError = false)
             }
@@ -215,20 +208,20 @@ class MovieDetailsViewModel @Inject constructor(
         navigateToRoute(
             PlayerNav.getRoute(
                 mediaId =
-                if (_fromPlaylistDetails)
-                    MediaCacheManager.Playlists[_detailedPlaylistCacheId]!!.id
-                else
-                    _detailedMovie.id,
+                    if (_fromPlaylistDetails)
+                        _detailedPlaylistId
+                    else
+                        _detailedMovie!!.id,
                 sourceType =
-                if (_fromPlaylistDetails)
-                    PlayerNav.MEDIA_TYPE_PLAYLIST
-                else
-                    PlayerNav.MEDIA_TYPE_MOVIE,
+                    if (_fromPlaylistDetails)
+                        PlayerNav.MEDIA_TYPE_PLAYLIST
+                    else
+                        PlayerNav.MEDIA_TYPE_MOVIE,
                 upNextId =
-                if (_fromPlaylistDetails)
-                    _playlistUpNextIndex
-                else
-                    0
+                    if (_fromPlaylistDetails)
+                        _playlistUpNextIndex
+                    else
+                        0
             )
         )
     }
@@ -240,7 +233,7 @@ class MovieDetailsViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                mediaRepository.requestAccessOverride(mediaId)
+                mediaRepository.requestAccessOverride(_mediaId)
                 _uiState.update {
                     it.copy(
                         accessRequestBusy = false,
@@ -261,9 +254,9 @@ class MovieDetailsViewModel @Inject constructor(
 
             try {
                 if (_uiState.value.inWatchList) {
-                    mediaRepository.deleteFromWatchlist(mediaId)
+                    mediaRepository.deleteFromWatchlist(_mediaId)
                 } else {
-                    mediaRepository.addToWatchlist(mediaId)
+                    mediaRepository.addToWatchlist(_mediaId)
                 }
 
                 _uiState.update {
@@ -289,7 +282,7 @@ class MovieDetailsViewModel @Inject constructor(
             try {
                 mediaRepository.updatePlaybackProgress(
                     PlaybackProgress(
-                        id = mediaId,
+                        id = _mediaId,
                         seconds = -1.0
                     )
                 )
@@ -308,38 +301,18 @@ class MovieDetailsViewModel @Inject constructor(
     }
 
     private fun addToPlaylist() {
-        navigateToRoute(AddToPlaylistNav.getRouteForId(mediaId, false))
+        navigateToRoute(AddToPlaylistNav.getRouteForId(_mediaId, false))
     }
 
     private fun managePermissions() {
-        navigateToRoute(ManageParentalControlsForTitleNav.getRouteForId(mediaId))
+        navigateToRoute(ManageParentalControlsForTitleNav.getRouteForId(_mediaId))
     }
 
     private fun genreNav(genrePair: GenrePair) {
         navigateToRoute(ShowMoreNav.getRoute(genrePair.genre.value, genrePair.text))
     }
 
-    private fun personNav(tmdbId: Int, cacheId: String) {
-        navigateToRoute(PersonDetailsNav.getRoute(tmdbId, cacheId))
+    private fun personNav(tmdbId: Int) {
+        navigateToRoute(PersonDetailsNav.getRoute(tmdbId))
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

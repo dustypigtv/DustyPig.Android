@@ -45,7 +45,6 @@ private fun SettingsThemeScreenInternal(uiState: ThemeSettingsUIState) {
 
     val themes = mapOf(
         Pair(stringResource(R.string.maggie_s), Themes.Maggies),
-        Pair(stringResource(R.string.dusty_pig_classic), Themes.DustyPig),
         Pair(stringResource(R.string.lb), Themes.LB),
         Pair(stringResource(R.string.red_hot), Themes.Red),
         Pair(stringResource(R.string.neon_green), Themes.HuluGreen),
@@ -85,10 +84,6 @@ private fun SettingsThemeScreenInternal(uiState: ThemeSettingsUIState) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
-//                    RadioButton(
-//                        selected = uiState.currentTheme == theme.value,
-//                        onClick = { },
-//                    )
 
                     //Making the whole row clickable and using RB icons worked out a lot better than a real RB
                     val icon = if (uiState.currentTheme == theme.value)

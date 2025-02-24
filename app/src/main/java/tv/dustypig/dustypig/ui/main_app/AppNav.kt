@@ -41,6 +41,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -111,7 +112,8 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()) {
     val unseenNotifications by vm.notificationCount.collectAsState(null)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
-    val playerVisible by PlayerStateManager.playerScreenVisible.collectAsState()
+    //val playerVisible by PlayerStateManager.playerScreenVisible.collectAsState()
+    val playerVisible by rememberUpdatedState(PlayerStateManager.playerScreenVisible)
     val castState by vm.castManager.castState.collectAsState()
 
     //Prevent flicker

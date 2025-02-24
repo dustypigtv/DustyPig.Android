@@ -11,6 +11,7 @@ data class AddToPlaylistUIState(
     val criticalError: Boolean = false,
     val playlists: List<BasicPlaylist> = listOf(),
     val addingSeries: Boolean = false,
+    val loaded: Boolean = false,
 
     //Events
     val onPopBackStack: () -> Unit = { },

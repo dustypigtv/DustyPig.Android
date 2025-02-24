@@ -1,6 +1,6 @@
 package tv.dustypig.dustypig
 
-import android.app.PictureInPictureParams
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
@@ -25,10 +25,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.media3.common.util.UnstableApi
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics
@@ -43,7 +47,7 @@ import tv.dustypig.dustypig.global_managers.AuthManager
 import tv.dustypig.dustypig.global_managers.FCMManager
 import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
-import tv.dustypig.dustypig.global_managers.download_manager.DownloadManager
+import tv.dustypig.dustypig.global_managers.download_manager.MyDownloadManager
 import tv.dustypig.dustypig.global_managers.progress_manager.ProgressReportManager
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.global_managers.settings_manager.Themes
@@ -65,7 +69,7 @@ class MainActivity : ComponentActivity() {
     lateinit var authManager: AuthManager
 
     @Inject
-    lateinit var downloadManager: DownloadManager
+    lateinit var downloadManager: MyDownloadManager
 
     @Inject
     lateinit var settingsManager: SettingsManager
@@ -88,14 +92,15 @@ class MainActivity : ComponentActivity() {
         FCMManager.init()
         analytics = Firebase.analytics
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            setPictureInPictureParams(
-                PictureInPictureParams
-                    .Builder()
-                    .setAutoEnterEnabled(true)
-                    .build()
-            )
-        }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+//            setPictureInPictureParams(
+//                PictureInPictureParams
+//                    .Builder()
+//                    .setAutoEnterEnabled(true)
+//                    .build()
+//            )
+//        }
+
 
         enableEdgeToEdge()
 
@@ -111,7 +116,22 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-//            Box(Modifier.safeDrawingPadding()) {
+            //val playerScreenVisible by PlayerStateManager.playerScreenVisible.collectAsState()
+            val playerScreenVisible by rememberUpdatedState(PlayerStateManager.playerScreenVisible)
+            if (playerScreenVisible)
+                hideSystemUi()
+            else
+                showSystemUi()
+
+            requestedOrientation = if (playerScreenVisible) {
+                ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            } else if (isTablet()) {
+                ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            } else {
+                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            }
+
+
             DustyPigTheme(currentTheme) {
                 Surface(
                     modifier = Modifier
@@ -122,7 +142,6 @@ class MainActivity : ComponentActivity() {
                     AppStateSwitcher()
                 }
             }
-//            }
         }
 
         checkIntent(intent)
@@ -154,17 +173,17 @@ class MainActivity : ComponentActivity() {
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
 
-        if (!PlayerStateManager.playerScreenVisible.value)
-            return
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                enterPictureInPictureMode(PictureInPictureParams.Builder().build())
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                @Suppress("DEPRECATION")
-                enterPictureInPictureMode()
-            }
-        }
+//        if (!PlayerStateManager.playerScreenVisible.value)
+//            return
+//
+//        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//                enterPictureInPictureMode(PictureInPictureParams.Builder().build())
+//            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+//                @Suppress("DEPRECATION")
+//                enterPictureInPictureMode()
+//            }
+//        }
     }
 
     private fun checkIntent(intent: Intent?) {
@@ -175,6 +194,23 @@ class MainActivity : ComponentActivity() {
     }
 
 
+    @SuppressLint("InlinedApi")
+    private fun hideSystemUi() {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowInsetsControllerCompat(window, window.decorView).let { controller ->
+            controller.hide(WindowInsetsCompat.Type.systemBars())
+            controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+    }
+
+    private fun showSystemUi() {
+        WindowCompat.setDecorFitsSystemWindows(window, true)
+        WindowInsetsControllerCompat(window, window.decorView).let { controller ->
+            controller.show(WindowInsetsCompat.Type.systemBars())
+            controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
+        }
+    }
+
     @Composable
     fun AppStateSwitcher() {
 
@@ -182,40 +218,16 @@ class MainActivity : ComponentActivity() {
 
         when (loggedIn) {
             true -> {
-
-                val playerScreenVisible by PlayerStateManager.playerScreenVisible.collectAsState()
-//                if (playerScreenVisible)
-//                    hideSystemUi()
-//                else
-//                    showSystemUi()
-
-
-                requestedOrientation = if (playerScreenVisible) {
-                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-                } else if (isTablet()) {
-                    ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-                } else {
-                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-                }
-
                 AskNotificationPermission()
                 AppNav()
-
             }
 
             false -> {
-//                showSystemUi()
-                requestedOrientation = if (isTablet()) {
-                    ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-                } else {
-                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-                }
                 AuthNav()
             }
 
             else -> {
                 //Unknown state
-//                showSystemUi()
                 Scaffold { paddingValues ->
                     Box(
                         modifier = Modifier

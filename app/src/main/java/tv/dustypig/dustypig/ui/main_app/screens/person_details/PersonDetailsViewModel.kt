@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.repositories.TMDBRepository
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
-import tv.dustypig.dustypig.global_managers.media_cache_manager.MediaCacheManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
@@ -42,21 +41,9 @@ class PersonDetailsViewModel @Inject constructor(
 
     val uiState: StateFlow<PersonDetailsUIState> = _uiState.asStateFlow()
 
-    private val _tmdbPersonId: Int =
-        savedStateHandle.getOrThrow(PersonDetailsNav.KEY_TMDB_PERSON_ID)
-    private val _basicCacheId: String =
-        savedStateHandle.getOrThrow(PersonDetailsNav.KEY_BASIC_CACHE_ID)
+    private val _tmdbPersonId: Int = savedStateHandle.getOrThrow(PersonDetailsNav.KEY_TMDB_PERSON_ID)
 
     init {
-
-
-        val cachedInfo = MediaCacheManager.getBasicInfo(_basicCacheId)
-        _uiState.update {
-            it.copy(
-                avatarUrl = cachedInfo.posterUrl,
-                name = cachedInfo.title
-            )
-        }
 
         viewModelScope.launch {
             try {
@@ -88,6 +75,7 @@ class PersonDetailsViewModel @Inject constructor(
         }
     }
 
+
     private fun hideError() {
         if (_uiState.value.criticalError) {
             popBackStack()
@@ -96,10 +84,5 @@ class PersonDetailsViewModel @Inject constructor(
                 it.copy(showErrorDialog = false)
             }
         }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        MediaCacheManager.BasicInfo.removeAll { it.cacheId == _basicCacheId }
     }
 }

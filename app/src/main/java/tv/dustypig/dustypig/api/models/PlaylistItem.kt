@@ -9,14 +9,12 @@ data class PlaylistItem(
     val title: String,
     val description: String,
     val artworkUrl: String,
-    val artworkSize: ULong = 0U,
+    val backdropUrl: String?,
     val length: Double,
     val introStartTime: Double?,
     val introEndTime: Double?,
     val creditsStartTime: Double?,
     val bifUrl: String,
-    val bifSize: ULong = 0U,
     val videoUrl: String,
-    val videoSize: ULong = 0U,
     val srtSubtitles: List<SRTSubtitles>?
 )

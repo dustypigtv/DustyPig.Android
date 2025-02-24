@@ -130,9 +130,6 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
                         playerView.player = uiState.player
                         playerView.keepScreenOn = true
                         playerView.useController = true
-
-                        playerView.player = uiState.player
-                        playerView.keepScreenOn = true
                         playerView.setShowSubtitleButton(true)
                         playerView.setControllerVisibilityListener(
                             PlayerView.ControllerVisibilityListener { visible ->
@@ -169,6 +166,8 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
                 },
                 modifier = Modifier.fillMaxSize()
             )
+
+
         }
 
 

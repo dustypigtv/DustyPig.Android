@@ -9,9 +9,7 @@ data class UIJob(
     val mediaType: MediaTypes,
     val title: String,
     val artworkUrl: String,
-    val artworkPoster: Boolean,
-    var percent: Float,
-    var status: DownloadStatus,
-    var statusDetails: String,
+    val artworkIsPoster: Boolean,
+    var status: DownloadStatus = DownloadStatus.Pending,
     var downloads: List<UIDownload>
 )

@@ -1,18 +1,21 @@
 package tv.dustypig.dustypig.ui.main_app.screens.player
 
+import androidx.annotation.OptIn
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import tv.dustypig.dustypig.nav.NavRoute
 
+@OptIn(UnstableApi::class)
 object PlayerNav : NavRoute<PlayerViewModel> {
 
     const val MEDIA_TYPE_MOVIE = 1
     const val MEDIA_TYPE_SERIES = 2
     const val MEDIA_TYPE_PLAYLIST = 3
-    const val MEDIA_TYPE_EPISODE = 4
+//    const val MEDIA_TYPE_EPISODE = 4
     const val MEDIA_TYPE_DOWNLOAD = 5
 
     const val KEY_MEDIA_ID = "KEY_MEDIA_ID"

@@ -57,7 +57,6 @@ import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.BasicTMDB
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.TMDBMediaTypes
-import tv.dustypig.dustypig.global_managers.media_cache_manager.MediaCacheManager
 import tv.dustypig.dustypig.nav.MyRouteNavigator
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.composables.BasicMediaView
@@ -314,11 +313,9 @@ fun TMDBMediaView(
             clicked(basicTMDB.tmdbId)
 
 
-        val cacheId = MediaCacheManager.add(basicTMDB)
         routeNavigator.navigateToRoute(
             route = TMDBDetailsNav.getRoute(
                 basicTMDB.tmdbId,
-                cacheId = cacheId,
                 isMovie = basicTMDB.mediaType == TMDBMediaTypes.Movie
             )
         )

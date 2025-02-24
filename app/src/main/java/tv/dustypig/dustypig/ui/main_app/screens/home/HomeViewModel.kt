@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -13,6 +14,7 @@ import kotlinx.coroutines.sync.withLock
 import tv.dustypig.dustypig.api.models.HomeScreenList
 import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.global_managers.NetworkManager
+import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
@@ -57,6 +59,13 @@ class HomeViewModel @Inject constructor(
     }
 
     init {
+
+        viewModelScope.launch {
+            PlayerStateManager.playbackEnded.collectLatest {
+                triggerUpdate()
+            }
+        }
+
         _timer.schedule(
             delay = 0,
             period = 1000

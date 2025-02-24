@@ -8,9 +8,14 @@ data class Notification(
     val title: String,
     val message: String,
     val notificationType: NotificationTypes,
-    val mediaId: Int?,
     val mediaType: MediaTypes?,
     val friendshipId: Int?,
     var seen: Boolean,
-    val timestamp: Date
+    val timestamp: Date,
+
+    // For new media requests, this will be the TMDB id.
+    // For new movie/series fulfilled notifications, this will be the media id in the database.
+    // For new episode available notifications, this will be the media id of the series in the database.
+    // For all others, this will be null.
+    val mediaId: Int?
 )

@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.global_managers.media_cache_manager.MediaCacheManager
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -58,7 +57,6 @@ class AuthManager @Inject constructor(
         settingsManager.setProfileId(-1)
         settingsManager.setIsMainProfile(false)
         settingsManager.setToken("")
-        MediaCacheManager.reset()
         setState(token = "", profileId = 0, isMain = false)
         FCMManager.resetToken()
     }
