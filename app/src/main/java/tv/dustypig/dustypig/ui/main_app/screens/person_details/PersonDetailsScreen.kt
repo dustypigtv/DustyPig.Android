@@ -177,7 +177,6 @@ private fun PhoneLayout(
             model = uiState.avatarUrl,
             contentDescription = "",
             contentScale = ContentScale.Crop,
-            placeholder = debugPlaceholder(R.drawable.grey_profile),
             error = painterResource(id = R.drawable.grey_profile),
             modifier = Modifier
                 .fillMaxWidth()

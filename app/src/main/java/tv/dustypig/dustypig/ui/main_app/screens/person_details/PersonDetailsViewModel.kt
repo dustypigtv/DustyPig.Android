@@ -52,6 +52,7 @@ class PersonDetailsViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         loading = false,
+                        avatarUrl = data.avatarUrl,
                         placeOfBirth = data.placeOfBirth,
                         biography = data.biography,
                         knownFor = data.knownFor,

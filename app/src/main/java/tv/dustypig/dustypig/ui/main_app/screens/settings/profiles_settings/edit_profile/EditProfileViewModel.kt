@@ -190,7 +190,7 @@ class EditProfileViewModel @Inject constructor(
         _uiState.update {
             it.copy(busy = true)
         }
-        if (selectedProfileId == 0) {
+        if (selectedProfileId < 1) {
             saveNewProfile(
                 name = name,
                 pin = pin,
