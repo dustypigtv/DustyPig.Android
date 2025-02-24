@@ -12,7 +12,6 @@ import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.repositories.ProfilesRepository
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.edit_profile.EditProfileNav
-import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.edit_profile.EditProfileViewModel
 import java.util.UUID
 import javax.inject.Inject
 
@@ -86,18 +85,12 @@ class ProfilesSettingsViewModel @Inject constructor(
     }
 
     private fun navToAddProfile() {
-        val color = listOf("blue", "gold", "green", "grey", "red").random()
-        EditProfileViewModel.preloadAvatar = "https://s3.dustypig.tv/user-art/profile/${color}.png"
-        EditProfileViewModel.selectedProfileId = 0
-        navigateToRoute(EditProfileNav.route)
+        navigateToRoute(EditProfileNav.getRoute(-1))
     }
 
 
     private fun navToProfile(id: Int) {
-        EditProfileViewModel.preloadAvatar =
-            _uiState.value.profiles.first { it.id == id }.avatarUrl ?: ""
-        EditProfileViewModel.selectedProfileId = id
-        navigateToRoute(EditProfileNav.route)
+        navigateToRoute(EditProfileNav.getRoute(id))
     }
 
 }

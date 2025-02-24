@@ -321,8 +321,7 @@ private fun HorizontalTabletLayout(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(color = Color.DarkGray),
-                error = painterResource(id = R.drawable.error_tall)
+                    .background(color = Color.DarkGray)
             )
         }
 
@@ -441,8 +440,7 @@ private fun PhoneLayout(
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(color = Color.DarkGray),
-                        error = painterResource(id = R.drawable.error_wide)
+                            .background(color = Color.DarkGray)
                     )
                 }
             }

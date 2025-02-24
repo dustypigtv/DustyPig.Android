@@ -73,11 +73,7 @@ fun AddToPlaylistScreen(vm: AddToPlaylistViewModel) {
 private fun AddToPlaylistScreenInternal(uiState: AddToPlaylistUIState) {
 
     val listState = rememberLazyListState()
-    var showNewPlaylistDialog by remember {
-        mutableStateOf(
-            uiState.loaded && uiState.playlists.isEmpty()
-        )
-    }
+    var showNewPlaylistDialog by remember { mutableStateOf(false) }
     var showAutoEpisodesDialog by remember { mutableStateOf(false) }
     var newPlaylistMode by remember { mutableStateOf(false) }
     var selectedId by remember { mutableIntStateOf(0) }

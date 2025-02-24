@@ -2,6 +2,7 @@ package tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.edit
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,6 +27,7 @@ import tv.dustypig.dustypig.api.repositories.ProfilesRepository
 import tv.dustypig.dustypig.global_managers.AuthManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
+import tv.dustypig.dustypig.nav.getOrThrow
 import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.ProfilesSettingsViewModel
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -36,13 +38,14 @@ class EditProfileViewModel @Inject constructor(
     private val profilesRepository: ProfilesRepository,
     private val librariesRepository: LibrariesRepository,
     private val authManager: AuthManager,
+    savedStateHandle: SavedStateHandle,
     routeNavigator: RouteNavigator
 ) : ViewModel(), RouteNavigator by routeNavigator {
 
-    companion object {
-        var preloadAvatar = ""
-        var selectedProfileId = 0
-    }
+    private val selectedProfileId = savedStateHandle.getOrThrow<Int>(EditProfileNav.KEY_PROFILE_ID)
+
+    private val color = listOf("blue", "gold", "green", "grey", "red").random()
+    private val randomAvatar = "https://s3.dustypig.tv/user-art/profile/${color}.png"
 
     private val _uiState = MutableStateFlow(
         EditProfileUIState(
@@ -59,12 +62,6 @@ class EditProfileViewModel @Inject constructor(
     private var allLibIds = arrayListOf<Int>()
 
     init {
-        _uiState.update {
-            it.copy(
-                busy = true,
-                avatarUrl = preloadAvatar
-            )
-        }
 
         viewModelScope.launch {
             try {
@@ -133,6 +130,7 @@ class EditProfileViewModel @Inject constructor(
                     allLibIds.addAll(libs.map { lib -> lib.id })
                     _uiState.update {
                         it.copy(
+                            avatarUrl = randomAvatar,
                             loadingComplete = true,
                             libraries = libs,
                             addMode = true,
@@ -236,7 +234,7 @@ class EditProfileViewModel @Inject constructor(
                     name = name,
                     pin = pin.toUShortOrNull()?.toInt(),
                     locked = false,
-                    avatarUrl = preloadAvatar,
+                    avatarUrl = randomAvatar,
                     maxMovieRating = maxMovieRating,
                     maxTVRating = maxTVRating,
                     titleRequestPermissions = titleRequestPermissions

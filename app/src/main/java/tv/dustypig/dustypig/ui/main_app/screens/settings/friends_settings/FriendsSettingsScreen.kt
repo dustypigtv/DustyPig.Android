@@ -6,10 +6,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -53,6 +53,7 @@ import tv.dustypig.dustypig.api.models.BasicFriend
 import tv.dustypig.dustypig.ui.composables.Avatar
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
+import tv.dustypig.dustypig.ui.composables.LazyColumnBottomAlign
 import tv.dustypig.dustypig.ui.composables.OkDialog
 import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
@@ -87,15 +88,15 @@ private fun FriendsSettingsScreenInternal(uiState: FriendsSettingsUIState) {
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            LazyColumn(
+            LazyColumnBottomAlign (
                 modifier = Modifier.fillMaxSize(),
                 state = listState,
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                //verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
 
                 item {
-                    //Just some blank space between top and actual list
+                    Spacer(modifier = Modifier.padding(6.dp))
                 }
 
                 items(uiState.friends, key = { it.clientUUID }) {
@@ -134,15 +135,18 @@ private fun FriendsSettingsScreenInternal(uiState: FriendsSettingsUIState) {
                             modifier = Modifier.padding(12.dp)
                         )
                     }
+                    Spacer(modifier = Modifier.padding(12.dp))
                 }
 
                 item {
+                    Spacer(modifier = Modifier.padding(12.dp))
                     Button(
                         onClick = { showAddFriendDialog = true },
                         modifier = Modifier.padding(24.dp)
                     ) {
                         Text(text = "Add Friend")
                     }
+                    Spacer(modifier = Modifier.padding(12.dp))
                 }
 
             }
