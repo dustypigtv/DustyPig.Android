@@ -1,36 +1,32 @@
 package tv.dustypig.dustypig.api.models
 
-import com.google.gson.annotations.SerializedName
+import com.google.gson.TypeAdapter
+import com.google.gson.annotations.JsonAdapter
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonWriter
 
-enum class TVRatings {
-    @SerializedName("0")
-    None,
-    @SerializedName("1")
-    Y {
-        override fun toString() = "TV-Y"
-    },
-    @SerializedName("2")
-    Y7 {
-        override fun toString() = "TV-Y7"
-    },
-    @SerializedName("3")
-    G {
-        override fun toString() = "TV-G"
-    },
-    @SerializedName("4")
-    PG {
-        override fun toString() = "TV-PG"
-    },
-    @SerializedName("5")
-    TV_14 {
-        override fun toString() = "TV-14"
-    },
-    @SerializedName("6")
-    MA {
-        override fun toString() = "TV-MA"
-    },
-    @SerializedName("7")
-    NotRated {
-        override fun toString() = "Not Rated"
+@JsonAdapter(TVRatings.JsonAdapter::class)
+enum class TVRatings (val value: Int) {
+    None(0),
+    Y(1) { override fun toString() = "TV-Y" },
+    Y7(2) { override fun toString() = "TV-Y7" },
+    G(3) { override fun toString() = "TV-G" },
+    PG(4) { override fun toString() = "TV-PG" },
+    TV_14(5) { override fun toString() = "TV-14" },
+    MA(6) { override fun toString() = "TV-MA" },
+    NotRated(7) { override fun toString() = "Not Rated" };
+
+    class JsonAdapter : TypeAdapter<TVRatings>() {
+        override fun write(writer: JsonWriter?, value: TVRatings?) {
+            if(value == null)
+                writer?.nullValue()
+            else
+                writer?.value(value.value)
+        }
+
+        override fun read(reader: JsonReader?): TVRatings? {
+            val value = reader?.nextInt() ?: -1
+            return TVRatings.values().firstOrNull { it.value == value }
+        }
     }
 }

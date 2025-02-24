@@ -1,17 +1,27 @@
 package tv.dustypig.dustypig.api.models
 
-import com.google.gson.annotations.SerializedName
+import com.google.gson.TypeAdapter
+import com.google.gson.annotations.JsonAdapter
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonWriter
 
-enum class TitleRequestPermissions {
-    @SerializedName("0")
-    Enabled,
+@JsonAdapter(TitleRequestPermissions.JsonAdapter::class)
+enum class TitleRequestPermissions (val value: Int) {
+    Enabled(0),
+    Disabled(1),
+    RequiresAuthorization(2);
 
-    @SerializedName("1")
-    Disabled,
+    class JsonAdapter : TypeAdapter<TitleRequestPermissions>() {
+        override fun write(writer: JsonWriter?, value: TitleRequestPermissions?) {
+            if(value == null)
+                writer?.nullValue()
+            else
+                writer?.value(value.value)
+        }
 
-    @SerializedName("2")
-    RequiresAuthorization {
-        override fun toString() = "Requires Permission"
+        override fun read(reader: JsonReader?): TitleRequestPermissions? {
+            val value = reader?.nextInt() ?: -1
+            return TitleRequestPermissions.values().firstOrNull { it.value == value }
+        }
     }
 }
-

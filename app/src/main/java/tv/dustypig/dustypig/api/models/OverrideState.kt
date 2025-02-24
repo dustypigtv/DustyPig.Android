@@ -1,14 +1,33 @@
 package tv.dustypig.dustypig.api.models
 
-import com.google.gson.annotations.SerializedName
+import com.google.gson.TypeAdapter
+import com.google.gson.annotations.JsonAdapter
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonWriter
 
-enum class OverrideState {
+
+@JsonAdapter(OverrideState.JsonAdapter::class)
+enum class OverrideState(val value: Int) {
 
     //Default is used by the server only. If you try to set it in a call to setTitlePermissions, the server will return a validation error
-    //@SerializedName("0") Default,
+    //Default(0),
 
-    @SerializedName("1")
-    Allow,
-    @SerializedName("2")
-    Block
+    Allow(1),
+    Block(2);
+
+
+    class JsonAdapter : TypeAdapter<OverrideState>() {
+        override fun write(writer: JsonWriter, value: OverrideState?) {
+            if (value == null) {
+                writer.nullValue()
+                return
+            }
+            writer.value(value.value)
+        }
+
+        override fun read(reader: JsonReader): OverrideState? {
+            val value = reader.nextInt()
+            return OverrideState.values().firstOrNull { it.value == value }
+        }
+    }
 }
