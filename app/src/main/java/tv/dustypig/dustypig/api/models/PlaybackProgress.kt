@@ -5,6 +5,6 @@ import tv.dustypig.dustypig.global_managers.progress_manager.ProgressReportManag
 
 data class PlaybackProgress(
     val id: Int,
-    val seconds: Double,
+    val seconds: Double = 0.0,
     val asOfUTC: String = ProgressReportManager.getTimestamp()
 )

@@ -281,10 +281,7 @@ class MovieDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 mediaRepository.updatePlaybackProgress(
-                    PlaybackProgress(
-                        id = _mediaId,
-                        seconds = -1.0
-                    )
+                    PlaybackProgress(id = _mediaId)
                 )
                 _uiState.update {
                     it.copy(

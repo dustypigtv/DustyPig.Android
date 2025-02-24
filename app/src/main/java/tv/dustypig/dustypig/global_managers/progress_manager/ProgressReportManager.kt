@@ -25,6 +25,7 @@ import java.util.Timer
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.concurrent.schedule
+import kotlin.math.max
 
 @Singleton
 class ProgressReportManager @Inject constructor(
@@ -117,7 +118,7 @@ class ProgressReportManager @Inject constructor(
     ) {
         val pp = PlaybackProgress(
             id = mediaId,
-            seconds = seconds,
+            seconds = max(0.0, seconds),
             asOfUTC = timestamp
         )
 
