@@ -1,9 +1,12 @@
 package tv.dustypig.dustypig.ui.main_app.screens.episode_details
 
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
 
-data class EpisodeDetailsUIState(
+@OptIn(UnstableApi::class)
+data class EpisodeDetailsUIState (
 
     //Data
     val mediaId: Int = 0,

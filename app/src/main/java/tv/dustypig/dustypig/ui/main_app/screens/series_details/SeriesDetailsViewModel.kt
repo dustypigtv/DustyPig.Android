@@ -317,7 +317,7 @@ class SeriesDetailsViewModel @Inject constructor(
                 parentId = _mediaId,
                 mediaId = id,
                 canPlay = _detailedSeries!!.canPlay,
-                fromSeriesDetails = true,
+                source = EpisodeDetailsNav.SOURCE_SERIES_DETAILS,
                 playlistUpNextIndex = 0
             )
         )

@@ -13,11 +13,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.nav.MyRouteNavigator
@@ -97,8 +95,7 @@ fun BasicMediaView(
                 .background(color = Color.DarkGray, shape = RoundedCornerShape(4.dp))
                 .align(Alignment.Center)
                 .size(wdp, hdp)
-                .clip(RoundedCornerShape(4.dp)),
-            error = painterResource(id = R.drawable.error_tall)
+                .clip(RoundedCornerShape(4.dp))
         )
     }
 }

@@ -20,6 +20,7 @@ import tv.dustypig.dustypig.api.repositories.AuthRepository
 import tv.dustypig.dustypig.api.repositories.NotificationsRepository
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.logToCrashlytics
+import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.movie_details.MovieDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.search.tmdb_details.TMDBDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.series_details.SeriesDetailsNav
@@ -170,8 +171,15 @@ class AlertsManager @Inject constructor(
                     playlistUpNextIndex = 0
                 )
 
-                MediaTypes.Series,
-                MediaTypes.Episode -> SeriesDetailsNav.getRoute(mediaId)
+                MediaTypes.Series -> SeriesDetailsNav.getRoute(mediaId)
+
+                MediaTypes.Episode -> EpisodeDetailsNav.getRoute(
+                    parentId = -1,
+                    mediaId = mediaId,
+                    canPlay = true,
+                    source = EpisodeDetailsNav.SOURCE_NOTIFICATION,
+                    playlistUpNextIndex = -1
+                )
 
                 else -> null
             }

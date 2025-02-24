@@ -15,7 +15,6 @@ import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.repositories.EpisodesRepository
-import tv.dustypig.dustypig.api.repositories.SeriesRepository
 import tv.dustypig.dustypig.api.toTimeString
 import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
@@ -34,7 +33,6 @@ import javax.inject.Inject
 @HiltViewModel
 class EpisodeDetailsViewModel
 @Inject constructor(
-    private val seriesRepository: SeriesRepository,
     private val episodesRepository: EpisodesRepository,
     private val downloadManager: MyDownloadManager,
     castManager: CastManager,
@@ -57,14 +55,13 @@ class EpisodeDetailsViewModel
     val uiState: StateFlow<EpisodeDetailsUIState> = _uiState.asStateFlow()
 
     private val _mediaId: Int = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_MEDIA_ID)
-    private val _parentId: Int = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_PARENT_ID)
-    private val _fromSeriesDetails: Boolean = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_FROM_SERIES_DETAILS)
+    private var _parentId: Int = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_PARENT_ID)
+    private val _fromSource: Int = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_SOURCE)
     private val _playlistUpNextIndex: Int = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_PLAYLIST_UPNEXT_INDEX_ID)
     private val _canPlay: Boolean = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_CAN_PLAY)
 
 
     private var _detailedEpisode: DetailedEpisode? = null
-    private var _firstLoad = true
 
     init {
 
@@ -85,33 +82,26 @@ class EpisodeDetailsViewModel
 
     private suspend fun updateData() {
         try {
-            _detailedEpisode = if (_firstLoad && _fromSeriesDetails) {
-                val detailedSeries = seriesRepository.details(_parentId)
-                detailedSeries.episodes!!.first { it.id == _mediaId }
-            } else {
-                episodesRepository.details(_mediaId)
-            }
-            _firstLoad = false
+            _detailedEpisode = episodesRepository.details(_mediaId)
+
+            //If this came from a notification, the parent hasn't been set yet
+            if(_parentId < 1)
+                _parentId = _detailedEpisode!!.seriesId
 
             _uiState.update {
                 it.copy(
                     mediaId = _mediaId,
                     loading = false,
+                    artworkUrl = _detailedEpisode!!.artworkUrl,
                     canPlay = _canPlay,
                     episodeTitle = _detailedEpisode!!.fullDisplayTitle(),
                     overview = _detailedEpisode!!.description ?: "No description",
                     seriesTitle = _detailedEpisode!!.seriesTitle!!,
-                    showGoToSeries = !_fromSeriesDetails,
+                    showGoToSeries = _fromSource != EpisodeDetailsNav.SOURCE_SERIES_DETAILS,
                     length = _detailedEpisode!!.length.toTimeString()
                 )
             }
 
-            // Prevent flicker by only updating if needed
-            if (_detailedEpisode!!.artworkUrl != _uiState.value.artworkUrl) {
-                _uiState.update {
-                    it.copy(artworkUrl = _detailedEpisode!!.artworkUrl)
-                }
-            }
         } catch (ex: Exception) {
             ex.logToCrashlytics()
             _uiState.update {
@@ -166,15 +156,15 @@ class EpisodeDetailsViewModel
             PlayerNav.getRoute(
                 mediaId = _parentId,
                 sourceType =
-                    if (_fromSeriesDetails)
-                        PlayerNav.MEDIA_TYPE_SERIES
+                    if (_fromSource == EpisodeDetailsNav.SOURCE_PLAYLIST_DETAILS)
+                        PlayerNav.MEDIA_TYPE_PLAYLIST
                     else
-                        PlayerNav.MEDIA_TYPE_PLAYLIST,
+                        PlayerNav.MEDIA_TYPE_SERIES,
                 upNextId =
-                    if (_fromSeriesDetails)
-                        _mediaId
-                    else
+                    if (_fromSource == EpisodeDetailsNav.SOURCE_PLAYLIST_DETAILS)
                         _playlistUpNextIndex
+                    else
+                        _mediaId
             )
         )
     }

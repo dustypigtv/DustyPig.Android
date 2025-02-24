@@ -47,7 +47,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -342,8 +341,7 @@ fun TMDBMediaView(
                 .align(Alignment.Center)
                 .size(wdp, hdp)
                 .clip(RoundedCornerShape(4.dp))
-                .clickable { onClicked() },
-            error = painterResource(id = R.drawable.error_tall)
+                .clickable { onClicked() }
         )
     }
 }

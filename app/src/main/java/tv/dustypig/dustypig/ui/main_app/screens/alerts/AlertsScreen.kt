@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.min
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.Notification
 import tv.dustypig.dustypig.api.models.NotificationTypes
+import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.LazyColumnBottomAlign
 import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.theme.DarkRed
@@ -244,8 +245,9 @@ private fun AlertsScreenInternal(uiState: AlertsUIState) {
                                 else Modifier.fillMaxWidth()
 
 
-                            Box(
-                                contentAlignment = Alignment.BottomCenter
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
 
                                 if (uiState.hasUnread) {
@@ -296,6 +298,11 @@ private fun AlertsScreenInternal(uiState: AlertsUIState) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         }
     }
+
+    if (uiState.showErrorDialog) {
+        ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
+    }
+
 }
 
 @Preview

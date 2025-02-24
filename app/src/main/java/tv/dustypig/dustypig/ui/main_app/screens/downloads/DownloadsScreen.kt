@@ -53,7 +53,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -169,24 +168,21 @@ private fun Header(
                 modifier = Modifier
                     .fillMaxSize()
                     .blur(50.dp),
-                contentDescription = null,
-                error = painterResource(id = R.drawable.error_wide)
+                contentDescription = null
             )
 
             AsyncImage(
                 model = url,
                 contentScale = ContentScale.Fit,
                 modifier = Modifier.fillMaxSize(),
-                contentDescription = null,
-                error = painterResource(id = R.drawable.error_wide)
+                contentDescription = null
             )
         } else {
             AsyncImage(
                 model = url,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
-                contentDescription = null,
-                error = painterResource(id = R.drawable.error_wide)
+                contentDescription = null
             )
         }
 

@@ -39,7 +39,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -172,8 +171,7 @@ private fun HorizontalTabletLayout(
             alignment = Alignment.TopCenter,
             modifier = Modifier
                 .fillMaxWidth(fraction = 0.33f)
-                .background(color = Color.DarkGray),
-            error = painterResource(id = R.drawable.error_wide)
+                .background(color = Color.DarkGray)
         )
 
         Column(
@@ -236,8 +234,7 @@ private fun PhoneLayout(
                 modifier = Modifier
                     .background(color = Color.DarkGray)
                     .fillMaxSize(),
-                contentScale = ContentScale.Crop,
-                error = painterResource(id = R.drawable.error_wide)
+                contentScale = ContentScale.Crop
             )
         }
 

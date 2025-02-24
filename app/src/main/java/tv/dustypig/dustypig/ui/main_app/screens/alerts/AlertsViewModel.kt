@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig.ui.main_app.screens.alerts
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,12 +22,17 @@ class AlertsViewModel @Inject constructor(
     private val notificationsRepository: NotificationsRepository
 ) : ViewModel(), RouteNavigator by routeNavigator {
 
+    companion object {
+        private const val TAG = "AlertsViewModel"
+    }
+
     private val _uiState = MutableStateFlow(
         AlertsUIState(
             onItemClicked = ::itemClicked,
             onDeleteItem = ::deleteItem,
             onMarkAllRead = ::markAllRead,
-            onDeleteAll = ::deleteAll
+            onDeleteAll = ::deleteAll,
+            onHideError = ::hideError
         )
     )
     val uiState = _uiState.asStateFlow()
@@ -35,18 +41,25 @@ class AlertsViewModel @Inject constructor(
 
         viewModelScope.launch {
             alertsManager.notifications.collectLatest { list ->
+                val unreadCount = list.count { !it.seen }
+                Log.d(TAG, "Unread Alerts: $unreadCount")
                 _uiState.update { state ->
                     state.copy(
                         busy = false,
                         loaded = true,
                         notifications = list,
-                        hasUnread = list.count { !it.seen } > 0
+                        hasUnread = unreadCount > 0
                     )
                 }
             }
         }
     }
 
+    fun hideError() {
+        _uiState.update {
+            it.copy(showErrorDialog = false)
+        }
+    }
 
     private fun itemClicked(id: Int) {
 
@@ -71,7 +84,9 @@ class AlertsViewModel @Inject constructor(
     }
 
     private fun markAllRead() {
-        _uiState.update { it.copy(busy = true) }
+       _uiState.update {
+            it.copy(busy = true)
+        }
         viewModelScope.launch {
             notificationsRepository.markAllAsRead()
             AlertsManager.triggerUpdate()
@@ -81,8 +96,19 @@ class AlertsViewModel @Inject constructor(
     private fun deleteAll() {
         _uiState.update { it.copy(busy = true) }
         viewModelScope.launch {
-            notificationsRepository.deleteAll()
-            AlertsManager.triggerUpdate()
+            try {
+                notificationsRepository.deleteAll()
+                AlertsManager.triggerUpdate()
+            }
+            catch (ex: Exception) {
+                _uiState.update {
+                    it.copy(
+                        busy = false,
+                        showErrorDialog = true,
+                        errorMessage = ex.localizedMessage ?: "Unknown Error"
+                    )
+                }
+            }
         }
     }
 }

@@ -299,7 +299,7 @@ class PlaylistDetailsViewModel
                     parentId = _playlistId,
                     mediaId = pli.mediaId,
                     canPlay = true,
-                    fromSeriesDetails = false,
+                    source = EpisodeDetailsNav.SOURCE_PLAYLIST_DETAILS,
                     playlistUpNextIndex = pli.index
                 )
             )

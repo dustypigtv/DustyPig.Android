@@ -46,7 +46,6 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -168,8 +167,7 @@ private fun HorizontalTabletLayout(
                     model = uiState.posterUrl,
                     contentDescription = "",
                     contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxSize(),
-                    error = painterResource(id = R.drawable.error_tall)
+                    modifier = Modifier.fillMaxSize()
                 )
             }
         }
@@ -238,8 +236,7 @@ private fun PhoneLayout(
                         model = uiState.posterUrl,
                         contentDescription = "",
                         contentScale = ContentScale.Fit,
-                        modifier = Modifier.fillMaxSize(),
-                        error = painterResource(id = R.drawable.error_tall)
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
             } else {
@@ -249,8 +246,7 @@ private fun PhoneLayout(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(color = Color.DarkGray),
-                    error = painterResource(id = R.drawable.error_wide)
+                        .background(color = Color.DarkGray)
                 )
             }
         }

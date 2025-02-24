@@ -32,12 +32,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import coil.compose.AsyncImage
-import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.global_managers.cast_manager.CastConnectionState
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 import tv.dustypig.dustypig.global_managers.cast_manager.CastPlaybackStatus
@@ -96,8 +94,7 @@ fun CastDialog(
                                         Color.DarkGray,
                                         shape = RoundedCornerShape(4.dp)
                                     )
-                                    .clip(RoundedCornerShape(4.dp)),
-                                error = painterResource(id = R.drawable.error_tall)
+                                    .clip(RoundedCornerShape(4.dp))
                             )
                         }
 
