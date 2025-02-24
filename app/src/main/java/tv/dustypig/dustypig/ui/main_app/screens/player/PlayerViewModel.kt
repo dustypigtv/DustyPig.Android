@@ -108,6 +108,7 @@ class PlayerViewModel @Inject constructor(
     private var _previousSeconds = 0.0
     private var _mediaQueue = arrayListOf<MediaItem>()
     private var _currentMediaItemId: String? = null
+    private var _playerReleased: Boolean = false
 
     init {
 
@@ -154,9 +155,10 @@ class PlayerViewModel @Inject constructor(
     }
 
 
-    override fun popBackStack() {
+    fun onPopBackStack() {
         _timer.cancel()
         _localPlayer.stop()
+        _playerReleased = true
         _localPlayer.release()
         _mediaQueue.clear()
         castManager.removeListener(this)
@@ -164,6 +166,10 @@ class PlayerViewModel @Inject constructor(
         HomeViewModel.triggerUpdate()
         routeNavigator.popBackStack()
     }
+
+//    override fun popBackStack() {
+//
+//    }
 
 
     // CastConnectionStateListener
@@ -194,6 +200,11 @@ class PlayerViewModel @Inject constructor(
 
     override fun onPlayerError(error: PlaybackException) {
         super.onPlayerError(error)
+        Log.e(TAG, "onPlayerError", error)
+
+//        if(_playerReleased)
+//            return
+
         _uiState.update {
             it.copy(
                 showErrorDialog = true,
@@ -239,6 +250,7 @@ class PlayerViewModel @Inject constructor(
             videoTiming.introClicked = true
             _localPlayer.seekTo((videoTiming.introEndTime ?: 0).toLong() * 1000)
         } catch (ex: Exception) {
+            Log.e(TAG, "skipIntro", ex)
             _uiState.update {
                 it.copy(
                     showErrorDialog = true,
@@ -265,6 +277,7 @@ class PlayerViewModel @Inject constructor(
                 popBackStack()
             }
         } catch (ex: Exception) {
+            Log.e(TAG, "playNext", ex)
             _uiState.update {
                 it.copy(
                     showErrorDialog = true,
@@ -311,6 +324,7 @@ class PlayerViewModel @Inject constructor(
                 _upNextId = -1
 
             } catch (ex: Exception) {
+                Log.e(TAG, "switchPlayer", ex)
                 _uiState.update {
                     it.copy(
                         showErrorDialog = true,
@@ -538,16 +552,13 @@ class PlayerViewModel @Inject constructor(
                         popBackStack()
                         return@withLock
                     }
-                    Log.d(TAG, "timerTick: Playing")
 
                     val seconds =
                         _localPlayer.currentPosition.coerceAtLeast(0).toDouble() / 1000
-                    Log.d(TAG, "timerTick: seconds=$seconds")
 
                     val videoTiming = _videoTimings.first {
                         it.mediaId == _currentMediaItemId!!
                     }
-                    Log.d(TAG, "timerTick: videoTiming=$videoTiming")
 
                     if (videoTiming.introClicked) {
                         if (_uiState.value.currentPositionWithinIntro) {

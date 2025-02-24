@@ -172,4 +172,6 @@
     <string name="exo_download_notification_channel_name">Downloads</string>
     <string name="exo_download_notification_channel_description">Dusty Pig video downloads</string>
     <string name="new_playlist">New Playlist</string>
+    <string name="delete_all_notifications">Delete All</string>
+    <string name="mark_all_notifications_read">Mark All Read</string>
 </resources>

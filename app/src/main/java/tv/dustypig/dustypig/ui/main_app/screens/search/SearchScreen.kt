@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Tab
@@ -154,7 +155,10 @@ private fun SearchScreenInternal(
         ) {
 
             if (uiState.emptyQuery) {
-                Text(text = stringResource(R.string.enter_search))
+                Text(
+                    text = stringResource(R.string.enter_search),
+                    color = MaterialTheme.colorScheme.primary
+                )
 
             } else if (uiState.hasResults) {
 

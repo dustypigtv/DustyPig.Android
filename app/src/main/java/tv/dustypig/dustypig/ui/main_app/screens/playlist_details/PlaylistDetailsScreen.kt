@@ -365,7 +365,6 @@ private fun HorizontalTabletLayout(
                             uiState
                         )
                     }
-
                 }
             }
         }
@@ -465,13 +464,13 @@ private fun PhoneLayout(
                         )
                     }
                 }
-            }
 
-            item {
-                DeleteLayout(
-                    showDeletePlaylistDialog,
-                    uiState
-                )
+                item {
+                    DeleteLayout(
+                        showDeletePlaylistDialog,
+                        uiState
+                    )
+                }
             }
         }
 

@@ -376,7 +376,8 @@ private fun DownloadsScreenInternal(uiState: DownloadsUIState) {
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text(text = "No Downloads")
+            Text(text = "No Downloads",
+                color = MaterialTheme.colorScheme.primary)
         }
 
     } else {

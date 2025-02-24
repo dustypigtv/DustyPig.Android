@@ -79,12 +79,21 @@ private fun HomeScreenInternal(
             ) {
                 if (showEmpty) {
                     if (uiState.hasNetworkConnection) {
-                        Text(text = stringResource(R.string.no_media_available))
+                        Text(
+                            text = stringResource(R.string.no_media_available),
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     } else {
-                        Text(text = stringResource(R.string.no_internet_detected))
+                        Text(
+                            text = stringResource(R.string.no_internet_detected),
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
                 } else {
-                    Text(text = stringResource(R.string.loading))
+                    Text(
+                        text = stringResource(R.string.loading),
+                        color = MaterialTheme.colorScheme.primary
+                    )
                     Spacer(modifier = Modifier.height(12.dp))
                     CircularProgressIndicator()
                 }

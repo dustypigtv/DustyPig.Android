@@ -1,7 +1,6 @@
 package tv.dustypig.dustypig.ui.main_app.screens.show_more
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -36,11 +35,7 @@ fun ShowMoreScreen(vm: ShowMoreViewModel) {
         }
     ) { innerPadding ->
 
-        if (mediaItems.itemCount == 0) {
-            Box(modifier = Modifier.fillMaxSize()) {
-
-            }
-        } else {
+        if (mediaItems.itemCount > 0) {
             LazyVerticalGrid(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -52,14 +47,6 @@ fun ShowMoreScreen(vm: ShowMoreViewModel) {
                 state = listState
             ) {
 
-//                items(
-//                    mediaItems.itemCount
-//                ) { index ->
-//                    BasicMediaView(
-//                        basicMedia = mediaItems[index]!!,
-//                        routeNavigator = vm
-//                    )
-//                }
 
                 itemsExt(mediaItems, key = { it.id }) {
                     BasicMediaView(

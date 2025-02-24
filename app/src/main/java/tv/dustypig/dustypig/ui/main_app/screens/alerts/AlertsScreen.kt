@@ -9,18 +9,21 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -49,6 +52,7 @@ import androidx.compose.ui.unit.min
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.Notification
 import tv.dustypig.dustypig.api.models.NotificationTypes
+import tv.dustypig.dustypig.ui.composables.LazyColumnBottomAlign
 import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.theme.DarkRed
 import java.util.Date
@@ -213,54 +217,78 @@ private fun AlertsScreenInternal(uiState: AlertsUIState) {
         modifier = Modifier.fillMaxSize()
     ) {
 
-        if (uiState.notifications.isEmpty()) {
-            Text(
-                text = stringResource(R.string.no_alerts),
-                modifier = Modifier.align(Alignment.Center)
-            )
-        } else {
-            val lazyColumnState = rememberLazyListState()
+        if(uiState.loaded) {
+            if (uiState.notifications.isEmpty()) {
+                Text(
+                    text = stringResource(R.string.no_alerts),
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            } else {
+                val lazyColumnState = rememberLazyListState()
 
-            LazyColumn(
-                state = lazyColumnState,
-            ) {
-                items(uiState.notifications, key = { it.id }) { notification ->
+                LazyColumnBottomAlign(
+                    state = lazyColumnState,
+                ) {
+                    items(uiState.notifications, key = { it.id }) { notification ->
+                        AlertItem(notification = notification, uiState = uiState)
+                    }
 
-//                    var show by remember { mutableStateOf(true) }
+                    if (uiState.notifications.isNotEmpty()) {
+                        item {
+                            Spacer(modifier = Modifier.padding(12.dp))
 
-//                    val dismissState = rememberDismissState(
-//                        initialValue = DismissValue.Default,
-//                        confirmValueChange = {
-//                            if(it == DismissValue.DismissedToStart) {
-//                                show = false
-//                            }
-//                            it == DismissValue.DismissedToStart
-//                        },
-//                        positionalThreshold = { totalDistance -> (totalDistance * 0.5).dp.toPx() }
-//                    )
-
-//                    LaunchedEffect(show) {
-//                        if(!show) {
-//                            delay(delayTime.toLong())
-//                            uiState.onDeleteItem(notification.id)
-//                        }
-//                    }
-
-//                    AnimatedVisibility(
-//                        visible = show,
-//                        exit = shrinkVertically(
-//                            animationSpec = tween(
-//                                durationMillis = delayTime,
-//                            )
-//                        )
-//                    ) {
+                            val configuration = LocalConfiguration.current
+                            val modifier =
+                                if (configuration.screenWidthDp >= 352) Modifier.width(320.dp)
+                                else Modifier.fillMaxWidth()
 
 
-                    AlertItem(notification = notification, uiState = uiState)
+                            Box(
+                                contentAlignment = Alignment.BottomCenter
+                            ) {
 
+                                if (uiState.hasUnread) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+                                        Button(
+                                            onClick = uiState.onMarkAllRead,
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = MaterialTheme.colorScheme.errorContainer,
+                                                contentColor = MaterialTheme.colorScheme.onErrorContainer
+                                            ),
+                                            modifier = modifier
+                                        ) {
+                                            Text(text = stringResource(R.string.mark_all_notifications_read))
+                                        }
+                                    }
 
+                                    Spacer(modifier = Modifier.padding(12.dp))
+                                }
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Button(
+                                        onClick = uiState.onDeleteAll,
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                                        ),
+                                        modifier = modifier
+                                    ) {
+                                        Text(text = stringResource(R.string.delete_all_notifications))
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.padding(12.dp))
+                        }
+                    }
                 }
-
             }
         }
 

@@ -167,6 +167,12 @@ interface ApiService {
     @GET("Notifications/MarkAsRead/{id}")
     suspend fun markNotificationRead(@Path("id") id: Int): Response<Result>
 
+    @GET("Notifications/MarkAllRead")
+    suspend fun markAllRead(): Response<Result>
+
+    @DELETE("Notifications/DeleteAll")
+    suspend fun deleteAllNotifications(): Response<Result>
+
 
     // ***** Playlists *****
     @POST("Playlists/AddItem")

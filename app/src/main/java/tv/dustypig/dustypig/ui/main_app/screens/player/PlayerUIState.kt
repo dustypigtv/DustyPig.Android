@@ -1,10 +1,14 @@
 package tv.dustypig.dustypig.ui.main_app.screens.player
 
+import androidx.annotation.OptIn
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 import tv.dustypig.dustypig.global_managers.cast_manager.CastPlaybackStatus
 
-data class PlayerUIState(
+@OptIn(UnstableApi::class)
+data class PlayerUIState
+    (
 
     //Data
     val busy: Boolean = false,
