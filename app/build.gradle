@@ -17,11 +17,15 @@ android {
         applicationId "tv.dustypig.dustypig"
         minSdk 22
         targetSdk 35
-        versionCode 271
+        versionCode 301
         versionName "3.0"
 
         vectorDrawables {
             useSupportLibrary true
+        }
+
+        ndk {
+            debugSymbolLevel 'FULL'
         }
     }
 
@@ -29,7 +33,6 @@ android {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
-            signingConfig signingConfigs.debug
         }
     }
     compileOptions {
