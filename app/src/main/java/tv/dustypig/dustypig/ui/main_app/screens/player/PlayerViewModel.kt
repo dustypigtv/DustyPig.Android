@@ -38,7 +38,6 @@ import tv.dustypig.dustypig.global_managers.progress_manager.ProgressReportManag
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow
-import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
 import java.lang.Long.max
 import java.util.Timer
 import javax.inject.Inject
@@ -74,7 +73,7 @@ class PlayerViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(
         PlayerUIState(
             castManager = castManager,
-            onPopBackStack = ::popBackStack,
+            onPopBackStack = ::onPopBackStack,
             onPlayNext = ::playNext,
             onSkipIntro = ::skipIntro
         )
@@ -96,7 +95,6 @@ class PlayerViewModel @Inject constructor(
         .build().also {
             it.addListener(this)
             it.playWhenReady = true
-            it.setHandleAudioBecomingNoisy(true)
         }
 
     private val _timer = Timer()
@@ -157,19 +155,12 @@ class PlayerViewModel @Inject constructor(
 
     fun onPopBackStack() {
         _timer.cancel()
-        _localPlayer.stop()
         _playerReleased = true
         _localPlayer.release()
-        _mediaQueue.clear()
         castManager.removeListener(this)
         PlayerStateManager.playerDisposed()
-        HomeViewModel.triggerUpdate()
         routeNavigator.popBackStack()
     }
-
-//    override fun popBackStack() {
-//
-//    }
 
 
     // CastConnectionStateListener
