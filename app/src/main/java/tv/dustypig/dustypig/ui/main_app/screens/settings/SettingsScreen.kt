@@ -51,7 +51,7 @@ private fun SettingsScreenInternal(
     ) {
 
         item {
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(12.dp))
         }
 
         for(link in uiState.links) {

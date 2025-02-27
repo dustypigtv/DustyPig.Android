@@ -265,14 +265,18 @@ private fun AvailableLayout(
         horizontalArrangement = Arrangement.SpaceBetween,
         contentPadding = PaddingValues(12.dp)
     ) {
-        items(uiState.availableItems, key = { it.id }) {
-            BasicMediaView(
-                basicMedia = it,
-                routeNavigator = routeNavigator,
-                clicked = { keyboardController?.hide() }
-            )
-        }
 
+        items(uiState.availableItems, key = { it.id }) {
+
+            Box(modifier = Modifier.padding(0.dp, 12.dp)) {
+
+                BasicMediaView(
+                    basicMedia = it,
+                    routeNavigator = routeNavigator,
+                    clicked = { keyboardController?.hide() }
+                )
+            }
+        }
     }
 }
 
@@ -293,13 +297,20 @@ private fun TMDBLayout(
         horizontalArrangement = Arrangement.SpaceBetween,
         contentPadding = PaddingValues(12.dp)
     ) {
+
+
         items(uiState.tmdbItems, key = { it.tmdbId }) {
-            TMDBMediaView(
-                basicTMDB = it,
-                routeNavigator = routeNavigator,
-                clicked = { keyboardController?.hide() }
-            )
+
+            Box(modifier = Modifier.padding(0.dp, 12.dp)) {
+                TMDBMediaView(
+                    basicTMDB = it,
+                    routeNavigator = routeNavigator,
+                    clicked = { keyboardController?.hide() }
+                )
+            }
+
         }
+
     }
 }
 

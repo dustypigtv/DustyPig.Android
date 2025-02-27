@@ -1,6 +1,5 @@
 package tv.dustypig.dustypig.ui.main_app.screens.home
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -56,7 +55,6 @@ fun HomeScreen(vm: HomeViewModel) {
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun HomeScreenInternal(
     uiState: HomeUIState,
@@ -107,6 +105,10 @@ private fun HomeScreenInternal(
                 verticalArrangement = Arrangement.spacedBy(32.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
+
+                item {
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
 
                 items(uiState.sections, key = { section -> section.listId }) { section ->
                     Column(
@@ -189,7 +191,7 @@ private fun HomeScreenInternal(
                 }
 
                 item {
-                    Spacer(modifier = Modifier.height(1.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
             }
         }

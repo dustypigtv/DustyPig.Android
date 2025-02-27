@@ -385,6 +385,10 @@ private fun DownloadsScreenInternal(uiState: DownloadsUIState) {
             modifier = Modifier.fillMaxSize()
         ) {
 
+            item{
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
             for (job in uiState.jobs) {
 
                 item(key = job.key) {
