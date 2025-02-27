@@ -17,6 +17,7 @@ jobs:
               uses: actions/setup-java@v3
               with:
                 java-version: '18'
+                distribution: 'corretto'
               
             - name: Checkout
               uses: actions/checkout@v3
