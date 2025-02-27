@@ -32,7 +32,13 @@ android {
     buildTypes {
         release {
             minifyEnabled true
-            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+
+            //proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            def proguards = fileTree("proguard") {
+                include("*.pro")
+            }
+            proguardFiles(*proguards.toList().toArray())
+
         }
     }
     compileOptions {
