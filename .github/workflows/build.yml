@@ -1,6 +1,6 @@
-name: Buile Android App
+name: Build Android App
 on:
-    push
+    workflow_dispatch
 
 jobs:
     Build:
