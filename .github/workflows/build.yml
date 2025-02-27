@@ -12,6 +12,8 @@ jobs:
                 GRN: ${{ github.run_number }}
               run: echo "DYNAMIC_VERSION=$(($GRN+302))" >> $GITHUB_ENV
 
+            - name: Checkout
+              uses: actions/checkout@v3
 
             - name: Setup Java
               uses: actions/setup-java@v3
@@ -19,9 +21,6 @@ jobs:
                 java-version: '18'
                 distribution: 'corretto'
                 cache: gradle
-              
-            - name: Checkout
-              uses: actions/checkout@v3
               
             - name: Build
               run: |
