@@ -65,8 +65,12 @@ class AlertsManager @Inject constructor(
         private val _mutableMarkReadFlow = MutableSharedFlow<Int>(replay = 1)
         private val _mutableDeleteFlow = MutableSharedFlow<Int>(replay = 1)
         private val _mutableNavRouteFlow = MutableSharedFlow<String>(replay = 1)
-        private val _notificationsFlow = MutableSharedFlow<List<Notification>>(replay = 1)
         private val _updateFCMTokenFlow = MutableSharedFlow<String>(replay = 1)
+
+        private val _notificationsFlow = MutableSharedFlow<List<Notification>>(replay = 1)
+            .also {
+                it.tryEmit(listOf())
+            }
 
         fun triggerUpdateFCMToken() {
             _updateFCMTokenFlow.tryEmit(UUID.randomUUID().toString())
