@@ -18,6 +18,7 @@ jobs:
               with:
                 java-version: '18'
                 distribution: 'corretto'
+                cache: gradle
               
             - name: Checkout
               uses: actions/checkout@v3
