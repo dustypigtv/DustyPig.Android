@@ -85,6 +85,7 @@ class AlertsManager @Inject constructor(
         }
 
         fun triggerUpdate() {
+            Log.d(TAG, "triggerUpdate")
             _mutableUpdateFlow.tryEmit(UUID.randomUUID().toString())
         }
 
@@ -298,9 +299,11 @@ class AlertsManager @Inject constructor(
         }
 
         try {
+            Log.d(TAG, "loadData")
             val lst = notificationsRepository.list()
             _notificationsFlow.tryEmit(lst)
         } catch (ex: Exception) {
+            Log.e(TAG, "loadData: " + (ex.localizedMessage ?: "Unknown error"), ex)
             ex.logToCrashlytics()
         }
     }
