@@ -147,10 +147,10 @@ class MainActivity : ComponentActivity() {
         checkIntent(intent)
     }
 
-//    override fun onNewIntent(intent: Intent?) {
-//        super.onNewIntent(intent)
-//        checkIntent(intent)
-//    }
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        checkIntent(intent)
+    }
 
     @androidx.annotation.OptIn(UnstableApi::class)
     override fun onResume() {
