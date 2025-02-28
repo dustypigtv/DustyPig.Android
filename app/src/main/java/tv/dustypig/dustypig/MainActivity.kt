@@ -92,14 +92,7 @@ class MainActivity : ComponentActivity() {
         FCMManager.init()
         analytics = Firebase.analytics
 
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-//            setPictureInPictureParams(
-//                PictureInPictureParams
-//                    .Builder()
-//                    .setAutoEnterEnabled(true)
-//                    .build()
-//            )
-//        }
+
 
 
         enableEdgeToEdge()

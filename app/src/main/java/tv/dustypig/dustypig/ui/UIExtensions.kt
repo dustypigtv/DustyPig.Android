@@ -1,6 +1,8 @@
 package tv.dustypig.dustypig.ui
 
 import android.content.Context
+import android.content.ContextWrapper
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridItemScope
 import androidx.compose.foundation.lazy.grid.LazyGridItemSpanScope
@@ -20,14 +22,14 @@ fun Context.isTablet(): Boolean {
 }
 
 
-//fun Context.findActivity(): ComponentActivity {
-//    var context = this
-//    while (context is ContextWrapper) {
-//        if (context is ComponentActivity) return context
-//        context = context.baseContext
-//    }
-//    throw IllegalStateException("Picture in picture should be called in the context of an Activity")
-//}
+fun Context.findActivity(): ComponentActivity {
+    var context = this
+    while (context is ContextWrapper) {
+        if (context is ComponentActivity) return context
+        context = context.baseContext
+    }
+    throw IllegalStateException("Picture in picture should be called in the context of an Activity")
+}
 
 
 inline fun <T : Any> LazyGridScope.itemsExt(
