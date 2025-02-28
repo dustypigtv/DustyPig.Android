@@ -107,6 +107,8 @@ class TMDBDetailsViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         loading = false,
+                        posterUrl = _detailedTMDB!!.artworkUrl ?: "",
+                        backdropUrl = _detailedTMDB!!.backdropUrl ?: "",
                         isMovie = _detailedTMDB!!.mediaType == TMDBMediaTypes.Movie,
                         title = _detailedTMDB!!.title,
                         overview = _detailedTMDB!!.description ?: "",
