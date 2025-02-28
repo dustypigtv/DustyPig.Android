@@ -107,7 +107,7 @@ private fun HomeScreenInternal(
             ) {
 
                 item {
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                 }
 
                 items(uiState.sections, key = { section -> section.listId }) { section ->
