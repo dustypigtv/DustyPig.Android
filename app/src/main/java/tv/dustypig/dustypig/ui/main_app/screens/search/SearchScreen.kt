@@ -266,7 +266,7 @@ private fun AvailableLayout(
         contentPadding = PaddingValues(12.dp)
     ) {
 
-        items(uiState.availableItems, key = { it.id }) {
+        items(uiState.availableItems, key = { "${it.id}.m" }) {
 
             Box(modifier = Modifier.padding(0.dp, 12.dp)) {
 
@@ -277,6 +277,26 @@ private fun AvailableLayout(
                 )
             }
         }
+
+        items(uiState.availablePeople, key = { "${it.tmdbId}.p" }) {
+
+            Box(modifier = Modifier.padding(0.dp, 12.dp)) {
+
+                AsyncImage(
+                    model = it.avatarUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .clickable { uiState.onNavToPerson(it.tmdbId) }
+                        .background(color = Color.DarkGray, shape = RoundedCornerShape(4.dp))
+                        .align(Alignment.Center)
+                        .size(100.dp, 150.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                )
+            }
+        }
+
+
     }
 }
 
@@ -299,7 +319,7 @@ private fun TMDBLayout(
     ) {
 
 
-        items(uiState.tmdbItems, key = { it.tmdbId }) {
+        items(uiState.tmdbItems, key = { "${it.tmdbId}.${it.mediaType}" }) {
 
             Box(modifier = Modifier.padding(0.dp, 12.dp)) {
                 TMDBMediaView(
@@ -309,6 +329,22 @@ private fun TMDBLayout(
                 )
             }
 
+        }
+
+        items(uiState.tmdbPeople, key = { it.tmdbId }) {
+            Box(modifier = Modifier.padding(0.dp, 12.dp)) {
+                AsyncImage(
+                    model = it.avatarUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .clickable { uiState.onNavToPerson(it.tmdbId) }
+                        .background(color = Color.DarkGray, shape = RoundedCornerShape(4.dp))
+                        .align(Alignment.Center)
+                        .size(100.dp, 150.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                )
+            }
         }
 
     }

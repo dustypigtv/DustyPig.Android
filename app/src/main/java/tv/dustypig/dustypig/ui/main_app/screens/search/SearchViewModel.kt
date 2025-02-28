@@ -15,6 +15,7 @@ import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
+import tv.dustypig.dustypig.ui.main_app.screens.person_details.PersonDetailsNav
 import javax.inject.Inject
 
 @HiltViewModel
@@ -33,7 +34,8 @@ class SearchViewModel @Inject constructor(
             onHideError = ::hideError,
             onSearch = ::search,
             onUpdateQuery = ::updateQuery,
-            onUpdateTabIndex = ::updateTabIndex
+            onUpdateTabIndex = ::updateTabIndex,
+            onNavToPerson = ::navToPerson
         )
     )
     val uiState: StateFlow<SearchUIState> = _uiState.asStateFlow()
@@ -82,7 +84,7 @@ class SearchViewModel @Inject constructor(
 
             try {
                 val response =
-                    mediaRepository.search(SearchRequest(query = query, searchTMDB = true))
+                    mediaRepository.search(SearchRequest(query = query))
 
                 _uiState.update {
                     it.copy(
@@ -91,7 +93,9 @@ class SearchViewModel @Inject constructor(
                         hasResults = !(response.available.isNullOrEmpty() && response.otherTitles.isNullOrEmpty()),
                         progressOnly = false,
                         availableItems = response.available ?: listOf(),
-                        tmdbItems = response.otherTitles ?: listOf()
+                        tmdbItems = response.otherTitles ?: listOf(),
+                        availablePeople = response.availablePeople ?: listOf(),
+                        tmdbPeople = response.otherPeople ?: listOf()
                     )
                 }
 
@@ -106,6 +110,12 @@ class SearchViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    private fun navToPerson(id: Int) {
+        navigateToRoute(
+            PersonDetailsNav.getRoute(id)
+        )
     }
 
     private fun hideError() {
