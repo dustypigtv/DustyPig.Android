@@ -595,7 +595,7 @@ private fun SeasonsRow(uiState: SeriesDetailsUIState) {
         }
         val seasonsListState = rememberLazyListState()
         var selSeasonIdx = 0
-        if (!(initialScrolled || uiState.loading)) {
+        if (!(initialScrolled || uiState.loading || uiState.upNextSeason == null)) {
             initialScrolled = false
             for (season in uiState.seasons) {
                 if (season == uiState.upNextSeason)
