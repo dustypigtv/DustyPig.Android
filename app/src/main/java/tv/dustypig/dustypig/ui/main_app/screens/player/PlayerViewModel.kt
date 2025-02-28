@@ -73,7 +73,7 @@ class PlayerViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(
         PlayerUIState(
             castManager = castManager,
-            onPopBackStack = ::onPopBackStack,
+            onPopBackStack = ::popBackStack,
             onPlayNext = ::playNext,
             onSkipIntro = ::skipIntro
         )
@@ -153,10 +153,15 @@ class PlayerViewModel @Inject constructor(
     }
 
 
-    fun onPopBackStack() {
+    override fun popBackStack() {
         _timer.cancel()
         _playerReleased = true
         _localPlayer.release()
+        _uiState.update {
+            it.copy(
+                shouldEnterPictureInPicture = false
+            )
+        }
         castManager.removeListener(this)
         PlayerStateManager.playerDisposed()
         routeNavigator.popBackStack()
@@ -169,7 +174,10 @@ class PlayerViewModel @Inject constructor(
         when (castConnectionState) {
             CastConnectionState.Connected -> {
                 _uiState.update {
-                    it.copy(isCastPlayer = true)
+                    it.copy(
+                        isCastPlayer = true,
+                        shouldEnterPictureInPicture = false
+                    )
                 }
                 switchPlayer()
             }
@@ -177,7 +185,12 @@ class PlayerViewModel @Inject constructor(
             CastConnectionState.Unavailable,
             CastConnectionState.Disconnected -> {
                 _uiState.update {
-                    it.copy(isCastPlayer = false)
+                    it.copy(
+                        isCastPlayer = false,
+                        shouldEnterPictureInPicture =
+                            try{ _localPlayer.isPlaying }
+                            catch(_: Exception) { false }
+                    )
                 }
                 switchPlayer()
             }
@@ -193,8 +206,8 @@ class PlayerViewModel @Inject constructor(
         super.onPlayerError(error)
         Log.e(TAG, "onPlayerError", error)
 
-//        if(_playerReleased)
-//            return
+        if(_playerReleased)
+            return
 
         _uiState.update {
             it.copy(
@@ -229,6 +242,18 @@ class PlayerViewModel @Inject constructor(
             Log.e(TAG, "onMediaItemTransition", ex)
         }
     }
+
+    override fun onIsPlayingChanged(isPlaying: Boolean) {
+        super.onIsPlayingChanged(isPlaying)
+        _uiState.update {
+            it.copy(
+                shouldEnterPictureInPicture = isPlaying
+            )
+        }
+    }
+
+
+
 
 
     //Internal functions

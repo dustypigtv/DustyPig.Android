@@ -25,6 +25,7 @@ data class PlayerUIState
     val castHasNext: Boolean = false,
     val castPosition: Long = 0L,
     val castDuration: Long = 0L,
+    val shouldEnterPictureInPicture: Boolean = false,
 
 
     //Events
