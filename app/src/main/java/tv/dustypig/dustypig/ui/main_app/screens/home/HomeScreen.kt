@@ -106,10 +106,6 @@ private fun HomeScreenInternal(
                 modifier = Modifier.fillMaxSize()
             ) {
 
-                item {
-                    Spacer(modifier = Modifier.height(4.dp))
-                }
-
                 items(uiState.sections, key = { section -> section.listId }) { section ->
                     Column(
                         modifier = Modifier
