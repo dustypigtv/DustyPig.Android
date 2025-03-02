@@ -20,6 +20,7 @@ import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.OverrideRequestStatus
 import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.api.repositories.SeriesRepository
+import tv.dustypig.dustypig.global_managers.ArtworkCache
 import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
@@ -32,7 +33,6 @@ import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
 import tv.dustypig.dustypig.ui.main_app.screens.manage_parental_controls_for_title.ManageParentalControlsForTitleNav
-import tv.dustypig.dustypig.ui.main_app.screens.person_details.PersonDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
 import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
 import javax.inject.Inject
@@ -48,8 +48,16 @@ class SeriesDetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel(), RouteNavigator by routeNavigator {
 
+    private val _mediaId: Int = savedStateHandle.getOrThrow(SeriesDetailsNav.KEY_MEDIA_ID)
+
+    private val _cachedPoster = ArtworkCache.getMediaPoster(_mediaId) ?: ""
+    private val _cachedBackdrop = ArtworkCache.getMediaBackdrop(_mediaId) ?: ""
+
     private val _uiState = MutableStateFlow(
         SeriesDetailsUIState(
+            posterUrl = _cachedPoster,
+            backdropUrl = _cachedBackdrop,
+            loading = true,
             castManager = castManager,
             onAddToPlaylist = ::addToPlaylist,
             onRequestAccess = ::requestAccess,
@@ -67,8 +75,6 @@ class SeriesDetailsViewModel @Inject constructor(
         )
     )
     val uiState: StateFlow<SeriesDetailsUIState> = _uiState.asStateFlow()
-
-    private val _mediaId: Int = savedStateHandle.getOrThrow(SeriesDetailsNav.KEY_MEDIA_ID)
 
     private var _detailedSeries: DetailedSeries? = null
 
@@ -104,6 +110,11 @@ class SeriesDetailsViewModel @Inject constructor(
         }
     }
 
+    override fun onCleared() {
+        super.onCleared()
+        ArtworkCache.deleteMedia(_mediaId)
+    }
+
 
     private suspend fun updateData() {
 
@@ -134,8 +145,8 @@ class SeriesDetailsViewModel @Inject constructor(
                 ?: 0.0) >= (upNext.creditsStartTime ?: (upNext.length - 30.0))
 
             //Prevent flicker
-            if(_detailedSeries!!.artworkUrl != _uiState.value.posterUrl ||
-                _detailedSeries!!.backdropUrl != uiState.value.backdropUrl) {
+            if(_detailedSeries!!.artworkUrl != _cachedPoster ||
+                _detailedSeries!!.backdropUrl != _cachedBackdrop) {
                 _uiState.update {
                     it.copy(
                         posterUrl = _detailedSeries!!.artworkUrl,
@@ -154,7 +165,7 @@ class SeriesDetailsViewModel @Inject constructor(
                         genres = Genres(_detailedSeries!!.genres).toList(),
                         genreNav = ::genreNav,
                         castAndCrew = _detailedSeries!!.credits ?: listOf(),
-                        personNav = ::personNav,
+                        routeNavigator = this,
                         owner = _detailedSeries!!.owner ?: ""
                     ),
                     inWatchList = _detailedSeries!!.inWatchlist,
@@ -312,6 +323,8 @@ class SeriesDetailsViewModel @Inject constructor(
     }
 
     private fun navToEpisodeInfo(id: Int) {
+        val episode = _detailedSeries!!.episodes!!.firstOrNull { it.id == id }
+        ArtworkCache.add(episode!!)
         navigateToRoute(
             EpisodeDetailsNav.getRoute(
                 parentId = _mediaId,
@@ -370,7 +383,4 @@ class SeriesDetailsViewModel @Inject constructor(
         navigateToRoute(ShowMoreNav.getRoute(genrePair.genre.value, genrePair.text))
     }
 
-    private fun personNav(tmdbId: Int) {
-        navigateToRoute(PersonDetailsNav.getRoute(tmdbId))
-    }
 }

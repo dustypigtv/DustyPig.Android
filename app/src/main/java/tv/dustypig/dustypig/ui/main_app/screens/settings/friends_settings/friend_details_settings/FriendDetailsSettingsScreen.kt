@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -58,8 +57,10 @@ import tv.dustypig.dustypig.api.models.BasicLibrary
 import tv.dustypig.dustypig.ui.composables.Avatar
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
+import tv.dustypig.dustypig.ui.composables.LazyColumnBottomAlign
 import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
+import tv.dustypig.dustypig.ui.composables.YesNoDialog
 
 @Composable
 fun FriendDetailsSettingsScreen(vm: FriendDetailsSettingsViewModel) {
@@ -77,6 +78,10 @@ private fun FriendDetailsSettingsScreenInternal(uiState: FriendDetailsSettingsUI
         mutableStateOf(false)
     }
 
+    var showUnfriendDialog by remember {
+        mutableStateOf(false)
+    }
+
     Scaffold(
         topBar = {
             CommonTopAppBar(onClick = uiState.onPopBackStack, text = "Friend Info")
@@ -88,10 +93,9 @@ private fun FriendDetailsSettingsScreenInternal(uiState: FriendDetailsSettingsUI
                 .padding(paddingValues)
                 .fillMaxSize()
         ) {
-            LazyColumn(
+            LazyColumnBottomAlign (
                 modifier = Modifier.fillMaxSize(),
                 state = listState,
-                verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
@@ -139,6 +143,9 @@ private fun FriendDetailsSettingsScreenInternal(uiState: FriendDetailsSettingsUI
                             TintedIcon(imageVector = Icons.Filled.Edit)
                         }
                     }
+                }
+                item {
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
 
 
@@ -210,6 +217,9 @@ private fun FriendDetailsSettingsScreenInternal(uiState: FriendDetailsSettingsUI
                             )
                         }
                     }
+                    item {
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
                 }
 
 
@@ -243,14 +253,20 @@ private fun FriendDetailsSettingsScreenInternal(uiState: FriendDetailsSettingsUI
                             )
                         }
                     }
+                    item {
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+
                 }
 
-
+                item {
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
                 item {
                     Button(
-                        onClick = uiState.onUnfriend,
+                        onClick = { showUnfriendDialog = true },
                         enabled = !uiState.busy,
-                        modifier = Modifier.padding(48.dp),
+                        modifier = Modifier.padding(48.dp, 48.dp, 48.dp, 24.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.errorContainer,
                             contentColor = MaterialTheme.colorScheme.onErrorContainer
@@ -349,6 +365,18 @@ private fun FriendDetailsSettingsScreenInternal(uiState: FriendDetailsSettingsUI
                     Text(stringResource(R.string.cancel))
                 }
             }
+        )
+    }
+
+    if(showUnfriendDialog) {
+        YesNoDialog(
+            onNo = { showUnfriendDialog = false },
+            onYes = {
+                showUnfriendDialog = false
+                uiState.onUnfriend()
+            },
+            title = stringResource(R.string.please_confirm),
+            message = stringResource(R.string.confirm_unfriend)
         )
     }
 

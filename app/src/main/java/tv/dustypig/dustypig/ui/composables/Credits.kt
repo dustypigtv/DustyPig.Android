@@ -4,8 +4,10 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -25,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -32,13 +35,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.BasicPerson
 import tv.dustypig.dustypig.api.models.CreditRoles
 import tv.dustypig.dustypig.api.models.Genre
 import tv.dustypig.dustypig.api.models.GenrePair
+import tv.dustypig.dustypig.nav.MyRouteNavigator
+import tv.dustypig.dustypig.nav.RouteNavigator
+import tv.dustypig.dustypig.ui.main_app.screens.person_details.PersonDetailsNav
 
 
 private val spacerHeight = 24.dp
@@ -48,8 +56,8 @@ data class CreditsData(
     val genres: List<GenrePair> = listOf(),
     val genreNav: (genrePair: GenrePair) -> Unit = { },
     val castAndCrew: List<BasicPerson> = listOf(),
-    val personNav: (id: Int) -> Unit = { _: Int -> },
-    val owner: String = ""
+    val owner: String = "",
+    val routeNavigator: RouteNavigator = MyRouteNavigator()
 )
 
 
@@ -58,7 +66,8 @@ private fun CreditsRow(
     creditsData: CreditsData,
     role: CreditRoles,
     singleHeader: String,
-    pluralHeader: String
+    pluralHeader: String,
+    paddingValues: PaddingValues
 ) {
 
     val peopleInRole = remember {
@@ -74,7 +83,7 @@ private fun CreditsRow(
             mutableStateOf(if (peopleInRole.size > 1) pluralHeader else singleHeader)
         }
         Text(
-            modifier = Modifier.padding(12.dp, 12.dp, 12.dp, 6.dp),
+            modifier = Modifier.padding(paddingValues.calculateStartPadding(LayoutDirection.Ltr), 12.dp, 0.dp, 6.dp),
             text = txt,
             color = MaterialTheme.colorScheme.primary,
             textDecoration = TextDecoration.Underline
@@ -82,8 +91,8 @@ private fun CreditsRow(
 
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.padding(12.dp, 0.dp),
-            state = rememberLazyListState()
+            state = rememberLazyListState(),
+            modifier = Modifier.padding(paddingValues)
         ) {
             items(peopleInRole) { person ->
                 Column(
@@ -93,7 +102,11 @@ private fun CreditsRow(
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     AsyncImage(
-                        model = person.avatarUrl,
+                        model = ImageRequest
+                            .Builder(LocalContext.current)
+                            .data(person.avatarUrl)
+                            .crossfade(true)
+                            .build(),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         placeholder = debugPlaceholder(R.drawable.grey_profile),
@@ -102,12 +115,17 @@ private fun CreditsRow(
                             .width(100.dp)
                             .height(150.dp)
                             .clip(RoundedCornerShape(4.dp))
-                            .clickable { creditsData.personNav(person.tmdbId) }
+                            .clickable {
+                                creditsData.routeNavigator.navigateToRoute(
+                                    PersonDetailsNav.getRoute(person.tmdbId)
+                                )
+                            }
                     )
                     Text(
                         modifier = Modifier.width(100.dp),
                         text = person.name,
-                        maxLines = 1,
+                        maxLines = 2,
+                        softWrap = true,
                         overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.labelMedium
@@ -121,15 +139,18 @@ private fun CreditsRow(
 
 
 @Composable
-fun Credits(creditsData: CreditsData) {
+fun Credits(
+    creditsData: CreditsData,
+    paddingValues: PaddingValues = PaddingValues(0.dp)
+) {
 
     Spacer(modifier = Modifier.height(spacerHeight))
 
     if (creditsData.genres.isNotEmpty()) {
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.padding(12.dp, 0.dp),
-            state = rememberLazyListState()
+            state = rememberLazyListState(),
+            modifier = Modifier.padding(paddingValues)
         ) {
             items(creditsData.genres) { genrePair ->
                 Button(onClick = { creditsData.genreNav(genrePair) }) {
@@ -147,21 +168,24 @@ fun Credits(creditsData: CreditsData) {
             creditsData = creditsData,
             role = CreditRoles.Cast,
             singleHeader = stringResource(R.string.cast),
-            pluralHeader = stringResource(R.string.cast)
+            pluralHeader = stringResource(R.string.cast),
+            paddingValues = paddingValues
         )
 
         CreditsRow(
             creditsData = creditsData,
             role = CreditRoles.Director,
             singleHeader = stringResource(R.string.director),
-            pluralHeader = stringResource(R.string.directors)
+            pluralHeader = stringResource(R.string.directors),
+            paddingValues = paddingValues
         )
 
         CreditsRow(
             creditsData = creditsData,
             role = CreditRoles.ExecutiveProducer,
             singleHeader = stringResource(R.string.executive_producer),
-            pluralHeader = stringResource(R.string.executive_producers)
+            pluralHeader = stringResource(R.string.executive_producers),
+            paddingValues = paddingValues
         )
 
 
@@ -169,21 +193,23 @@ fun Credits(creditsData: CreditsData) {
             creditsData = creditsData,
             role = CreditRoles.Producer,
             singleHeader = stringResource(R.string.producer),
-            pluralHeader = stringResource(R.string.producers)
+            pluralHeader = stringResource(R.string.producers),
+            paddingValues = paddingValues
         )
 
         CreditsRow(
             creditsData = creditsData,
             role = CreditRoles.Writer,
             singleHeader = stringResource(R.string.writer),
-            pluralHeader = stringResource(R.string.writers)
+            pluralHeader = stringResource(R.string.writers),
+            paddingValues = paddingValues
         )
     }
 
     if (creditsData.owner.isNotBlank()) {
         Row(
-            modifier = Modifier.padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.padding(paddingValues)
         ) {
 
             Text(

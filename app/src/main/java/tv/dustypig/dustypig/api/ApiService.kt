@@ -1,14 +1,10 @@
 package tv.dustypig.dustypig.api
 
-import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
-import retrofit2.http.Multipart
 import retrofit2.http.POST
-import retrofit2.http.PUT
-import retrofit2.http.Part
 import retrofit2.http.Path
 import tv.dustypig.dustypig.api.models.AddPlaylistItem
 import tv.dustypig.dustypig.api.models.AddSeriesToPlaylistInfo
@@ -28,6 +24,7 @@ import tv.dustypig.dustypig.api.models.DetailedPlaylist
 import tv.dustypig.dustypig.api.models.DetailedProfile
 import tv.dustypig.dustypig.api.models.DetailedSeries
 import tv.dustypig.dustypig.api.models.DetailedTMDB
+import tv.dustypig.dustypig.api.models.FCMToken
 import tv.dustypig.dustypig.api.models.HomeScreen
 import tv.dustypig.dustypig.api.models.LibraryFriendLink
 import tv.dustypig.dustypig.api.models.LoadMoreHomeScreenItemsRequest
@@ -43,12 +40,12 @@ import tv.dustypig.dustypig.api.models.ResultOf
 import tv.dustypig.dustypig.api.models.SearchRequest
 import tv.dustypig.dustypig.api.models.SearchResults
 import tv.dustypig.dustypig.api.models.SetTitlePermission
-import tv.dustypig.dustypig.api.models.FCMToken
 import tv.dustypig.dustypig.api.models.TMDB_Person
 import tv.dustypig.dustypig.api.models.TitlePermissions
 import tv.dustypig.dustypig.api.models.TitleRequest
 import tv.dustypig.dustypig.api.models.UpdateFriend
 import tv.dustypig.dustypig.api.models.UpdateProfile
+import tv.dustypig.dustypig.api.models.UpdateProfileAvatar
 import tv.dustypig.dustypig.api.models.UpdatesPlaylist
 
 interface ApiService {
@@ -219,12 +216,8 @@ interface ApiService {
     @POST("Profiles/Update")
     suspend fun updateProfile(@Body updateProfile: UpdateProfile): Response<Result>
 
-    @Multipart
-    @PUT("Profiles/SetProfileAvatarMultipart/{id}")
-    suspend fun setProfileAvatar(
-        @Path("id") id: Int,
-        @Part image: MultipartBody.Part
-    ): Response<ResultOf<String>>
+    @POST("Profiles/SetProfileAvatar")
+    suspend fun setProfileAvatar(@Body updateProfile: UpdateProfileAvatar): Response<ResultOf<String>>
 
     @POST("Profiles/LinkToLibrary")
     suspend fun linkProfileLibrary(@Body profileLibraryLink: ProfileLibraryLink): Response<Result>

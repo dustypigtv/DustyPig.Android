@@ -63,7 +63,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -79,7 +78,6 @@ import tv.dustypig.dustypig.api.models.Genre
 import tv.dustypig.dustypig.api.models.GenrePair
 import tv.dustypig.dustypig.api.models.OverrideRequestStatus
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
-import tv.dustypig.dustypig.ui.composables.ActionButton
 import tv.dustypig.dustypig.ui.composables.CastTopAppBar
 import tv.dustypig.dustypig.ui.composables.Credits
 import tv.dustypig.dustypig.ui.composables.CreditsData
@@ -204,6 +202,7 @@ private fun PhoneLayout(
 
         seriesLayout(uiState)
     }
+
 }
 
 @Composable
@@ -217,8 +216,7 @@ private fun HorizontalTabletLayout(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(paddingValues = innerPadding),
-        horizontalArrangement = Arrangement.spacedBy(24.dp)
+            .padding(paddingValues = innerPadding)
     ) {
 
 
@@ -249,7 +247,7 @@ private fun HorizontalTabletLayout(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         LazyColumn(
             modifier = Modifier
@@ -291,7 +289,7 @@ private fun LazyListScope.seriesLayout(uiState: SeriesDetailsUIState) {
         }
 
         item {
-            Credits(uiState.creditsData)
+           Credits(uiState.creditsData, PaddingValues(12.dp, 0.dp))
         }
 
         item {
@@ -338,21 +336,12 @@ private fun SeriesTitleLayout(uiState: SeriesDetailsUIState) {
         DownloadStatus.Finished -> Icons.Filled.DownloadDone
         else -> Icons.Filled.Downloading
     }
-    val downloadText = when (uiState.downloadStatus) {
-        DownloadStatus.None -> stringResource(R.string.download)
-        DownloadStatus.Finished -> stringResource(R.string.downloaded)
-        else -> stringResource(R.string.downloading)
-    }
 
     val subscribeIcon = if (uiState.subscribed)
         Icons.Filled.NotificationsOff
     else
         Icons.Filled.NotificationAdd
 
-    val subscribeText = if (uiState.subscribed)
-        stringResource(R.string.unsubscribe)
-    else
-        stringResource(R.string.subscribe)
 
     var showChangeDownloadCount by remember {
         mutableStateOf(false)
@@ -367,7 +356,7 @@ private fun SeriesTitleLayout(uiState: SeriesDetailsUIState) {
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.Top,
-        modifier = Modifier.padding(8.dp)
+        modifier = Modifier.padding(12.dp, 8.dp)
     ) {
 
         Column(
@@ -401,10 +390,12 @@ private fun SeriesTitleLayout(uiState: SeriesDetailsUIState) {
         }
 
         if (uiState.canManage) {
-            IconButton(onClick = uiState.onManagePermissions) {
+            IconButton(
+                onClick = uiState.onManagePermissions
+            ) {
                 TintedIcon(
                     imageVector = FontAwesomeIcons.Solid.UserLock,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }
@@ -417,7 +408,9 @@ private fun SeriesTitleLayout(uiState: SeriesDetailsUIState) {
     if (uiState.canPlay) {
         Column(
             horizontalAlignment = alignment,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp, 0.dp)
         ) {
             Button(
                 onClick = uiState.onPlay,
@@ -433,11 +426,14 @@ private fun SeriesTitleLayout(uiState: SeriesDetailsUIState) {
             }
 
             Row(
-                horizontalArrangement = Arrangement.SpaceAround,
+                horizontalArrangement = Arrangement.spacedBy(24.dp),
                 verticalAlignment = Alignment.Top,
                 modifier = modifier.padding(0.dp, 12.dp)
             ) {
 
+                if(!isTablet) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
 
                 if (uiState.watchListBusy) {
 
@@ -450,33 +446,36 @@ private fun SeriesTitleLayout(uiState: SeriesDetailsUIState) {
                                 .size(48.dp)
                                 .padding(12.dp)
                         )
-                        Text(
-                            text = "Watchlist",
-                            style = MaterialTheme.typography.labelSmall,
-                            textAlign = TextAlign.Center,
-                            maxLines = 2
-                        )
                     }
 
                 } else {
-                    ActionButton(
-                        onClick = uiState.onToggleWatchList,
-                        caption = stringResource(R.string.watchlist),
-                        icon = if (uiState.inWatchList) Icons.Filled.Check else Icons.Filled.Add
+                    IconButton(
+                        onClick = uiState.onToggleWatchList
+                    ) {
+                        TintedIcon(
+                            imageVector = if (uiState.inWatchList) Icons.Filled.Check else Icons.Filled.Add,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+
+                IconButton(
+                    onClick = { showChangeDownloadCount = true }
+                ) {
+                    TintedIcon(
+                        imageVector = downloadIcon,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
 
-                ActionButton(
-                    onClick = { showChangeDownloadCount = true },
-                    caption = downloadText,
-                    icon = downloadIcon
-                )
-
-                ActionButton(
-                    onClick = uiState.onAddToPlaylist,
-                    caption = stringResource(R.string.add_to_playlist),
-                    icon = Icons.AutoMirrored.Filled.PlaylistAdd
-                )
+                IconButton(
+                    onClick = uiState.onAddToPlaylist
+                ) {
+                    TintedIcon(
+                        imageVector = Icons.AutoMirrored.Filled.PlaylistAdd,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
 
                 if (uiState.partiallyPlayed) {
                     if (uiState.markWatchedBusy) {
@@ -488,27 +487,29 @@ private fun SeriesTitleLayout(uiState: SeriesDetailsUIState) {
                                     .size(48.dp)
                                     .padding(12.dp)
                             )
-                            Text(
-                                text = stringResource(R.string.mark_watched),
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.width(58.dp),
-                                textAlign = TextAlign.Center
-                            )
                         }
                     } else {
-                        ActionButton(
-                            onClick = { showMarkWatchedDialog = true },
-                            caption = stringResource(R.string.mark_watched),
-                            icon = Icons.Filled.RemoveRedEye
-                        )
+                        IconButton(
+                            onClick = { showMarkWatchedDialog = true }
+                        ) {
+                            TintedIcon(
+                                imageVector = Icons.Filled.RemoveRedEye,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                     }
                 }
 
-                ActionButton(
-                    onClick = uiState.onToggleSubscribe,
-                    caption = subscribeText,
-                    icon = subscribeIcon
-                )
+                IconButton(
+                    onClick = uiState.onToggleSubscribe
+                ) {
+                    TintedIcon(
+                        imageVector = subscribeIcon,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
             }
         }
 
@@ -523,7 +524,9 @@ private fun SeriesTitleLayout(uiState: SeriesDetailsUIState) {
 
         Column(
             horizontalAlignment = alignment,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp, 0.dp)
         ) {
             if (uiState.accessRequestBusy) {
                 CircularProgressIndicator()
@@ -609,7 +612,9 @@ private fun SeasonsRow(uiState: SeriesDetailsUIState) {
 
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp, 0.dp),
             state = seasonsListState
         ) {
             items(uiState.seasons) { season ->
@@ -643,6 +648,8 @@ private fun EpisodeRow(
         verticalAlignment = Alignment.Top,
         modifier = Modifier
             .height(64.dp)
+            .fillMaxWidth()
+            .padding(12.dp, 0.dp)
             .background(
                 color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
                 shape = RoundedCornerShape(4.dp)

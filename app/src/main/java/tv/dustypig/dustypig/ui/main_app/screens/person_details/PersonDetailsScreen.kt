@@ -42,11 +42,11 @@ import tv.dustypig.dustypig.api.models.TMDBMediaTypes
 import tv.dustypig.dustypig.nav.MyRouteNavigator
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.composables.BasicMediaView
+import tv.dustypig.dustypig.ui.composables.BasicTMDBView
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
 import tv.dustypig.dustypig.ui.composables.OnOrientation
 import tv.dustypig.dustypig.ui.composables.PreviewBase
-import tv.dustypig.dustypig.ui.main_app.screens.search.TMDBMediaView
 import tv.dustypig.dustypig.ui.composables.CastTopAppBar as CastTopAppBar1
 
 
@@ -244,7 +244,7 @@ private fun InfoLayout(
             state = rememberLazyListState()
         ) {
             items(uiState.otherTitles) { basicTMDB ->
-                TMDBMediaView(
+                BasicTMDBView(
                     basicTMDB = basicTMDB,
                     routeNavigator = routeNavigator
                 )

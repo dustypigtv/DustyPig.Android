@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,12 +40,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.BasicLibrary
 import tv.dustypig.dustypig.api.models.MovieRatings
 import tv.dustypig.dustypig.api.models.TVRatings
@@ -55,6 +56,7 @@ import tv.dustypig.dustypig.ui.composables.AvatarEditor
 import tv.dustypig.dustypig.ui.composables.CommonTopAppBar
 import tv.dustypig.dustypig.ui.composables.EnumSelectorDropdown
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
+import tv.dustypig.dustypig.ui.composables.LazyColumnBottomAlign
 import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.composables.YesNoDialog
@@ -115,9 +117,8 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
                 .padding(paddingValues)
         ) {
 
-            LazyColumn(
+            LazyColumnBottomAlign (
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxWidth(),
                 state = listState
             ) {
@@ -148,6 +149,9 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                         isError = nameError
                     )
+                }
+                item {
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
 
                 /**
@@ -216,9 +220,12 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
                         )
                     }
                 }
+                item {
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
 
 
-                /**
+                 /**
                  * Max Movie Rating
                  */
                 item {
@@ -246,6 +253,10 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
                         )
                     }
                 }
+                item {
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+
 
                 /**
                  * Max TV Rating
@@ -275,6 +286,10 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
                         )
                     }
                 }
+                item {
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+
 
                 /**
                  * Title Request Permissions
@@ -304,6 +319,10 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
                         )
                     }
                 }
+                item {
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+
 
                 if (!uiState.addMode && !uiState.selfMode) {
                     item {
@@ -331,31 +350,38 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
                             )
                         }
                     }
+                    item {
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+
                 }
+
 
 
                 /**
                  * Avatar
                  */
                 item {
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
                 item {
                     AvatarEditor(
                         enabled = !uiState.busy,
                         currentAvatar = newAvatar,
-                        onChanged = { newAvatar = it },
+                        onChanged = {
+                            newAvatar = it
+                        },
                         onException = {
                             if (it != null)
                                 uiState.onSetError(it, false)
                         }
                     )
                 }
-
-
                 item {
                     Spacer(modifier = Modifier.height(24.dp))
                 }
+
+
 
                 /**
                  * Libraries
@@ -428,14 +454,21 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
                     }
 
                     item {
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
                     }
+
                 }
+
+
+
 
 
                 /**
                  * Save button
                  */
+                item {
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
                 item {
                     Button(
                         modifier = Modifier.padding(
@@ -473,6 +506,11 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
                         Text(text = "Save")
                     }
                 }
+                item {
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+
+
 
 
                 /**
@@ -497,6 +535,9 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
                             Text(text = "Delete Profile")
                         }
                     }
+                    item {
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
                 }
             }
 
@@ -512,8 +553,8 @@ private fun EditProfileScreenInternal(uiState: EditProfileUIState) {
                         showDeleteDialog = false
                         uiState.onDeleteProfile()
                     },
-                    title = "Confirm",
-                    message = "Are you sure you want to delete this profile?"
+                    title = stringResource(R.string.please_confirm),
+                    message = stringResource(R.string.confirm_delete_profile)
                 )
             }
 

@@ -69,6 +69,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -80,6 +81,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Play
@@ -433,14 +435,25 @@ private fun PhoneLayout(
                         .height(hdp)
                 ) {
                     AsyncImage(
-                        model = uiState.backdropUrl,
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(uiState.backdropUrl)
+                            .crossfade(true)
+                            .build(),
                         contentDescription = "",
                         contentScale = ContentScale.Crop,
+                        placeholder = painterResource(R.drawable.default_playlist_backdrop),
+                        error = painterResource(R.drawable.default_playlist_backdrop),
                         modifier = Modifier
                             .fillMaxSize()
                             .background(color = Color.DarkGray)
                     )
                 }
+            }
+
+            // While loading, the backdrop image is aligned to the bottom of the screen.
+            // This fixes that
+            item {
+                Spacer(modifier = Modifier.height(0.dp))
             }
 
             if (!uiState.loading && !criticalError) {

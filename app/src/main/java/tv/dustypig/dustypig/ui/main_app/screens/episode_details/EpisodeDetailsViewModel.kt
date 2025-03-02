@@ -16,6 +16,7 @@ import tv.dustypig.dustypig.api.models.DetailedEpisode
 import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.repositories.EpisodesRepository
 import tv.dustypig.dustypig.api.toTimeString
+import tv.dustypig.dustypig.global_managers.ArtworkCache
 import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
@@ -40,8 +41,18 @@ class EpisodeDetailsViewModel
     savedStateHandle: SavedStateHandle
 ) : ViewModel(), RouteNavigator by routeNavigator {
 
+
+    private val _mediaId: Int = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_MEDIA_ID)
+    private var _parentId: Int = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_PARENT_ID)
+    private val _fromSource: Int = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_SOURCE)
+    private val _playlistUpNextIndex: Int = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_PLAYLIST_UPNEXT_INDEX_ID)
+    private val _canPlay: Boolean = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_CAN_PLAY)
+
+    private val _cachedArtworkUrl = ArtworkCache.getMediaBackdrop(_mediaId) ?: ""
+
     private val _uiState = MutableStateFlow(
         EpisodeDetailsUIState(
+            artworkUrl = _cachedArtworkUrl,
             castManager = castManager,
             onHideError = ::hideError,
             onPopBackStack = ::popBackStack,
@@ -53,13 +64,6 @@ class EpisodeDetailsViewModel
         )
     )
     val uiState: StateFlow<EpisodeDetailsUIState> = _uiState.asStateFlow()
-
-    private val _mediaId: Int = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_MEDIA_ID)
-    private var _parentId: Int = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_PARENT_ID)
-    private val _fromSource: Int = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_SOURCE)
-    private val _playlistUpNextIndex: Int = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_PLAYLIST_UPNEXT_INDEX_ID)
-    private val _canPlay: Boolean = savedStateHandle.getOrThrow(EpisodeDetailsNav.KEY_CAN_PLAY)
-
 
     private var _detailedEpisode: DetailedEpisode? = null
 
@@ -79,6 +83,11 @@ class EpisodeDetailsViewModel
 
     }
 
+    override fun onCleared() {
+        super.onCleared()
+        ArtworkCache.deleteMedia(_mediaId)
+    }
+
 
     private suspend fun updateData() {
         try {
@@ -92,7 +101,6 @@ class EpisodeDetailsViewModel
                 it.copy(
                     mediaId = _mediaId,
                     loading = false,
-                    artworkUrl = _detailedEpisode!!.artworkUrl,
                     canPlay = _canPlay,
                     episodeTitle = _detailedEpisode!!.fullDisplayTitle(),
                     overview = _detailedEpisode!!.description ?: "No description",
@@ -102,6 +110,13 @@ class EpisodeDetailsViewModel
                 )
             }
 
+            if(_detailedEpisode!!.artworkUrl != _cachedArtworkUrl) {
+                _uiState.update {
+                    it.copy(
+                        artworkUrl = _detailedEpisode!!.artworkUrl
+                    )
+                }
+            }
         } catch (ex: Exception) {
             ex.logToCrashlytics()
             _uiState.update {

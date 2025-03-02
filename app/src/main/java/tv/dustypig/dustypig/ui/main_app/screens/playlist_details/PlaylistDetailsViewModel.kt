@@ -16,6 +16,7 @@ import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.api.models.PlaylistItem
 import tv.dustypig.dustypig.api.models.UpdatesPlaylist
 import tv.dustypig.dustypig.api.repositories.PlaylistRepository
+import tv.dustypig.dustypig.global_managers.ArtworkCache
 import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
@@ -41,8 +42,18 @@ class PlaylistDetailsViewModel
     savedStateHandle: SavedStateHandle
 ) : ViewModel(), RouteNavigator by routeNavigator {
 
+    private val _playlistId: Int = savedStateHandle.getOrThrow(PlaylistDetailsNav.KEY_MEDIA_ID)
+
+    private val _cachedPoster = ArtworkCache.getPlaylistPoster(_playlistId)
+    private val _cachedBackdrop = ArtworkCache.getPlaylistBackdrop(_playlistId)
+
+    private var _detailedPlaylist: DetailedPlaylist? = null
+    private val _localItems = mutableListOf<PlaylistItem>()
+
     private val _uiState = MutableStateFlow(
         PlaylistDetailsUIState(
+            posterUrl = _cachedPoster,
+            backdropUrl = _cachedBackdrop,
             castManager = castManager,
             onPopBackStack = ::popBackStack,
             onHideError = ::hideError,
@@ -59,10 +70,6 @@ class PlaylistDetailsViewModel
     )
     val uiState = _uiState.asStateFlow()
 
-    private val _playlistId: Int = savedStateHandle.getOrThrow(PlaylistDetailsNav.KEY_MEDIA_ID)
-
-    private var _detailedPlaylist: DetailedPlaylist? = null
-    private val _localItems = mutableListOf<PlaylistItem>()
 
     init {
         viewModelScope.launch {
@@ -79,6 +86,13 @@ class PlaylistDetailsViewModel
 
     }
 
+    override fun onCleared() {
+        super.onCleared()
+        ArtworkCache.deletePlaylist(_playlistId)
+    }
+
+
+
     private suspend fun updateData() {
         try {
             _detailedPlaylist = playlistRepository.details(_playlistId)
@@ -88,12 +102,20 @@ class PlaylistDetailsViewModel
             val upNext = items.firstOrNull { it.id == _detailedPlaylist!!.currentItemId }
                 ?: items.firstOrNull()
 
+            if(_detailedPlaylist!!.artworkUrl != _cachedPoster ||
+                _detailedPlaylist!!.backdropUrl != _cachedBackdrop) {
+                _uiState.update {
+                    it.copy(
+                        posterUrl = _detailedPlaylist!!.artworkUrl,
+                        backdropUrl = _detailedPlaylist!!.backdropUrl
+                    )
+                }
+            }
+
             _uiState.update {
                 it.copy(
                     playlistId = _detailedPlaylist!!.id,
                     loading = false,
-                    posterUrl = _detailedPlaylist!!.artworkUrl,
-                    backdropUrl = _detailedPlaylist!!.backdropUrl,
                     title = _detailedPlaylist!!.name,
                     canPlay = items.isNotEmpty(),
                     upNextTitle = upNext?.title ?: "",
@@ -283,6 +305,8 @@ class PlaylistDetailsViewModel
     private fun navToItem(id: Int) {
 
         val pli = _detailedPlaylist!!.items?.first { it.id == id }!!
+        ArtworkCache.add(pli)
+
         if (pli.mediaType == MediaTypes.Movie) {
 
             navigateToRoute(

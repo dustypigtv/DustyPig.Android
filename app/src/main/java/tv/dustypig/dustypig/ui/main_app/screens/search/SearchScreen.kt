@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -20,7 +19,6 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.History
@@ -42,16 +40,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.api.models.BasicMedia
 import tv.dustypig.dustypig.api.models.BasicTMDB
@@ -60,9 +55,10 @@ import tv.dustypig.dustypig.api.models.TMDBMediaTypes
 import tv.dustypig.dustypig.nav.MyRouteNavigator
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.composables.BasicMediaView
+import tv.dustypig.dustypig.ui.composables.BasicPersonView
+import tv.dustypig.dustypig.ui.composables.BasicTMDBView
 import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
-import tv.dustypig.dustypig.ui.main_app.screens.search.tmdb_details.TMDBDetailsNav
 
 
 @Composable
@@ -268,7 +264,9 @@ private fun AvailableLayout(
 
         items(uiState.availableItems, key = { "${it.id}.m" }) {
 
-            Box(modifier = Modifier.padding(0.dp, 12.dp)) {
+            Box(
+                modifier = Modifier.padding(0.dp, 12.dp)
+            ) {
 
                 BasicMediaView(
                     basicMedia = it,
@@ -279,21 +277,11 @@ private fun AvailableLayout(
         }
 
         items(uiState.availablePeople, key = { "${it.tmdbId}.p" }) {
-
-            Box(modifier = Modifier.padding(0.dp, 12.dp)) {
-
-                AsyncImage(
-                    model = it.avatarUrl,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .clickable { uiState.onNavToPerson(it.tmdbId) }
-                        .background(color = Color.DarkGray, shape = RoundedCornerShape(4.dp))
-                        .align(Alignment.Center)
-                        .size(100.dp, 150.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                )
-            }
+            BasicPersonView(
+                basicPerson = it,
+                routeNavigator = routeNavigator,
+                clicked = { keyboardController?.hide() }
+            )
         }
 
 
@@ -321,8 +309,10 @@ private fun TMDBLayout(
 
         items(uiState.tmdbItems, key = { "${it.tmdbId}.${it.mediaType}" }) {
 
-            Box(modifier = Modifier.padding(0.dp, 12.dp)) {
-                TMDBMediaView(
+            Box(
+                modifier = Modifier.padding(0.dp, 12.dp)
+            ) {
+                BasicTMDBView(
                     basicTMDB = it,
                     routeNavigator = routeNavigator,
                     clicked = { keyboardController?.hide() }
@@ -332,66 +322,17 @@ private fun TMDBLayout(
         }
 
         items(uiState.tmdbPeople, key = { it.tmdbId }) {
-            Box(modifier = Modifier.padding(0.dp, 12.dp)) {
-                AsyncImage(
-                    model = it.avatarUrl,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .clickable { uiState.onNavToPerson(it.tmdbId) }
-                        .background(color = Color.DarkGray, shape = RoundedCornerShape(4.dp))
-                        .align(Alignment.Center)
-                        .size(100.dp, 150.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                )
-            }
+            BasicPersonView(
+                basicPerson = it,
+                routeNavigator = routeNavigator,
+                clicked = { keyboardController?.hide() }
+            )
         }
 
     }
 }
 
 
-@Composable
-fun TMDBMediaView(
-    basicTMDB: BasicTMDB,
-    routeNavigator: RouteNavigator,
-    clicked: ((Int) -> Unit)? = null
-) {
-    fun onClicked() {
-
-        if (clicked != null)
-            clicked(basicTMDB.tmdbId)
-
-
-        routeNavigator.navigateToRoute(
-            route = TMDBDetailsNav.getRoute(
-                basicTMDB.tmdbId,
-                isMovie = basicTMDB.mediaType == TMDBMediaTypes.Movie
-            )
-        )
-    }
-
-    val wdp = 100.dp
-    val hdp = 150.dp
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(hdp)
-    ) {
-        AsyncImage(
-            model = basicTMDB.artworkUrl,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .background(color = Color.DarkGray)
-                .align(Alignment.Center)
-                .size(wdp, hdp)
-                .clip(RoundedCornerShape(4.dp))
-                .clickable { onClicked() }
-        )
-    }
-}
 
 
 @Preview

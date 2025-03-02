@@ -23,6 +23,7 @@ import tv.dustypig.dustypig.api.models.PlaybackProgress
 import tv.dustypig.dustypig.api.repositories.MediaRepository
 import tv.dustypig.dustypig.api.repositories.MoviesRepository
 import tv.dustypig.dustypig.api.toTimeString
+import tv.dustypig.dustypig.global_managers.ArtworkCache
 import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
@@ -34,7 +35,6 @@ import tv.dustypig.dustypig.ui.composables.CreditsData
 import tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist.AddToPlaylistNav
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
 import tv.dustypig.dustypig.ui.main_app.screens.manage_parental_controls_for_title.ManageParentalControlsForTitleNav
-import tv.dustypig.dustypig.ui.main_app.screens.person_details.PersonDetailsNav
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
 import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
 import java.util.Calendar
@@ -56,8 +56,18 @@ class MovieDetailsViewModel @Inject constructor(
         private const val TAG = "MovieDetailsViewModel"
     }
 
+    private val _mediaId: Int = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_MEDIA_ID)
+    private val _detailedPlaylistId: Int = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_DETAILED_PLAYLIST_ID)
+    private val _fromPlaylistDetails: Boolean = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_FROM_PLAYLIST_ID)
+    private val _playlistUpNextIndex: Int = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_PLAYLIST_UPNEXT_INDEX_ID)
+
+    private val _cachedPoster = ArtworkCache.getMediaPoster(_mediaId) ?: ""
+    private val _cachedBackdrop = ArtworkCache.getMediaBackdrop(_mediaId) ?: ""
+
     private val _uiState = MutableStateFlow(
         MovieDetailsUIState(
+            posterUrl = _cachedPoster,
+            backdropUrl = _cachedBackdrop,
             castManager = castManager,
             onAddDownload = ::addDownload,
             onAddToPlaylist = ::addToPlaylist,
@@ -73,10 +83,7 @@ class MovieDetailsViewModel @Inject constructor(
     )
     val uiState: StateFlow<MovieDetailsUIState> = _uiState.asStateFlow()
 
-    private val _mediaId: Int = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_MEDIA_ID)
-    private val _detailedPlaylistId: Int = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_DETAILED_PLAYLIST_ID)
-    private val _fromPlaylistDetails: Boolean = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_FROM_PLAYLIST_ID)
-    private val _playlistUpNextIndex: Int = savedStateHandle.getOrThrow(MovieDetailsNav.KEY_PLAYLIST_UPNEXT_INDEX_ID)
+
 
     private var _detailedMovie: DetailedMovie? = null
 
@@ -102,7 +109,10 @@ class MovieDetailsViewModel @Inject constructor(
         }
     }
 
-
+    override fun onCleared() {
+        super.onCleared()
+        ArtworkCache.deleteMedia(_mediaId)
+    }
 
     private suspend fun updateData() {
 
@@ -110,22 +120,11 @@ class MovieDetailsViewModel @Inject constructor(
 
         try {
             _detailedMovie = moviesRepository.details(_mediaId)
-            _uiState.update {
-                it.copy(
-                    loading = false,
-                    creditsData = CreditsData(
-                        genres = Genres(_detailedMovie!!.genres).toList(),
-                        genreNav = ::genreNav,
-                        castAndCrew = _detailedMovie!!.credits ?: listOf(),
-                        personNav = ::personNav,
-                        owner = _detailedMovie!!.owner ?: ""
-                    )
-                )
-            }
+
 
             // Prevent flicker by only updating if needed
-            if (_detailedMovie!!.artworkUrl != _uiState.value.posterUrl ||
-                _detailedMovie!!.backdropUrl != _uiState.value.backdropUrl) {
+            if (_detailedMovie!!.artworkUrl != _cachedPoster ||
+                _detailedMovie!!.backdropUrl != _cachedBackdrop) {
                 _uiState.update {
                     it.copy(
                         posterUrl = _detailedMovie!!.artworkUrl,
@@ -151,6 +150,14 @@ class MovieDetailsViewModel @Inject constructor(
                     titleRequestPermissions = _detailedMovie!!.titleRequestPermission,
                     accessRequestStatus = _detailedMovie!!.accessRequestedStatus,
                     accessRequestBusy = false,
+                    loading = false,
+                    creditsData = CreditsData(
+                        genres = Genres(_detailedMovie!!.genres).toList(),
+                        genreNav = ::genreNav,
+                        castAndCrew = _detailedMovie!!.credits ?: listOf(),
+                        routeNavigator = this,
+                        owner = _detailedMovie!!.owner ?: ""
+                    )
                 )
             }
         } catch (ex: Exception) {
@@ -307,9 +314,5 @@ class MovieDetailsViewModel @Inject constructor(
 
     private fun genreNav(genrePair: GenrePair) {
         navigateToRoute(ShowMoreNav.getRoute(genrePair.genre.value, genrePair.text))
-    }
-
-    private fun personNav(tmdbId: Int) {
-        navigateToRoute(PersonDetailsNav.getRoute(tmdbId))
     }
 }

@@ -48,7 +48,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -63,7 +62,6 @@ import tv.dustypig.dustypig.api.models.Genre
 import tv.dustypig.dustypig.api.models.GenrePair
 import tv.dustypig.dustypig.api.models.OverrideRequestStatus
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
-import tv.dustypig.dustypig.ui.composables.ActionButton
 import tv.dustypig.dustypig.ui.composables.CastTopAppBar
 import tv.dustypig.dustypig.ui.composables.Credits
 import tv.dustypig.dustypig.ui.composables.CreditsData
@@ -142,8 +140,7 @@ private fun HorizontalTabletLayout(
     Row(
         modifier = Modifier
             .padding(innerPadding)
-            .fillMaxSize(),
-        horizontalArrangement = Arrangement.spacedBy(24.dp)
+            .fillMaxSize()
     ) {
         Box(
             modifier = Modifier
@@ -174,6 +171,7 @@ private fun HorizontalTabletLayout(
 
         Column(
             modifier = Modifier
+                .padding(12.dp, 0.dp)
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = columnAlignment
@@ -281,11 +279,7 @@ private fun MovieTitleLayout(uiState: MovieDetailsUIState) {
         DownloadStatus.Finished -> Icons.Filled.DownloadDone
         else -> Icons.Filled.Downloading
     }
-    val downloadText = when (uiState.downloadStatus) {
-        DownloadStatus.None -> stringResource(R.string.download)
-        DownloadStatus.Finished -> stringResource(R.string.downloaded)
-        else -> stringResource(R.string.downloading)
-    }
+
 
     var showRemoveDownload by remember {
         mutableStateOf(false)
@@ -303,7 +297,7 @@ private fun MovieTitleLayout(uiState: MovieDetailsUIState) {
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.Top,
-        modifier = Modifier.padding(8.dp)
+        modifier = Modifier.padding(12.dp, 8.dp)
     ) {
 
         Column(
@@ -368,7 +362,9 @@ private fun MovieTitleLayout(uiState: MovieDetailsUIState) {
     if (uiState.canPlay) {
         Column(
             horizontalAlignment = alignment,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp, 0.dp)
         ) {
             Button(
                 onClick = uiState.onPlay,
@@ -384,11 +380,14 @@ private fun MovieTitleLayout(uiState: MovieDetailsUIState) {
             }
 
             Row(
-                horizontalArrangement = Arrangement.SpaceAround,
+                horizontalArrangement = Arrangement.spacedBy(24.dp),
                 verticalAlignment = Alignment.Top,
                 modifier = modifier.padding(0.dp, 12.dp)
             ) {
 
+                if(!isTablet) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
 
                 if (uiState.watchListBusy) {
 
@@ -401,33 +400,36 @@ private fun MovieTitleLayout(uiState: MovieDetailsUIState) {
                                 .size(48.dp)
                                 .padding(12.dp)
                         )
-                        Text(
-                            text = "Watchlist",
-                            style = MaterialTheme.typography.labelSmall,
-                            textAlign = TextAlign.Center,
-                            maxLines = 2
-                        )
                     }
 
                 } else {
-                    ActionButton(
-                        onClick = uiState.onToggleWatchlist,
-                        caption = stringResource(R.string.watchlist),
-                        icon = if (uiState.inWatchList) Icons.Filled.Check else Icons.Filled.Add
+                    IconButton(
+                        onClick = uiState.onToggleWatchlist
+                    ) {
+                        TintedIcon(
+                            imageVector = if (uiState.inWatchList) Icons.Filled.Check else Icons.Filled.Add,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+
+                IconButton(
+                    onClick = ::downloadClicked
+                ) {
+                    TintedIcon(
+                        imageVector = downloadIcon,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
 
-                ActionButton(
-                    onClick = { downloadClicked() },
-                    caption = downloadText,
-                    icon = downloadIcon
-                )
-
-                ActionButton(
-                    onClick = uiState.onAddToPlaylist,
-                    caption = stringResource(R.string.add_to_playlist),
-                    icon = Icons.AutoMirrored.Filled.PlaylistAdd
-                )
+                IconButton(
+                    onClick = uiState.onAddToPlaylist
+                ) {
+                    TintedIcon(
+                        imageVector = Icons.AutoMirrored.Filled.PlaylistAdd,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
 
                 if (uiState.partiallyPlayed) {
                     if (uiState.markWatchedBusy) {
@@ -439,21 +441,20 @@ private fun MovieTitleLayout(uiState: MovieDetailsUIState) {
                                     .size(48.dp)
                                     .padding(12.dp)
                             )
-                            Text(
-                                text = stringResource(R.string.mark_watched),
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.width(58.dp),
-                                textAlign = TextAlign.Center
-                            )
                         }
                     } else {
-                        ActionButton(
-                            onClick = uiState.onMarkWatched,
-                            caption = stringResource(R.string.mark_watched),
-                            icon = Icons.Filled.RemoveRedEye
-                        )
+                        IconButton(
+                            onClick = uiState.onMarkWatched
+                        ) {
+                            TintedIcon(
+                                imageVector = Icons.Filled.RemoveRedEye,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                     }
                 }
+
+                Spacer(modifier = Modifier.weight(1f))
             }
         }
 
@@ -468,7 +469,9 @@ private fun MovieTitleLayout(uiState: MovieDetailsUIState) {
 
         Column(
             horizontalAlignment = alignment,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp, 0.dp)
         ) {
             if (uiState.accessRequestBusy) {
                 CircularProgressIndicator()
@@ -490,7 +493,7 @@ private fun MovieTitleLayout(uiState: MovieDetailsUIState) {
         modifier = Modifier.padding(12.dp, 0.dp)
     )
 
-    Credits(uiState.creditsData)
+    Credits(uiState.creditsData, PaddingValues(12.dp, 0.dp))
 
 
     if (showRemoveDownload) {

@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import okhttp3.RequestBody.Companion.toRequestBody
 import tv.dustypig.dustypig.api.models.BasicLibrary
 import tv.dustypig.dustypig.api.models.CreateProfile
 import tv.dustypig.dustypig.api.models.DetailedProfile
@@ -22,6 +21,7 @@ import tv.dustypig.dustypig.api.models.ProfileLibraryLink
 import tv.dustypig.dustypig.api.models.TVRatings
 import tv.dustypig.dustypig.api.models.TitleRequestPermissions
 import tv.dustypig.dustypig.api.models.UpdateProfile
+import tv.dustypig.dustypig.api.models.UpdateProfileAvatar
 import tv.dustypig.dustypig.api.repositories.LibrariesRepository
 import tv.dustypig.dustypig.api.repositories.ProfilesRepository
 import tv.dustypig.dustypig.global_managers.AuthManager
@@ -32,7 +32,10 @@ import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.Profi
 import java.io.ByteArrayOutputStream
 import java.io.File
 import javax.inject.Inject
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
+@OptIn(ExperimentalEncodingApi::class)
 @HiltViewModel
 class EditProfileViewModel @Inject constructor(
     private val profilesRepository: ProfilesRepository,
@@ -42,10 +45,21 @@ class EditProfileViewModel @Inject constructor(
     routeNavigator: RouteNavigator
 ) : ViewModel(), RouteNavigator by routeNavigator {
 
+    companion object {
+        fun getRandomAvatar(current: String?): String {
+            val colors = listOf("blue", "gold", "green", "grey", "red")
+            while(true) {
+                val color = colors.random()
+                val ret = "https://s3.dustypig.tv/user-art/profile/${color}.png"
+                if(!ret.equals(current, true))
+                    return ret
+            }
+        }
+    }
+
     private val selectedProfileId = savedStateHandle.getOrThrow<Int>(EditProfileNav.KEY_PROFILE_ID)
 
-    private val color = listOf("blue", "gold", "green", "grey", "red").random()
-    private val randomAvatar = "https://s3.dustypig.tv/user-art/profile/${color}.png"
+    private val randomAvatar = getRandomAvatar(null)
 
     private val _uiState = MutableStateFlow(
         EditProfileUIState(
@@ -144,6 +158,8 @@ class EditProfileViewModel @Inject constructor(
         }
     }
 
+
+
     private fun infoLoaded() {
         _uiState.update {
             it.copy(
@@ -229,12 +245,14 @@ class EditProfileViewModel @Inject constructor(
             var pop = false
             try {
 
+                val avatarIsLink = avatarFile.startsWith("https://", ignoreCase = true)
+
                 //Create the profile
                 val createProfile = CreateProfile(
                     name = name,
                     pin = pin.toUShortOrNull()?.toInt(),
                     locked = false,
-                    avatarUrl = randomAvatar,
+                    avatarUrl = if(avatarIsLink) avatarFile else randomAvatar,
                     maxMovieRating = maxMovieRating,
                     maxTVRating = maxTVRating,
                     titleRequestPermissions = titleRequestPermissions
@@ -265,11 +283,7 @@ class EditProfileViewModel @Inject constructor(
 
                 //Set avatar
                 try {
-                    if (avatarFile.isNotBlank() && !avatarFile.startsWith(
-                            "https://",
-                            ignoreCase = true
-                        )
-                    ) {
+                    if (!avatarIsLink) {
                         val maxSize = 1024 * 1024
                         var data = File(avatarFile).readBytes()
                         var smallEnough =
@@ -290,7 +304,12 @@ class EditProfileViewModel @Inject constructor(
                                 }
                             }
                         }
-                        profilesRepository.setAvatar(profileId, data.toRequestBody())
+                        profilesRepository.setAvatar(
+                            UpdateProfileAvatar(
+                                id = profileId,
+                                base64Image = Base64.encode(data)
+                            )
+                        )
                     }
                 } catch (_: Exception) {
                     secondaryErrors.add("Error setting avatar")
@@ -317,6 +336,7 @@ class EditProfileViewModel @Inject constructor(
     }
 
 
+    @OptIn(ExperimentalEncodingApi::class)
     private fun updateProfile(
         name: String,
         pin: String,
@@ -333,6 +353,8 @@ class EditProfileViewModel @Inject constructor(
             var pop = false
             try {
 
+                val avatarIsLink = avatarFile.startsWith("https://", ignoreCase = true)
+
                 val selfAdminMode =
                     selectedProfileId == authManager.currentProfileId && authManager.currentProfileIsMain
 
@@ -341,7 +363,7 @@ class EditProfileViewModel @Inject constructor(
                     name = name,
                     pin = pin.toUShortOrNull()?.toInt(),
                     clearPin = deletePin,
-                    avatarUrl = _uiState.value.avatarUrl,
+                    avatarUrl = if(avatarIsLink) avatarFile else _uiState.value.avatarUrl,
 
                     //server will ignore these 4 if in self mode
                     locked = lockedState == LockedState.Locked,
@@ -401,11 +423,7 @@ class EditProfileViewModel @Inject constructor(
 
                 //Set avatar
                 try {
-                    if (avatarFile.isNotBlank() && !avatarFile.startsWith(
-                            "https://",
-                            ignoreCase = true
-                        )
-                    ) {
+                    if (!avatarIsLink) {
                         val maxSize = 1024 * 1024
                         var data = File(avatarFile).readBytes()
                         var smallEnough =
@@ -426,7 +444,13 @@ class EditProfileViewModel @Inject constructor(
                                 }
                             }
                         }
-                        profilesRepository.setAvatar(selectedProfileId, data.toRequestBody())
+
+                        profilesRepository.setAvatar(
+                            UpdateProfileAvatar(
+                                id = selectedProfileId,
+                                base64Image = Base64.encode(data)
+                            )
+                        )
                     }
                 } catch (_: Exception) {
                     secondaryErrors.add("Error setting avatar")
@@ -466,7 +490,6 @@ class EditProfileViewModel @Inject constructor(
             }
         }
     }
-
 }
 
 

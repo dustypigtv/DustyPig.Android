@@ -1,11 +1,10 @@
 package tv.dustypig.dustypig.api.repositories
 
-import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import tv.dustypig.dustypig.api.ApiService
 import tv.dustypig.dustypig.api.models.CreateProfile
 import tv.dustypig.dustypig.api.models.ProfileLibraryLink
 import tv.dustypig.dustypig.api.models.UpdateProfile
+import tv.dustypig.dustypig.api.models.UpdateProfileAvatar
 import tv.dustypig.dustypig.di.AuthenticatedAPIService
 import tv.dustypig.dustypig.global_managers.AuthManager
 import javax.inject.Inject
@@ -36,14 +35,7 @@ class ProfilesRepository @Inject constructor(
     suspend fun unLinkFromLibrary(profileLibraryLink: ProfileLibraryLink) =
         wrapAPICall { apiService.unLinkProfileLibrary(profileLibraryLink) }
 
-    suspend fun setAvatar(id: Int, requestBody: RequestBody) = wrapAPICallWithReturnData {
-        apiService.setProfileAvatar(
-            id = id,
-            image = MultipartBody.Part.createFormData(
-                name = "image",
-                filename = "image.jpg",
-                body = requestBody
-            )
-        )
-    }
+    suspend fun setAvatar(updateProfileAvatar: UpdateProfileAvatar) =
+        wrapAPICallWithReturnData { apiService.setProfileAvatar(updateProfileAvatar) }
+
 }

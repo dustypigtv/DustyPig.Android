@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.repositories.TMDBRepository
+import tv.dustypig.dustypig.global_managers.ArtworkCache
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
@@ -31,8 +32,13 @@ class PersonDetailsViewModel @Inject constructor(
     tmdbRepository: TMDBRepository
 ) : ViewModel(), RouteNavigator by routeNavigator {
 
+    private val _tmdbPersonId: Int = savedStateHandle.getOrThrow(PersonDetailsNav.KEY_TMDB_PERSON_ID)
+
+    private val _cachedAvatar = ArtworkCache.getPersonAvatar(_tmdbPersonId)
+
     private val _uiState = MutableStateFlow(
         PersonDetailsUIState(
+            avatarUrl = _cachedAvatar,
             castManager = castManager,
             onPopBackStack = ::popBackStack,
             onHideError = ::hideError,
@@ -41,7 +47,6 @@ class PersonDetailsViewModel @Inject constructor(
 
     val uiState: StateFlow<PersonDetailsUIState> = _uiState.asStateFlow()
 
-    private val _tmdbPersonId: Int = savedStateHandle.getOrThrow(PersonDetailsNav.KEY_TMDB_PERSON_ID)
 
     init {
 
@@ -49,10 +54,18 @@ class PersonDetailsViewModel @Inject constructor(
             try {
                 val data = tmdbRepository.getPerson(_tmdbPersonId)
                 val df: DateFormat = SimpleDateFormat("EEE, MMM d, yyyy")
+
+                if(data.avatarUrl != _cachedAvatar) {
+                    _uiState.update {
+                        it.copy(
+                            avatarUrl = data.avatarUrl
+                        )
+                    }
+                }
+
                 _uiState.update {
                     it.copy(
                         loading = false,
-                        avatarUrl = data.avatarUrl,
                         placeOfBirth = data.placeOfBirth,
                         biography = data.biography,
                         knownFor = data.knownFor,
@@ -74,6 +87,11 @@ class PersonDetailsViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        ArtworkCache.deletePersonAvatar(_tmdbPersonId)
     }
 
 

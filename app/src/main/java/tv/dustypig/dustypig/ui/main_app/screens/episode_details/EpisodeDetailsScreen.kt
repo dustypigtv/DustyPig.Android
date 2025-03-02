@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Downloading
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -49,12 +50,12 @@ import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Play
 import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
-import tv.dustypig.dustypig.ui.composables.ActionButton
 import tv.dustypig.dustypig.ui.composables.CastTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
 import tv.dustypig.dustypig.ui.composables.OnOrientation
 import tv.dustypig.dustypig.ui.composables.PreviewBase
+import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.composables.YesNoDialog
 import tv.dustypig.dustypig.ui.isTablet
 
@@ -288,14 +289,6 @@ private fun InfoLayout(
             else -> Icons.Filled.Downloading
         }
 
-        val downloadText = when (uiState.downloadStatus) {
-            DownloadStatus.None -> stringResource(R.string.download)
-            DownloadStatus.Finished -> stringResource(R.string.downloaded)
-            else -> stringResource(R.string.downloading)
-        }
-
-
-
         Button(
             onClick = uiState.onPlay,
             modifier = (if (isTablet) Modifier.width(320.dp) else Modifier.fillMaxWidth())
@@ -312,24 +305,35 @@ private fun InfoLayout(
 
 
         Row(
-            horizontalArrangement = Arrangement.SpaceAround,
+            horizontalArrangement = Arrangement.spacedBy(24.dp),
             verticalAlignment = Alignment.Top,
-            modifier = Modifier.padding(buttonPadding)
+            modifier = Modifier.padding(buttonPadding).fillMaxWidth()
         ) {
 
-            ActionButton(
-                onClick = toggleDownload,
-                caption = downloadText,
-                icon = downloadIcon
-            )
+            if(!isTablet) {
+                Spacer(modifier = Modifier.weight(1f))
+            }
 
-            Spacer(modifier = Modifier.width(24.dp))
+            IconButton(
+                onClick = toggleDownload
+            ) {
+                TintedIcon(
+                    imageVector = downloadIcon,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
 
-            ActionButton(
-                onClick = uiState.onAddToPlaylist,
-                caption = stringResource(R.string.add_to_playlist),
-                icon = Icons.AutoMirrored.Filled.PlaylistAdd
-            )
+            IconButton(
+                onClick = uiState.onAddToPlaylist
+            ) {
+                TintedIcon(
+                    imageVector = Icons.AutoMirrored.Filled.PlaylistAdd,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
         }
 
         Spacer(modifier = Modifier.height(16.dp))

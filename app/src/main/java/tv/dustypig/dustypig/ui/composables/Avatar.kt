@@ -82,7 +82,7 @@ fun Avatar(
             model = imageUrl,
             contentDescription = null,
             modifier = internalModifier,
-            placeholder = debugPlaceholder(R.drawable.ic_logo_transparent),
+            placeholder = debugPlaceholder(R.drawable.grey_profile),
             error = painterResource(id = R.drawable.grey_profile),
             contentScale = ContentScale.Crop
         )

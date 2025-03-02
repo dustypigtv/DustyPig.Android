@@ -3,36 +3,49 @@ package tv.dustypig.dustypig.ui.composables
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
 import com.canhub.cropper.CropImageView
-import kotlin.math.max
-import kotlin.math.sqrt
+import tv.dustypig.dustypig.R
+import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.edit_profile.EditProfileViewModel
 
 @Composable
 fun AvatarEditor(
     enabled: Boolean = true,
-    size: Double = 164.0,
     currentAvatar: String = "",
     onChanged: (String) -> Unit,
     onException: (Exception?) -> Unit
 ) {
     val context = LocalContext.current
+
 
     val imageCropLauncher = rememberLauncherForActivityResult(CropImageContract()) { result ->
         if (result.isSuccessful) {
@@ -47,6 +60,8 @@ fun AvatarEditor(
             val cropOptions = CropImageContractOptions(
                 uri = uri,
                 cropImageOptions = CropImageOptions(
+                    imageSourceIncludeCamera = false,
+                    imageSourceIncludeGallery = true,
                     outputCompressQuality = 100,
                     cropShape = CropImageView.CropShape.OVAL,
                     aspectRatioX = 1,
@@ -58,40 +73,56 @@ fun AvatarEditor(
         }
 
 
-    //IconButtonTokens.StateLayerSize = 40
-    //I don't see it in the source, but there is an extra dp somewhere, so use 41
-    val iconSize = 41.0
-
-    val circleSize = max(iconSize * 4, size)
-
-    var circlePadding = 0.0
-    val fact = (sqrt(2.0) - 1) / 2
-    val distance = circleSize * fact
-    val iconDiagonal = iconSize * sqrt(2.0)
-    if (distance < iconDiagonal) {
-        circlePadding = max(0.0, iconDiagonal - distance)
-    }
 
 
     Box(
-        modifier = Modifier.size(circleSize.dp),
+        modifier = Modifier.size(300.dp),
         contentAlignment = Alignment.Center
     ) {
 
-        Avatar(
-            imageUrl = currentAvatar,
-            size = circleSize.toInt(),
-            padding = circlePadding.toInt()
+        AsyncImage(
+            //model = currentAvatar,
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(currentAvatar)
+                .crossfade(true)
+                .build(),
+            contentDescription = null,
+            error = painterResource(id = R.drawable.grey_profile),
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxSize()
+                .background(color = Color.DarkGray, shape = CircleShape)
+                .clip(CircleShape)
+                .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
         )
+    }
+
+    Row (
+        modifier = Modifier.fillMaxSize(),
+        horizontalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        Spacer(modifier = Modifier.weight(1f))
+
         IconButton(
             onClick = {
                 imagePickerLauncher.launch("image/*")
             },
-            modifier = Modifier.align(Alignment.TopEnd),
             enabled = enabled
         ) {
-            TintedIcon(imageVector = Icons.Filled.Edit)
+            TintedIcon(imageVector = Icons.Default.ImageSearch)
         }
+
+        IconButton(
+            onClick = {
+                onChanged(EditProfileViewModel.getRandomAvatar(currentAvatar))
+            },
+            enabled = enabled
+        ) {
+            TintedIcon(imageVector = Icons.Default.Delete)
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
     }
 }
 

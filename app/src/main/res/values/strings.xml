@@ -174,4 +174,6 @@
     <string name="new_playlist">New Playlist</string>
     <string name="delete_all_notifications">Delete All</string>
     <string name="mark_all_notifications_read">Mark All Read</string>
+    <string name="confirm_unfriend">Are you sure you want to unfriend this user?</string>
+    <string name="confirm_delete_profile">Are you sure you want to delete this profile?</string>
 </resources>
