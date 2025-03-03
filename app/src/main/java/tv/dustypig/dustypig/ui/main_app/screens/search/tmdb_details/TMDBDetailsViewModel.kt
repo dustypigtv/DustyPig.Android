@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig.ui.main_app.screens.search.tmdb_details
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -40,6 +41,8 @@ class TMDBDetailsViewModel @Inject constructor(
     private val profilesRepository: ProfilesRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel(), RouteNavigator by routeNavigator {
+
+    private val TAG = "TMDBDetailsViewModel"
 
     private val _tmdbId: Int = savedStateHandle.getOrThrow(TMDBDetailsNav.KEY_MEDIA_ID)
     private val _isMovie: Boolean = savedStateHandle.getOrThrow(TMDBDetailsNav.KEY_IS_MOVIE)
@@ -148,6 +151,7 @@ class TMDBDetailsViewModel @Inject constructor(
                     )
                 }
             } catch (ex: Exception) {
+                Log.e(TAG, "Error getting TMDB details", ex)
                 setError(ex = ex, criticalError = true)
             }
         }
