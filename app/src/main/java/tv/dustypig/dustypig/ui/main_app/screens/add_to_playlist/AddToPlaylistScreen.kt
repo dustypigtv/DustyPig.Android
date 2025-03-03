@@ -114,6 +114,7 @@ private fun AddToPlaylistScreenInternal(uiState: AddToPlaylistUIState) {
                             .clip(RoundedCornerShape(4.dp))
                             .clickable {
                                 if (!uiState.busy) {
+                                    newPlaylistMode = true
                                     showNewPlaylistDialog = true
                                 }
                             },
@@ -225,7 +226,6 @@ private fun AddToPlaylistScreenInternal(uiState: AddToPlaylistUIState) {
         keyboardController?.hide()
         showNewPlaylistDialog = false
         if (uiState.addingSeries) {
-            newPlaylistMode = false
             showAutoEpisodesDialog = true
         } else {
             uiState.onNewPlaylist(newName, false)
@@ -251,7 +251,7 @@ private fun AddToPlaylistScreenInternal(uiState: AddToPlaylistUIState) {
             }
         }
 
-        fun dismissForgotPasswordDialog() {
+        fun dismissShowNewPlaylistDialog() {
             keyboardController?.hide()
             showNewPlaylistDialog = false
         }
@@ -264,7 +264,7 @@ private fun AddToPlaylistScreenInternal(uiState: AddToPlaylistUIState) {
 
         AlertDialog(
             shape = RoundedCornerShape(8.dp),
-            onDismissRequest = ::dismissForgotPasswordDialog,
+            onDismissRequest = ::dismissShowNewPlaylistDialog,
             title = { Text(stringResource(R.string.new_playlist)) },
             text = {
                 Box(
@@ -312,7 +312,7 @@ private fun AddToPlaylistScreenInternal(uiState: AddToPlaylistUIState) {
             dismissButton = {
                 TextButton(
                     enabled = !uiState.busy,
-                    onClick = ::dismissForgotPasswordDialog
+                    onClick = ::dismissShowNewPlaylistDialog
                 ) {
                     Text(stringResource(R.string.cancel))
                 }

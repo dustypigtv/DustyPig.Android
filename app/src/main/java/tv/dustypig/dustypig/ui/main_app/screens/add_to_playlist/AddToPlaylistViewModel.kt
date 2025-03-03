@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig.ui.main_app.screens.add_to_playlist
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -26,6 +27,8 @@ class AddToPlaylistViewModel @Inject constructor(
     private val playlistRepository: PlaylistRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel(), RouteNavigator by routeNavigator {
+
+    private val TAG = "AddToPlaylistViewModel"
 
     private val _uiState = MutableStateFlow(
         AddToPlaylistUIState(
@@ -84,6 +87,7 @@ class AddToPlaylistViewModel @Inject constructor(
     }
 
     private fun newPlaylist(name: String, autoAddEpisodes: Boolean) {
+        Log.d(TAG, "newPlaylist: $name")
         _uiState.update {
             it.copy(
                 busy = true
@@ -93,6 +97,7 @@ class AddToPlaylistViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val newId = playlistRepository.create(CreatePlaylist(name))
+                Log.d(TAG, "newPlaylist: $newId")
                 if (_isSeries) {
                     playlistRepository.addSeries(
                         AddSeriesToPlaylistInfo(
@@ -114,6 +119,9 @@ class AddToPlaylistViewModel @Inject constructor(
     }
 
     private fun selectPlaylist(id: Int, autoAddEpisodes: Boolean) {
+
+        Log.d(TAG, "selectPlaylist: $id")
+
         _uiState.update {
             it.copy(
                 busy = true
