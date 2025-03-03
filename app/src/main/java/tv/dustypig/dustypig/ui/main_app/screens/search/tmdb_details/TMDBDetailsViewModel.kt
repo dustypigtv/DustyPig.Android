@@ -23,7 +23,7 @@ import tv.dustypig.dustypig.api.repositories.FriendsRepository
 import tv.dustypig.dustypig.api.repositories.ProfilesRepository
 import tv.dustypig.dustypig.api.repositories.TMDBRepository
 import tv.dustypig.dustypig.global_managers.ArtworkCache
-import tv.dustypig.dustypig.global_managers.AuthManager
+import tv.dustypig.dustypig.global_managers.auth_manager.AuthManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow

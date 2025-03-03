@@ -43,11 +43,13 @@ class HomeViewModel @Inject constructor(
 
     companion object {
 
-        private var _nextTimerTick: Date = Calendar.getInstance().time
+        private var _nextTimerTick: Date = Calendar.getInstance().also {
+            it.add(Calendar.MINUTE, -1)
+        }.time
 
         fun triggerUpdate() {
             val calendar = Calendar.getInstance()
-            calendar.add(Calendar.SECOND, -1)
+            calendar.add(Calendar.MINUTE, -1)
             _nextTimerTick = calendar.time
         }
 

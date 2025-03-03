@@ -5,7 +5,7 @@ import tv.dustypig.dustypig.api.models.PasswordCredentials
 import tv.dustypig.dustypig.api.models.ProfileCredentials
 import tv.dustypig.dustypig.api.models.FCMToken
 import tv.dustypig.dustypig.di.AuthenticatedAPIService
-import tv.dustypig.dustypig.global_managers.AuthManager
+import tv.dustypig.dustypig.global_managers.auth_manager.AuthManager
 import javax.inject.Inject
 import javax.inject.Singleton
 

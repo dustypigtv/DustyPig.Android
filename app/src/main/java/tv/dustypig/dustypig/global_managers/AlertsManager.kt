@@ -18,6 +18,8 @@ import tv.dustypig.dustypig.api.models.Notification
 import tv.dustypig.dustypig.api.models.NotificationTypes
 import tv.dustypig.dustypig.api.repositories.AuthRepository
 import tv.dustypig.dustypig.api.repositories.NotificationsRepository
+import tv.dustypig.dustypig.global_managers.auth_manager.AuthManager
+import tv.dustypig.dustypig.global_managers.auth_manager.AuthStates
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.ui.main_app.screens.episode_details.EpisodeDetailsNav
@@ -248,7 +250,7 @@ class AlertsManager @Inject constructor(
         scope.launch {
             authManager.loginState.collectLatest { loggedIn ->
                 listenerRegistration?.remove()
-                if (loggedIn == true) {
+                if (loggedIn == AuthStates.LoggedIn) {
                     listenerRegistration = Firebase.firestore
                         .collection(FIRESTORE_ALERTS_COLLECTION_PATH)
                         .document(authManager.currentProfileId.toString())

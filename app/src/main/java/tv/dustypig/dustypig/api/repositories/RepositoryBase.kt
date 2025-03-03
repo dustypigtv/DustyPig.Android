@@ -4,7 +4,7 @@ import android.util.Log
 import retrofit2.Response
 import tv.dustypig.dustypig.api.models.Result
 import tv.dustypig.dustypig.api.models.ResultOf
-import tv.dustypig.dustypig.global_managers.AuthManager
+import tv.dustypig.dustypig.global_managers.auth_manager.AuthManager
 import java.io.IOException
 
 abstract class RepositoryBase(

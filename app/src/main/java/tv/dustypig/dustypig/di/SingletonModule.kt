@@ -9,7 +9,7 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import tv.dustypig.dustypig.api.ApiService
-import tv.dustypig.dustypig.global_managers.AuthManager
+import tv.dustypig.dustypig.global_managers.auth_manager.AuthManager
 import javax.inject.Qualifier
 
 

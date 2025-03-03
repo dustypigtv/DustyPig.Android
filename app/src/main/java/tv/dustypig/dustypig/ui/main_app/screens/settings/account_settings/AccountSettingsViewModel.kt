@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.repositories.AccountRepository
 import tv.dustypig.dustypig.api.repositories.AuthRepository
-import tv.dustypig.dustypig.global_managers.AuthManager
+import tv.dustypig.dustypig.global_managers.auth_manager.AuthManager
 import tv.dustypig.dustypig.nav.RouteNavigator
 import javax.inject.Inject
 

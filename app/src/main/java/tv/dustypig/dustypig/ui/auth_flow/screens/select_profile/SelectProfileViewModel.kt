@@ -12,7 +12,7 @@ import tv.dustypig.dustypig.api.models.LoginTypes
 import tv.dustypig.dustypig.api.models.ProfileCredentials
 import tv.dustypig.dustypig.api.repositories.AuthRepository
 import tv.dustypig.dustypig.api.repositories.ProfilesRepository
-import tv.dustypig.dustypig.global_managers.AuthManager
+import tv.dustypig.dustypig.global_managers.auth_manager.AuthManager
 import tv.dustypig.dustypig.global_managers.FCMManager
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.logToCrashlytics

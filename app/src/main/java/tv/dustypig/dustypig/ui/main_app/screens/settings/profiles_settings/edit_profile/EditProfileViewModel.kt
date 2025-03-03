@@ -24,7 +24,7 @@ import tv.dustypig.dustypig.api.models.UpdateProfile
 import tv.dustypig.dustypig.api.models.UpdateProfileAvatar
 import tv.dustypig.dustypig.api.repositories.LibrariesRepository
 import tv.dustypig.dustypig.api.repositories.ProfilesRepository
-import tv.dustypig.dustypig.global_managers.AuthManager
+import tv.dustypig.dustypig.global_managers.auth_manager.AuthManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.nav.getOrThrow

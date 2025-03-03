@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig.ui.main_app.screens.settings.switch_profiles
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,12 +14,11 @@ import tv.dustypig.dustypig.api.models.ProfileCredentials
 import tv.dustypig.dustypig.api.repositories.AuthRepository
 import tv.dustypig.dustypig.api.repositories.ProfilesRepository
 import tv.dustypig.dustypig.global_managers.AlertsManager
-import tv.dustypig.dustypig.global_managers.AuthManager
+import tv.dustypig.dustypig.global_managers.auth_manager.AuthManager
 import tv.dustypig.dustypig.global_managers.FCMManager
 import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
-import tv.dustypig.dustypig.ui.main_app.screens.home.HomeNav
 import tv.dustypig.dustypig.ui.main_app.screens.home.HomeViewModel
 import javax.inject.Inject
 
@@ -30,6 +30,10 @@ class SwitchProfilesViewModel @Inject constructor(
     private val authManager: AuthManager,
     private val settingsManager: SettingsManager
 ) : ViewModel(), RouteNavigator by routeNavigator {
+
+    companion object {
+        private const val TAG = "SwitchProfilesViewModel"
+    }
 
     private val _uiState = MutableStateFlow(
         SwitchProfilesUIState(
@@ -89,6 +93,7 @@ class SwitchProfilesViewModel @Inject constructor(
                     else
                         null
 
+                Log.d(TAG, "Pre login")
                 val data = authRepository.profileLogin(
                     ProfileCredentials(
                         profile.id,
@@ -96,19 +101,17 @@ class SwitchProfilesViewModel @Inject constructor(
                         fcmToken
                     )
                 )
-
-                authManager.login(
-                    data.profileToken!!,
-                    data.profileId!!,
-                    data.loginType == LoginTypes.MainProfile
-                )
+                Log.d(TAG, "Post login")
 
                 if (!allowNotifications)
                     FCMManager.resetToken()
 
-                HomeViewModel.triggerUpdate()
-                AlertsManager.triggerUpdate()
-                popToRoute(HomeNav.route)
+
+                authManager.switchProfile(
+                    data.profileToken!!,
+                    data.profileId!!,
+                    data.loginType == LoginTypes.MainProfile
+                )
 
             } catch (ex: Exception) {
                 criticalError = false

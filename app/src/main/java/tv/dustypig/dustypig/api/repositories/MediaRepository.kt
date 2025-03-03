@@ -6,7 +6,7 @@ import tv.dustypig.dustypig.api.models.PlaybackProgress
 import tv.dustypig.dustypig.api.models.SearchRequest
 import tv.dustypig.dustypig.api.models.SetTitlePermission
 import tv.dustypig.dustypig.di.AuthenticatedAPIService
-import tv.dustypig.dustypig.global_managers.AuthManager
+import tv.dustypig.dustypig.global_managers.auth_manager.AuthManager
 import javax.inject.Inject
 import javax.inject.Singleton
 

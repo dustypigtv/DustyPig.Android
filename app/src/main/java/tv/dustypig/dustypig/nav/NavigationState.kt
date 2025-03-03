@@ -24,4 +24,5 @@ sealed class NavigationState {
     data class PopBackStack(val id: String = UUID.randomUUID().toString()) : NavigationState()
 
     data class NavigateUp(val id: String = UUID.randomUUID().toString()) : NavigationState()
+
 }

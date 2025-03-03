@@ -43,9 +43,10 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.global_managers.AlertsManager
-import tv.dustypig.dustypig.global_managers.AuthManager
+import tv.dustypig.dustypig.global_managers.auth_manager.AuthManager
 import tv.dustypig.dustypig.global_managers.FCMManager
 import tv.dustypig.dustypig.global_managers.PlayerStateManager
+import tv.dustypig.dustypig.global_managers.auth_manager.AuthStates
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 import tv.dustypig.dustypig.global_managers.download_manager.MyDownloadManager
 import tv.dustypig.dustypig.global_managers.progress_manager.ProgressReportManager
@@ -163,21 +164,7 @@ class MainActivity : ComponentActivity() {
         castManager.destroy()
     }
 
-    override fun onUserLeaveHint() {
-        super.onUserLeaveHint()
 
-//        if (!PlayerStateManager.playerScreenVisible.value)
-//            return
-//
-//        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//                enterPictureInPictureMode(PictureInPictureParams.Builder().build())
-//            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-//                @Suppress("DEPRECATION")
-//                enterPictureInPictureMode()
-//            }
-//        }
-    }
 
     private fun checkIntent(intent: Intent?) {
         if (intent == null)
@@ -207,20 +194,23 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun AppStateSwitcher() {
 
-        val loggedIn by authManager.loginState.collectAsState()
+        val authState by authManager.loginState.collectAsState(AuthStates.Nada)
 
-        when (loggedIn) {
-            true -> {
+        Log.d(TAG, "AuthState: $authState")
+
+        when (authState) {
+            AuthStates.LoggedIn -> {
                 AskNotificationPermission()
                 AppNav()
+                Log.d(TAG, "Trigger Alerts")
+                AlertsManager.triggerUpdate()
             }
 
-            false -> {
+            AuthStates.LoggedOut -> {
                 AuthNav()
             }
 
             else -> {
-                //Unknown state
                 Scaffold { paddingValues ->
                     Box(
                         modifier = Modifier
@@ -231,6 +221,7 @@ class MainActivity : ComponentActivity() {
                         CircularProgressIndicator()
                     }
                 }
+                authManager.changeProfilesPhase2Enabled = true
             }
         }
     }
