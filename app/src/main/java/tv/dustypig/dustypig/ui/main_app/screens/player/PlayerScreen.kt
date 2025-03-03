@@ -174,10 +174,26 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
                         && uiState.player.videoSize != VideoSize.UNKNOWN
                         ) {
                         // set source rect hint, aspect ratio
-                        val sourceRect = layoutCoordinates.boundsInWindow().toAndroidRectF().toRect()
+                        val sourceRect =
+                            layoutCoordinates.boundsInWindow().toAndroidRectF().toRect()
                         builder.setSourceRectHint(sourceRect)
-                        val aspectRatio = Rational(uiState.player.videoSize.width, uiState.player.videoSize.height)
-                        builder.setAspectRatio(aspectRatio)
+
+
+                        val aspectRatio = Rational(
+                            uiState.player.videoSize.width,
+                            uiState.player.videoSize.height
+                        )
+
+                        //Videos with strange aspect ratios (like 1248/520) cause a crash
+                        val skipAspectRatio =
+                                aspectRatio.isZero ||
+                                aspectRatio.isNaN ||
+                                aspectRatio.isInfinite ||
+                                aspectRatio.toFloat() > 2.390000f ||
+                                aspectRatio.toFloat() < 0.418410
+                        if(!skipAspectRatio) {
+                            builder.setAspectRatio(aspectRatio)
+                        }
                     }
 
                     val playPauseAction = if (
