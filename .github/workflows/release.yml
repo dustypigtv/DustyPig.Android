@@ -43,5 +43,5 @@ jobs:
           packageName: tv.dustypig.dustypig
           releaseFiles: app/build/outputs/bundle/release/app-release.aab
           debugSymbols: app/build/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib
-          track: alpha
+          track: internal
           
