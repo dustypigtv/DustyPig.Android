@@ -69,11 +69,14 @@ import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.PlayerView
+import tv.dustypig.dustypig.global_managers.PlayerStateManager
 import tv.dustypig.dustypig.ui.composables.CastButton
 import tv.dustypig.dustypig.ui.composables.CastControls
 import tv.dustypig.dustypig.ui.composables.CastSlider
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.findActivity
+import tv.dustypig.dustypig.ui.hideSystemUi
+import tv.dustypig.dustypig.ui.showSystemUi
 import android.graphics.drawable.Icon as AndroidIcon
 
 private const val ACTION_BROADCAST_CONTROL = "broadcast_control"
@@ -301,6 +304,11 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
         //<color name="exo_bottom_bar_background">#b0000000</color>
         val barBackgroundColor = Color(red = 0, green = 0, blue = 0, alpha = 0xb0)
 
+        if(showControls || uiState.isCastPlayer || !PlayerStateManager.playerScreenVisible)
+            LocalContext.current.findActivity().showSystemUi()
+        else
+            LocalContext.current.findActivity().hideSystemUi()
+
         AnimatedVisibility(
             visible = showControls || uiState.isCastPlayer,
             enter = expandVertically(
@@ -314,7 +322,6 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
                 )
             )
         ) {
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
