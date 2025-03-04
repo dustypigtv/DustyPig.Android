@@ -228,6 +228,9 @@ interface ApiService {
     @DELETE("Profiles/Delete/{id}")
     suspend fun deleteProfile(@Path("id") id: Int): Response<Result>
 
+    @GET("Profiles/GetMainProfileDetails")
+    suspend fun getMainProfileDetails() : Response<ResultOf<DetailedProfile>>
+
 
     // ***** Series *****
     @GET("Series/Details/{id}")

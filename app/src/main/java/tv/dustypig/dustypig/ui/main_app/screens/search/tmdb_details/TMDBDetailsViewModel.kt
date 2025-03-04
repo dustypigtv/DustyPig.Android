@@ -5,15 +5,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.dustypig.dustypig.api.models.BasicFriend
-import tv.dustypig.dustypig.api.models.DetailedProfile
 import tv.dustypig.dustypig.api.models.DetailedTMDB
 import tv.dustypig.dustypig.api.models.GenrePair
 import tv.dustypig.dustypig.api.models.Genres
@@ -42,7 +37,9 @@ class TMDBDetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel(), RouteNavigator by routeNavigator {
 
-    private val TAG = "TMDBDetailsViewModel"
+    companion object {
+        private const val TAG = "TMDBDetailsViewModel"
+    }
 
     private val _tmdbId: Int = savedStateHandle.getOrThrow(TMDBDetailsNav.KEY_MEDIA_ID)
     private val _isMovie: Boolean = savedStateHandle.getOrThrow(TMDBDetailsNav.KEY_IS_MOVIE)
@@ -87,16 +84,8 @@ class TMDBDetailsViewModel @Inject constructor(
 
                 val friendsForRequests = arrayListOf<TMDBDetailsRequestFriend>()
                 if (_detailedTMDB!!.requestPermission == TitleRequestPermissions.Enabled) {
-                    val calls = arrayListOf<Deferred<*>>()
-                    calls.add(async { friendsRepository.list() })
-                    if (!authManager.currentProfileIsMain) {
-                        calls.add(async { profilesRepository.details(authManager.currentProfileId) })
-                    }
-                    val results = calls.awaitAll()
 
-
-                    @Suppress("UNCHECKED_CAST")
-                    val friendsList = results[0] as List<BasicFriend>
+                    val friendsList = friendsRepository.list()
                     friendsList.forEach {
                         friendsForRequests.add(
                             TMDBDetailsRequestFriend(
@@ -108,7 +97,7 @@ class TMDBDetailsViewModel @Inject constructor(
                     }
 
                     if (!authManager.currentProfileIsMain) {
-                        val detailedProfile = results[1] as DetailedProfile
+                        val detailedProfile = profilesRepository.getMainProfileDetails()
                         friendsForRequests.add(
                             index = 0,
                             element = TMDBDetailsRequestFriend(

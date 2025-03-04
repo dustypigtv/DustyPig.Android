@@ -38,4 +38,5 @@ class ProfilesRepository @Inject constructor(
     suspend fun setAvatar(updateProfileAvatar: UpdateProfileAvatar) =
         wrapAPICallWithReturnData { apiService.setProfileAvatar(updateProfileAvatar) }
 
+    suspend fun getMainProfileDetails() = wrapAPICallWithReturnData { apiService.getMainProfileDetails() }
 }
