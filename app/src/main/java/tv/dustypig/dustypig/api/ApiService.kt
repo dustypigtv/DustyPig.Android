@@ -40,6 +40,7 @@ import tv.dustypig.dustypig.api.models.ResultOf
 import tv.dustypig.dustypig.api.models.SearchRequest
 import tv.dustypig.dustypig.api.models.SearchResults
 import tv.dustypig.dustypig.api.models.SetTitlePermission
+import tv.dustypig.dustypig.api.models.StringValue
 import tv.dustypig.dustypig.api.models.TMDB_Person
 import tv.dustypig.dustypig.api.models.TitlePermissions
 import tv.dustypig.dustypig.api.models.TitleRequest
@@ -66,13 +67,13 @@ interface ApiService {
     suspend fun passwordLogin(@Body passwordCredentials: PasswordCredentials): Response<ResultOf<LoginResponse>>
 
     @POST("Auth/SendPasswordResetEmail")
-    suspend fun sendPasswordResetEmail(@Body email: String): Response<Result>
+    suspend fun sendPasswordResetEmail(@Body email: StringValue): Response<Result>
 
     @POST("Auth/ProfileLogin")
     suspend fun profileLogin(@Body profileCredentials: ProfileCredentials): Response<ResultOf<LoginResponse>>
 
     @POST("Auth/LoginDeviceWithCode")
-    suspend fun loginDeviceWithCode(@Body deviceCode: String): Response<Result>
+    suspend fun loginDeviceWithCode(@Body deviceCode: StringValue): Response<Result>
 
     @GET("Auth/Signout")
     suspend fun signout(): Response<Result>

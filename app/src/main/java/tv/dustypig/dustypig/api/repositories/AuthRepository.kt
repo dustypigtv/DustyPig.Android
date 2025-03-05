@@ -4,6 +4,7 @@ import tv.dustypig.dustypig.api.ApiService
 import tv.dustypig.dustypig.api.models.PasswordCredentials
 import tv.dustypig.dustypig.api.models.ProfileCredentials
 import tv.dustypig.dustypig.api.models.FCMToken
+import tv.dustypig.dustypig.api.models.StringValue
 import tv.dustypig.dustypig.di.AuthenticatedAPIService
 import tv.dustypig.dustypig.global_managers.auth_manager.AuthManager
 import javax.inject.Inject
@@ -15,13 +16,13 @@ class AuthRepository @Inject constructor(
     authManager: AuthManager
 ) : RepositoryBase(authManager) {
 
-    suspend fun loginDeviceWithCode(code: String) =
+    suspend fun loginDeviceWithCode(code: StringValue) =
         wrapAPICall { apiService.loginDeviceWithCode(code) }
 
     suspend fun passwordLogin(passwordCredentials: PasswordCredentials) =
         wrapAPICallWithReturnData { apiService.passwordLogin(passwordCredentials) }
 
-    suspend fun sendPasswordResetEmail(email: String) =
+    suspend fun sendPasswordResetEmail(email: StringValue) =
         wrapAPICall { apiService.sendPasswordResetEmail(email) }
 
     suspend fun profileLogin(profileCredentials: ProfileCredentials) =

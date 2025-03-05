@@ -31,7 +31,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -61,7 +60,6 @@ fun SignInScreen(vm: SignInViewModel) {
 }
 
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun SignInScreenInternal(uiState: SignInUIState) {
     val localFocusManager = LocalFocusManager.current
@@ -133,7 +131,11 @@ private fun SignInScreenInternal(uiState: SignInUIState) {
 
             OutlinedTextField(
                 value = email,
-                onValueChange = { updateEmail(it) },
+                onValueChange = {
+                    if(!showForgotPassword) {
+                        updateEmail(it)
+                    }
+                },
                 placeholder = { Text(text = stringResource(R.string.email)) },
                 label = { Text(text = stringResource(R.string.email)) },
                 singleLine = true,
@@ -204,13 +206,11 @@ private fun SignInScreenInternal(uiState: SignInUIState) {
 
     if (showForgotPassword) {
 
-        var forgotPasswordEmail by remember { mutableStateOf(email) }
-
         val focusRequester = remember { FocusRequester() }
 
         val confirmEnabled by remember {
             derivedStateOf {
-                forgotPasswordEmail.isNotBlank() && !uiState.forgotPasswordBusy
+                email.isNotBlank() && !uiState.forgotPasswordBusy
             }
         }
 
@@ -225,13 +225,11 @@ private fun SignInScreenInternal(uiState: SignInUIState) {
 
 
         fun forgotPasswordConfirmClick() {
-            email = forgotPasswordEmail
             keyboardController?.hide()
             uiState.onSendForgotPasswordEmail(email)
         }
 
         fun dismissForgotPasswordDialog() {
-            email = forgotPasswordEmail
             keyboardController?.hide()
             showForgotPassword = false
         }
@@ -257,8 +255,12 @@ private fun SignInScreenInternal(uiState: SignInUIState) {
                         )
                     ) {
                         OutlinedTextField(
-                            value = forgotPasswordEmail,
-                            onValueChange = { forgotPasswordEmail = it.trim().lowercase() },
+                            value = email,
+                            onValueChange = {
+                                if(showForgotPassword) {
+                                    email = it.trim().lowercase()
+                                }
+                            },
                             label = { Text(text = stringResource(R.string.email)) },
                             singleLine = true,
                             enabled = !uiState.forgotPasswordBusy,

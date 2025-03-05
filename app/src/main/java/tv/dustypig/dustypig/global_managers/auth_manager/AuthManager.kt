@@ -95,8 +95,8 @@ class AuthManager @Inject constructor(
         settingsManager.setProfileId(-1)
         settingsManager.setIsMainProfile(false)
         settingsManager.setToken("")
-//        setState(token = "", profileId = 0, isMain = false)
         FCMManager.resetToken()
+        setState(token = "", profileId = 0, isMain = false)
     }
 
     fun setTempAuthToken(token: String) {

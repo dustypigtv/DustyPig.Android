@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import tv.dustypig.dustypig.api.models.StringValue
 import tv.dustypig.dustypig.api.repositories.AccountRepository
 import tv.dustypig.dustypig.api.repositories.AuthRepository
 import tv.dustypig.dustypig.global_managers.auth_manager.AuthManager
@@ -65,7 +66,7 @@ class AccountSettingsViewModel @Inject constructor(
     private fun loginToDevice(code: String) {
         viewModelScope.launch {
             try {
-                authRepository.loginDeviceWithCode(code)
+                authRepository.loginDeviceWithCode(StringValue(code))
                 _uiState.update {
                     it.copy(busy = true)
                 }

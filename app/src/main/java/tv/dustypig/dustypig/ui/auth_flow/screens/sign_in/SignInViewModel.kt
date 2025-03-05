@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig.ui.auth_flow.screens.sign_in
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,6 +13,7 @@ import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.models.FCMToken
 import tv.dustypig.dustypig.api.models.LoginTypes
 import tv.dustypig.dustypig.api.models.PasswordCredentials
+import tv.dustypig.dustypig.api.models.StringValue
 import tv.dustypig.dustypig.api.repositories.AuthRepository
 import tv.dustypig.dustypig.global_managers.auth_manager.AuthManager
 import tv.dustypig.dustypig.global_managers.FCMManager
@@ -30,6 +32,10 @@ class SignInViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val settingsManager: SettingsManager
 ) : ViewModel(), RouteNavigator by routeNavigator {
+
+    companion object {
+        const val TAG = "SignInViewModel"
+    }
 
     private val _uiState = MutableStateFlow(
         SignInUIState(
@@ -120,6 +126,7 @@ class SignInViewModel @Inject constructor(
                 }
 
             } catch (ex: Exception) {
+                Log.e(TAG, "signIn: ", ex)
                 ex.logToCrashlytics()
                 _uiState.update {
                     it.copy(
@@ -144,23 +151,21 @@ class SignInViewModel @Inject constructor(
         val fixedEmail = email.trim().lowercase()
 
         viewModelScope.launch {
-            settingsManager.setLastLoginEmail(fixedEmail)
 
             try {
-                authRepository.sendPasswordResetEmail(fixedEmail)
+                authRepository.sendPasswordResetEmail(StringValue(fixedEmail))
                 _uiState.update {
                     it.copy(
                         forgotPasswordBusy = false,
-                        //showForgotPassword = false,
                         showForgotPasswordSuccess = true
                     )
                 }
             } catch (ex: Exception) {
+                Log.e(TAG, "sendForgotPasswordEmail: ", ex)
                 ex.logToCrashlytics()
                 _uiState.update {
                     it.copy(
                         forgotPasswordBusy = false,
-                        //showForgotPassword = false,
                         showForgotPasswordError = true,
                         errorMessage = ex.localizedMessage
                     )
