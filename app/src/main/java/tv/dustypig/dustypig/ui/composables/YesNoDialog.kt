@@ -20,7 +20,7 @@ fun YesNoDialog(
     message: String, yes:
     String = stringResource(R.string.yes),
     no: String = stringResource(R.string.no),
-    dismissOnClickOutside: Boolean = false
+    dismissOnClickOutside: Boolean = true
 ) {
     AlertDialog(
         shape = RoundedCornerShape(8.dp),
