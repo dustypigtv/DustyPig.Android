@@ -34,14 +34,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -62,12 +65,22 @@ fun SignInScreen(vm: SignInViewModel) {
 
 @Composable
 private fun SignInScreenInternal(uiState: SignInUIState) {
+
     val localFocusManager = LocalFocusManager.current
     var passwordVisible by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
-    var email by remember { mutableStateOf(uiState.emailAddress) }
-    var password by remember { mutableStateOf("") }
     var showForgotPassword by remember { mutableStateOf(false) }
+
+    //var email by remember { mutableStateOf(uiState.emailAddress) }
+    var password by remember { mutableStateOf("") }
+    var email by remember {
+        mutableStateOf(
+            TextFieldValue(
+                text = "",
+                selection = TextRange.Zero
+            )
+        )
+    }
 
     val visualTransform by remember {
         derivedStateOf {
@@ -89,27 +102,20 @@ private fun SignInScreenInternal(uiState: SignInUIState) {
 
     val imeAction = remember {
         derivedStateOf {
-            if (email.isBlank() || password.isBlank())
+            if (email.text.isBlank() || password.isBlank())
                 ImeAction.Done
             else
                 ImeAction.Go
         }
     }
 
-    val signInEnabled = !uiState.busy && email.isNotBlank() && password.isNotBlank()
-
-
-    fun updateEmail(newValue: String) {
-        email = newValue.trim().lowercase()
-        if (email == AuthManager.TEST_USER)
-            password = AuthManager.TEST_PASSWORD
-    }
+    val signInEnabled = !uiState.busy && email.text.isNotBlank() && password.isNotBlank()
 
 
     fun signIn() {
         localFocusManager.clearFocus()
         keyboardController?.hide()
-        uiState.onSignIn(email, password)
+        uiState.onSignIn(email.text, password)
     }
 
     Box(
@@ -132,9 +138,12 @@ private fun SignInScreenInternal(uiState: SignInUIState) {
             OutlinedTextField(
                 value = email,
                 onValueChange = {
-                    if(!showForgotPassword) {
-                        updateEmail(it)
-                    }
+                    email = TextFieldValue(
+                        text = it.text.trim().lowercase(),
+                        selection = it.selection
+                    )
+                    if (email.text == AuthManager.TEST_USER)
+                        password = AuthManager.TEST_PASSWORD
                 },
                 placeholder = { Text(text = stringResource(R.string.email)) },
                 label = { Text(text = stringResource(R.string.email)) },
@@ -192,7 +201,7 @@ private fun SignInScreenInternal(uiState: SignInUIState) {
 
             TextButton(
                 enabled = !uiState.busy,
-                onClick = { uiState.onNavToSignUp(email) }
+                onClick = { uiState.onNavToSignUp(email.text) }
             ) {
                 Text(text = stringResource(R.string.don_t_have_an_account_sign_up))
             }
@@ -210,23 +219,25 @@ private fun SignInScreenInternal(uiState: SignInUIState) {
 
         val confirmEnabled by remember {
             derivedStateOf {
-                email.isNotBlank() && !uiState.forgotPasswordBusy
+                email.text.isNotBlank() && !uiState.busy
             }
         }
 
-        val forgotPasswordImeAction by remember {
-            derivedStateOf {
-                if (confirmEnabled)
-                    ImeAction.Go
-                else
-                    ImeAction.Done
-            }
-        }
-
+        //This is causing a bug where if the text starts blank, then the
+        //user enters 1 character, the 2nd entered character will replace the
+        //1st instead of appending to the end. Future TODO
+//        val forgotPasswordImeAction by remember {
+//            derivedStateOf {
+//                if (confirmEnabled)
+//                    ImeAction.Go
+//                else
+//                    ImeAction.Done
+//            }
+//        }
 
         fun forgotPasswordConfirmClick() {
             keyboardController?.hide()
-            uiState.onSendForgotPasswordEmail(email)
+            uiState.onSendForgotPasswordEmail(email.text)
         }
 
         fun dismissForgotPasswordDialog() {
@@ -246,36 +257,36 @@ private fun SignInScreenInternal(uiState: SignInUIState) {
             title = { Text(stringResource(R.string.forgot_password)) },
             text = {
                 Box(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.width(300.dp)
                 ) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(
-                            20.dp,
-                            alignment = Alignment.CenterVertically
-                        )
-                    ) {
                         OutlinedTextField(
                             value = email,
                             onValueChange = {
-                                if(showForgotPassword) {
-                                    email = it.trim().lowercase()
-                                }
+                                email = TextFieldValue(
+                                    text = it.text.trim().lowercase(),
+                                    selection = it.selection
+                                )
+                                //confirmEnabled = email.text.isNotBlank()
                             },
                             label = { Text(text = stringResource(R.string.email)) },
                             singleLine = true,
                             enabled = !uiState.forgotPasswordBusy,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .focusRequester(focusRequester),
+                                .focusRequester(focusRequester)
+                                .onFocusChanged { state ->
+                                    if(state.isFocused) {
+                                        email = TextFieldValue(
+                                            text = email.text,
+                                            selection = TextRange(email.text.length)
+                                        )
+                                    }
+                                },
                             keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Email,
-                                imeAction = forgotPasswordImeAction
-                            ),
-                            keyboardActions = KeyboardActions(
-                                onGo = { forgotPasswordConfirmClick() },
-                                onDone = { keyboardController?.hide() })
+                                keyboardType = KeyboardType.Email
+                            )
                         )
-                    }
+
 
                     if (uiState.forgotPasswordBusy) {
                         CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
@@ -309,6 +320,7 @@ private fun SignInScreenInternal(uiState: SignInUIState) {
     }
 
     if (uiState.showForgotPasswordSuccess) {
+        showForgotPassword = false
         OkDialog(
             onDismissRequest = uiState.onHideForgotPasswordSuccess,
             title = stringResource(R.string.email_sent),

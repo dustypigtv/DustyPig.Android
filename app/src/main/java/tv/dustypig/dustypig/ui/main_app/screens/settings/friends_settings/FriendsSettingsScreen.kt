@@ -10,10 +10,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
@@ -42,7 +42,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -92,7 +91,6 @@ private fun FriendsSettingsScreenInternal(uiState: FriendsSettingsUIState) {
                 modifier = Modifier.fillMaxSize(),
                 state = listState,
                 horizontalAlignment = Alignment.CenterHorizontally,
-                //verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
 
                 item {
@@ -172,15 +170,6 @@ private fun FriendsSettingsScreenInternal(uiState: FriendsSettingsUIState) {
                 }
             }
 
-            val imeAction by remember {
-                derivedStateOf {
-                    if (submitEnabled)
-                        ImeAction.Go
-                    else
-                        ImeAction.Done
-                }
-            }
-
 
             fun submitClicked() {
                 keyboardController?.hide()
@@ -205,37 +194,25 @@ private fun FriendsSettingsScreenInternal(uiState: FriendsSettingsUIState) {
                 title = { Text(text = stringResource(R.string.invite_friend)) },
                 text = {
                     Box(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.width(300.dp)
                     ) {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(
-                                20.dp,
-                                alignment = Alignment.CenterVertically
+                        OutlinedTextField(
+                            value = email,
+                            onValueChange = { email = it.trim().lowercase() },
+                            label = { Text(text = stringResource(R.string.email)) },
+                            singleLine = true,
+                            enabled = !uiState.inviteBusy,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .focusRequester(focusRequester),
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Email
                             )
-                        ) {
-                            OutlinedTextField(
-                                value = email,
-                                onValueChange = { email = it.trim().lowercase() },
-                                label = { Text(text = stringResource(R.string.email)) },
-                                singleLine = true,
-                                enabled = !uiState.inviteBusy,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .focusRequester(focusRequester),
-                                keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Email,
-                                    imeAction = imeAction
-                                ),
-                                keyboardActions = KeyboardActions(
-                                    onGo = { submitClicked() },
-                                    onDone = { keyboardController?.hide() })
-                            )
-                        }
+                        )
 
                         if (uiState.inviteBusy) {
                             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                         }
-
                     }
                 },
                 confirmButton = {

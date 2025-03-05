@@ -23,8 +23,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.DownloadDone
@@ -51,6 +49,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
@@ -69,11 +68,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -85,6 +85,7 @@ import coil.request.ImageRequest
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Play
+import kotlinx.coroutines.job
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.detectReorder
@@ -118,6 +119,7 @@ fun PlaylistDetailsScreen(vm: PlaylistDetailsViewModel) {
 
 @Composable
 private fun PlaylistDetailsScreenInternal(uiState: PlaylistDetailsUIState) {
+
 
     val showRenameDialog = remember {
         mutableStateOf(false)
@@ -185,8 +187,22 @@ private fun PlaylistDetailsScreenInternal(uiState: PlaylistDetailsUIState) {
     }
 
     if (showRenameDialog.value) {
+
+        val keyboardController = LocalSoftwareKeyboardController.current
+        val focusRequester = remember { FocusRequester() }
         var newName by remember {
-            mutableStateOf(uiState.title)
+            mutableStateOf(
+                TextFieldValue(
+                    text = uiState.title,
+                    selection = TextRange(0, uiState.title.length)
+                )
+            )
+        }
+
+        LaunchedEffect(true) {
+            this.coroutineContext.job.invokeOnCompletion {
+                focusRequester.requestFocus()
+            }
         }
 
         AlertDialog(
@@ -204,29 +220,30 @@ private fun PlaylistDetailsScreenInternal(uiState: PlaylistDetailsUIState) {
                     label = { Text(text = stringResource(R.string.new_name)) },
                     singleLine = true,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .focusRequester(FocusRequester()),
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Go
-                    ),
-                    keyboardActions = KeyboardActions(onGo = {
-                        showRenameDialog.value = false
-                        uiState.onRenamePlaylist(newName)
-                    })
+                        .width(300.dp)
+                        .focusRequester(FocusRequester())
                 )
             },
             onDismissRequest = { showRenameDialog.value = false },
             confirmButton = {
-                TextButton(onClick = {
-                    showRenameDialog.value = false
-                    uiState.onRenamePlaylist(newName)
-                }) {
+                TextButton(
+                    enabled = newName.text.isNotEmpty() && newName.text != uiState.title,
+                    onClick = {
+                        keyboardController?.hide()
+                        showRenameDialog.value = false
+                        uiState.onRenamePlaylist(newName.text)
+                    }
+                ) {
                     Text(text = stringResource(R.string.save))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showRenameDialog.value = false }) {
+                TextButton(
+                    onClick = {
+                        keyboardController?.hide()
+                        showRenameDialog.value = false
+                    }
+                ) {
                     Text(stringResource(R.string.cancel))
                 }
             }

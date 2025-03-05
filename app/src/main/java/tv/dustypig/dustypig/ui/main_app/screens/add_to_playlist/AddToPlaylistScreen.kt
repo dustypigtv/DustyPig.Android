@@ -47,7 +47,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -242,15 +241,6 @@ private fun AddToPlaylistScreenInternal(uiState: AddToPlaylistUIState) {
             }
         }
 
-        val imeAction by remember {
-            derivedStateOf {
-                if (confirmEnabled)
-                    ImeAction.Go
-                else
-                    ImeAction.Done
-            }
-        }
-
         fun dismissShowNewPlaylistDialog() {
             keyboardController?.hide()
             showNewPlaylistDialog = false
@@ -268,37 +258,22 @@ private fun AddToPlaylistScreenInternal(uiState: AddToPlaylistUIState) {
             title = { Text(stringResource(R.string.new_playlist)) },
             text = {
                 Box(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.width(300.dp)
                 ) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(
-                            20.dp,
-                            alignment = Alignment.CenterVertically
-                        )
-                    ) {
-                        OutlinedTextField(
-                            value = newName,
-                            onValueChange = { newName = it },
-                            label = { Text(text = stringResource(R.string.name)) },
-                            singleLine = true,
-                            enabled = !uiState.busy,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .focusRequester(focusRequester),
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Unspecified,
-                                imeAction = imeAction
-                            ),
-                            keyboardActions = KeyboardActions(
-                                onGo = { confirmNewPlaylistClicked() },
-                                onDone = { keyboardController?.hide() })
-                        )
-                    }
+                    OutlinedTextField(
+                        value = newName,
+                        onValueChange = { newName = it },
+                        label = { Text(text = stringResource(R.string.name)) },
+                        singleLine = true,
+                        enabled = !uiState.busy,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(focusRequester)
+                    )
 
                     if (uiState.busy) {
                         CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                     }
-
                 }
             },
             confirmButton = {
@@ -324,6 +299,7 @@ private fun AddToPlaylistScreenInternal(uiState: AddToPlaylistUIState) {
     if (showAutoEpisodesDialog) {
         YesNoDialog(
             onNo = {
+                showAutoEpisodesDialog = false
                 if (newPlaylistMode) {
                     uiState.onNewPlaylist(newName, false)
                 } else {
@@ -331,6 +307,7 @@ private fun AddToPlaylistScreenInternal(uiState: AddToPlaylistUIState) {
                 }
             },
             onYes = {
+                showAutoEpisodesDialog = false
                 if (newPlaylistMode) {
                     uiState.onNewPlaylist(newName, true)
                 } else {
