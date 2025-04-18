@@ -6,7 +6,11 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.util.Log
+import androidx.work.impl.utils.forAll
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -14,7 +18,8 @@ import javax.inject.Singleton
 class NetworkManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-    private var connected = false
+    private var _isConnected = MutableStateFlow(false)
+    val isConnectedStateFlow = _isConnected.asStateFlow()
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
 
@@ -23,13 +28,13 @@ class NetworkManager @Inject constructor(
         override fun onAvailable(network: Network) {
             super.onAvailable(network)
             Log.d(tag, "onAvailable")
-            connected = true
+            _isConnected.update { true }
         }
 
         override fun onLost(network: Network) {
             super.onLost(network)
             Log.d(tag, "onLost")
-            connected = false
+            _isConnected.update { false }
         }
     }
 
@@ -41,6 +46,6 @@ class NetworkManager @Inject constructor(
         cm.registerNetworkCallback(networkRequest, networkCallback)
     }
 
-    fun isConnected() = connected
+    fun isConnected() = _isConnected.value
 
 }
