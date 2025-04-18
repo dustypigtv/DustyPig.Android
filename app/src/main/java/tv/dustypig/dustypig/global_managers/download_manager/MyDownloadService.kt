@@ -123,8 +123,9 @@ class MyDownloadService : DownloadService(
                         httpEngine,
                         Executors.newSingleThreadExecutor()
                     )
+                } else {
+                    _httpDataSourceFactory = DefaultHttpDataSource.Factory()
                 }
-                _httpDataSourceFactory = DefaultHttpDataSource.Factory()
             }
             return _httpDataSourceFactory as DataSource.Factory
         }

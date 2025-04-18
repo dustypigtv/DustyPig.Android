@@ -24,7 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DownloadDone
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.HourglassBottom
+import androidx.compose.material.icons.filled.HourglassTop
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayCircleOutline
 import androidx.compose.material.icons.outlined.Delete
@@ -282,7 +282,7 @@ private fun RowScope.DownloadInfo(download: UIDownload) {
 
             DownloadStatus.Pending -> {
                 TintedIcon(
-                    imageVector = Icons.Filled.HourglassBottom,
+                    imageVector = Icons.Filled.HourglassTop,
                     modifier = Modifier.size(24.dp)
                 )
             }

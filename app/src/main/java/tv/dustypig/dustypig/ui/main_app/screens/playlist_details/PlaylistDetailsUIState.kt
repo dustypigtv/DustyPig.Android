@@ -26,6 +26,7 @@ data class PlaylistDetailsUIState(
     val items: List<PlaylistItem> = listOf(),
     val updateList: Boolean = false,
     val downloadStatus: DownloadStatus = DownloadStatus.None,
+    val downloadPercent: Float = 0f,
     val castManager: CastManager? = null,
 
     //Events

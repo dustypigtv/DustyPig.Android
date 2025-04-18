@@ -88,23 +88,27 @@ class SeriesDetailsViewModel @Inject constructor(
 
         viewModelScope.launch {
             downloadManager.currentDownloads.collectLatest { jobLst ->
+                var status = DownloadStatus.None
+                var percent = 0f
+                var cnt = 0
+
                 val job = jobLst.firstOrNull {
                     it.mediaId == _mediaId && it.mediaType == MediaTypes.Series
                 }
-                if (job == null) {
-                    _uiState.update {
-                        it.copy(
-                            downloadStatus = DownloadStatus.None,
-                            currentDownloadCount = 0
-                        )
+                if (job != null) {
+                    status = job.status
+                    cnt = job.count
+                    percent = when (cnt) {
+                        0 -> 1f
+                        else -> job.downloads.sumOf { it.percent.toDouble() }.toFloat() / cnt
                     }
-                } else {
-                    _uiState.update {
-                        it.copy(
-                            downloadStatus = job.status,
-                            currentDownloadCount = job.count
-                        )
-                    }
+                }
+                _uiState.update {
+                    it.copy(
+                        downloadStatus = status,
+                        currentDownloadCount = cnt,
+                        downloadPercent = percent
+                    )
                 }
             }
         }

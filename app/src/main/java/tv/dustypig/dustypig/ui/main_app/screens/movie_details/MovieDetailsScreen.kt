@@ -23,7 +23,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.DownloadDone
-import androidx.compose.material.icons.filled.Downloading
+import androidx.compose.material.icons.filled.HourglassTop
 import androidx.compose.material.icons.filled.RemoveRedEye
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -66,6 +66,7 @@ import tv.dustypig.dustypig.ui.composables.CastTopAppBar
 import tv.dustypig.dustypig.ui.composables.Credits
 import tv.dustypig.dustypig.ui.composables.CreditsData
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
+import tv.dustypig.dustypig.ui.composables.OkDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
 import tv.dustypig.dustypig.ui.composables.OnOrientation
 import tv.dustypig.dustypig.ui.composables.PreviewBase
@@ -277,7 +278,7 @@ private fun MovieTitleLayout(uiState: MovieDetailsUIState) {
     val downloadIcon = when (uiState.downloadStatus) {
         DownloadStatus.None -> Icons.Filled.Download
         DownloadStatus.Finished -> Icons.Filled.DownloadDone
-        else -> Icons.Filled.Downloading
+        else -> Icons.Filled.HourglassTop
     }
 
 
@@ -413,13 +414,23 @@ private fun MovieTitleLayout(uiState: MovieDetailsUIState) {
                     }
                 }
 
+
                 IconButton(
                     onClick = ::downloadClicked
                 ) {
-                    TintedIcon(
-                        imageVector = downloadIcon,
-                        modifier = Modifier.size(24.dp)
-                    )
+                    if(uiState.downloadStatus == DownloadStatus.Running) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .size(24.dp),
+                            trackColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            progress = { uiState.downloadPercent }
+                        )
+                    } else {
+                        TintedIcon(
+                            imageVector = downloadIcon,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
 
                 IconButton(
@@ -497,15 +508,24 @@ private fun MovieTitleLayout(uiState: MovieDetailsUIState) {
 
 
     if (showRemoveDownload) {
-        YesNoDialog(
-            onNo = { showRemoveDownload = false },
-            onYes = {
-                showRemoveDownload = false
-                uiState.onRemoveDownload()
-            },
-            title = stringResource(R.string.confirm),
-            message = stringResource(R.string.do_you_want_to_remove_the_download)
-        )
+
+        if(uiState.downloadingForPlaylist) {
+            OkDialog(
+                onDismissRequest = { showRemoveDownload = false },
+                title = stringResource(R.string.downloading_movie),
+                message = stringResource(R.string.downloading_movie_for_playlist)
+            )
+        } else {
+            YesNoDialog(
+                onNo = { showRemoveDownload = false },
+                onYes = {
+                    showRemoveDownload = false
+                    uiState.onRemoveDownload()
+                },
+                title = stringResource(R.string.confirm),
+                message = stringResource(R.string.do_you_want_to_remove_the_download)
+            )
+        }
     }
 
 }

@@ -130,17 +130,25 @@ class EpisodeDetailsViewModel
     }
 
     private fun updateDownloadStatus(listOfJobs: List<UIJob>) {
-        val job = listOfJobs.firstOrNull {
-            it.mediaId == _mediaId && it.mediaType == MediaTypes.Episode
+        var status = DownloadStatus.None
+        var percent = 0f
+        var downloadingForPlaylistOrSeries = false
+        for(job in listOfJobs) {
+            for(dl in job.downloads) {
+                if(dl.mediaId == _mediaId) {
+                    percent = dl.percent
+                    status = dl.status
+                    if(job.mediaType == MediaTypes.Series || job.mediaType == MediaTypes.Playlist)
+                        downloadingForPlaylistOrSeries = true
+                }
+            }
         }
-        if (job == null) {
-            _uiState.update {
-                it.copy(downloadStatus = DownloadStatus.None)
-            }
-        } else {
-            _uiState.update {
-                it.copy(downloadStatus = job.status)
-            }
+        _uiState.update {
+            it.copy(
+                downloadStatus = status,
+                downloadPercent = percent,
+                downloadingForPlaylistOrSeries = downloadingForPlaylistOrSeries
+            )
         }
     }
 

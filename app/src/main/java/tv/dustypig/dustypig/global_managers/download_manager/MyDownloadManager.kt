@@ -117,6 +117,15 @@ class MyDownloadManager @Inject constructor(
             }
         }
 
+        _scope.launch {
+            PlayerStateManager.playbackEnded.collectLatest {
+                val jobs = _db.getJobs(_profileId)
+                for(job in jobs) {
+                    job.pending = true
+                    _db.update(job)
+                }
+            }
+        }
 
         _statusTimer.schedule(
             delay = 500,
@@ -323,8 +332,6 @@ class MyDownloadManager @Inject constructor(
                 }
             }
 
-            //Job json
-
 
             //Job artwork
             if (dbJob.artworkUrl != null) {
@@ -433,7 +440,7 @@ class MyDownloadManager @Inject constructor(
 
                 Log.d(TAG, "Adding download: ${dbDownload.mediaId}")
 
-                val uri = Uri.parse(dbDownload.url)
+                val uri = dbDownload.url.toUri()
 
                 //Only mediaId, Uri and MimeType are persisted to the DownloadRequest
                 val mediaItem = MediaItem
@@ -517,7 +524,7 @@ class MyDownloadManager @Inject constructor(
         if (filename.exists())
             filename.delete()
 
-        val uri = Uri.parse(url)
+        val uri = url.toUri()
         val request = DownloadManager.Request(uri)
         request.setDestinationUri(Uri.fromFile(filename))
         request.setAllowedOverMetered(true)
@@ -544,7 +551,7 @@ class MyDownloadManager @Inject constructor(
         if (url.isNullOrBlank())
             return null
 
-        var ext = Uri.parse(url).lastPathSegment ?: ""
+        var ext = url.toUri().lastPathSegment ?: ""
         if (ext.contains('.'))
             ext = ext.substring(ext.lastIndexOf('.') + 1)
 
@@ -1044,7 +1051,7 @@ class MyDownloadManager @Inject constructor(
 
     private fun buildMediaItem(request: DownloadRequest, dbDownload: DBDownload): MediaItem {
 
-        var artworkUri = Uri.parse(dbDownload.artworkUrl)
+        var artworkUri = dbDownload.artworkUrl?.toUri()
         if(dbDownload.artworkFile != null) {
             val file = File(_downloadedFilesDir, dbDownload.artworkFile)
             if(file.exists())

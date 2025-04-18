@@ -97,12 +97,25 @@ class MovieDetailsViewModel @Inject constructor(
 
         viewModelScope.launch {
             downloadManager.currentDownloads.collectLatest { jobLst ->
-                val job = jobLst.firstOrNull {
-                    it.mediaId == _mediaId && it.mediaType == MediaTypes.Movie
+
+                var status = DownloadStatus.None
+                var percent = 0f
+                var downloadingForPlaylist = false
+                for(job in jobLst) {
+                    for(dl in job.downloads) {
+                        if(dl.mediaId == _mediaId) {
+                            percent = dl.percent
+                            status = dl.status
+                            if(job.mediaType == MediaTypes.Playlist)
+                                downloadingForPlaylist = true
+                        }
+                    }
                 }
                 _uiState.update {
                     it.copy(
-                        downloadStatus = job?.status ?: DownloadStatus.None
+                        downloadStatus = status,
+                        downloadPercent = percent,
+                        downloadingForPlaylist = downloadingForPlaylist
                     )
                 }
             }

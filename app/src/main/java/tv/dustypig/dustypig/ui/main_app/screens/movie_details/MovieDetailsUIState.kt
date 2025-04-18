@@ -34,6 +34,8 @@ data class MovieDetailsUIState(
     val accessRequestStatus: OverrideRequestStatus = OverrideRequestStatus.NotRequested,
     val accessRequestBusy: Boolean = false,
     val downloadStatus: DownloadStatus = DownloadStatus.None,
+    val downloadPercent: Float = 0f,
+    val downloadingForPlaylist: Boolean = false,
 
     //Events
     val onPopBackStack: () -> Unit = { },

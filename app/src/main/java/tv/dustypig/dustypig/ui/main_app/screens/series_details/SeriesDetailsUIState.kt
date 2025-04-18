@@ -40,6 +40,7 @@ data class SeriesDetailsUIState(
     val accessRequestStatus: OverrideRequestStatus = OverrideRequestStatus.NotRequested,
     val accessRequestBusy: Boolean = false,
     val downloadStatus: DownloadStatus = DownloadStatus.None,
+    val downloadPercent: Float = 0f,
     val currentDownloadCount: Int = 0,
     val subscribed: Boolean = false,
     val subscribeBusy: Boolean = false,

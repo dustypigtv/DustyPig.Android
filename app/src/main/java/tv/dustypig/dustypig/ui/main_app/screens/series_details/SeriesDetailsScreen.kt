@@ -30,7 +30,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.DownloadDone
-import androidx.compose.material.icons.filled.Downloading
+import androidx.compose.material.icons.filled.HourglassTop
 import androidx.compose.material.icons.filled.NotificationAdd
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.PlayCircleOutline
@@ -334,7 +334,7 @@ private fun SeriesTitleLayout(uiState: SeriesDetailsUIState) {
     val downloadIcon = when (uiState.downloadStatus) {
         DownloadStatus.None -> Icons.Filled.Download
         DownloadStatus.Finished -> Icons.Filled.DownloadDone
-        else -> Icons.Filled.Downloading
+        else -> Icons.Filled.HourglassTop
     }
 
     val subscribeIcon = if (uiState.subscribed)
@@ -462,10 +462,19 @@ private fun SeriesTitleLayout(uiState: SeriesDetailsUIState) {
                 IconButton(
                     onClick = { showChangeDownloadCount = true }
                 ) {
-                    TintedIcon(
-                        imageVector = downloadIcon,
-                        modifier = Modifier.size(24.dp)
-                    )
+                    if(uiState.downloadStatus == DownloadStatus.Running) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .size(24.dp),
+                            trackColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            progress = { uiState.downloadPercent }
+                        )
+                    } else {
+                        TintedIcon(
+                            imageVector = downloadIcon,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
 
                 IconButton(

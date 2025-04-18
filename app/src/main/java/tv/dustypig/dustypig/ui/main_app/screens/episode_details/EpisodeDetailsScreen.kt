@@ -19,7 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.DownloadDone
-import androidx.compose.material.icons.filled.Downloading
+import androidx.compose.material.icons.filled.HourglassTop
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -34,6 +34,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -52,6 +53,7 @@ import tv.dustypig.dustypig.R
 import tv.dustypig.dustypig.global_managers.download_manager.DownloadStatus
 import tv.dustypig.dustypig.ui.composables.CastTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
+import tv.dustypig.dustypig.ui.composables.OkDialog
 import tv.dustypig.dustypig.ui.composables.OnDevice
 import tv.dustypig.dustypig.ui.composables.OnOrientation
 import tv.dustypig.dustypig.ui.composables.PreviewBase
@@ -75,7 +77,7 @@ private fun EpisodeDetailsScreenInternal(uiState: EpisodeDetailsUIState) {
         }
     }
 
-    val showRemoveDownloadDialog = remember {
+    var showRemoveDownloadDialog by remember {
         mutableStateOf(false)
     }
 
@@ -83,7 +85,7 @@ private fun EpisodeDetailsScreenInternal(uiState: EpisodeDetailsUIState) {
         if (uiState.downloadStatus == DownloadStatus.None) {
             uiState.onAddDownload()
         } else {
-            showRemoveDownloadDialog.value = true
+            showRemoveDownloadDialog = true
         }
     }
 
@@ -129,16 +131,24 @@ private fun EpisodeDetailsScreenInternal(uiState: EpisodeDetailsUIState) {
         )
     }
 
-    if (showRemoveDownloadDialog.value) {
-        YesNoDialog(
-            onNo = { showRemoveDownloadDialog.value = false },
-            onYes = {
-                showRemoveDownloadDialog.value = false
-                uiState.onRemoveDownload()
-            },
-            title = stringResource(R.string.confirm),
-            message = stringResource(R.string.do_you_want_to_remove_the_download)
-        )
+    if (showRemoveDownloadDialog) {
+        if(uiState.downloadingForPlaylistOrSeries) {
+            OkDialog(
+                onDismissRequest = { showRemoveDownloadDialog = false },
+                title = stringResource(R.string.downloading_episode),
+                message = stringResource(R.string.downloading_episode_for_series_or_playlist)
+            )
+        } else {
+            YesNoDialog(
+                onNo = { showRemoveDownloadDialog = false },
+                onYes = {
+                    showRemoveDownloadDialog = false
+                    uiState.onRemoveDownload()
+                },
+                title = stringResource(R.string.confirm),
+                message = stringResource(R.string.do_you_want_to_remove_the_download)
+            )
+        }
     }
 
     if (uiState.showErrorDialog) {
@@ -286,7 +296,7 @@ private fun InfoLayout(
         val downloadIcon = when (uiState.downloadStatus) {
             DownloadStatus.None -> Icons.Filled.Download
             DownloadStatus.Finished -> Icons.Filled.DownloadDone
-            else -> Icons.Filled.Downloading
+            else -> Icons.Filled.HourglassTop
         }
 
         Button(
@@ -307,7 +317,9 @@ private fun InfoLayout(
         Row(
             horizontalArrangement = Arrangement.spacedBy(24.dp),
             verticalAlignment = Alignment.Top,
-            modifier = Modifier.padding(buttonPadding).fillMaxWidth()
+            modifier = Modifier
+                .padding(buttonPadding)
+                .fillMaxWidth()
         ) {
 
             if(!isTablet) {
@@ -317,10 +329,19 @@ private fun InfoLayout(
             IconButton(
                 onClick = toggleDownload
             ) {
-                TintedIcon(
-                    imageVector = downloadIcon,
-                    modifier = Modifier.size(24.dp)
-                )
+                if(uiState.downloadStatus == DownloadStatus.Running) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(24.dp),
+                        trackColor = MaterialTheme.colorScheme.tertiaryContainer,
+                        progress = { uiState.downloadPercent }
+                    )
+                } else {
+                    TintedIcon(
+                        imageVector = downloadIcon,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
 
             IconButton(

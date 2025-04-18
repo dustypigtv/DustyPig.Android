@@ -22,6 +22,8 @@ data class EpisodeDetailsUIState (
     val showGoToSeries: Boolean = false,
     val length: String = "",
     val downloadStatus: DownloadStatus = DownloadStatus.None,
+    val downloadPercent: Float = 0f,
+    val downloadingForPlaylistOrSeries: Boolean = false,
     val castManager: CastManager? = null,
 
     //Events

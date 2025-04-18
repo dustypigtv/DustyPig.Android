@@ -26,9 +26,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.DownloadDone
-import androidx.compose.material.icons.filled.Downloading
 import androidx.compose.material.icons.filled.DragIndicator
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.HourglassTop
 import androidx.compose.material.icons.filled.PlayCircleOutline
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Info
@@ -532,7 +532,7 @@ private fun PlaybackLayout(
         val downloadIcon = when (uiState.downloadStatus) {
             DownloadStatus.None -> Icons.Filled.Download
             DownloadStatus.Finished -> Icons.Filled.DownloadDone
-            else -> Icons.Filled.Downloading
+            else -> Icons.Filled.HourglassTop
         }
         val downloadText = when (uiState.downloadStatus) {
             DownloadStatus.None -> stringResource(R.string.download)
@@ -594,11 +594,21 @@ private fun PlaybackLayout(
                 onClick = { showDownloadDialog.value = true },
                 modifier = modifier.padding(buttonPadding)
             ) {
-                Icon(
-                    imageVector = downloadIcon,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
+                if(uiState.downloadStatus == DownloadStatus.Running) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(20.dp),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        trackColor = MaterialTheme.colorScheme.tertiaryContainer,
+                        progress = { uiState.downloadPercent }
+                    )
+                } else {
+                    Icon(
+                        imageVector = downloadIcon,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(text = downloadText)
             }

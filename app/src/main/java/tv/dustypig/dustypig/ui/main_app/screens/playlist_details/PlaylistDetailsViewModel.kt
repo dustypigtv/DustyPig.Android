@@ -130,25 +130,27 @@ class PlaylistDetailsViewModel
     }
 
     private fun updateDownloadStatus(jobs: List<UIJob>) {
-        if (_playlistId > 0) {
-            val job = jobs.firstOrNull {
-                it.mediaId == _playlistId && it.mediaType == MediaTypes.Playlist
+        var status = DownloadStatus.None
+        var percent = 0f
+        var cnt = 0
+
+        val job = jobs.firstOrNull {
+            it.mediaId == _playlistId && it.mediaType == MediaTypes.Playlist
+        }
+        if (job != null) {
+            status = job.status
+            cnt = job.count
+            percent = when (cnt) {
+                0 -> 1f
+                else -> job.downloads.sumOf { it.percent.toDouble() }.toFloat() / cnt
             }
-            if (job == null) {
-                _uiState.update {
-                    it.copy(
-                        downloadStatus = DownloadStatus.None,
-                        currentDownloadCount = 0
-                    )
-                }
-            } else {
-                _uiState.update {
-                    it.copy(
-                        downloadStatus = job.status,
-                        currentDownloadCount = job.count
-                    )
-                }
-            }
+        }
+        _uiState.update {
+            it.copy(
+                downloadStatus = status,
+                currentDownloadCount = cnt,
+                downloadPercent = percent
+            )
         }
     }
 
