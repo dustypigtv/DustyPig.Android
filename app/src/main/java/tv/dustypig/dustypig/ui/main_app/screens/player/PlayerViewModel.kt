@@ -2,8 +2,8 @@ package tv.dustypig.dustypig.ui.main_app.screens.player
 
 import android.annotation.SuppressLint
 import android.app.Application
-import android.net.Uri
 import android.util.Log
+import androidx.core.net.toUri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -381,13 +381,13 @@ class PlayerViewModel @Inject constructor(
                 .setUri(detailedMovie.videoUrl)
                 .setMimeType(
                     Util.getAdaptiveMimeTypeForContentType(
-                        Util.inferContentType(Uri.parse(detailedMovie.videoUrl))
+                        Util.inferContentType(detailedMovie.videoUrl!!.toUri())
                     )
                 )
                 .setMediaMetadata(
                     MediaMetadata
                         .Builder()
-                        .setArtworkUri(Uri.parse(detailedMovie.artworkUrl))
+                        .setArtworkUri(detailedMovie.artworkUrl.toUri())
                         .setMediaType(MediaMetadata.MEDIA_TYPE_MOVIE)
                         .setTitle(detailedMovie.title)
 //                        .setReleaseYear(calendar.get(Calendar.YEAR))
@@ -435,13 +435,13 @@ class PlayerViewModel @Inject constructor(
                     .setUri(ep.videoUrl)
                     .setMimeType(
                         Util.getAdaptiveMimeTypeForContentType(
-                            Util.inferContentType(Uri.parse(ep.videoUrl))
+                            Util.inferContentType(ep.videoUrl.toUri())
                         )
                     )
                     .setMediaMetadata(
                         MediaMetadata
                             .Builder()
-                            .setArtworkUri(Uri.parse(ep.artworkUrl))
+                            .setArtworkUri(ep.artworkUrl.toUri())
                             .setMediaType(MediaMetadata.MEDIA_TYPE_TV_SHOW)
                             .setTitle(ep.fullDisplayTitle())
                             .setSubtitle(detailedSeries.title)
@@ -495,13 +495,13 @@ class PlayerViewModel @Inject constructor(
                     .setUri(pli.videoUrl)
                     .setMimeType(
                         Util.getAdaptiveMimeTypeForContentType(
-                            Util.inferContentType(Uri.parse(pli.videoUrl))
+                            Util.inferContentType(pli.videoUrl.toUri())
                         )
                     )
                     .setMediaMetadata(
                         MediaMetadata
                             .Builder()
-                            .setArtworkUri(Uri.parse(pli.artworkUrl))
+                            .setArtworkUri(pli.artworkUrl.toUri())
                             .setMediaType(MediaMetadata.MEDIA_TYPE_VIDEO)
                             .setTitle(pli.title)
                             .setSubtitle(detailedPlaylist.name)
@@ -529,24 +529,26 @@ class PlayerViewModel @Inject constructor(
         var playbackPositionMs = 0L
 
         for(info in infos) {
-            _videoTimings.add(
-                VideoTiming(
-                    mediaId = info.dbDownload.mediaId.toString(),
-                    introStartTime = info.dbDownload.introStartTime,
-                    introEndTime = info.dbDownload.introEndTime,
-                    creditsStartTime = info.dbDownload.creditsStartTime,
-                    isMovie = info.dbDownload.mediaType == MediaTypes.Movie
-                )
-            )
 
-            if(info.dbJob.id == _mediaId) {
+            if(_mediaId == info.dbJob.mediaId) {
+
+                _videoTimings.add(
+                    VideoTiming(
+                        mediaId = info.dbDownload.mediaId.toString(),
+                        introStartTime = info.dbDownload.introStartTime,
+                        introEndTime = info.dbDownload.introEndTime,
+                        creditsStartTime = info.dbDownload.creditsStartTime,
+                        isMovie = info.dbDownload.mediaType == MediaTypes.Movie
+                    )
+                )
+
                 if (info.dbDownload.id == _upNextId) {
                     currentItemIndex = _mediaQueue.count() - 1
                     playbackPositionMs = convertPlayedToMs(info.dbDownload.played)
                 }
-            }
 
-            _mediaQueue.add(info.mediaItem)
+                _mediaQueue.add(info.mediaItem)
+            }
         }
 
         return StartInfo(index = currentItemIndex, milliSeconds = playbackPositionMs)
