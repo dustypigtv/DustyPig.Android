@@ -14,6 +14,7 @@ import tv.dustypig.dustypig.api.models.MediaTypes
 import tv.dustypig.dustypig.global_managers.download_manager.MyDownloadManager
 import tv.dustypig.dustypig.global_managers.download_manager.UIDownload
 import tv.dustypig.dustypig.global_managers.download_manager.UIJob
+import tv.dustypig.dustypig.global_managers.settings_manager.SettingsManager
 import tv.dustypig.dustypig.nav.RouteNavigator
 import tv.dustypig.dustypig.ui.main_app.screens.player.PlayerNav
 import javax.inject.Inject
@@ -23,7 +24,8 @@ import javax.inject.Inject
 class DownloadsViewModel
 @Inject constructor(
     private val routeNavigator: RouteNavigator,
-    private val downloadManager: MyDownloadManager
+    private val downloadManager: MyDownloadManager,
+    private val settingsManager: SettingsManager
 ) : ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
@@ -32,12 +34,21 @@ class DownloadsViewModel
             onDeleteAll = ::deleteAll,
             onDeleteDownload = ::deleteDownload,
             onModifyDownload = ::modifyDownload,
-            onPlayItem = ::playItem
+            onPlayItem = ::playItem,
+            onDownloadTutorialSeen = ::downloadTutorialSeen
         )
     )
     val uiState = _uiState.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    downloadTutorialSeen = settingsManager.getDownloadTutorialSeen()
+                )
+            }
+        }
+
         viewModelScope.launch {
             downloadManager.currentDownloads.collectLatest { jobLst ->
                 _uiState.update {
@@ -61,6 +72,16 @@ class DownloadsViewModel
     fun hideError() {
         _uiState.update {
             it.copy(showErrorDialog = false)
+        }
+    }
+
+
+    fun downloadTutorialSeen() {
+        viewModelScope.launch {
+            settingsManager.setDownloadTutorialSeen()
+        }
+        _uiState.update {
+            it.copy(downloadTutorialSeen = true)
         }
     }
 

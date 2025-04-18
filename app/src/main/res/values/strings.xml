@@ -180,4 +180,5 @@
     <string name="downloading_movie_for_playlist">This movie is being downloaded as part of a downloaded playlist, and can\'t be cancelled here.</string>
     <string name="downloading_episode">Downloading Episode</string>
     <string name="downloading_episode_for_series_or_playlist">This episode is being downloaded as part of a downloaded series or playlist, and can\'t be cancelled here.</string>
+    <string name="downloads_tutorial_message">You can manage downloads here. Swipe left parent items to delete. Swipe right on series and playlists to change downloads.</string>
 </resources>

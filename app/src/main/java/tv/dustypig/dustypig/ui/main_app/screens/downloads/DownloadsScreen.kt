@@ -67,6 +67,7 @@ import tv.dustypig.dustypig.global_managers.download_manager.UIJob
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.composables.LazyColumnBottomAlign
 import tv.dustypig.dustypig.ui.composables.MultiDownloadDialog
+import tv.dustypig.dustypig.ui.composables.OkDialog
 import tv.dustypig.dustypig.ui.composables.PreviewBase
 import tv.dustypig.dustypig.ui.composables.TintedIcon
 import tv.dustypig.dustypig.ui.composables.YesNoDialog
@@ -539,6 +540,15 @@ private fun DownloadsScreenInternal(uiState: DownloadsUIState) {
 
     if (uiState.showErrorDialog) {
         ErrorDialog(onDismissRequest = uiState.onHideError, message = uiState.errorMessage)
+    }
+
+
+    if(!uiState.downloadTutorialSeen) {
+        OkDialog(
+            onDismissRequest = uiState.onDownloadTutorialSeen,
+            title = stringResource(R.string.downloads),
+            message = stringResource(R.string.downloads_tutorial_message)
+        )
     }
 
 }

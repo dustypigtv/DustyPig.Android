@@ -33,6 +33,7 @@ class SettingsManager @Inject constructor(
         private const val PROFILE_ID_KEY = "profile_id"
         private const val IS_MAIN_PROFILE_KEY = "is_main_profile"
         private const val DOWNLOAD_OVER_CELLULAR_KEY = "download_over_cellular"
+        private const val DOWNLOAD_TUTORIAL_SEEN = "download_tutorial_seen"
         private const val SKIP_INTROS_KEY = "skip_intros"
         private const val SKIP_CREDITS_KEY = "skip_credits"
         private const val THEME_KEY = "theme"
@@ -116,6 +117,16 @@ class SettingsManager @Inject constructor(
 
     val downloadOverMobileFlow =
         context.dataStore.data.map { it[downloadOverMobilePreferencesKey()] ?: false }
+
+
+    private suspend fun downloadTutorialSeen() =
+        booleanPreferencesKey((profileKey(DOWNLOAD_TUTORIAL_SEEN)))
+
+    suspend fun getDownloadTutorialSeen() =
+        context.dataStore.data.map { it[downloadTutorialSeen()] ?: false }.first()
+
+    suspend fun setDownloadTutorialSeen() =
+        context.dataStore.edit { it[downloadTutorialSeen()] = true }
 
 
     private suspend fun skipIntrosPreferencesKey() =
