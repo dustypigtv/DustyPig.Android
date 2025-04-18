@@ -11,31 +11,19 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
+import android.util.Log
 import android.util.Rational
 import android.widget.ProgressBar
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -46,15 +34,11 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toAndroidRectF
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.PictureInPictureModeChangedInfo
 import androidx.core.content.ContextCompat
@@ -69,10 +53,9 @@ import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.PlayerView
-import tv.dustypig.dustypig.global_managers.PlayerStateManager
-import tv.dustypig.dustypig.ui.composables.CastButton
 import tv.dustypig.dustypig.ui.composables.CastControls
 import tv.dustypig.dustypig.ui.composables.CastSlider
+import tv.dustypig.dustypig.ui.composables.CastTopAppBar
 import tv.dustypig.dustypig.ui.composables.ErrorDialog
 import tv.dustypig.dustypig.ui.findActivity
 import tv.dustypig.dustypig.ui.hideSystemUi
@@ -94,14 +77,103 @@ fun PlayerScreen(vm: PlayerViewModel) {
 }
 
 
-@SuppressLint("PrivateResource")
-@OptIn(UnstableApi::class)
+
+
 @Composable
 private fun PlayerScreenInternal(uiState: PlayerUIState) {
 
     BackHandler(enabled = true) {
         uiState.onPopBackStack()
     }
+
+
+    var fullScreen by remember {
+        mutableStateOf(false)
+    }
+
+    fun setFullScreen(isFullScreen: Boolean) {
+        fullScreen = isFullScreen
+    }
+
+    if (fullScreen || isInPipMode()) {
+
+        LocalContext.current.findActivity().hideSystemUi()
+        ThePlayerView(uiState, true, ::setFullScreen)
+
+    } else {
+
+        LocalContext.current.findActivity().showSystemUi()
+
+        Scaffold(
+            topBar = {
+                CastTopAppBar(
+                    onClick = uiState.onPopBackStack,
+                    text = uiState.currentItemTitle ?: "",
+                    castManager = uiState.castManager
+                )
+            }
+        ) { innerPadding ->
+            Box(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+            ) {
+                if (uiState.isCastPlayer) {
+
+                    // Cast Controls
+                    if(fullScreen)
+                        fullScreen = false
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.Center),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        CastControls(
+                            castManager = uiState.castManager,
+                            sizeMultiple = 2,
+                            showBusy = uiState.busy
+                        )
+                    }
+
+                    CastSlider(
+                        castManager = uiState.castManager,
+                        modifier = Modifier.align(Alignment.BottomCenter),
+                        displayOnly = false,
+                        showTime = true,
+                        useTheme = false
+                    )
+
+                } else {
+                    ThePlayerView(uiState, false, ::setFullScreen)
+                }
+            }
+
+        }
+    }
+
+    if (uiState.showErrorDialog) {
+        if(uiState.errorMessage?.contains("runtime error") != true) {
+            ErrorDialog(
+                onDismissRequest = uiState.onPlayNext,
+                message = uiState.errorMessage
+            )
+        }
+    }
+}
+
+
+@SuppressLint("PrivateResource")
+@OptIn(UnstableApi::class)
+@Composable
+private fun ThePlayerView(
+    uiState: PlayerUIState,
+    isFullScreen: Boolean,
+    setFullScreen: (Boolean) -> Unit
+) {
+
+    Log.d("ThePlayerView", "Recompose")
 
     var lifecycle by remember {
         mutableStateOf(Lifecycle.Event.ON_CREATE)
@@ -118,296 +190,157 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
         }
     }
 
-
     PipListenerPreAPI12(shouldEnterPipMode = uiState.shouldEnterPictureInPicture)
 
+    val primaryColor = MaterialTheme.colorScheme.primary.toArgb()
 
-    var showControls by remember { mutableStateOf(false) }
+    var isInPipMode by remember { mutableStateOf(false) }
 
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
+    var exoModifier = Modifier.fillMaxSize()
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 
-        if (uiState.isCastPlayer) {
+        val context = LocalContext.current
 
-            // Cast Controls
-            Box(
-                modifier = Modifier.fillMaxSize()
+        // create modifier that adds pip to video player
+        exoModifier = exoModifier.onGloballyPositioned { layoutCoordinates ->
+            val builder = PictureInPictureParams.Builder()
+            if (
+                uiState.shouldEnterPictureInPicture
+                && uiState.player != null
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.Center),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    CastControls(
-                        castManager = uiState.castManager,
-                        sizeMultiple = 2,
-                        showBusy = uiState.busy
+
+                // set source rect hint, aspect ratio
+                val sourceRect =
+                    layoutCoordinates.boundsInWindow().toAndroidRectF().toRect()
+                builder.setSourceRectHint(sourceRect)
+
+                val aspectRatio = if(uiState.player.videoSize == VideoSize.UNKNOWN) {
+                    Rational(
+                        1920,
+                        1080
+                    )
+                } else {
+                    Rational(
+                        uiState.player.videoSize.width,
+                        uiState.player.videoSize.height
                     )
                 }
 
-                CastSlider(
-                    castManager = uiState.castManager,
-                    modifier = Modifier.align(Alignment.BottomCenter),
-                    displayOnly = false,
-                    showTime = true,
-                    useTheme = false
+                //Videos with strange aspect ratios (like 1248/520) cause a crash
+                val skipAspectRatio =
+                    aspectRatio.isZero ||
+                            aspectRatio.isNaN ||
+                            aspectRatio.isInfinite ||
+                            aspectRatio.toFloat() > 2.390000f ||
+                            aspectRatio.toFloat() < 0.418410
+                if(!skipAspectRatio) {
+                    builder.setAspectRatio(aspectRatio)
+                }
+            }
+
+            val playPauseAction = if (
+                uiState.shouldEnterPictureInPicture
+                && uiState.player != null
+                && uiState.player.isPlaying
+            ) {
+                RemoteAction(
+                    AndroidIcon.createWithResource(context, androidx.media3.ui.R.drawable.exo_icon_pause),
+                    context.getString(androidx.media3.ui.R.string.exo_controls_pause_description),
+                    context.getString(androidx.media3.ui.R.string.exo_controls_pause_description),
+                    PendingIntent.getBroadcast(
+                        context,
+                        REQUEST_PAUSE,
+                        Intent(ACTION_BROADCAST_CONTROL)
+                            .setPackage(context.packageName)
+                            .putExtra(EXTRA_CONTROL_TYPE, EXTRA_CONTROL_PAUSE),
+                        PendingIntent.FLAG_IMMUTABLE,
+                    ),
+                )
+            } else {
+                RemoteAction(
+                    AndroidIcon.createWithResource(context, androidx.media3.ui.R.drawable.exo_icon_play),
+                    context.getString(androidx.media3.ui.R.string.exo_controls_play_description),
+                    context.getString(androidx.media3.ui.R.string.exo_controls_play_description),
+                    PendingIntent.getBroadcast(
+                        context,
+                        REQUEST_PLAY,
+                        Intent(ACTION_BROADCAST_CONTROL)
+                            .setPackage(context.packageName)
+                            .putExtra(EXTRA_CONTROL_TYPE, EXTRA_CONTROL_PLAY),
+                        PendingIntent.FLAG_IMMUTABLE,
+                    ),
                 )
             }
 
-        } else {
-
-            // Exoplayer
-            val primaryColor = MaterialTheme.colorScheme.primary.toArgb()
-
-            var isInPipMode by remember { mutableStateOf(false) }
-
-            var exoModifier = Modifier.fillMaxSize()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-
-                val context = LocalContext.current
-
-                // create modifier that adds pip to video player
-                exoModifier = exoModifier.onGloballyPositioned { layoutCoordinates ->
-                    val builder = PictureInPictureParams.Builder()
-                    if (
-                        uiState.shouldEnterPictureInPicture
-                        && uiState.player != null
-                        && uiState.player.videoSize != VideoSize.UNKNOWN
-                        ) {
-                        // set source rect hint, aspect ratio
-                        val sourceRect =
-                            layoutCoordinates.boundsInWindow().toAndroidRectF().toRect()
-                        builder.setSourceRectHint(sourceRect)
-
-
-                        val aspectRatio = Rational(
-                            uiState.player.videoSize.width,
-                            uiState.player.videoSize.height
-                        )
-
-                        //Videos with strange aspect ratios (like 1248/520) cause a crash
-                        val skipAspectRatio =
-                                aspectRatio.isZero ||
-                                aspectRatio.isNaN ||
-                                aspectRatio.isInfinite ||
-                                aspectRatio.toFloat() > 2.390000f ||
-                                aspectRatio.toFloat() < 0.418410
-                        if(!skipAspectRatio) {
-                            builder.setAspectRatio(aspectRatio)
-                        }
-                    }
-
-                    val playPauseAction = if (
-                        uiState.shouldEnterPictureInPicture
-                        && uiState.player != null
-                        && uiState.player.isPlaying
-                        ) {
-                        RemoteAction(
-                            AndroidIcon.createWithResource(context, androidx.media3.ui.R.drawable.exo_icon_pause),
-                            context.getString(androidx.media3.ui.R.string.exo_controls_pause_description),
-                            context.getString(androidx.media3.ui.R.string.exo_controls_pause_description),
-                            PendingIntent.getBroadcast(
-                                context,
-                                REQUEST_PAUSE,
-                                Intent(ACTION_BROADCAST_CONTROL)
-                                    .setPackage(context.packageName)
-                                    .putExtra(EXTRA_CONTROL_TYPE, EXTRA_CONTROL_PAUSE),
-                                PendingIntent.FLAG_IMMUTABLE,
-                            ),
-                        )
-                    } else {
-                        RemoteAction(
-                            AndroidIcon.createWithResource(context, androidx.media3.ui.R.drawable.exo_icon_play),
-                            context.getString(androidx.media3.ui.R.string.exo_controls_play_description),
-                            context.getString(androidx.media3.ui.R.string.exo_controls_play_description),
-                            PendingIntent.getBroadcast(
-                                context,
-                                REQUEST_PLAY,
-                                Intent(ACTION_BROADCAST_CONTROL)
-                                    .setPackage(context.packageName)
-                                    .putExtra(EXTRA_CONTROL_TYPE, EXTRA_CONTROL_PLAY),
-                                PendingIntent.FLAG_IMMUTABLE,
-                            ),
-                        )
-                    }
-
-                    builder.setActions(
-                        listOf(playPauseAction),
-                    )
-
-
-                    // Add autoEnterEnabled for versions S and up
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        builder.setAutoEnterEnabled(uiState.shouldEnterPictureInPicture)
-                    }
-                    context.findActivity().setPictureInPictureParams(builder.build())
-                }
-
-                isInPipMode = isInPipMode()
-            }
-
-            AndroidView(
-                factory = { context ->
-                    PlayerView(context).also { playerView ->
-                        playerView.player = uiState.player
-                        playerView.keepScreenOn = true
-                        playerView.useController = true
-                        playerView.setShowSubtitleButton(true)
-                        playerView.setControllerVisibilityListener(
-                            PlayerView.ControllerVisibilityListener { visible ->
-                                showControls = visible == PlayerView.VISIBLE
-                            }
-                        )
-                        playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS)
-
-                        // Default is a dark green spinner - fix that
-                        try {
-                            val progressBar =
-                                playerView.findViewById<ProgressBar>(androidx.media3.ui.R.id.exo_buffering)
-                            DrawableCompat.setTint(
-                                progressBar.indeterminateDrawable,
-                                primaryColor
-                            )
-                        } catch (_: Throwable) {
-                        }
-                    }
-                },
-                update = {
-                    when (lifecycle) {
-
-                        Lifecycle.Event.ON_STOP -> {
-                            it.onPause()
-                        }
-
-                        Lifecycle.Event.ON_RESUME -> {
-                            it.onResume()
-                        }
-
-                        else -> Unit
-                    }
-
-                    it.useController = !isInPipMode
-
-                },
-                modifier = exoModifier
+            builder.setActions(
+                listOf(playPauseAction),
             )
 
-            BroadcastReceiver(player = uiState.player)
-        }
 
-
-        // Top Bar
-        val delayTime = 250
-
-        //<color name="exo_bottom_bar_background">#b0000000</color>
-        val barBackgroundColor = Color(red = 0, green = 0, blue = 0, alpha = 0xb0)
-
-        if(showControls || uiState.isCastPlayer || !PlayerStateManager.playerScreenVisible)
-            LocalContext.current.findActivity().showSystemUi()
-        else
-            LocalContext.current.findActivity().hideSystemUi()
-
-        AnimatedVisibility(
-            visible = showControls || uiState.isCastPlayer,
-            enter = expandVertically(
-                animationSpec = tween(
-                    durationMillis = delayTime,
-                )
-            ),
-            exit = shrinkVertically(
-                animationSpec = tween(
-                    durationMillis = delayTime,
-                )
-            )
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(color = barBackgroundColor),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(
-                    modifier = Modifier.padding(12.dp, 0.dp),
-                    onClick = uiState.onPopBackStack
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = null,
-                        tint = Color.White
-                    )
-                }
-
-                Text(
-                    text = uiState.currentItemTitle ?: "",
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    color = Color.White,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(12.dp, 0.dp)
-                )
-
-                Box(modifier = Modifier.padding(12.dp, 0.dp)) {
-                    CastButton(uiState.castManager)
-                }
+            // Add autoEnterEnabled for versions S and up
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                builder.setAutoEnterEnabled(uiState.shouldEnterPictureInPicture)
             }
+            context.findActivity().setPictureInPictureParams(builder.build())
         }
 
-
-        // Skip Credits
-        AnimatedVisibility(
-            visible = uiState.currentPositionWithinIntro,
-            enter = fadeIn(),
-            exit = fadeOut(),
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 24.dp, bottom = 104.dp)
-        ) {
-            Button(
-                onClick = uiState.onSkipIntro,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = Color.Black
-                )
-            ) {
-                Text(text = stringResource(tv.dustypig.dustypig.R.string.skip_intro))
-            }
-        }
-
-        // Play Next
-        AnimatedVisibility(
-            visible = uiState.currentPositionWithinCredits,
-            enter = fadeIn(),
-            exit = fadeOut(),
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 24.dp, bottom = 104.dp)
-        ) {
-            Button(
-                onClick = uiState.onPlayNext,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = Color.Black
-                )
-            ) {
-                Text(text = stringResource(tv.dustypig.dustypig.R.string.next))
-            }
-        }
-
-
+        isInPipMode = isInPipMode()
     }
 
-    if (uiState.showErrorDialog) {
-        if(uiState.errorMessage?.contains("runtime error") != true) {
-            ErrorDialog(
-                onDismissRequest = uiState.onPlayNext,
-                message = uiState.errorMessage
-            )
-        }
-    }
+    AndroidView(
+        factory = { context ->
+            PlayerView(context).also { playerView ->
+                playerView.player = uiState.player
+                playerView.keepScreenOn = true
+                playerView.useController = true
+                playerView.controllerAutoShow = true
+                playerView.setShowSubtitleButton(true)
+                playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS)
+                playerView.setFullscreenButtonState(isFullScreen)
+                playerView.setFullscreenButtonClickListener { isFullScreen ->
+                    setFullScreen(isFullScreen)
+                }
+
+                // Default is a dark green spinner - fix that
+                try {
+                    val progressBar =
+                        playerView.findViewById<ProgressBar>(androidx.media3.ui.R.id.exo_buffering)
+                    DrawableCompat.setTint(
+                        progressBar.indeterminateDrawable,
+                        primaryColor
+                    )
+                } catch (_: Throwable) {
+                }
+            }
+        },
+
+        update = {
+            when (lifecycle) {
+
+                Lifecycle.Event.ON_STOP -> {
+                    it.onPause()
+                }
+
+                Lifecycle.Event.ON_RESUME -> {
+                    it.onResume()
+                }
+
+                else -> Unit
+            }
+
+            it.useController = !isInPipMode
+
+        },
+        modifier = exoModifier
+    )
+
+    BroadcastReceiver(player = uiState.player)
 }
+
+
+
+
+
 
 
 
@@ -418,7 +351,7 @@ private fun PlayerScreenInternal(uiState: PlayerUIState) {
  */
 
 @Composable
-fun isInPipMode(): Boolean {
+private fun isInPipMode(): Boolean {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         val activity = LocalContext.current.findActivity()
         var pipMode by remember { mutableStateOf(activity.isInPictureInPictureMode) }
@@ -446,7 +379,7 @@ fun isInPipMode(): Boolean {
  * Android 12
  */
 @Composable
-fun PipListenerPreAPI12(shouldEnterPipMode: Boolean) {
+private fun PipListenerPreAPI12(shouldEnterPipMode: Boolean) {
     // Using the rememberUpdatedState ensures that the updated version of shouldEnterPipMode is
     // used by the DisposableEffect
     val currentShouldEnterPipMode by rememberUpdatedState(newValue = shouldEnterPipMode)
@@ -478,7 +411,7 @@ fun PipListenerPreAPI12(shouldEnterPipMode: Boolean) {
  * controls - if you use a MediaSession these controls come with it.
  */
 @Composable
-fun BroadcastReceiver(player: Player?) {
+private fun BroadcastReceiver(player: Player?) {
     if (isInPipMode() && player != null) {
         val context = LocalContext.current
         DisposableEffect(key1 = player, key2 = context) {

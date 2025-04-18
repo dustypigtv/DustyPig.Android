@@ -119,7 +119,8 @@ class MainActivity : ComponentActivity() {
                 this.showSystemUi()
 
             requestedOrientation = if (playerScreenVisible) {
-                ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                //ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             } else if (isTablet()) {
                 ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             } else {

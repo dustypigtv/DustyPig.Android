@@ -187,9 +187,7 @@ class PlayerViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isCastPlayer = false,
-                        shouldEnterPictureInPicture =
-                            try{ _localPlayer.isPlaying }
-                            catch(_: Exception) { false }
+                        shouldEnterPictureInPicture = true
                     )
                 }
                 switchPlayer()
@@ -242,16 +240,6 @@ class PlayerViewModel @Inject constructor(
             Log.e(TAG, "onMediaItemTransition", ex)
         }
     }
-
-    override fun onIsPlayingChanged(isPlaying: Boolean) {
-        super.onIsPlayingChanged(isPlaying)
-        _uiState.update {
-            it.copy(
-                shouldEnterPictureInPicture = isPlaying
-            )
-        }
-    }
-
 
 
 
