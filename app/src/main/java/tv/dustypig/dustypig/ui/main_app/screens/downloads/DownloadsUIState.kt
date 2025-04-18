@@ -10,6 +10,7 @@ data class DownloadsUIState(
     val errorMessage: String? = null,
     val jobs: List<UIJob> = listOf(),
     val downloadTutorialSeen: Boolean = true,
+    val networkAvailable: Boolean = false,
 
     //Events
     val onHideError: () -> Unit = { },

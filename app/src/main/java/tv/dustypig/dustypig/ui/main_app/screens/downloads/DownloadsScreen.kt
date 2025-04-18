@@ -326,7 +326,7 @@ private fun DownloadCard(
             JobInfo(job)
         } else {
             Header(download.artworkIsPoster, download.artworkUrl) {
-                if (download.status == DownloadStatus.Finished) {
+                if (download.status == DownloadStatus.Finished || uiState.networkAvailable) {
                     TintedIcon(
                         imageVector = Icons.Filled.PlayCircleOutline,
                         modifier = Modifier

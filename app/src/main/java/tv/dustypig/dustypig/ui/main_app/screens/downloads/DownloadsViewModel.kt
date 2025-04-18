@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.dustypig.dustypig.api.models.MediaTypes
+import tv.dustypig.dustypig.global_managers.NetworkManager
 import tv.dustypig.dustypig.global_managers.download_manager.MyDownloadManager
 import tv.dustypig.dustypig.global_managers.download_manager.UIDownload
 import tv.dustypig.dustypig.global_managers.download_manager.UIJob
@@ -25,7 +26,8 @@ class DownloadsViewModel
 @Inject constructor(
     private val routeNavigator: RouteNavigator,
     private val downloadManager: MyDownloadManager,
-    private val settingsManager: SettingsManager
+    private val settingsManager: SettingsManager,
+    private val networkManager: NetworkManager
 ) : ViewModel(), RouteNavigator by routeNavigator {
 
     private val _uiState = MutableStateFlow(
@@ -46,6 +48,16 @@ class DownloadsViewModel
                 it.copy(
                     downloadTutorialSeen = settingsManager.getDownloadTutorialSeen()
                 )
+            }
+        }
+
+        viewModelScope.launch {
+            networkManager.isConnectedStateFlow.collectLatest { networkConnected ->
+                _uiState.update {
+                    it.copy(
+                        networkAvailable = networkConnected
+                    )
+                }
             }
         }
 
