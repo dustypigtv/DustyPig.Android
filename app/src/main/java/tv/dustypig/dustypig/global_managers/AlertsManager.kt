@@ -45,7 +45,8 @@ class AlertsManager @Inject constructor(
     private val notificationsRepository: NotificationsRepository,
     private val authManager: AuthManager,
     private val settingsManager: SettingsManager,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val networkManager: NetworkManager
 ) {
     companion object {
 
@@ -263,6 +264,13 @@ class AlertsManager @Inject constructor(
                             }
                         }
                 }
+            }
+        }
+
+        scope.launch {
+            networkManager.isConnectedStateFlow.collectLatest {
+                if(it)
+                    triggerUpdate()
             }
         }
 
