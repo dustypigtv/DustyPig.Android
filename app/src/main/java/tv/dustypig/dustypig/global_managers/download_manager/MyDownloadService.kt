@@ -54,10 +54,10 @@ class MyDownloadService : DownloadService(
         fun getDownloadManager(context: Context): DownloadManager {
             if(_downloadManager == null) {
                 _downloadManager = DownloadManager(
-                    context,
-                    getDatabaseProvider(context),
-                    getDownloadCache(context),
-                    getHttpDataSourceFactory(context),
+                    context.applicationContext,
+                    getDatabaseProvider(context.applicationContext),
+                    getDownloadCache(context.applicationContext),
+                    getHttpDataSourceFactory(context.applicationContext),
                     Executors.newFixedThreadPool(6)
                 )
             }
@@ -67,25 +67,25 @@ class MyDownloadService : DownloadService(
         @Synchronized
         private fun getDatabaseProvider(context: Context): StandaloneDatabaseProvider {
             if (_databaseProvider == null)
-                _databaseProvider = StandaloneDatabaseProvider(context)
+                _databaseProvider = StandaloneDatabaseProvider(context.applicationContext)
             return _databaseProvider as StandaloneDatabaseProvider
         }
 
         @Synchronized
-        fun getDownloadDirectory(context: Context): File {
+        private fun getDownloadDirectory(context: Context): File {
             if (_downloadDirectory == null)
-                _downloadDirectory = context.getExternalFilesDir(null) ?: context.filesDir
+                _downloadDirectory = context.applicationContext.getExternalFilesDir(null) ?: context.applicationContext.filesDir
             return _downloadDirectory as File
         }
 
         @Synchronized
         private fun getDownloadVideosDirectory(context: Context): File {
-            return File(getDownloadDirectory(context), DOWNLOAD_VIDEOS_DIRECTORY)
+            return File(getDownloadDirectory(context.applicationContext), DOWNLOAD_VIDEOS_DIRECTORY)
         }
 
         @Synchronized
         fun getDownloadedFilesDirectory(context: Context): File {
-            return File(getDownloadDirectory(context), DOWNLOAD_FILES_DIRECTORY)
+            return File(getDownloadDirectory(context.applicationContext), DOWNLOAD_FILES_DIRECTORY)
         }
 
 
@@ -93,9 +93,9 @@ class MyDownloadService : DownloadService(
         private fun getDownloadCache(context: Context): SimpleCache {
             if (_downloadCache == null)
                 _downloadCache = SimpleCache(
-                    getDownloadVideosDirectory(context),
+                    getDownloadVideosDirectory(context.applicationContext),
                     NoOpCacheEvictor(),
-                    getDatabaseProvider(context)
+                    getDatabaseProvider(context.applicationContext)
                 )
             return _downloadCache as SimpleCache
         }

@@ -90,7 +90,7 @@ class PlayerViewModel @Inject constructor(
         .setHandleAudioBecomingNoisy(true)
         .setMediaSourceFactory(
             DefaultMediaSourceFactory(app)
-                .setDataSourceFactory(MyDownloadService.getDataSourceFactory(app))
+                .setDataSourceFactory(MyDownloadService.getDataSourceFactory(app.applicationContext))
         )
         .build().also {
             it.addListener(this)
