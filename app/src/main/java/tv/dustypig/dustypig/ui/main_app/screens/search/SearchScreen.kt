@@ -253,38 +253,48 @@ private fun AvailableLayout(
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    LazyVerticalGrid(
-        modifier = Modifier.fillMaxSize(),
-        state = listState,
-        columns = GridCells.Adaptive(minSize = 116.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        contentPadding = PaddingValues(12.dp)
-    ) {
+    val cnt = uiState.availableItems.size + uiState.availablePeople.size
 
-        items(uiState.availableItems, key = { "${it.id}.m" }) {
+    if(cnt > 0) {
+        LazyVerticalGrid(
+            modifier = Modifier.fillMaxSize(),
+            state = listState,
+            columns = GridCells.Adaptive(minSize = 116.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            contentPadding = PaddingValues(12.dp)
+        ) {
 
-            Box(
-                modifier = Modifier.padding(0.dp, 12.dp)
-            ) {
+            items(uiState.availableItems, key = { "${it.id}.m" }) {
 
-                BasicMediaView(
-                    basicMedia = it,
+                Box(
+                    modifier = Modifier.padding(0.dp, 12.dp)
+                ) {
+
+                    BasicMediaView(
+                        basicMedia = it,
+                        routeNavigator = routeNavigator,
+                        clicked = { keyboardController?.hide() }
+                    )
+                }
+            }
+
+            items(uiState.availablePeople, key = { "${it.tmdbId}.p" }) {
+                BasicPersonView(
+                    basicPerson = it,
                     routeNavigator = routeNavigator,
                     clicked = { keyboardController?.hide() }
                 )
             }
         }
-
-        items(uiState.availablePeople, key = { "${it.tmdbId}.p" }) {
-            BasicPersonView(
-                basicPerson = it,
-                routeNavigator = routeNavigator,
-                clicked = { keyboardController?.hide() }
-            )
+    } else {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = stringResource(R.string.no_results),
+                color = MaterialTheme.colorScheme.primary)
         }
-
-
     }
 }
 
@@ -296,39 +306,50 @@ private fun TMDBLayout(
 ) {
 
     val keyboardController = LocalSoftwareKeyboardController.current
+    val cnt = uiState.tmdbItems.size + uiState.tmdbPeople.size
 
-    LazyVerticalGrid(
-        modifier = Modifier.fillMaxSize(),
-        state = listState,
-        columns = GridCells.Adaptive(minSize = 116.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        contentPadding = PaddingValues(12.dp)
-    ) {
+    if(cnt > 0) {
+        LazyVerticalGrid(
+            modifier = Modifier.fillMaxSize(),
+            state = listState,
+            columns = GridCells.Adaptive(minSize = 116.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            contentPadding = PaddingValues(12.dp)
+        ) {
 
 
-        items(uiState.tmdbItems, key = { "${it.tmdbId}.${it.mediaType}" }) {
+            items(uiState.tmdbItems, key = { "${it.tmdbId}.${it.mediaType}" }) {
 
-            Box(
-                modifier = Modifier.padding(0.dp, 12.dp)
-            ) {
-                BasicTMDBView(
-                    basicTMDB = it,
+                Box(
+                    modifier = Modifier.padding(0.dp, 12.dp)
+                ) {
+                    BasicTMDBView(
+                        basicTMDB = it,
+                        routeNavigator = routeNavigator,
+                        clicked = { keyboardController?.hide() }
+                    )
+                }
+
+            }
+
+            items(uiState.tmdbPeople, key = { it.tmdbId }) {
+                BasicPersonView(
+                    basicPerson = it,
                     routeNavigator = routeNavigator,
                     clicked = { keyboardController?.hide() }
                 )
             }
 
         }
-
-        items(uiState.tmdbPeople, key = { it.tmdbId }) {
-            BasicPersonView(
-                basicPerson = it,
-                routeNavigator = routeNavigator,
-                clicked = { keyboardController?.hide() }
-            )
+    } else {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = stringResource(R.string.no_results),
+                color = MaterialTheme.colorScheme.primary)
         }
-
     }
 }
 
