@@ -4,6 +4,7 @@
     <!--    <style name="Theme.DustyPig" parent="android:Theme.Material.Light.NoActionBar">-->
     <style name="Theme.DustyPig" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowBackground">@android:color/black</item>
+        <item name="mediaRouteButtonTint">#ffffff</item>
     </style>
 
 </resources>
