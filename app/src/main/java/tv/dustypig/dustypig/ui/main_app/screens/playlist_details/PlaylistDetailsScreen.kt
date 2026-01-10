@@ -880,8 +880,7 @@ private fun PlaylistDetailsScreenPreview() {
                 introEndTime = null,
                 creditsStartTime = null,
                 bifUrl = "",
-                videoUrl = "",
-                srtSubtitles = listOf()
+                videoUrl = ""
             )
         )
     }

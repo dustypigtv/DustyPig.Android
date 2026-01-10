@@ -24,7 +24,6 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -91,7 +90,6 @@ import tv.dustypig.dustypig.ui.main_app.screens.settings.profiles_settings.edit_
 import tv.dustypig.dustypig.ui.main_app.screens.settings.switch_profiles.SwitchProfilesNav
 import tv.dustypig.dustypig.ui.main_app.screens.settings.theme_settings.ThemeSettingsNav
 import tv.dustypig.dustypig.ui.main_app.screens.show_more.ShowMoreNav
-import kotlin.OptIn
 import androidx.annotation.OptIn as CastOptIn
 
 
@@ -103,7 +101,6 @@ private data class RootScreenMap(
     val notifications: Boolean = false
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @CastOptIn(UnstableApi::class)
 @Composable
 fun AppNav(vm: AppNavViewModel = hiltViewModel()) {
@@ -112,7 +109,6 @@ fun AppNav(vm: AppNavViewModel = hiltViewModel()) {
     val unseenNotifications by vm.notificationCount.collectAsState(null)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
-    //val playerVisible by PlayerStateManager.playerScreenVisible.collectAsState()
     val playerVisible by rememberUpdatedState(PlayerStateManager.playerScreenVisible)
     val castState by vm.castManager.castState.collectAsState()
 

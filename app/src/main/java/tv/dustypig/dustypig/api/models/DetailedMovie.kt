@@ -26,7 +26,6 @@ data class DetailedMovie(
     val introStartTime: Double? = null,
     val introEndTime: Double? = null,
     val creditsStartTime: Double? = null,
-    val srtSubtitles: List<SRTSubtitles>? = null,
     val titleRequestPermission: TitleRequestPermissions = TitleRequestPermissions.Disabled,
     val accessRequestedStatus: OverrideRequestStatus = OverrideRequestStatus.NotRequested,
 ) {

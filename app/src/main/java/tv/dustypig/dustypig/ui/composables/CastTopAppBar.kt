@@ -1,5 +1,6 @@
 package tv.dustypig.dustypig.ui.composables
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -14,10 +15,15 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.util.UnstableApi
+import androidx.mediarouter.app.MediaRouteButton
+import com.google.android.gms.cast.framework.CastButtonFactory
+import com.google.android.gms.cast.framework.CastContext
 import tv.dustypig.dustypig.global_managers.cast_manager.CastManager
 
 
@@ -29,6 +35,15 @@ fun CastTopAppBar(
     text: String,
     castManager: CastManager?
 ) {
+
+    val context = LocalContext.current
+    val mediaRouteButton = try {
+        val button = MediaRouteButton(context)
+        CastButtonFactory.setUpMediaRouteButton(context, button)
+        button
+    } catch (_: Exception) {
+        null
+    }
 
     TopAppBar(
         title = {
@@ -44,7 +59,11 @@ fun CastTopAppBar(
             }
         },
         actions = {
-            CastButton(castManager = castManager)
+            if(mediaRouteButton != null) {
+                AndroidView(
+                    factory = { _ -> mediaRouteButton },
+                )
+            }
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),

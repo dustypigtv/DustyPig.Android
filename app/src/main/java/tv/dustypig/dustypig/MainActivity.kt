@@ -6,7 +6,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -35,6 +34,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.media3.common.util.UnstableApi
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics
@@ -63,7 +63,7 @@ import javax.inject.Inject
 
 @UnstableApi
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
@@ -96,10 +96,7 @@ class MainActivity : ComponentActivity() {
         FCMManager.init()
         analytics = Firebase.analytics
 
-
-
-
-        enableEdgeToEdge()
+        //enableEdgeToEdge()
 
         setContent {
 
@@ -119,7 +116,6 @@ class MainActivity : ComponentActivity() {
                 this.showSystemUi()
 
             requestedOrientation = if (playerScreenVisible) {
-                //ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
                 ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             } else if (isTablet()) {
                 ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
@@ -147,25 +143,6 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         checkIntent(intent)
     }
-
-    @androidx.annotation.OptIn(UnstableApi::class)
-    override fun onResume() {
-        super.onResume()
-        castManager.setPassiveScanning()
-    }
-
-    @androidx.annotation.OptIn(UnstableApi::class)
-    override fun onPause() {
-        super.onPause()
-        castManager.stopScanning()
-    }
-
-    @androidx.annotation.OptIn(UnstableApi::class)
-    override fun onDestroy() {
-        super.onDestroy()
-        castManager.destroy()
-    }
-
 
 
     private fun checkIntent(intent: Intent?) {

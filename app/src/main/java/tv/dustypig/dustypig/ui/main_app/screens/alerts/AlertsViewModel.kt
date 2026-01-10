@@ -3,6 +3,7 @@ package tv.dustypig.dustypig.ui.main_app.screens.alerts
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.impl.utils.forAll
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -96,8 +97,8 @@ class AlertsViewModel @Inject constructor(
     private fun deleteAll() {
         _uiState.update { it.copy(busy = true) }
         viewModelScope.launch {
+            notificationsRepository.deleteAll()
             try {
-                notificationsRepository.deleteAll()
                 AlertsManager.triggerUpdate()
             }
             catch (ex: Exception) {

@@ -15,6 +15,5 @@ data class PlaylistItem(
     val introEndTime: Double?,
     val creditsStartTime: Double?,
     val bifUrl: String,
-    val videoUrl: String,
-    val srtSubtitles: List<SRTSubtitles>?
+    val videoUrl: String
 )

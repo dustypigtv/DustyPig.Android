@@ -3,15 +3,18 @@ package tv.dustypig.dustypig.global_managers.cast_manager
 import android.content.Context
 import android.util.Log
 import androidx.media3.common.util.UnstableApi
+import androidx.mediarouter.app.MediaRouteButton
 import androidx.mediarouter.media.MediaControlIntent
 import androidx.mediarouter.media.MediaRouteSelector
 import androidx.mediarouter.media.MediaRouter
 import androidx.mediarouter.media.MediaRouter.RouteInfo
+import androidx.work.impl.utils.tryDelegateRemoteListenableWorker
 import com.google.android.gms.cast.MediaError
 import com.google.android.gms.cast.MediaLoadRequestData
 import com.google.android.gms.cast.MediaMetadata
 import com.google.android.gms.cast.MediaQueueData
 import com.google.android.gms.cast.MediaSeekOptions
+import com.google.android.gms.cast.framework.CastButtonFactory
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManagerListener
@@ -36,9 +39,8 @@ class CastManager @Inject constructor(
 
     private val tag = "CastManager"
 
-
     private var mediaRouter: MediaRouter? = null
-    private val mediaCallback: MediaRouter.Callback = MediaRouterCallback(::refreshRoutes)
+//    private val mediaCallback: MediaRouter.Callback = MediaRouterCallback(::refreshRoutes)
     private val mediaSelector = MediaRouteSelector
         .Builder()
         .addControlCategory(MediaControlIntent.CATEGORY_REMOTE_PLAYBACK)
@@ -56,11 +58,6 @@ class CastManager @Inject constructor(
     val castState = _castState.asStateFlow()
 
     private val connectionStateListeners = ArrayList<CastConnectionStateListener>()
-//    private val _castButtonState = MutableStateFlow(CastConnectionState.Unavailable)
-//    /**
-//     * Only used for cast button. Use CastConnectionStateListener in ViewModel
-//     */
-//    val castButtonState = _castButtonState.asStateFlow()
 
 
     init {
@@ -73,44 +70,36 @@ class CastManager @Inject constructor(
                 it.addSessionManagerListener(sessionListener, CastSession::class.java)
             }
 
-            _castState.update {
-                it.copy(
-                    castConnectionState = CastConnectionState.Disconnected,
-                    isConnectedToNetwork = networkManager.isConnected()
-                )
-            }
-
             Log.i(tag, "Cast available")
-            Log.i(tag, CastOptionsProvider.receiverApplicationId(context))
         } catch (ex: Exception) {
             Log.e(tag, "init", ex)
-            Log.i(tag, "Cast not available")
         }
 
     }
+
 
     /**
      * Call this before showing picker dialogs
      */
     fun setActiveScanning() {
-        Log.d(tag, "setActiveScanning")
-        mediaRouter?.addCallback(
-            mediaSelector,
-            mediaCallback,
-            MediaRouter.CALLBACK_FLAG_PERFORM_ACTIVE_SCAN
-        )
+//        Log.d(tag, "setActiveScanning")
+//        mediaRouter?.addCallback(
+//            mediaSelector,
+//            mediaCallback,
+//            MediaRouter.CALLBACK_FLAG_PERFORM_ACTIVE_SCAN
+//        )
     }
 
     /**
      * Call this from Activity.onStart & after dismissing picker dialogs
      */
     fun setPassiveScanning() {
-        Log.d(tag, "setPassiveScanning")
-        mediaRouter?.addCallback(
-            mediaSelector,
-            mediaCallback,
-            MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY
-        )
+//        Log.d(tag, "setPassiveScanning")
+//        mediaRouter?.addCallback(
+//            mediaSelector,
+//            mediaCallback,
+//            MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY
+//        )
     }
 
     /**
@@ -118,7 +107,7 @@ class CastManager @Inject constructor(
      */
     fun stopScanning() {
         Log.d(tag, "stopScanning")
-        mediaRouter?.addCallback(mediaSelector, mediaCallback, 0)
+//        mediaRouter?.addCallback(mediaSelector, mediaCallback, 0)
     }
 
     /**
@@ -126,7 +115,7 @@ class CastManager @Inject constructor(
      */
     fun destroy() {
         Log.d(tag, "destroy")
-        mediaRouter?.removeCallback(mediaCallback)
+//        mediaRouter?.removeCallback(mediaCallback)
     }
 
 
@@ -221,33 +210,33 @@ class CastManager @Inject constructor(
     }
 
 
-    private fun refreshRoutes() {
-        try {
-            val routes = mediaRouter?.routes?.toMutableList() ?: mutableListOf()
-            var i = routes.size
-            while (i-- > 0) {
-                val include = !routes[i].isDefault
-                        && !routes[i].isBluetooth
-                        && routes[i].isEnabled
-                        && routes[i].matchesSelector(mediaSelector)
-                if (!include) {
-                    routes.removeAt(i)
-                }
-            }
-            routes.sortWith { o1, o2 -> o1!!.name.compareTo(o2!!.name, ignoreCase = true) }
-
-            val selectedRoute: RouteInfo? = mediaRouter?.selectedRoute
-
-            _castState.update {
-                it.copy(
-                    availableRoutes = routes,
-                    selectedRoute = selectedRoute
-                )
-            }
-        } catch (ex: Exception) {
-            Log.e(tag, ex.localizedMessage, ex)
-        }
-    }
+//    private fun refreshRoutes() {
+//        try {
+//            val routes = mediaRouter?.routes?.toMutableList() ?: mutableListOf()
+//            var i = routes.size
+//            while (i-- > 0) {
+//                val include = !routes[i].isDefault
+//                        && !routes[i].isBluetooth
+//                        && routes[i].isEnabled
+//                        && routes[i].matchesSelector(mediaSelector)
+//                if (!include) {
+//                    routes.removeAt(i)
+//                }
+//            }
+//            routes.sortWith { o1, o2 -> o1!!.name.compareTo(o2!!.name, ignoreCase = true) }
+//
+//            val selectedRoute: RouteInfo? = mediaRouter?.selectedRoute
+//
+//            _castState.update {
+//                it.copy(
+//                    availableRoutes = routes,
+//                    selectedRoute = selectedRoute
+//                )
+//            }
+//        } catch (ex: Exception) {
+//            Log.e(tag, ex.localizedMessage, ex)
+//        }
+//    }
 
     private fun setRemoteMediaClientAndInform(
         newRemoteMediaClient: RemoteMediaClient?,

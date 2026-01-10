@@ -4,7 +4,6 @@ data class DetailedEpisode(
     val id: Int = 0,
     val bifUrl: String? = null,
     val videoUrl: String = "",
-    val srtSubtitles: List<SRTSubtitles>? = null,
     var played: Double? = null,
     var upNext: Boolean = false,
     val title: String = "",
