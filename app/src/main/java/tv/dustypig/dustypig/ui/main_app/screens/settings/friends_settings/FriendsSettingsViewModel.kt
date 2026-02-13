@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import tv.dustypig.dustypig.api.models.StringValue
 import tv.dustypig.dustypig.api.repositories.FriendsRepository
 import tv.dustypig.dustypig.logToCrashlytics
 import tv.dustypig.dustypig.nav.RouteNavigator
@@ -87,7 +88,7 @@ class FriendsSettingsViewModel @Inject constructor(
         }
         viewModelScope.launch {
             try {
-                friendsRepository.invite(email)
+                friendsRepository.invite(StringValue(email))
                 _uiState.update {
                     it.copy(
                         busy = false,

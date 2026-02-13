@@ -2,6 +2,7 @@ package tv.dustypig.dustypig.api.repositories
 
 import tv.dustypig.dustypig.api.ApiService
 import tv.dustypig.dustypig.api.models.LibraryFriendLink
+import tv.dustypig.dustypig.api.models.StringValue
 import tv.dustypig.dustypig.api.models.UpdateFriend
 import tv.dustypig.dustypig.di.AuthenticatedAPIService
 import tv.dustypig.dustypig.global_managers.auth_manager.AuthManager
@@ -16,7 +17,7 @@ class FriendsRepository @Inject constructor(
 
     suspend fun list() = wrapAPICallWithReturnData { apiService.listFriends() }
 
-    suspend fun invite(email: String) = wrapAPICall { apiService.inviteFriend(email) }
+    suspend fun invite(email: StringValue) = wrapAPICall { apiService.inviteFriend(email) }
 
     suspend fun details(id: Int) = wrapAPICallWithReturnData { apiService.friendDetails(id) }
 

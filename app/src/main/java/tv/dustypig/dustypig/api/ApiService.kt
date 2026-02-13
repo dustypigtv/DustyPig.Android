@@ -95,7 +95,7 @@ interface ApiService {
     suspend fun listFriends(): Response<ResultOf<List<BasicFriend>>>
 
     @POST("Friends/Invite")
-    suspend fun inviteFriend(@Body email: String): Response<Result>
+    suspend fun inviteFriend(@Body email: StringValue): Response<Result>
 
     @GET("Friends/Details/{id}")
     suspend fun friendDetails(@Path("id") id: Int): Response<ResultOf<DetailedFriend>>
